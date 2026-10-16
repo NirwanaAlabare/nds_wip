@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
+use App\Services\MarketingBomService;
 use App\Services\MarketingHistoryService;
+use App\Services\MarketingApprovalService;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
@@ -36,6 +38,12 @@ class Marketing_CostingController extends Controller
                     $status->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
                 })
                 ->groupBy('id_costing');
+            // Header BOM dibuat saat Costing disimpan, jadi "sudah ada BOM" dilihat dari jumlah item aktifnya.
+            $bomItemCounts = $db->table('bom_marketing_detail')
+                ->select('id_bom_marketing', DB::raw('COUNT(*) as item_count'))
+                ->where('cancel', 'N')
+                ->groupBy('id_bom_marketing');
+            $statusSql = MarketingApprovalService::statusSql('costing', 'a');
 
             $data = $db->table('act_costing as a')
                 ->leftJoin('mastersupplier as b', 'a.id_buyer', '=', 'b.Id_Supplier')
@@ -48,6 +56,9 @@ class Marketing_CostingController extends Controller
                     $join->on('bom_latest.id_costing', '=', 'a.id');
                 })
                 ->leftJoin('bom_marketing as bm', 'bm.id', '=', 'bom_latest.latest_id')
+                ->leftJoinSub($bomItemCounts, 'bom_items', function ($join) {
+                    $join->on('bom_items.id_bom_marketing', '=', 'bm.id');
+                })
                 ->select(
                     'a.id',
                     'a.cost_no',
@@ -76,20 +87,39 @@ class Marketing_CostingController extends Controller
                     's.d_insert as so_created_at',
                     'bm.id as bom_id',
                     'bm.no_katalog_bom as bom_no',
-                    'bm.created_at as bom_created_at'
+                    'bm.created_at as bom_created_at',
+                    DB::raw('COALESCE(bom_items.item_count, 0) as bom_item_count'),
+                    DB::raw($statusSql . ' as approval_status'),
+                    DB::raw(MarketingApprovalService::latestNoteSql('costing', 'a.id') . ' as approval_note'),
+                    DB::raw(MarketingApprovalService::statusSql('bom', 'bm') . ' as bom_approval_status'),
+                    DB::raw(MarketingApprovalService::latestNoteSql('bom', 'bm.id') . ' as bom_approval_note'),
+                    DB::raw(MarketingApprovalService::pendingUnlockSql('costing', 'a.id') . ' as costing_unlock_pending'),
+                    DB::raw('IF(bm.id IS NULL, 0, ' . MarketingApprovalService::pendingUnlockSql('bom', 'bm.id') . ') as bom_unlock_pending')
                 )
                 ->orderBy('a.id', 'desc');
 
-            if (!empty($tgl_awal) && !empty($tgl_akhir)) {
-                $data->whereDate('a.cost_date', '>=', $tgl_awal)
-                     ->whereDate('a.cost_date', '<=', $tgl_akhir);
+            // Jumlah per status mengikuti filter tanggal/buyer, tapi tidak terfilter status itu sendiri.
+            $statusCounts = $db->table('act_costing as a')
+                ->leftJoin('mastersupplier as b', 'a.id_buyer', '=', 'b.Id_Supplier')
+                ->select(DB::raw($statusSql . ' as approval_status'), DB::raw('COUNT(*) as total'))
+                ->groupBy('approval_status');
+
+            foreach ([$data, $statusCounts] as $query) {
+                if (!empty($tgl_awal) && !empty($tgl_akhir)) {
+                    $query->whereDate('a.cost_date', '>=', $tgl_awal)
+                        ->whereDate('a.cost_date', '<=', $tgl_akhir);
+                }
+                if ($request->filled('buyers')) {
+                    $query->whereIn('b.Id_Supplier', (array) $request->buyers);
+                }
             }
 
-            if ($request->filled('buyers')) {
-                $data->whereIn('b.Id_Supplier', (array) $request->buyers);
+            if (in_array($request->approval_status, ['awaiting', 'return', 'cancel', 'approved', 'unlocked'], true)) {
+                $data->whereRaw($statusSql . ' = ?', [$request->approval_status]);
             }
 
             return DataTables::of($data)
+                ->with('status_counts', $statusCounts->pluck('total', 'approval_status'))
                 ->addIndexColumn()
                 ->addColumn('tgl_costing', function ($row) {
                     return $row->cost_date ? date('d-m-Y', strtotime($row->cost_date)) : '-';
@@ -131,7 +161,7 @@ class Marketing_CostingController extends Controller
         }
 
         $history = $db->table('mkt_hist')
-            ->where('id_costing', $id)
+            ->where('id_act_cost', $id)
             ->orderBy('created_at')
             ->orderBy('id')
             ->get(['id', 'type', 'type_id', 'desc', 'user', 'created_at', 'action']);
@@ -307,6 +337,8 @@ class Marketing_CostingController extends Controller
                 ]);
             }
 
+            app(MarketingBomService::class)->ensureForCosting($id);
+
             app(MarketingHistoryService::class)->record(
                 $id,
                 'costing',
@@ -318,6 +350,29 @@ class Marketing_CostingController extends Controller
         });
 
         return redirect()->route('edit-costing', $insertId)->with('success', 'Costing berhasil dibuat');
+    }
+
+    // Costing Approved tidak boleh diubah sebelum di-unlock (lihat MarketingApprovalService).
+    // Untuk aksi simpan, costing Return / Cancel / Unlocked dikembalikan ke Awaiting Approval.
+    private function costingLockedResponse(Request $request, $costingId, bool $markEdited = true)
+    {
+        $approvals = app(MarketingApprovalService::class);
+        if ($approvals->canEditCosting((int) $costingId)) {
+            if ($markEdited) {
+                $approvals->markEdited('costing', (int) $costingId);
+            }
+            return null;
+        }
+
+        $message = $approvals->status('costing', (int) $costingId) === 'unlocked'
+            ? 'Costing sedang di-unlock untuk user lain. Hanya peminta unlock yang bisa mengubahnya.'
+            : 'Costing sudah di-approve dan terkunci. Ajukan Request Unlock terlebih dahulu.';
+        if ($request->ajax() || $request->expectsJson()) {
+            // HTTP 200 + status 423: front-end costing membaca res.status/res.message di callback success.
+            return response()->json(['status' => 423, 'message' => $message]);
+        }
+
+        return redirect()->route('master-costing')->with('warning', $message);
     }
 
     private function generateCostingNumbers($buyerId, $now): array
@@ -443,7 +498,7 @@ class Marketing_CostingController extends Controller
             [$newId, $costNo] = $db->transaction(function () use ($db, $original, $id, $now, &$copiedFiles) {
             $numbers = $this->generateCostingNumbers($original->id_buyer, $now);
             $pictures = $db->table('act_costing_picture')
-                ->where('id_costing', $id)
+                ->where('id_act_cost', $id)
                 ->orderBy('sort_order')
                 ->orderBy('id')
                 ->get();
@@ -536,7 +591,7 @@ class Marketing_CostingController extends Controller
 
             foreach ($newPictures as $picture) {
                 $db->table('act_costing_picture')->insert([
-                    'id_costing' => $newId,
+                    'id_act_cost' => $newId,
                     'file_name' => $picture['file_name'],
                     'original_name' => $picture['original_name'],
                     'sort_order' => $picture['sort_order'],
@@ -544,6 +599,8 @@ class Marketing_CostingController extends Controller
                     'updated_at' => $now,
                 ]);
             }
+
+            app(MarketingBomService::class)->ensureForCosting($newId);
 
             app(MarketingHistoryService::class)->record(
                 $newId,
@@ -573,7 +630,6 @@ class Marketing_CostingController extends Controller
 
     public function edit($id)
     {
-
         $db = DB::connection('mysql_sb');
         $costing = $db->table('act_costing as a')
             ->leftJoin('masterproduct as p', 'a.id_product', '=', 'p.id')
@@ -645,7 +701,7 @@ class Marketing_CostingController extends Controller
            ->get();
 
         $pictures = $db->table('act_costing_picture')
-            ->where('id_costing', $id)
+            ->where('id_act_cost', $id)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
@@ -680,11 +736,34 @@ class Marketing_CostingController extends Controller
             'set'        => $set,
             'destinations'        => $destinations,
             'seasons'             => $seasons,
+            'unlock'              => app(MarketingApprovalService::class)->costingUnlockState((int) $id),
+            'buyerName'           => $db->table('mastersupplier')->where('Id_Supplier', $costing->id_buyer)->value('Supplier'),
             'page' => 'dashboard-marketing',
             "subPageGroup" => "marketing-master",
             "subPage" => "marketing-master-costing",
             'containerFluid' => true
         ]);
+    }
+
+    public function cancelUnlockRequest($id)
+    {
+        return $this->lockAction(fn () => app(MarketingApprovalService::class)->cancelUnlockRequest((int) $id), 'Request unlock dibatalkan.');
+    }
+
+    public function cancelEditing($id)
+    {
+        return $this->lockAction(fn () => app(MarketingApprovalService::class)->relockCosting((int) $id, false), 'Edit dibatalkan, Costing dikunci lagi.');
+    }
+
+    private function lockAction(callable $action, string $message)
+    {
+        try {
+            $action();
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
 
@@ -870,6 +949,9 @@ class Marketing_CostingController extends Controller
 
     public function storeDetail(Request $request)
     {
+        if ($locked = $this->costingLockedResponse($request, $request->id_costing)) {
+            return $locked;
+        }
         $request->validate([
             'id_costing' => ['required', 'exists:mysql_sb.act_costing,id'],
             'category' => ['required', 'in:Fabric,Accessories Sewing,Accessories Packing,Manufacturing,Other Cost'],
@@ -917,6 +999,9 @@ class Marketing_CostingController extends Controller
 
     public function updateHeader(Request $request, $id)
     {
+        if ($locked = $this->costingLockedResponse($request, $id)) {
+            return $locked;
+        }
         $request->validate([
             'buyer' => ['required', 'exists:mysql_sb.mastersupplier,Id_Supplier'],
             'product_item' => ['required', 'exists:mysql_sb.masterproduct,id'],
@@ -1000,6 +1085,12 @@ class Marketing_CostingController extends Controller
                 );
             });
 
+            if ($request->boolean('lock_after_save')) {
+                app(MarketingApprovalService::class)->relockCosting((int) $id, true);
+
+                return redirect()->back()->with('success', 'Costing disimpan dan dikunci lagi (Approved).');
+            }
+
             if ($request->ajax()) {
                 return response()->json([
                     'status' => 200,
@@ -1034,7 +1125,7 @@ class Marketing_CostingController extends Controller
 
         $db = DB::connection('mysql_sb');
         $hasPictures = $db->table('act_costing_picture')
-            ->where('id_costing', $costingId)
+            ->where('id_act_cost', $costingId)
             ->exists();
         if (!$hasPictures) {
             $legacyPicture = $db->table('act_costing')
@@ -1042,7 +1133,7 @@ class Marketing_CostingController extends Controller
                 ->value('attach_file');
             if ($legacyPicture) {
                 $db->table('act_costing_picture')->insert([
-                    'id_costing' => $costingId,
+                    'id_act_cost' => $costingId,
                     'file_name' => $legacyPicture,
                     'original_name' => $legacyPicture,
                     'sort_order' => 0,
@@ -1053,7 +1144,7 @@ class Marketing_CostingController extends Controller
         }
 
         $lastOrder = $db->table('act_costing_picture')
-            ->where('id_costing', $costingId)
+            ->where('id_act_cost', $costingId)
             ->max('sort_order');
         $nextOrder = $lastOrder === null ? 0 : $lastOrder + 1;
         $savedNames = [];
@@ -1064,7 +1155,7 @@ class Marketing_CostingController extends Controller
             $savedNames[] = $filename;
 
             $db->table('act_costing_picture')->insert([
-                'id_costing' => $costingId,
+                'id_act_cost' => $costingId,
                 'file_name' => $filename,
                 'original_name' => $file->getClientOriginalName(),
                 'sort_order' => $nextOrder++,
@@ -1080,7 +1171,7 @@ class Marketing_CostingController extends Controller
     {
         $db = DB::connection('mysql_sb');
         $pictureNames = $db->table('act_costing_picture')
-            ->where('id_costing', $costingId)
+            ->where('id_act_cost', $costingId)
             ->pluck('file_name')
             ->all();
         $legacyPicture = $db->table('act_costing')
@@ -1091,7 +1182,7 @@ class Marketing_CostingController extends Controller
             $pictureNames[] = $legacyPicture;
         }
 
-        $db->table('act_costing_picture')->where('id_costing', $costingId)->delete();
+        $db->table('act_costing_picture')->where('id_act_cost', $costingId)->delete();
         $db->table('act_costing')->where('id', $costingId)->update(['attach_file' => null]);
 
         $directory = public_path('uploads/costing');
@@ -1113,7 +1204,7 @@ class Marketing_CostingController extends Controller
         }
 
         $pictures = $db->table('act_costing_picture')
-            ->where('id_costing', $costingId)
+            ->where('id_act_cost', $costingId)
             ->whereIn('file_name', $fileNames)
             ->get(['file_name']);
         $removedNames = $pictures->pluck('file_name')->all();
@@ -1129,12 +1220,12 @@ class Marketing_CostingController extends Controller
         }
 
         $db->table('act_costing_picture')
-            ->where('id_costing', $costingId)
+            ->where('id_act_cost', $costingId)
             ->whereIn('file_name', $removedNames)
             ->delete();
 
         $nextPicture = $db->table('act_costing_picture')
-            ->where('id_costing', $costingId)
+            ->where('id_act_cost', $costingId)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->value('file_name');
@@ -1176,6 +1267,9 @@ class Marketing_CostingController extends Controller
     }
     public function destroyDetail(Request $request, $id)
     {
+        if ($locked = $this->costingLockedResponse($request, $request->id_costing)) {
+            return $locked;
+        }
         $request->validate([
             'category' => ['required', 'in:Fabric,Accessories Sewing,Accessories Packing,Manufacturing,Other Cost'],
             'id_costing' => ['required', 'exists:mysql_sb.act_costing,id'],
@@ -1370,6 +1464,9 @@ class Marketing_CostingController extends Controller
 
     public function updateDetail(Request $request)
     {
+        if ($locked = $this->costingLockedResponse($request, $request->id_costing)) {
+            return $locked;
+        }
         $request->validate([
             'id_costing' => ['required', 'exists:mysql_sb.act_costing,id'],
             'id_detail' => ['required', 'integer'],

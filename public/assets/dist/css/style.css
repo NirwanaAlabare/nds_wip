@@ -1,4 +1,6 @@
 /* MyCustom Styles */
+@import url(../../fonts/Poppins/poppins.css);
+
 @font-face {
     font-family: Nunito;
     src: url(../../fonts/Nunito/Nunito-VariableFont_wght.ttf);
@@ -7,6 +9,23 @@
 @font-face {
     font-family: Roboto;
     src: url(../../fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf);
+}
+
+@font-face {
+    font-family: Inter;
+    src: url(../../fonts/Inter/InterVariable.woff2) format('woff2');
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+.font-inter, .font-inter .form-control, .font-inter .btn, .font-inter table,
+.font-inter h1, .font-inter h2, .font-inter h3, .font-inter h4, .font-inter h5, .font-inter h6 {
+    font-family: Inter, sans-serif;
+}
+
+.font-poppins, .font-poppins .form-control, .font-poppins .btn, .font-poppins table,
+.font-poppins h1, .font-poppins h2, .font-poppins h3, .font-poppins h4, .font-poppins h5, .font-poppins h6 {
+    font-family: Poppins, sans-serif;
 }
 
 /* General */

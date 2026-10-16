@@ -24,7 +24,7 @@
 </style>
 
 @section('content')
-<div class="card card-sb">
+<div class="card card-sb font-inter">
     <div class="card-header bg-sb">
         <div class="d-flex justify-content-between align-items-center">
             <h5 class="card-title fw-bold text-white mb-0">
@@ -69,12 +69,12 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalDetail" tabindex="-1" role="dialog">
+<div class="modal fade font-inter" id="modalDetail" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-sb text-light">
                 <h5 class="modal-title fw-bold"><i class="fas fa-info-circle"></i> Detail BOM Marketing</h5>
-                <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-light" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -110,14 +110,14 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalApproval" tabindex="-1" role="dialog" aria-labelledby="modalApprovalLabel" aria-hidden="true">
+<div class="modal fade font-inter" id="modalApproval" tabindex="-1" role="dialog" aria-labelledby="modalApprovalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="form-approve-bom" method="POST">
                 @csrf
                 <div class="modal-header bg-sb text-white">
                     <h5 class="modal-title fw-bold" id="modalApprovalLabel"><i class="fas fa-check"></i> Konfirmasi Approval</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -130,7 +130,7 @@
                     </div>
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger fw-bold" data-dismiss="modal">
+                    <button type="button" class="btn btn-danger fw-bold" data-dismiss="modal" data-bs-dismiss="modal">
                         <i class="fas fa-times-circle"></i> Batal
                     </button>
                     <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-check-circle"></i> Approve</button>

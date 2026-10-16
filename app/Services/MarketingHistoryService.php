@@ -38,7 +38,7 @@ class MarketingHistoryService
         }
 
         return (int) $db->table('mkt_hist')->insertGetId([
-            'id_costing' => $costingId,
+            'id_act_cost' => $costingId,
             'type' => $type,
             'type_id' => $typeId ?? $costingId,
             'desc' => $description,

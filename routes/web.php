@@ -168,6 +168,8 @@ use App\Http\Controllers\AssetMonitoringTabController;
 use App\Http\Controllers\AssetOpnameTabController;
 use App\Http\Controllers\AssetMesinReportController;
 use App\Http\Controllers\Marketing_ApprovalCenterController;
+use App\Http\Controllers\Marketing_MasterGroupController;
+use App\Http\Controllers\Marketing_MasterContentController;
 use App\Http\Controllers\MarketingReportController;
 use App\Http\Controllers\Marketing_CatalogController;
 use App\Http\Controllers\HelpdeskDashboardController;
@@ -1254,7 +1256,34 @@ Route::middleware('auth')->group(function () {
     });
 
     // Approval Center
-    Route::get('/marketing/approval-center', [Marketing_ApprovalCenterController::class, 'index'])->middleware('marketing')->name('marketing-approval-center');
+    // Approval Center: approval + lock/unlock Costing & BOM
+    Route::controller(Marketing_ApprovalCenterController::class)->prefix('marketing/approval-center')->middleware('marketing')->group(function () {
+        Route::get('/', 'index')->name('marketing-approval-center');
+        Route::get('/documents/{type}', 'documents')->where('type', 'costing|bom')->name('marketing-approval-documents');
+        Route::get('/unlock-requests/{type}', 'unlockRequests')->where('type', 'costing|bom')->name('marketing-approval-unlock-requests');
+        Route::post('/decide/{type}', 'decide')->where('type', 'costing|bom')->name('marketing-approval-decide');
+        Route::post('/unlock', 'unlock')->name('marketing-approval-unlock');
+        Route::post('/request-unlock', 'requestUnlock')->name('marketing-request-unlock');
+    });
+
+    // Marketing > Master: data master
+    Route::controller(Marketing_MasterGroupController::class)->prefix('marketing/master-group')->middleware('marketing')->group(function () {
+        Route::get('/', 'index')->name('marketing-master-group');
+        Route::post('/', 'store')->name('marketing-master-group-store');
+        Route::put('/{id}', 'update')->whereNumber('id')->name('marketing-master-group-update');
+        Route::delete('/{id}', 'destroy')->whereNumber('id')->name('marketing-master-group-destroy');
+    });
+
+    Route::controller(Marketing_MasterContentController::class)->prefix('marketing/master-content')->middleware('marketing')->group(function () {
+        Route::get('/', 'index')->name('marketing-master-content');
+        Route::get('/contents', 'contents')->name('marketing-master-content-list');
+        Route::post('/contents', 'storeContent')->name('marketing-master-content-store');
+        Route::put('/contents/{id}', 'updateContent')->whereNumber('id')->name('marketing-master-content-update');
+        Route::delete('/contents/{id}', 'destroyContent')->whereNumber('id')->name('marketing-master-content-destroy');
+        Route::get('/items', 'items')->name('marketing-master-item-list');        Route::post('/items', 'storeItem')->name('marketing-master-item-store');
+        Route::put('/items/{id}', 'updateItem')->whereNumber('id')->name('marketing-master-item-update');
+        Route::delete('/items/{id}', 'destroyItem')->whereNumber('id')->name('marketing-master-item-destroy');
+    });
 
     // Master
     // Route::controller(Marketing_CostingController::class)->prefix("master-costing")->middleware('marketing')->group(function () {
@@ -1277,6 +1306,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit/{id}', 'edit')->name('edit-costing');
         Route::post('/store-detail', 'storeDetail')->name('store-costing-detail');
         Route::put('/update-header/{id}', 'updateHeader')->name('update-costing-header');
+        Route::post('/cancel-unlock-request/{id}', 'cancelUnlockRequest')->name('costing-cancel-unlock-request');
+        Route::post('/cancel-editing/{id}', 'cancelEditing')->name('costing-cancel-editing');
         Route::delete('/delete-detail/{id}', 'destroyDetail')->name('delete-costing-detail');
         Route::get('/print-pdf/{id}', 'printPdf')->name('print-costing-pdf');
         Route::get('/print-pdf-batch', 'printBatchPdf')->name('print-costing-batch-pdf');
@@ -1300,7 +1331,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/get-list-data-bom', [Marketing_BomController::class, 'getListData'])->name('get-list-data-bom');
         Route::get('/get-costing-overview', [Marketing_BomController::class, 'getCostingOverview'])->name('bom-get-costing-overview');
         Route::get('/detail/{id}', [Marketing_BomController::class, 'showDetail'])->name('show-detail-bom');
-        Route::post('/store-header', [Marketing_BomController::class, 'storeHeader'])->name('store-bom-header');
         Route::post('/store-detail', [Marketing_BomController::class, 'storeDetail'])->name('store-bom');
         Route::post('/store-jo-items', [Marketing_BomController::class, 'storeJoItems'])->name('store-bom-jo-items');
         Route::get('/get-items/{id}', 'getItems')->name('get-items');
@@ -1308,6 +1338,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-item-row/{id}', [Marketing_BomController::class, 'getItemRow'])->name('get-item-row-bom');
         Route::post('/update-item-row/{id}', [Marketing_BomController::class, 'updateItemRow'])->name('update-item-row-bom');
         Route::post('/update-items-batch', [Marketing_BomController::class, 'updateItemsBatch'])->name('update-items-batch-bom');
+        Route::post('/delete-items', [Marketing_BomController::class, 'deleteItems'])->name('delete-items-bom');
         Route::post('/delete-batch-bom', [Marketing_BomController::class, 'deleteBatch'])->name('delete-batch-bom');
         Route::get('/export-excel-bom', [Marketing_BomController::class, 'exportExcel'])->name('export-excel-bom');
         Route::post('/get-item-contents', [Marketing_BomController::class, 'getItemContents'])->name('get-item-contents-bom');

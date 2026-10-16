@@ -629,7 +629,7 @@
         <div class="modal-content">
             <div class="modal-header text-white">
                 <h5 class="modal-title"><i class="fas fa-info-circle"></i> Detail Sales Order</h5>
-                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal"><span>&times;</span></button>
             </div>
             <div class="modal-body">
 
@@ -837,7 +837,7 @@
         <div class="modal-content">
             <div class="modal-header text-white">
                 <h5 class="modal-title"><i class="fas fa-code-branch"></i> Merge / Pindah Detail SO</h5>
-                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal"><span>&times;</span></button>
             </div>
             <div class="modal-body">
                 {{-- Info SO Sumber --}}
@@ -913,7 +913,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">
                     <i class="fas fa-times"></i> Batal
                 </button>
                 <button type="button" class="btn btn-danger btn-sm" id="btn-execute-merge" onclick="executeMerge()">

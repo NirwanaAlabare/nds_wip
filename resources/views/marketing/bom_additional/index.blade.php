@@ -64,7 +64,7 @@
         <div class="modal-content">
             <div class="modal-header bg-sb text-light">
                 <h5 class="modal-title fw-bold"><i class="fas fa-info-circle"></i> Detail BOM Marketing</h5>
-                <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-light" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>

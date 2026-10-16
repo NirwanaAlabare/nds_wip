@@ -1,103 +1,95 @@
 @extends('layouts.index')
 
 @section('custom-link')
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
     <style>
-        :root { --costing-navy: #183f5a; --costing-border: #dce4ec; }
+        :root { --costing-navy: #183f5a; --costing-title: #284a63; --costing-border: #dce4ec; }
         .costing-create-page { padding: 8px 12px 24px; background: #f5f3f3; min-height: calc(100vh - 56px); font-family: 'Poppins', sans-serif; }
-        .costing-crumb { background: var(--costing-navy); color: #b4b4b4; padding: 8px 10px; margin-bottom: 14px; font-size: 16px; font-weight: 500; }
+        .costing-crumb { background: var(--costing-navy); color: #b4b4b4; padding: 8px 10px; margin-bottom: 14px; font-size: 13px; font-weight: 500; }
         .costing-crumb a { color: #b4b4b4; text-decoration: none; }
         .costing-crumb a:hover { color: #fff; text-decoration: underline; }
         .costing-crumb b { color: #fff; font-weight: 500; }
-        .costing-back { display: inline-flex; align-items: center; gap: 8px; margin: 10px 0; color: var(--costing-navy); font-size: 14px; font-weight: 700; }
 
-        .costing-create-card { border: 0; border-radius: 4px; box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07); background: #fff;}
-        .costing-create-card > .card-body { padding: 20px 24px 32px; }
+        .costing-create-card { border: 0; border-radius: 4px; box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07); background: #fff; }
+        .costing-create-card > .card-body { padding: 20px 24px 28px; }
 
-        .costing-page-title { color: #284a63; font-size: 32px; font-weight: 700; margin: 0 0 4px; }
-        .costing-page-subtitle { color: #6c757d; font-size: 11px; margin: 0 0 20px; font-weight: 500; }
+        .costing-page-title { margin: 0; color: var(--costing-title); font-size: 26px; font-weight: 700; }
+        .costing-page-title i { color: #64748b; font-size: 12px; vertical-align: super; }
+        .costing-page-subtitle { margin: 2px 0 18px; color: #475569; font-size: 10px; font-weight: 500; }
 
-        .costing-section { margin-bottom: 16px; overflow: hidden; border: 1px solid #284a63; border-radius: 8px; background: #fff; box-shadow: 0 4px 8px -2px rgba(24, 63, 90, .16), 0 1px 2px rgba(24, 63, 90, .06); }
-        .costing-section-header { margin: 0; }
-        .costing-section-toggle {
-            display: flex; justify-content: space-between; align-items: center;
-            width: 100%; box-sizing: border-box; padding: 10px 15px;
-            border: 0; border-radius: 0;
-            background: #f8fafc; color: #284a63;
-            text-align: left; font-family: 'Poppins', sans-serif; font-size: 25px; font-weight: 500; appearance: none;
+        /* Tata letak mockup: kolom kiri (Buyer + Product) & kanan (Upload Image), lalu Shipping, lalu Parameter + Price. */
+        .costing-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; }
+        .costing-layout .span-full { grid-column: 1 / -1; }
+        .costing-top { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 18px; grid-column: 1 / -1; }
+
+        .costing-section { margin-bottom: 16px; }
+        .costing-section-title {
+            display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;
+            margin: 0 0 8px; padding: 6px 12px; border: 1px solid #94a3b8; border-radius: 6px;
+            background: #fff; color: var(--costing-title); font-size: 15px; font-weight: 500;
         }
-        .costing-section-toggle:focus { outline: 0; box-shadow: 0 0 0 2px rgba(48, 133, 214, .18); }
-        .costing-section-toggle .required-mark { color: #dc3545; margin-left: 2px;}
+        .costing-section-title .required-mark { color: #dc3545; margin-left: 2px; margin-right: auto; }
+        .costing-section-body { padding: 12px 10px 4px; border-radius: 6px; background: #fff; box-shadow: 0 3px 10px rgba(15, 23, 42, .10); }
+        .costing-section-chevron { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; background: #a3b2c7; color: #fff; font-size: 10px; }
+        .costing-section-chevron i { transition: transform .2s ease; }
+        .costing-section.is-collapsed .costing-section-chevron i { transform: rotate(180deg); }
 
-        .section-chevron-box {
-            background-color: #a3b2c7; color: white; border-radius: 4px;
-            width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px;
-        }
-        .section-chevron-box i { transition: transform .2s ease; }
-        .costing-section-toggle[aria-expanded="false"] .section-chevron-box i { transform: rotate(180deg); }
-
-        .costing-section-body { padding: 14px 15px 14px; border-top: 1px solid #edf1f5; }
-
-        .costing-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 15px; row-gap: 10px; }
-        .costing-fields.five-columns { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-
+        .costing-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 12px; }
+        .costing-fields.four-columns { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .costing-fields.price-columns { grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); }
         .costing-field { min-width: 0; margin-bottom: 10px; }
-        .costing-field label { display: flex; align-items: flex-start; min-height: 27px; margin-bottom: 6px; color: #ababab; font-size: 18px; }
-        .costing-create-page .costing-field label:not(.form-check-label):not(.custom-file-label) { font-weight: 400; }
-        .costing-field .form-control,
-        .costing-field .select2-container--bootstrap4 .select2-selection { height: 44px; min-height: 44px; border: 1px solid #e1e5e9; border-radius: 5px; font-size: 12px; color: #495057; font-weight: 600; }
-        .costing-field .form-control,
-        .costing-field .select2-container--bootstrap4 .select2-selection { box-shadow: 0 2px 4px rgba(30, 41, 59, .10); }
-        .costing-field input.form-control::placeholder { color: #adb5bd; font-weight: 500; }
-        .costing-field input.form-control { padding: 6px 12px; }
+        .costing-field.span-2 { grid-column: span 2; }
+        .costing-field label { display: block; margin-bottom: 4px; color: #1e293b; font-size: 10px; font-weight: 500 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .costing-field .select2-container { width: 100% !important; }
-        .costing-field .select2-container--bootstrap4 .select2-selection--single { padding: 6px 12px; }
-        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__rendered { padding: 0 12px; }
-        .costing-field .select2-container--bootstrap4 .select2-selection__rendered { padding-left: 0; line-height: 30px; color: #495057; font-weight: 600; }
-        .costing-field .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { top: 4px; right: 5px; }
-
+        .costing-field .form-control,
+        .costing-field .select2-container--bootstrap4 .select2-selection { min-height: 34px; height: 34px; border: 1px solid #e1e5e9; border-radius: 6px; font-size: 10px; color: #495057; box-shadow: 0 1px 3px rgba(30, 41, 59, .08); }
+        .costing-field .form-control { padding: 6px 10px; }
+        .costing-field textarea.form-control { resize: vertical; }
+        .costing-field .form-control::placeholder { color: #adb5bd; }
         .costing-field .form-control:focus { border-color: #8aa8bc; box-shadow: 0 0 0 2px rgba(39, 75, 99, .08); }
         .costing-field .form-control[readonly],
-        .costing-field .form-control:disabled { background: #e9ecef; color: #6c757d; border-color: #dee2e6; }
+        .costing-field .form-control:disabled { background: #e9ecef; color: #6c757d; }
+        .costing-field .select2-container { width: 100% !important; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--single { padding: 4px 10px; }
+        .costing-field .select2-container--bootstrap4 .select2-selection__rendered { padding-left: 0; line-height: 24px; color: #495057; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple { height: auto; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__rendered { padding: 0 8px; }
+        .costing-field .select2-container--bootstrap4.select2-container--disabled .select2-selection { background: #e9ecef; }
 
-        /* Gambar Upload Section */
-        .upload-file-box { border: 1px solid var(--costing-border); padding: 15px; border-radius: 5px; background: #fff; }
+        /* Upload Image */
+        .costing-upload-box { padding: 10px; border: 1px solid var(--costing-border); border-radius: 6px; }
         .costing-picture-dropzone {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 64px; padding: 10px;
             border: 1.5px dashed var(--costing-navy); border-radius: 5px; background: #fff;
-            cursor: pointer; text-align: center; padding: 25px 10px; min-height: 120px;
+            color: var(--costing-navy); font-size: 10px; font-weight: 600; text-align: left; cursor: pointer;
         }
+        .costing-picture-dropzone i { font-size: 24px; }
+        .costing-picture-dropzone b { color: #0056b3; }
         .costing-picture-dropzone.dragging { background: #eff7ff; }
-        .costing-picture-thumbnails {
-            border: 1px dashed #6f42c1; border-radius: 5px; padding: 10px;
-            min-height: 70px; display: flex; flex-wrap: wrap; gap: 6px;
-        }
-        .costing-picture-clear { margin-top: 8px; }
-
-        .costing-picture-carousel { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 250px;}
-        .costing-picture-main { max-height: 250px; max-width: 100%; object-fit: contain; }
-        .costing-picture-nav {
-            width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%;
-            background: #f1f3f5; color: #53687a; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: background 0.2s;
-        }
+        .costing-upload-now { width: 100%; margin-top: 8px; padding: 6px; border: 0; border-radius: 6px; background: #c4c4c4; color: #fff; font-size: 10px; font-weight: 600; }
+        .costing-picture-thumbnails { display: flex; flex-wrap: wrap; gap: 8px; min-height: 70px; margin-top: 10px; padding: 8px; border: 1px dashed #8b5cf6; border-radius: 6px; }
+        .costing-picture-clear { margin-top: 6px; padding: 2px 8px; font-size: 10px; }
+        .costing-picture-carousel { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; margin-top: 14px; }
+        .costing-picture-main { max-width: 100%; max-height: 200px; object-fit: contain; }
+        .costing-picture-nav { flex: 0 0 auto; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: #f1f3f5; color: #53687a; box-shadow: 0 2px 4px rgba(0, 0, 0, .1); }
         .costing-picture-nav:hover { background: #e2e6ea; }
+        .costing-picture-nav:disabled { opacity: .4; }
 
-        .costing-form-actions { padding-top: 20px; text-align: right; }
-        .btn-success-custom { background-color: #198754; border-color: #198754; border-radius: 20px; padding: 6px 30px; font-weight: 600; color: #fff;}
-        .btn-success-custom:hover { background-color: #157347; }
+        .costing-form-actions { text-align: right; }
+        .btn-success-custom { padding: 7px 34px; border: 0; border-radius: 20px; background: #198754; color: #fff; font-size: 12px; font-weight: 600; }
+        .btn-success-custom:hover { background: #157347; color: #fff; }
 
-        @media (max-width: 991px) {
-            .costing-fields, .costing-fields.five-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        @media (max-width: 1199.98px) {
+            .costing-top, .costing-layout { grid-template-columns: minmax(0, 1fr); }
         }
-        @media (max-width: 767px) {
-            .costing-fields, .costing-fields.five-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        @media (max-width: 767.98px) {
+            .costing-fields, .costing-fields.four-columns, .costing-fields.price-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .costing-field.span-2 { grid-column: auto; }
         }
         @media (max-width: 480px) {
-            .costing-fields, .costing-fields.five-columns { grid-template-columns: 1fr; }
+            .costing-fields, .costing-fields.four-columns, .costing-fields.price-columns { grid-template-columns: minmax(0, 1fr); }
         }
 
         .select2-container .select2-selection--single .select2-selection__arrow {
@@ -110,15 +102,13 @@
 
 @section('content')
 <div class="costing-create-page">
-    {{-- <a href="{{ route('master-costing') }}" class="costing-back"><i class="fas fa-chevron-left" style="background:#a3b2c7; color:white; border-radius:4px; padding:3px 5px; font-size:10px;"></i> Back</a> --}}
-
     <div class="card costing-create-card">
         <form action="{{ route('store-costing') }}" method="POST" id="form-costing" enctype="multipart/form-data">
             @csrf
             <div class="card-body">
                 <div class="costing-crumb"><a href="{{ route('master-costing') }}">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing</a> &nbsp;›&nbsp; <b>Create Costing</b></div>
-                <h1 class="costing-page-title">Create Costing <i class="fas fa-info-circle text-muted" style="font-size: 14px;"></i></h1>
-                <p class="costing-page-subtitle"></p>
+                <h1 class="costing-page-title">Create Costing <i class="fas fa-info-circle"></i></h1>
+                <p class="costing-page-subtitle"><i class="fas fa-database"></i> Untuk Menambah Data Costing</p>
 
                 @if ($errors->any())
                     <div class="alert alert-danger py-2" role="alert">
@@ -130,129 +120,145 @@
                     </div>
                 @endif
 
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-buyer" aria-expanded="true">
-                            <span>Information Buyer<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-buyer" class="collapse show">
-                        <div class="costing-section-body">
-                            <div class="costing-fields five-columns">
-                                <div class="costing-field">
-                                    <label>Buyer Name</label>
-                                    <select name="buyer" id="buyer" class="form-control select2bs4" required>
-                                        <option value="">Choose Buyer Name</option>
-                                        @foreach ($buyers as $b)
-                                            <option value="{{ $b->id_supplier ?? $b->Id_Supplier }}">{{ $b->supplier ?? $b->Supplier }}</option>
-                                        @endforeach
-                                    </select>
+                <div class="costing-layout">
+                    <div class="costing-top">
+                        <div>
+                            <section class="costing-section">
+                                <h2 class="costing-section-title">Information Buyer<span class="required-mark">*</span></h2>
+                                <div class="costing-section-body">
+                                    <div class="costing-fields">
+                                        <div class="costing-field">
+                                            <label for="buyer">Buyer Name</label>
+                                            <select name="buyer" id="buyer" class="form-control select2bs4" data-placeholder="Choose Buyer Name" required>
+                                                <option value="">Choose Buyer Name</option>
+                                                @foreach ($buyers as $b)
+                                                    <option value="{{ $b->id_supplier ?? $b->Id_Supplier }}">{{ $b->supplier ?? $b->Supplier }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="buyer_code">Kode Buyer</label>
+                                            <input type="text" id="buyer_code" class="form-control" placeholder="Buyer" readonly>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label>Brand</label>
+                                            <select name="brand" class="form-control select2bs4" required>
+                                                <option value="">Choose Brand</option>
+                                                <option value="Sample Brand">Sample Brand</option>
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="season_id">Season</label>
+                                            <select name="season_id" id="season_id" class="form-control select2bs4" required>
+                                                <option value="">Choose Seasons</option>
+                                                @foreach ($seasons as $s)
+                                                    <option value="{{ $s->id_season }}">{{ $s->season }} - {{ $s->season_desc }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="costing-field span-2">
+                                            <label>Style</label>
+                                            <input type="text" name="style" class="form-control" placeholder="Style" required>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="costing-field">
-                                    <label>Kode Buyer</label>
-                                    <input type="text" id="buyer_code" class="form-control" placeholder="Buyer" readonly>
+                            </section>
+
+                            <section class="costing-section">
+                                <h2 class="costing-section-title">Product & Type<span class="required-mark">*</span></h2>
+                                <div class="costing-section-body">
+                                    <div class="costing-fields">
+                                        <div class="costing-field">
+                                            <label for="product_group">Product Group</label>
+                                            <select name="product_group" id="product_group" class="form-control select2bs4" required>
+                                                <option value="">Choose Product Group</option>
+                                                @foreach ($product_groups as $pg)
+                                                    <option value="{{ $pg->product_group }}">{{ $pg->product_group }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="product_item">Product Item</label>
+                                            <select name="product_item" id="product_item" class="form-control select2bs4" required>
+                                                <option value="">Choose Product Item</option>
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="type">Costing Type</label>
+                                            <select name="type" id="type" class="form-control select2bs4" required>
+                                                <option value="">Choose Costing Type</option>
+                                                <option value="single">SINGLE</option>
+                                                <option value="multiple">MULTIPLE</option>
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="product_set">Product Type</label>
+                                            <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple disabled data-placeholder="Product Type">
+                                                @foreach ($master_set as $m_set)
+                                                    <option value="{{ $m_set->id }}">{{ $m_set->nama ?? $m_set->id }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="tipe_ws">WS Type</label>
+                                            <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
+                                                <option value="">Choose WS Type</option>
+                                                <option value="GLOBAL">GLOBAL</option>
+                                                <option value="STD">STANDAR</option>
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="unit">Unit</label>
+                                            <select name="unit" id="unit" class="form-control select2bs4" required>
+                                                <option value="">Choose Unit</option>
+                                                @foreach ($units as $u)
+                                                    <option value="{{ $u->nama_pilihan }}" {{ $u->nama_pilihan == 'PCS' ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="costing-field">
-                                    <label>Brand</label>
-                                    <select name="brand" class="form-control select2bs4" required>
-                                        <option value="">Choose Brand</option>
-                                        <option value="Sample Brand">Sample Brand</option>
-                                    </select>
+                            </section>
+                        </div>
+
+                        <section class="costing-section">
+                            <h2 class="costing-section-title">Upload Image<span class="required-mark">*</span></h2>
+                            <div class="costing-section-body pb-2">
+                                <input type="file" name="upload_foto[]" id="upload_foto" accept="image/*" multiple hidden>
+                                <div class="costing-upload-box">
+                                    <div id="picture-dropzone" class="costing-picture-dropzone" role="button" tabindex="0">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>Drag n Drop here Or <b>Browse</b></span>
+                                    </div>
+                                    <button type="button" id="btn-upload-now" class="costing-upload-now">Upload Now</button>
                                 </div>
-                                <div class="costing-field">
-                                    <label>Season</label>
-                                    <select name="season_id" id="season_id" class="form-control select2bs4" required>
-                                        <option value="">Choose Seasons</option>
-                                        @foreach ($seasons as $s)
-                                            <option value="{{ $s->id_season }}">{{ $s->season }} - {{ $s->season_desc }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="costing-field">
-                                    <label>Style</label>
-                                    <input type="text" name="style" class="form-control" placeholder="Style" required>
+
+                                <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Selected image previews"></div>
+                                <button type="button" id="clear-pictures" class="btn btn-outline-danger btn-sm costing-picture-clear" disabled>
+                                    <i class="fas fa-trash-alt"></i> Clear All
+                                </button>
+
+                                <div class="costing-picture-carousel">
+                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                        <button type="button" id="picture-prev" class="costing-picture-nav" aria-label="Previous image"><i class="fas fa-chevron-left"></i></button>
+                                        <div class="d-flex align-items-center justify-content-center flex-grow-1" style="min-height: 200px;">
+                                            <img id="img_preview" class="costing-picture-main" alt="Costing image preview" hidden>
+                                            <span id="no_img_text" class="text-muted" style="font-size: 11px;">Belum ada gambar yang dipilih</span>
+                                        </div>
+                                        <button type="button" id="picture-next" class="costing-picture-nav" aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                    <div id="carousel-dots" class="mt-3 d-flex justify-content-center" style="gap: 5px;"></div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                     </div>
-                </div>
 
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-product" aria-expanded="true">
-                            <span>Product & Type<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-product" class="collapse show">
+                    <section class="costing-section span-full">
+                        <h2 class="costing-section-title">Shipping & Destinations<span class="required-mark">*</span></h2>
                         <div class="costing-section-body">
-                            <div class="costing-fields">
+                            <div class="costing-fields four-columns">
                                 <div class="costing-field">
-                                    <label>Product Group</label>
-                                    <select name="product_group" id="product_group" class="form-control select2bs4" required>
-                                        <option value="">Choose Product Group</option>
-                                        @foreach ($product_groups as $pg)
-                                            <option value="{{ $pg->product_group }}">{{ $pg->product_group }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="costing-field">
-                                    <label>Product Item</label>
-                                    <select name="product_item" id="product_item" class="form-control select2bs4" required>
-                                        <option value="">Choose Product Item</option>
-                                    </select>
-                                </div>
-                                <div class="costing-field">
-                                    <label>Costing Type</label>
-                                    <select name="type" id="type" class="form-control select2bs4" required>
-                                        <option value="">Choose Costing Type</option>
-                                        <option value="single">SINGLE</option>
-                                        <option value="multiple">MULTIPLE</option>
-                                    </select>
-                                </div>
-                                <div class="costing-field">
-                                    <label>Product Type</label>
-                                    <select id="product_set" name="product_set[]" class="form-control select2bs4" multiple disabled data-placeholder="Product Type">
-                                        @foreach ($master_set as $m_set)
-                                            <option value="{{ $m_set->id }}">{{ $m_set->nama ?? $m_set->id }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="costing-field">
-                                    <label>WS Type</label>
-                                    <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
-                                        <option value="">Choose WS Type</option>
-                                        <option value="GLOBAL">GLOBAL</option>
-                                        <option value="STD">STANDAR</option>
-                                    </select>
-                                </div>
-                                <div class="costing-field">
-                                    <label>Unit</label>
-                                    <select name="unit" id="unit" class="form-control select2bs4" required>
-                                        <option value="">Choose Unit</option>
-                                        @foreach ($units as $u)
-                                            <option value="{{ $u->nama_pilihan }}" {{ $u->nama_pilihan == 'PCS' ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-shipping" aria-expanded="true">
-                            <span>Shipping & Destinations<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-shipping" class="collapse show">
-                        <div class="costing-section-body">
-                            <div class="costing-fields">
-                                <div class="costing-field">
-                                    <label>Ship Mode</label>
+                                    <label for="ship_mode">Ship Mode</label>
                                     <select name="ship_mode" id="ship_mode" class="form-control select2bs4" required>
                                         <option value="">Choose Ship Mode</option>
                                         @foreach ($shipmodes as $sm)
@@ -261,7 +267,7 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Shipment Type</label>
+                                    <label for="shipment_type">Shipment Type</label>
                                     <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
                                         <option value="">Choose Shipment Type</option>
                                         <option value="local">LOCAL</option>
@@ -269,11 +275,11 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Delivery Date</label>
+                                    <label for="deldate">Delivery Date</label>
                                     <input type="date" name="deldate" id="deldate" class="form-control" required>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Status</label>
+                                    <label for="status">Status</label>
                                     <select name="status" id="status" class="form-control select2bs4" required>
                                         <option value="">Choose Status</option>
                                         <option value="CONFIRM">CONFIRM</option>
@@ -282,7 +288,7 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Marketing Order</label>
+                                    <label for="marketing_order">Marketing Order</label>
                                     <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
                                         <option value="">Choose Marketing Order</option>
                                         @foreach ($marketing_orders as $mo)
@@ -291,7 +297,7 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Main Destination</label>
+                                    <label for="main_dest">Main Destination</label>
                                     <select name="main_dest[]" id="main_dest" class="form-control select2bs4" data-placeholder="Choose Destination" multiple>
                                         @foreach ($destinations as $dest)
                                             <option value="{{ $dest->country_name }}">{{ $dest->country_name }}</option>
@@ -299,30 +305,47 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Market</label>
+                                    <label for="market">Market</label>
                                     <input type="text" name="market" id="market" class="form-control" placeholder="Market">
                                 </div>
                                 <div class="costing-field">
-                                    <label>Notes</label>
+                                    <label for="notes">Notes</label>
                                     <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Notes"></textarea>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </section>
 
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-price" aria-expanded="true">
-                            <span>Price & Currency<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-price" class="collapse show">
+                    <section class="costing-section">
+                        <h2 class="costing-section-title">Parameter Costing<span class="required-mark">*</span></h2>
                         <div class="costing-section-body">
-                            <div class="costing-fields">
+                            <div class="costing-fields four-columns">
                                 <div class="costing-field">
-                                    <label>Currency</label>
+                                    <label for="qty_planned">QTY Planned (PCS)</label>
+                                    <input type="text" name="qty_planned" id="qty_planned" class="form-control input-decimal" placeholder="QTY Planned (PCS)" required>
+                                </div>
+                                <div class="costing-field">
+                                    <label>QTY (PCS)</label>
+                                    <input type="text" name="qty" class="form-control input-decimal" placeholder="QTY (PCS)" required>
+                                </div>
+                                <div class="costing-field">
+                                    <label for="smv">SMV (Min)</label>
+                                    <input type="text" name="smv" id="smv" class="form-control input-decimal" placeholder="SMV (Min)" required>
+                                </div>
+                                <div class="costing-field">
+                                    <label for="vat">VAT (%)</label>
+                                    <input type="text" name="vat" id="vat" class="form-control input-decimal" placeholder="VAT (%)" required>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="costing-section">
+                        <h2 class="costing-section-title">Price & Currency<span class="required-mark">*</span></h2>
+                        <div class="costing-section-body">
+                            <div class="costing-fields price-columns">
+                                <div class="costing-field">
+                                    <label for="curr">Currency</label>
                                     <select name="curr" id="curr" class="form-control select2bs4" required>
                                         <option value="">Choose Currency</option>
                                         @foreach ($currencies as $cur)
@@ -331,7 +354,7 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Confirm Price</label>
+                                    <label for="confirm_price">Confirm Price</label>
                                     <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal" placeholder="Confirm Price">
                                 </div>
                                 <div class="costing-field">
@@ -344,93 +367,11 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-parameters" aria-expanded="true">
-                            <span>Parameter Costing<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-parameters" class="collapse show">
-                        <div class="costing-section-body">
-                            <div class="costing-fields">
-                                <div class="costing-field">
-                                    <label>QTY Planned (PCS)</label>
-                                    <input type="text" name="qty_planned" id="qty_planned" class="form-control input-decimal" placeholder="QTY Planned (PCS)" required>
-                                </div>
-                                <div class="costing-field">
-                                    <label>QTY (PCS)</label>
-                                    <input type="text" name="qty" class="form-control input-decimal" placeholder="QTY (PCS)" required>
-                                </div>
-                                <div class="costing-field">
-                                    <label>SMV (Min)</label>
-                                    <input type="text" name="smv" id="smv" class="form-control input-decimal" placeholder="SMV (Min)" required>
-                                </div>
-                                <div class="costing-field">
-                                    <label>VAT (%)</label>
-                                    <input type="text" name="vat" id="vat" class="form-control input-decimal" placeholder="VAT (%)" required>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-image" aria-expanded="true">
-                            <span>Upload Image Costing<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-image" class="collapse show">
-                        <div class="costing-section-body pt-3">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="file" name="upload_foto[]" id="upload_foto" accept="image/*" multiple hidden>
-
-                                    <div class="upload-file-box mb-3">
-                                        <h6 style="font-size: 11px; font-weight: 700; color: var(--costing-navy); margin-bottom: 15px;">Upload File</h6>
-                                        <div id="picture-dropzone" class="costing-picture-dropzone" role="button" tabindex="0">
-                                            <i class="fas fa-file-alt" style="font-size: 30px; color: var(--costing-navy); margin-bottom: 12px;"></i>
-                                            <div style="font-size: 11px; font-weight: 600; color: var(--costing-navy);">
-                                                Drag n Drop here<br>Or<br><span style="color: #0056b3;">Browse</span>
-                                            </div>
-                                        </div>
-                                        <button type="button" id="btn-upload-now" class="btn btn-block mt-3" style="background-color: #c4c4c4; font-weight: 700; font-size: 11px; color: #333;">Upload Now</button>
-                                    </div>
-
-                                    <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Selected image previews"></div>
-                                    <button type="button" id="clear-pictures" class="btn btn-outline-danger btn-sm costing-picture-clear mb-4" disabled>
-                                        <i class="fas fa-trash-alt"></i> Clear All
-                                    </button>
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="costing-picture-carousel">
-                                        <div class="d-flex align-items-center justify-content-center gap-4 w-100">
-                                            <button type="button" id="picture-prev" class="costing-picture-nav" aria-label="Previous image"><i class="fas fa-chevron-left"></i></button>
-
-                                            <div class="main-img-container" style="min-height: 250px; display:flex; align-items:center;">
-                                                <img id="img_preview" class="costing-picture-main" alt="Costing image preview" hidden>
-                                                <span id="no_img_text" class="text-muted" style="font-size: 11px;">Belum ada gambar yang dipilih</span>
-                                            </div>
-
-                                            <button type="button" id="picture-next" class="costing-picture-nav" aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
-                                        </div>
-                                        <div id="carousel-dots" class="mt-4 d-flex justify-content-center" style="gap: 5px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    </section>
                 </div>
 
                 <div class="costing-form-actions">
-                    <button type="submit" class="btn btn-success-custom shadow-sm">
-                        Save
-                    </button>
+                    <button type="submit" class="btn btn-success-custom shadow-sm">Save</button>
                 </div>
             </div>
         </form>
@@ -444,14 +385,15 @@
     $(document).ready(function() {
         $('.select2bs4').select2({ theme: 'bootstrap4' });
 
-        $('.costing-section-toggle').on('click', function() {
-            const $toggle = $(this);
-            const $section = $($toggle.attr('data-section-target'));
-            const isExpanded = $toggle.attr('aria-expanded') === 'true';
-
-            $section.collapse('toggle');
-            $toggle.attr('aria-expanded', String(!isExpanded));
-        });
+        $('.costing-section-title')
+            .attr({ role: 'button', tabindex: 0 })
+            .append('<span class="costing-section-chevron"><i class="fas fa-chevron-down"></i></span>')
+            .on('click keydown', function(event) {
+                if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                const $section = $(this).closest('.costing-section');
+                $section.toggleClass('is-collapsed').children('.costing-section-body').stop(true, true).slideToggle(150);
+            });
 
         let costingImageUrls = [];
         let activeCostingImage = 0;

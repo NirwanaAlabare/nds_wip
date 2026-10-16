@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Connection;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\MarketingBomService;
+use App\Services\MarketingApprovalService;
 
 class Marketing_BomController extends Controller
 {
@@ -115,28 +117,26 @@ class Marketing_BomController extends Controller
             return redirect()->route('master-costing')
                 ->with('error', 'Data Costing tidak ditemukan.');
         }
-        $existingBom = null;
-        if (is_numeric($request->query('id_bom'))) {
-            $existingBom = $mysql_sb->table('bom_marketing')
-                ->where('id', (int) $request->query('id_bom'))
-                ->where('id_costing', (int) $request->query('id_costing'))
-                ->where(function ($q) {
-                    $q->whereNull('cancel')->orWhere('cancel', 'N');
-                })
-                ->select('id', 'no_katalog_bom')
-                ->first();
-        }
-        $existingBom = $existingBom ?: $this->findActiveBomForSalesOrder(
-            $mysql_sb,
-            (int) $request->query('id_costing'),
-            $request->query('id_so')
-        );
-        $nextBomNo = $existingBom->no_katalog_bom ?? $this->nextBomCatalogNumber($mysql_sb);
+        $idCosting = (int) $request->query('id_costing');
+        // Header BOM dibuat saat Costing disimpan. BOM yang sudah terhubung ke SO dipakai lebih dulu
+        // (data lama bisa punya beberapa BOM per Costing); Costing lama tanpa header dibuatkan sekali di sini.
+        $bom = $this->findActiveBomForSalesOrder($mysql_sb, $idCosting, $request->query('id_so'))
+            ?: $mysql_sb->transaction(function () use ($idCosting) {
+                $service = app(MarketingBomService::class);
+                $bom = $service->ensureForCosting($idCosting);
+                if ($service->attachSalesOrders($idCosting, $bom->id) > 0) {
+                    $service->refreshColorsSizes($bom->id);
+                }
+                return $bom;
+            });
 
         $masterUnits = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Satuan')->get();
         $shells = $mysql_sb->table('masterpanel')->orderBy('id')->get();
         $unitOptions = $masterUnits
             ->map(fn ($unit) => ['id' => $unit->nama_pilihan, 'name' => $unit->nama_pilihan])
+            ->values();
+        $shellOptions = $shells
+            ->map(fn ($shell) => ['id' => (string) $shell->id, 'name' => $shell->nama_panel])
             ->values();
         $supplierOptions = $mysql_sb->table('mastersupplier')
             ->where('tipe_sup', 'S')
@@ -151,16 +151,34 @@ class Marketing_BomController extends Controller
             'subPageGroup'   => 'marketing-master',
             'subPage'        => 'marketing-master-bom',
             'masterUnits'    => $masterUnits,
-            'selectedCostingId' => (int) $request->query('id_costing'),
+            'selectedCostingId' => $idCosting,
             'selectedCostingNo' => $selectedCostingNo,
-            'nextBomNo' => $nextBomNo,
-            'existingBomId' => $existingBom->id ?? null,
+            'bomId' => $bom->id,
+            'bomNo' => $bom->no_katalog_bom,
             'selectedSoId' => $request->query('id_so'),
             'shells' => $shells,
             'unitOptions' => $unitOptions,
             'supplierOptions' => $supplierOptions,
+            'shellOptions' => $shellOptions,
             'containerFluid' => true
         ]);
+    }
+
+    // BOM Approved tidak boleh diubah sebelum di-unlock; BOM Return / Cancel / Unlocked yang diubah
+    // kembali ke Awaiting Approval (lihat MarketingApprovalService).
+    // HTTP 200 + status 423 karena front-end BOM membaca res.status/res.message.
+    private function bomLockedResponse($bomId)
+    {
+        if (!$bomId) {
+            return null;
+        }
+        $approvals = app(MarketingApprovalService::class);
+        if ($approvals->isLocked('bom', (int) $bomId)) {
+            return response()->json(['status' => 423, 'message' => 'BOM sudah di-approve dan terkunci. Ajukan Request Unlock terlebih dahulu.']);
+        }
+        $approvals->markEdited('bom', (int) $bomId);
+
+        return null;
     }
 
     private function findActiveBomForSalesOrder(Connection $connection, int $idCosting, $idSo)
@@ -287,7 +305,7 @@ class Marketing_BomController extends Controller
         })->values();
 
         $pictures = $db->table('act_costing_picture')
-            ->where('id_costing', (int) $idCosting)
+            ->where('id_act_cost', (int) $idCosting)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->pluck('file_name')
@@ -369,6 +387,23 @@ class Marketing_BomController extends Controller
             return redirect()->route('master-bom')->with('error', 'Data BOM Utama tidak ditemukan!');
         }
 
+        // Tambah/edit item sekarang lewat halaman Create BOM (Save → BOM JO).
+        // Halaman edit lama hanya dipakai untuk BOM lama yang tidak punya Costing/SO aktif.
+        $salesOrderId = $bom->id_costing
+            ? $mysql_sb->table('so')
+                ->where('id_bom', $bom->id)
+                ->where('id_cost', $bom->id_costing)
+                ->where('cancel_h', 'N')
+                ->orderByDesc('id')
+                ->value('id')
+            : null;
+        if ($salesOrderId) {
+            return redirect()->route('create-bom', [
+                'id_costing' => $bom->id_costing,
+                'id_so' => $salesOrderId,
+            ]);
+        }
+
         $buyers = $mysql_sb->table('mastersupplier')->where('tipe_sup', 'C')->orderBy('Supplier', 'ASC')->get();
         $suppliers = $mysql_sb->table('mastersupplier')->where('tipe_sup', 'S')->orderBy('Supplier', 'ASC')->get();
 
@@ -427,74 +462,11 @@ class Marketing_BomController extends Controller
     }
 
 
-    public function storeHeader(Request $request)
-    {
-        $mysql_sb = DB::connection('mysql_sb');
-        $mysql_sb->beginTransaction();
-
-        try {
-            $salesOrder = $mysql_sb->table('so')
-                ->where('id', (int) $request->id_so)
-                ->where('id_cost', (int) $request->id_costing)
-                ->where('cancel_h', 'N')
-                ->first();
-            if (!$salesOrder) {
-                throw new \RuntimeException('Sales Order terpilih tidak valid untuk Costing ini.');
-            }
-            if (!$mysql_sb->table('jo_det')->where('id_so', $salesOrder->id)->exists()) {
-                throw new \RuntimeException('Job Order belum tersedia untuk Sales Order terpilih.');
-            }
-
-            $existingBom = $this->findActiveBomForSalesOrder($mysql_sb, (int) $request->id_costing, $salesOrder->id);
-            if ($existingBom) {
-                $mysql_sb->commit();
-                return response()->json([
-                    'status'  => 200,
-                    'id'      => $existingBom->id,
-                    'no_katalog_bom' => $existingBom->no_katalog_bom,
-                    'message' => 'BOM sudah ada: ' . $existingBom->no_katalog_bom
-                ]);
-            }
-
-            $no_katalog_bom = $this->nextBomCatalogNumber($mysql_sb);
-
-            $colors_json = $request->has('colors') ? json_encode($request->colors) : null;
-            $sizes_json = $request->has('sizes') ? json_encode($request->sizes) : null;
-            $username = auth()->user()->username ?? 'admin';
-
-            $id_bom = $mysql_sb->table('bom_marketing')->insertGetId([
-                'no_katalog_bom' => $no_katalog_bom,
-                'id_buyer'       => $request->buyer,
-                'style'          => $request->style,
-                'market'         => $request->market,
-                'id_costing'     => $request->id_costing,
-                'colors'         => $colors_json,
-                'sizes'          => $sizes_json,
-                'created_at'     => now(),
-                'updated_at'     => now(),
-                'created_by'     => $username,
-            ]);
-
-            $mysql_sb->table('so')
-                ->where('id', $salesOrder->id)
-                ->update(['id_bom' => $id_bom]);
-
-            $mysql_sb->commit();
-            return response()->json([
-                'status'  => 200,
-                'id'      => $id_bom,
-                'no_katalog_bom' => $no_katalog_bom,
-                'message' => 'BOM berhasil dibuat: ' . $no_katalog_bom
-            ]);
-
-        } catch (\Exception $e) {
-            $mysql_sb->rollback();
-            return response()->json(['status' => 500, 'message' => 'Gagal simpan BOM: ' . $e->getMessage()]);
-        }
-    }
-
     public function storeJoItems(Request $request)
     {
+        if ($locked = $this->bomLockedResponse($request->id_bom_marketing)) {
+            return $locked;
+        }
         $validated = $request->validate([
             'id_bom_marketing' => ['required', 'integer', 'exists:mysql_sb.bom_marketing,id'],
             'id_so' => ['required', 'integer', 'exists:mysql_sb.so,id'],
@@ -637,18 +609,14 @@ class Marketing_BomController extends Controller
                 }
             }
 
+            // Hanya ke bom_marketing_detail; BOM JO baru diperbarui saat Save form (updateItemsBatch).
             $mysql_sb->table('bom_marketing_detail')->insert($insertRows);
-            $syncResult = \App\Http\Controllers\Marketing_SOController::executeSyncBom($salesOrder->id);
-            if (($syncResult['status'] ?? 500) !== 200) {
-                throw new \RuntimeException($syncResult['message'] ?? 'Gagal menyinkronkan item ke BOM JO.');
-            }
 
             $mysql_sb->commit();
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Item berhasil ditambahkan dan disinkronkan ke BOM JO.',
-                'sync' => $syncResult,
+                'message' => count($insertRows) . ' item ditambahkan. Klik Save untuk menyimpan BOM.',
             ]);
         } catch (\Throwable $e) {
             $mysql_sb->rollBack();
@@ -656,22 +624,11 @@ class Marketing_BomController extends Controller
         }
     }
 
-    private function nextBomCatalogNumber(Connection $connection): string
-    {
-        $prefix = 'BOM/' . Carbon::now()->format('my') . '/';
-        $lastBomNo = $connection->table('bom_marketing')
-            ->where('no_katalog_bom', 'LIKE', $prefix . '%')
-            ->orderByDesc('id')
-            ->value('no_katalog_bom');
-
-        $lastSequence = $lastBomNo ? (int) last(explode('/', $lastBomNo)) : 0;
-
-        return $prefix . str_pad($lastSequence + 1, 4, '0', STR_PAD_LEFT);
-    }
-
-
     public function storeDetail(Request $request)
     {
+        if ($locked = $this->bomLockedResponse($request->id_bom_marketing)) {
+            return $locked;
+        }
         $mysql_sb = DB::connection('mysql_sb');
         $mysql_sb->beginTransaction();
 
@@ -776,6 +733,9 @@ class Marketing_BomController extends Controller
 
     public function updateBomHeader(Request $request)
     {
+        if ($locked = $this->bomLockedResponse($request->id_bom ?? $request->id_bom_marketing)) {
+            return $locked;
+        }
         $mysql_sb = DB::connection('mysql_sb');
         $id_bom = $request->id_bom ?? $request->id_bom_marketing;
         $id_costing = $request->id_costing;
@@ -852,6 +812,9 @@ class Marketing_BomController extends Controller
 
     public function storeDetailEdit(Request $request)
     {
+        if ($locked = $this->bomLockedResponse($request->id_bom_marketing)) {
+            return $locked;
+        }
         $mysql_sb = DB::connection('mysql_sb');
         $mysql_sb->beginTransaction();
 
@@ -1021,7 +984,6 @@ class Marketing_BomController extends Controller
                     'sup.Supplier as supplier_name',
                     'c.name as color_name',
                     's.size as size_name',
-                    // Unit disimpan sebagai nama; join ID hanya untuk data lama yang terlanjur tersimpan sebagai ID.
                     $mysql_sb->raw('COALESCE(u.nama_pilihan, d.unit) as unit_name'),
                     'cur.nama_pilihan as currency',
                     $mysql_sb->raw("(CASE WHEN d.category = 'Manufacturing' THEN CONCAT(i.itemdesc, ' ', i.color, ' ', i.size, ' ', i.add_info) ELSE CONCAT(i.id_item, ' ', i.itemdesc) END) as item_name"),
@@ -1121,6 +1083,9 @@ class Marketing_BomController extends Controller
 
     public function updateItemRow(Request $request, $id)
     {
+        if ($locked = $this->bomLockedResponse(DB::connection('mysql_sb')->table('bom_marketing_detail')->where('id', $id)->value('id_bom_marketing'))) {
+            return $locked;
+        }
         $mysql_sb = DB::connection('mysql_sb');
         try {
             $id_item_val = (!empty($request->id_item) && $request->id_item !== 'null') ? $request->id_item : null;
@@ -1146,24 +1111,33 @@ class Marketing_BomController extends Controller
         }
     }
 
+    /**
+     * Save form BOM: simpan perubahan tabel (boleh kosong) lalu kirim seluruh BOM ke bom_jo_item.
+     * Item yang ditambah/dihapus sejak Save terakhir ikut terkirim di sini.
+     */
     public function updateItemsBatch(Request $request)
     {
+        if ($locked = $this->bomLockedResponse($request->id_bom_marketing)) {
+            return $locked;
+        }
         $validated = $request->validate([
             'id_bom_marketing' => ['required', 'integer', 'exists:mysql_sb.bom_marketing,id'],
-            'items' => ['required', 'array', 'min:1'],
+            'items' => ['nullable', 'array'],
             'items.*.id' => ['required', 'integer'],
             'items.*.qty' => ['required', 'numeric', 'gt:0'],
             'items.*.unit' => ['required', 'string', 'exists:mysql_sb.masterpilihan,nama_pilihan,kode_pilihan,Satuan'],
             'items.*.allowance' => ['required', 'numeric', 'min:0', 'max:100'],
             'items.*.id_supplier' => ['nullable', 'integer', 'exists:mysql_sb.mastersupplier,Id_Supplier'],
             'items.*.price' => ['required', 'numeric', 'min:0'],
+            'items.*.shell' => ['nullable', 'integer', 'exists:mysql_sb.masterpanel,id'],
         ]);
 
         $mysql_sb = DB::connection('mysql_sb');
         $mysql_sb->beginTransaction();
 
         try {
-            $ids = collect($validated['items'])->pluck('id')->unique();
+            $items = $validated['items'] ?? [];
+            $ids = collect($items)->pluck('id')->unique();
             $ownedCount = $mysql_sb->table('bom_marketing_detail')
                 ->where('id_bom_marketing', $validated['id_bom_marketing'])
                 ->where('cancel', 'N')
@@ -1173,13 +1147,15 @@ class Marketing_BomController extends Controller
                 throw new \RuntimeException('Sebagian item tidak terdaftar pada BOM yang sedang dibuka.');
             }
 
-            foreach ($validated['items'] as $item) {
+            foreach ($items as $item) {
                 $mysql_sb->table('bom_marketing_detail')->where('id', $item['id'])->update([
                     'qty' => $item['qty'],
                     'unit' => $item['unit'],
                     'allowance' => $item['allowance'],
                     'id_supplier' => $item['id_supplier'] ?? null,
                     'price' => $item['price'],
+                    // Shell = id_panel di kunci sync; baris lama otomatis dibatalkan dan diganti baris dengan shell baru.
+                    'shell' => $item['shell'] ?? null,
                 ]);
             }
 
@@ -1187,10 +1163,19 @@ class Marketing_BomController extends Controller
                 ->where('id_bom', $validated['id_bom_marketing'])
                 ->where('cancel_h', 'N')
                 ->pluck('id');
+            if ($salesOrders->isEmpty()) {
+                throw new \RuntimeException('BOM belum terhubung ke Sales Order.');
+            }
+            app(MarketingBomService::class)->refreshColorsSizes((int) $validated['id_bom_marketing']);
+
+            $synced = ['inserted' => 0, 'updated' => 0, 'canceled' => 0];
             foreach ($salesOrders as $soId) {
                 $syncResult = \App\Http\Controllers\Marketing_SOController::executeSyncBom($soId);
                 if (($syncResult['status'] ?? 500) !== 200) {
-                    throw new \RuntimeException($syncResult['message'] ?? 'Gagal menyinkronkan item ke BOM JO.');
+                    throw new \RuntimeException($syncResult['message'] ?? 'BOM gagal disimpan.');
+                }
+                foreach ($synced as $key => $total) {
+                    $synced[$key] = $total + ($syncResult[$key] ?? 0);
                 }
             }
 
@@ -1198,7 +1183,8 @@ class Marketing_BomController extends Controller
 
             return response()->json([
                 'status' => 200,
-                'message' => count($validated['items']) . ' item BOM berhasil disimpan.',
+                'message' => 'BOM berhasil disimpan.',
+                'sync' => $synced,
             ]);
         } catch (\Throwable $e) {
             $mysql_sb->rollBack();
@@ -1206,6 +1192,71 @@ class Marketing_BomController extends Controller
         }
     }
 
+
+    public function deleteItems(Request $request)
+    {
+        if ($locked = $this->bomLockedResponse($request->id_bom_marketing)) {
+            return $locked;
+        }
+        $validated = $request->validate([
+            'id_bom_marketing' => ['required', 'integer', 'exists:mysql_sb.bom_marketing,id'],
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer'],
+        ]);
+
+        $mysql_sb = DB::connection('mysql_sb');
+        $mysql_sb->beginTransaction();
+
+        try {
+            $ids = collect($validated['ids'])->unique()->values();
+            $details = $mysql_sb->table('bom_marketing_detail as d')
+                ->leftJoin('masteritem as i', 'd.id_item', '=', 'i.id_item')
+                ->where('d.id_bom_marketing', $validated['id_bom_marketing'])
+                ->where('d.cancel', 'N')
+                ->whereIn('d.id', $ids)
+                ->select('d.id', 'i.id_gen', 'i.itemdesc')
+                ->get();
+            if ($details->count() !== $ids->count()) {
+                throw new \RuntimeException('Sebagian item tidak terdaftar pada BOM yang sedang dibuka atau sudah dihapus.');
+            }
+
+            // Item yang sudah dibuatkan PO tidak boleh hilang dari BOM JO.
+            $joIds = $mysql_sb->table('so')
+                ->join('jo_det as jd', 'jd.id_so', '=', 'so.id')
+                ->where('so.id_bom', $validated['id_bom_marketing'])
+                ->where('so.cancel_h', 'N')
+                ->pluck('jd.id_jo')
+                ->unique();
+            $genIds = $details->pluck('id_gen')->filter()->unique();
+            if ($joIds->isNotEmpty() && $genIds->isNotEmpty()) {
+                $usedGenIds = $mysql_sb->table('po_item')
+                    ->whereIn('id_jo', $joIds)
+                    ->whereIn('id_gen', $genIds)
+                    ->where(function ($q) {
+                        $q->whereNull('cancel')->orWhere('cancel', 'N');
+                    })
+                    ->pluck('id_gen')
+                    ->unique();
+                if ($usedGenIds->isNotEmpty()) {
+                    $itemNames = $details->whereIn('id_gen', $usedGenIds->all())->pluck('itemdesc')->unique()->implode(', ');
+                    throw new \RuntimeException('Item sudah dibuatkan PO dan tidak bisa dihapus: ' . $itemNames);
+                }
+            }
+
+            // Hanya soft delete di BOM; baris BOM JO terkait dibatalkan saat Save form.
+            $mysql_sb->table('bom_marketing_detail')->whereIn('id', $ids)->update(['cancel' => 'Y']);
+
+            $mysql_sb->commit();
+
+            return response()->json([
+                'status' => 200,
+                'message' => $ids->count() . ' item dihapus. Klik Save untuk menyimpan BOM.',
+            ]);
+        } catch (\Throwable $e) {
+            $mysql_sb->rollBack();
+            return response()->json(['status' => 500, 'message' => $e->getMessage()], 500);
+        }
+    }
 
     public function storeOther(Request $request)
     {
@@ -1706,6 +1757,9 @@ class Marketing_BomController extends Controller
 
     public function deleteBatch(Request $request)
     {
+        if ($locked = $this->bomLockedResponse(DB::connection('mysql_sb')->table('bom_marketing_detail')->where('id', ((array) $request->ids)[0] ?? null)->value('id_bom_marketing'))) {
+            return $locked;
+        }
         $mysql_sb = DB::connection('mysql_sb');
         try {
             $ids = $request->ids;

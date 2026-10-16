@@ -1075,6 +1075,25 @@
                 {{-- Marketing --}}
                 @if ($page == 'dashboard-marketing')
                     <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'marketing-master-data' ? 'active' : '' }}">Master</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('marketing-master-group') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-master-group' ? 'active' : '' }}">
+                                    Master Group <i class="fa-solid fa-layer-group fa-sm"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('marketing-master-content') }}"
+                                    class="dropdown-item {{ $subPage == 'marketing-master-content' ? 'active' : '' }}">
+                                    Master Content & Item <i class="fa-solid fa-boxes-stacked fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'marketing-master' && !in_array($subPage, ['marketing-master-costing-approval', 'marketing-master-bom-approval']) ? 'active' : '' }}">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">

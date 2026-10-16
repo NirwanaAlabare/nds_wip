@@ -76,18 +76,43 @@
         .costing-table { border-collapse: collapse; margin-top: 5px !important; }
         .costing-table th, .costing-table td { border-top: none; border-left: none; border-right: none; border-bottom: 1px solid #f1f5f9 !important; padding: 12px 10px; vertical-align: middle; }
         .costing-table thead tr { background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
-        .costing-table thead th { color: #475569 !important; font-size: 10px !important; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: none !important; }
-        .costing-table tbody td { font-size: 10px !important; color: #334155; }
+        .costing-table thead th { color: #475569 !important; font-family: Inter, sans-serif; font-size: 12px !important; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: none !important; }
+        .costing-table tbody td { font-family: Inter, sans-serif; font-size: 14px !important; color: #334155; }
         .costing-table tbody tr:hover { background-color: #f8fafc; }
-        .costing-table tbody tr.costing-row-approved > td { background-color: #dcfce7 !important; }
-        .costing-table tbody tr.costing-row-pending > td { background-color: #fef3c7 !important; }
-        .costing-table tbody tr.costing-row-approved:hover > td { background-color: #bbf7d0 !important; }
-        .costing-table tbody tr.costing-row-pending:hover > td { background-color: #fde68a !important; }
-        .approval-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0 0 10px; color: #475569; font-size: 11px; }
-        .approval-legend-item { display: inline-flex; align-items: center; gap: 6px; }
-        .approval-legend-swatch { width: 10px; height: 10px; border: 1px solid #e2e8f0; border-radius: 50%; }
-        .approval-legend-swatch.approved { background: #dcfce7; border-color: #86efac; }
-        .approval-legend-swatch.pending { background: #fef3c7; border-color: #fcd34d; }
+        /* Neon vertikal status approval, menempel di kiri tombol timeline. */
+        .costing-timeline-cell { position: relative; }
+        .costing-status-neon {
+            position: absolute;
+            top: 6px;
+            bottom: 6px;
+            left: 0;
+            width: 3px;
+            border-radius: 3px;
+        }
+        .costing-status-neon.is-awaiting,
+        .costing-status-tab[data-status="awaiting"] .costing-status-swatch { background: #f59e0b; box-shadow: 0 0 4px #f59e0b, 0 0 9px rgba(245, 158, 11, .6); }
+        .costing-status-neon.is-return,
+        .costing-status-tab[data-status="return"] .costing-status-swatch { background: #a855f7; box-shadow: 0 0 4px #a855f7, 0 0 9px rgba(168, 85, 247, .6); }
+        .costing-status-neon.is-cancel,
+        .costing-status-tab[data-status="cancel"] .costing-status-swatch { background: #ef4444; box-shadow: 0 0 4px #ef4444, 0 0 9px rgba(239, 68, 68, .6); }
+        .costing-status-neon.is-approved,
+        .costing-status-tab[data-status="approved"] .costing-status-swatch { background: #22c55e; box-shadow: 0 0 4px #22c55e, 0 0 9px rgba(34, 197, 94, .6); }
+        .costing-status-neon.is-unlocked,
+        .costing-status-tab[data-status="unlocked"] .costing-status-swatch { background: #3b82f6; box-shadow: 0 0 4px #3b82f6, 0 0 9px rgba(59, 130, 246, .6); }
+
+        /* Status tab = legend + filter (klik lagi untuk mematikan filter). */
+        .costing-status-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin: 4px 0 4px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
+        .costing-status-selected { padding: 6px 0; color: #1e293b; font-weight: 700; }
+        .costing-status-tab { display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; border: 0; border-bottom: 2px solid transparent; background: none; color: #334155; font-weight: 500; cursor: pointer; }
+        .costing-status-tab:hover { color: #0f172a; }
+        .costing-status-tab.active { border-bottom-color: currentColor; font-weight: 700; }
+        .costing-status-tab[data-status="return"] { color: #9333ea; }
+        .costing-status-tab[data-status="cancel"] { color: #dc2626; }
+        .costing-status-tab[data-status="approved"] { color: #16a34a; }
+        .costing-status-tab[data-status="unlocked"] { color: #2563eb; }
+        .costing-status-swatch { display: inline-block; width: 3px; height: 12px; border-radius: 3px; }
+        .costing-status-count { min-width: 18px; padding: 0 6px; border-radius: 9px; background: #e2e8f0; color: #475569; font-size: 10px; font-weight: 600; text-align: center; }
+        .costing-status-note { margin: 0 0 10px; color: #94a3b8; font-size: 10px; }
         .costing-table input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: #334155; border-radius: 3px; }
 
         .date-badge { background-color: #e2e8f0; color: #475569; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 10px; display: inline-block; }
@@ -295,9 +320,23 @@
                         <span class="selected-badge" id="selected-count">0</span>
                     </div> --}}
 
-                    <div class="approval-legend" aria-label="Legend status approval">
-                        <span class="approval-legend-item"><span class="approval-legend-swatch approved"></span> Sudah approval</span>
-                        <span class="approval-legend-item"><span class="approval-legend-swatch pending"></span> Belum approval</span>
+                    <div class="costing-status-tabs" aria-label="Status approval costing">
+                        <span class="costing-status-selected">Selected <span class="costing-status-count" id="selected-count">0</span></span>
+                        <button type="button" class="costing-status-tab" data-status="awaiting" title="Belum di-approve; costing masih bisa diedit">
+                            <span class="costing-status-swatch"></span> Awaiting Approval <span class="costing-status-count" data-count="awaiting">0</span>
+                        </button>
+                        <button type="button" class="costing-status-tab" data-status="return" title="Dikembalikan manager untuk direvisi; setelah disimpan kembali ke Awaiting Approval">
+                            <span class="costing-status-swatch"></span> Return to Staff <span class="costing-status-count" data-count="return">0</span>
+                        </button>
+                        <button type="button" class="costing-status-tab" data-status="cancel" title="Ditolak manager / dibatalkan">
+                            <span class="costing-status-swatch"></span> Cancel <span class="costing-status-count" data-count="cancel">0</span>
+                        </button>
+                        <button type="button" class="costing-status-tab" data-status="approved" title="Sudah di-approve dan terkunci; ajukan Request Unlock untuk mengubah">
+                            <span class="costing-status-swatch"></span> Approved <span class="costing-status-count" data-count="approved">0</span>
+                        </button>
+                        <button type="button" class="costing-status-tab" data-status="unlocked" title="Dibuka manager untuk diedit peminta; Save and lock mengunci lagi dan tetap Approved">
+                            <span class="costing-status-swatch"></span> Unlocked <span class="costing-status-count" data-count="unlocked">0</span>
+                        </button>
                     </div>
 
                     <div class="table-responsive">
@@ -360,6 +399,8 @@
             <button type="button" class="btn btn-primary" id="apply-settings">Apply</button>
         </div>
     </div>
+
+    @include('marketing.costing.unlock_request_modal')
 @endsection
 
 @section('custom-script')
@@ -383,6 +424,14 @@
         let amountFormat = 'full';
         let dateFormat = 'DD/MM/YYYY';
         let activeCostingMenu = null;
+        let activeApprovalStatus = '';
+        const COSTING_STATUS = {
+            awaiting: { label: 'Awaiting Approval', desc: 'belum di-approve, masih bisa diedit' },
+            return: { label: 'Return to Staff', desc: 'perlu direvisi sesuai catatan manager' },
+            cancel: { label: 'Cancel', desc: 'ditolak manager / dibatalkan' },
+            approved: { label: 'Approved', desc: 'terkunci, perlu Request Unlock untuk mengubah' },
+            unlocked: { label: 'Unlocked', desc: 'dibuka untuk diedit peminta, Save and lock mengunci lagi (tetap Approved)' }
+        };
 
         $(document).ready(function() {
 
@@ -396,13 +445,6 @@
                 pageLength: 10,
                 lengthMenu: [[10, 15, 25, 50], [10, 15, 25, 50]],
                 dom: 'rt<"d-flex justify-content-between align-items-center mt-3"<"d-flex align-items-center gap-3"li>p>',
-                rowCallback: function (row, data) {
-                    const approvedStatus = String(data.app1 || '').trim().toUpperCase();
-                    const approved = ['A', 'Y'].includes(approvedStatus);
-                    $(row)
-                        .toggleClass('costing-row-approved', approved)
-                        .toggleClass('costing-row-pending', !approved);
-                },
                 // language: {
                 //     lengthMenu: "Item Per Page _MENU_",
                 //     info: "Of _MAX_",
@@ -418,6 +460,7 @@
                         d.tgl_awal = $('#menu-tgl-awal').val();
                         d.tgl_akhir = $('#menu-tgl-akhir').val();
                         d.buyers = selectedBuyers;
+                        d.approval_status = activeApprovalStatus;
                     }
                 },
                 columns: [
@@ -426,9 +469,14 @@
                         data: null,
                         orderable: false,
                         searchable: false,
-                        className: 'text-center align-middle',
-                        render: function () {
-                            return '<button type="button" class="timeline-toggle" aria-expanded="false" title="Lihat timeline"><i class="fas fa-chevron-right"></i></button>';
+                        className: 'text-center align-middle costing-timeline-cell',
+                        render: function (data, type, row) {
+                            const status = COSTING_STATUS[row.approval_status] ? row.approval_status : 'awaiting';
+                            const meta = COSTING_STATUS[status];
+                            const note = ['return', 'cancel'].includes(status) && row.approval_note ? `\nCatatan manager: ${row.approval_note}` : '';
+                            const title = $('<div>').text(`${meta.label}: ${meta.desc}${note}`).html().replace(/"/g, '&quot;');
+                            return `<span class="costing-status-neon is-${status}" title="${title}"></span>` +
+                                '<button type="button" class="timeline-toggle" aria-expanded="false" title="Lihat timeline"><i class="fas fa-chevron-right"></i></button>';
                         }
                     },
                     {
@@ -509,7 +557,7 @@
                             const approvedStatus = String(row.app1 || '').trim().toUpperCase();
                             const approved = ['A', 'Y'].includes(approvedStatus);
                             const hasSo = Boolean(row.so_id);
-                            const hasBom = Boolean(row.bom_id);
+                            const hasBom = Boolean(row.bom_id) && Number(row.bom_item_count) > 0;
 
                             const soCreateUrl = "{{ route('create-so') }}?id_costing=" + encodeURIComponent(data);
                             const bomCreateUrl = "{{ route('create-bom') }}?id_costing=" + encodeURIComponent(data) + "&id_so=" + encodeURIComponent(row.so_id);
@@ -519,65 +567,65 @@
                             const bomPdfUrl = hasBom ? "{{ route('print-bom-pdf', ':id') }}".replace(':id', row.bom_id) : '';
                             const bomExcelUrl = hasBom ? "{{ route('export-excel-bom') }}?id=" + encodeURIComponent(row.bom_id) : '';
 
-                            // 1. Tombol Costing (Biru)
                             let costingBtn = `
                                 <div class="dropdown d-inline-block">
                                     <button class="action-round costing-menu-toggle" data-menu-id="costing-menu-${data}" aria-expanded="false" style="background:#0ea5e9;" type="button" title="Costing Menu">
-                                        <i class="fas fa-calculator"></i>
+                                        <i class="fas fa-calculator" style="font-size:10px;"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right costing-actions-menu" id="costing-menu-${data}">
                                         <button type="button" class="dropdown-item costing-info" data-id="${data}"><i class="fas fa-info-circle"></i> Info item</button>
-                                        <a class="dropdown-item" href="${editUrl}"><i class="fas fa-pen"></i> Edit</a>
+                                        ${row.approval_status === 'approved'
+                                            ? `<a class="dropdown-item" href="${editUrl}"><i class="fas fa-eye"></i> View</a>` + unlockMenuItem('costing', data, row.cost_no, row.nama_buyer, row.costing_unlock_pending)
+                                            : `<a class="dropdown-item" href="${editUrl}"><i class="fas fa-pen"></i> Edit</a>`}
                                         <button type="button" class="dropdown-item" onclick="confirmCopy('${copyUrl}')"><i class="far fa-copy"></i> Copy</button>
                                         <a class="dropdown-item" href="${pdfUrl}" target="_blank"><i class="fas fa-file-pdf"></i> PDF</a>
                                         <a class="dropdown-item" href="${excelUrl}"><i class="fas fa-file-excel"></i> Excel</a>
                                     </div>
                                 </div>`;
 
-                            // 2. Tombol SO (Kuning)
                             let soMenu = '';
                             if (hasSo) {
                                 soMenu = `
                                 <div class="dropdown d-inline-block">
                                     <button class="action-round costing-menu-toggle" data-menu-id="so-menu-${row.so_id}" aria-expanded="false" style="background:#f59e0b;" type="button" title="SO Menu">
-                                        <i class="fas fa-clipboard-list"></i>
+                                        <i class="fas fa-clipboard-list" style="font-size:10px;"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right costing-actions-menu" id="so-menu-${row.so_id}">
                                         <button type="button" class="dropdown-item" onclick="showCostingSoDetail(${row.so_id})"><i class="fas fa-eye"></i> Detail</button>
-                                        <button type="button" class="dropdown-item" onclick="showCostingSoMaterial(${row.so_id})"><i class="fas fa-boxes"></i> Detail Material</button>
-                                        <a class="dropdown-item" href="${soPdfUrl}" target="_blank"><i class="fas fa-file-pdf"></i> PDF</a>
+                                        <button type="button" class="dropdown-item" onclick="showCostingSoMaterial(${row.so_id})"><i class="fas fa-boxes"></i> Detail Material</button>                                        <a class="dropdown-item" href="${soPdfUrl}" target="_blank"><i class="fas fa-file-pdf"></i> PDF</a>
                                         <a class="dropdown-item" href="${soExcelUrl}"><i class="fas fa-file-excel"></i> Excel</a>
                                     </div>
                                 </div>`;
                             } else if (approved) {
-                                soMenu = `<a href="${soCreateUrl}" class="action-round action-so-outline" title="Create SO"><i class="fas fa-clipboard-list"></i></a>`;
+                                soMenu = `<a href="${soCreateUrl}" class="action-round action-so-outline" title="Create SO"><i class="fas fa-clipboard-list" style="font-size:10px;"></i></a>`;
                             } else {
-                                // Tampilan Disabled (Belum Approve)
-                                soMenu = `<button class="action-round action-so-outline action-status-disabled" disabled title="Belum bisa membuat SO"><i class="fas fa-clipboard-list"></i></button>`;
+                                soMenu = `<button class="action-round action-so-outline action-status-disabled" disabled title="Belum bisa membuat SO"><i class="fas fa-clipboard-list" style="font-size:10px;"></i></button>`;
                             }
 
-                            // 3. Tombol BOM (Ungu)
                             let bomMenu = '';
                             const canCreateBom = approved && hasSo;
                             if (hasBom && approved) {
                                 bomMenu = `
                                 <div class="dropdown d-inline-block">
                                     <button class="action-round costing-menu-toggle" data-menu-id="bom-menu-${row.bom_id}" aria-expanded="false" style="background:#a855f7;" type="button" title="BOM Menu">
-                                        <i class="fas fa-layer-group"></i>
+                                        <i class="fas fa-layer-group" style="font-size:10px;"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right costing-actions-menu" id="bom-menu-${row.bom_id}">
                                         <button type="button" class="dropdown-item" onclick="showCostingBomDetail(${row.bom_id})"><i class="fas fa-eye"></i> Detail</button>
+                                        ${row.bom_approval_status === 'approved'
+                                            ? unlockMenuItem('bom', row.bom_id, row.bom_no, row.nama_buyer, row.bom_unlock_pending)
+                                            : (hasSo ? `<a class="dropdown-item" href="${bomCreateUrl}"><i class="fas fa-pen"></i> Edit Item</a>` : '')}
                                         <a class="dropdown-item" href="${bomPdfUrl}" target="_blank"><i class="fas fa-file-pdf"></i> PDF</a>
                                         <a class="dropdown-item" href="${bomExcelUrl}"><i class="fas fa-file-excel"></i> Excel</a>
                                     </div>
                                 </div>`;
                             } else if (canCreateBom) {
-                                bomMenu = `<a href="${bomCreateUrl}" class="action-round action-bom-outline" title="Create BOM"><i class="fas fa-layer-group"></i></a>`;
+                                bomMenu = `<a href="${bomCreateUrl}" class="action-round action-bom-outline" title="Create BOM"><i class="fas fa-layer-group" style="font-size:10px;"></i></a>`;
                             } else {
-                                bomMenu = `<button class="action-round action-bom-outline action-status-disabled" disabled title="Belum bisa membuat BOM"><i class="fas fa-layer-group"></i></button>`;
+                                bomMenu = `<button class="action-round action-bom-outline action-status-disabled" disabled title="Belum bisa membuat BOM"><i class="fas fa-layer-group" style="font-size:10px;"></i></button>`;
                             }
 
-                            let extraBtn = `<button class="action-round" style="background:#f8fafc; color:#cbd5e1 !important; border: 1px dashed #cbd5e1;" disabled><i class="fas fa-table"></i></button>`;
+                            let extraBtn = `<button class="action-round" style="background:#f8fafc; color:#cbd5e1 !important; border: 1px dashed #cbd5e1;" disabled><i class="fas fa-table" style="font-size:10px;"></i></button>`;
 
                             return `<div class="costing-actions">${costingBtn}${soMenu}${bomMenu}${extraBtn}</div>`;
                         }
@@ -809,6 +857,42 @@
             });
 
             // Update Selected Count Badge
+            // Pesan redirect (mis. costing terkunci saat membuka Edit) tidak ditampilkan layout, jadi tampilkan di sini.
+            @if (session('warning') || session('error'))
+                Swal.fire('Perhatian', @json(session('warning') ?? session('error')), 'warning');
+            @endif
+
+            // Jumlah per status ikut dikirim server (mengikuti filter tanggal/buyer).
+            table.on('xhr.dt', function(event, settings, json) {
+                const counts = (json && json.status_counts) || {};
+                Object.keys(COSTING_STATUS).forEach(function(status) {
+                    $(`.costing-status-count[data-count="${status}"]`).text(Number(counts[status] || 0).toLocaleString('id-ID'));
+                });
+            });
+
+            // Status tab sebagai filter; klik tab yang aktif lagi untuk menampilkan semua.
+            $(document).on('click', '.costing-status-tab', function() {
+                const status = $(this).data('status');
+                activeApprovalStatus = activeApprovalStatus === status ? '' : status;
+                $('.costing-status-tab').removeClass('active')
+                    .filter(`[data-status="${activeApprovalStatus}"]`).addClass('active');
+                table.ajax.reload();
+            });
+
+            $(document).on('click', '.marketing-request-unlock', function() {
+                const $btn = $(this);
+                openUnlockRequest({
+                    type: $btn.data('type'),
+                    id: $btn.data('id'),
+                    number: $btn.data('number'),
+                    buyer: $btn.data('buyer'),
+                    onSuccess: function(res) {
+                        Swal.fire({ icon: 'success', title: res.message, timer: 2000, showConfirmButton: false });
+                        table.ajax.reload(null, false);
+                    }
+                });
+            });
+
             $(document).on('change', '.costing-check, #check-all-costing', function() {
                 let count = $('.costing-check:checked').length;
                 $('#selected-count').text(count);
@@ -1281,6 +1365,16 @@
             $('#tableSettings, #settings-backdrop').removeClass('show');
             $('#tableSettings').attr('aria-hidden', 'true');
         }
+
+        // Costing / BOM Approved (terkunci): Request Unlock, atau "Menunggu Unlock" bila sudah diajukan.
+        function unlockMenuItem(type, id, number, buyer, pending) {
+            const attr = value => $('<div>').text(value || '').html().replace(/"/g, '&quot;');
+            if (Number(pending)) {
+                return '<button type="button" class="dropdown-item" disabled><i class="fas fa-hourglass-half"></i> Menunggu Unlock</button>';
+            }
+            return `<button type="button" class="dropdown-item marketing-request-unlock" data-type="${type}" data-id="${id}" data-number="${attr(number)}" data-buyer="${attr(buyer)}"><i class="fas fa-lock-open"></i> Request Unlock</button>`;
+        }
+
 
         function confirmCopy(url) {
             Swal.fire({

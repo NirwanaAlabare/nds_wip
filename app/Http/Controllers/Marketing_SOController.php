@@ -9,6 +9,7 @@ use PDF;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\File;
+use App\Services\MarketingBomService;
 use App\Services\MarketingHistoryService;
 
 class Marketing_SOController extends Controller
@@ -279,7 +280,7 @@ class Marketing_SOController extends Controller
         }
 
         $pictures = $db->table('act_costing_picture')
-            ->where('id_costing', $idCosting)
+            ->where('id_act_cost', $idCosting)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->pluck('file_name')
@@ -1914,6 +1915,7 @@ class Marketing_SOController extends Controller
                 }
 
                 $resultCount = $tempDetails->count();
+                $bom = app(MarketingBomService::class)->ensureForCosting((int) $costingId);
                 foreach ($tempDetails as $po => $details) {
                     $totalQty = $details->sum('qty');
                     $codes = $this->generate_kode($costing->id_buyer, false);
@@ -1929,7 +1931,7 @@ class Marketing_SOController extends Controller
                         'qty' => $totalQty,
                         'username' => $user->username ?? $user->name,
                         'd_insert' => $now,
-                        'id_bom' => null,
+                        'id_bom' => $bom->id,
                         'market' => $costing->market,
                         'nm_file' => $fileName,
                         'style' => $costing->styleno,
@@ -1994,6 +1996,7 @@ class Marketing_SOController extends Controller
                     );
                 }
 
+                app(MarketingBomService::class)->refreshColorsSizes($bom->id);
                 $db->table('temp_so_detail')->where('user_id', $userId)->delete();
                 return $resultCount;
             });

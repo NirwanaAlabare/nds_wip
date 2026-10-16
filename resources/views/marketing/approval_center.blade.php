@@ -1,235 +1,225 @@
 @extends('layouts.index')
 
+@php
+    // Empat tabel di halaman ini memakai satu template; kolom & aksi diatur di sini.
+    $docSections = [
+        ['key' => 'costing', 'title' => 'Approval Costing', 'number' => 'No Costing'],
+        ['key' => 'bom', 'title' => 'Approval BOM', 'number' => 'No BOM'],
+    ];
+    $unlockSections = [
+        ['key' => 'costing', 'title' => 'Unlock Costing', 'number' => 'No Costing', 'enabled' => true],
+        ['key' => 'bom', 'title' => 'Unlock BOM', 'number' => 'No BOM', 'enabled' => true],
+    ];
+    $searchColumns = ['number' => null, 'worksheet' => 'No Worksheet', 'buyer' => 'Buyer', 'brand' => 'Brand', 'style' => 'Style'];
+@endphp
+
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style>
+        .ac-page { color: #1e293b; }
+        .ac-title { margin: 0; font-size: 26px; font-weight: 700; color: #475569; }
+        .ac-subtitle { margin: 2px 0 18px; color: #64748b; font-size: 12px; }
+
+        /* Kartu ringkasan */
+        .ac-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; }
+        .ac-summary-card { display: block; min-height: 108px; padding: 14px 16px; border: 1px solid transparent; border-radius: 10px; color: inherit; text-decoration: none !important; transition: transform .15s; }
+        .ac-summary-card:hover { transform: translateY(-2px); }
+        .ac-summary-card span { display: block; font-size: 13px; font-weight: 600; color: #475569; }
+        .ac-summary-card strong { display: block; margin: 2px 0; font-size: 40px; line-height: 1.1; text-align: center; color: #1e293b; }
+        .ac-summary-card small { color: #94a3b8; font-size: 10px; }
+        .ac-summary-card.is-costing { background: #e0f2fe; border-color: #bae6fd; }
+        .ac-summary-card.is-bom { background: #fefce8; border-color: #fef08a; }
+        .ac-summary-card.is-costing span { color: #0369a1; }
+        .ac-summary-card.is-bom span { color: #a16207; }
+        .ac-summary-card.is-unlock-costing span { color: #be123c; }
+        .ac-summary-card.is-unlock-bom span { color: #6d28d9; }
+        .ac-summary-card.is-unlock-costing { background: #ffe4e6; border-color: #fecdd3; }
+        .ac-summary-card.is-unlock-bom { background: #ede9fe; border-color: #ddd6fe; }
+
+        .ac-section-title { margin: 0 0 10px; font-size: 17px; font-weight: 700; color: #334155; }
+        .ac-card { margin-bottom: 26px; padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; box-shadow: 0 4px 16px rgba(15, 23, 42, .05); }
+        .ac-unlock-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+
+        /* Toolbar: tanggal, search by, kata kunci, tombol aksi */
+        .ac-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .ac-toolbar .ac-search-by-wrap { position: relative; width: 170px; }
+        .ac-toolbar .ac-keyword-wrap { position: relative; width: 220px; }
+        .ac-toolbar .ac-keyword { height: 32px; padding-left: 28px; font-size: 12px; }
+        .ac-input-icon { position: absolute; top: 16px; left: 10px; z-index: 2; transform: translateY(-50%); color: #64748b; font-size: 11px; pointer-events: none; }
+        .ac-search-by-wrap .select2-selection__rendered { padding-left: 22px !important; }
+        .ac-actions { display: flex; gap: 8px; margin-left: auto; }
+        .ac-btn { min-width: 110px; height: 32px; border: 0; border-radius: 16px; color: #fff; font-size: 12px; font-weight: 600; }
+        .ac-btn:disabled { opacity: .45; cursor: not-allowed; }
+        .ac-btn.is-approve { background: #15803d; }
+        .ac-btn.is-return { background: #8a8a8a; }
+        .ac-btn.is-cancel { background: #e11d48; }
+        .ac-btn.is-unlock { background: #0ea5e9; }
+        .ac-date-wrap { position: relative; }
+        .ac-date-toggle { width: 32px; height: 32px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #475569; }
+        .ac-date-panel { position: absolute; top: 36px; left: 0; z-index: 20; display: none; width: 250px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(15, 23, 42, .12); font-size: 11px; }
+        .ac-date-panel.show { display: block; }
+        .ac-date-panel input { height: 30px; font-size: 11px; }
+        .ac-search-by-wrap .select2-container--bootstrap4 .select2-selection { min-height: 32px; font-size: 12px; }
+
+        /* Ringkasan filter */
+        .ac-filter-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 26px; margin-top: 8px; color: #64748b; font-size: 11px; }
+        .ac-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px 2px 9px; border-radius: 10px; background: #e0f2fe; color: #0369a1; font-weight: 500; }
+        .ac-chip-remove { padding: 0 2px; border: 0; background: none; color: inherit; font-size: 12px; line-height: 1; }
+        .ac-chip-remove:hover { color: #e11d48; }
+        .ac-clear { padding: 0; border: 0; background: none; color: #475569; font-size: 11px; text-decoration: underline; }
+
+        /* Tab status = legend + filter */
+        .ac-status-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin: 4px 0 6px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
+        .ac-status-selected { padding: 6px 0; font-size: 14px; font-weight: 700; }
+        .ac-status-tab { display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; border: 0; border-bottom: 2px solid transparent; background: none; color: #334155; font-size: 14px; font-weight: 500; }
+        .ac-status-tab.active { border-bottom-color: currentColor; }
+        .ac-status-tab[data-status="return"] { color: #ea580c; }
+        .ac-status-tab[data-status="cancel"] { color: #dc2626; }
+        .ac-status-tab[data-status="approved"] { color: #16a34a; }
+        .ac-status-tab[data-status="unlocked"] { color: #2563eb; }
+        .ac-status-tab[data-status="request"] { color: #2563eb; }
+        .ac-count { min-width: 18px; padding: 0 6px; border-radius: 9px; background: #e2e8f0; color: #475569; font-size: 10px; font-weight: 600; text-align: center; }
+
+        /* Tabel */
+        .ac-table { margin-bottom: 0; font-size: 15px; font-weight: 500; }
+        .ac-table thead th { padding: 6px 8px; border-color: #c9d9f2; background: #cfe0ff; color: #26394c; font-size: 12px; font-weight: 500; text-transform: uppercase; white-space: nowrap; }
+        .ac-table tbody td { padding: 6px 8px; border-color: #eef2f7; vertical-align: middle; white-space: nowrap; }
+        .ac-table tbody tr:hover { background: #f8fafc; }
+        .ac-table input[type="checkbox"] { width: 14px; height: 14px; accent-color: #334155; }
+        .ac-date-badge { display: inline-block; padding: 2px 10px; border-radius: 10px; background: #e2e8f0; color: #475569; font-weight: 500; }
+        .ac-badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border: 1px solid; border-radius: 10px; font-weight: 500; }
+        .ac-badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+        .ac-badge.is-awaiting { border-color: #e2e8f0; background: #f1f5f9; color: #64748b; }
+        .ac-badge.is-return { border-color: #fed7aa; background: #fff7ed; color: #ea580c; }
+        .ac-badge.is-cancel { border-color: #fecaca; background: #fef2f2; color: #dc2626; }
+        .ac-badge.is-approved { border-color: #bbf7d0; background: #f0fdf4; color: #16a34a; }
+        .ac-badge.is-unlocked,
+        .ac-badge.is-request { border-color: #bfdbfe; background: #eff6ff; color: #2563eb; }
+        .ac-timeline-toggle { width: 20px; height: 20px; padding: 0; border: 1px solid #cbd5e1; border-radius: 50%; background: #fff; color: #64748b; font-size: 8px; }
+        .ac-timeline-toggle[aria-expanded="true"] { border-color: #7dd3fc; background: #e0f2fe; color: #0284c7; }
+        .ac-timeline { padding: 10px 18px; background: #f6f8fb; font-size: 11px; white-space: normal; }
+        .ac-timeline-item { display: flex; gap: 10px; padding: 3px 0; }
+        .ac-timeline-item time { flex: 0 0 120px; color: #64748b; }
+        .ac-reason { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+        .ac-empty { padding: 26px 10px; color: #94a3b8; text-align: center; font-size: 12px; }
+        .ac-card .dataTables_info, .ac-card .dataTables_length, .ac-card .dataTables_paginate { padding-top: 8px; color: #687582; font-size: 10px; }
+        .ac-card .dataTables_length select { height: 25px; margin: 0 4px; font-size: 10px; }
+        .ac-card .pagination { margin: 0; gap: 2px; }
+        .ac-card .page-link { min-width: 22px; padding: 3px 7px; border: 0; border-radius: 4px; color: #475569; font-size: 10px; text-align: center; }
+        .ac-card .page-item.active .page-link { background: #1e3a5f; color: #fff; }
+        .ac-card .page-item.disabled .page-link { background: none; color: #cbd5e1; }
+        .ac-badges { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+
+        @media (max-width: 991.98px) {
+            .ac-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .ac-unlock-grid { grid-template-columns: 1fr; }
+            .ac-actions { margin-left: 0; }
+        }
+    </style>
 @endsection
 
-<style>
-    #table-detail thead th {
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        background-color: #f8f9fa;
-        box-shadow: inset 0 -1px 0 #dee2e6;
-    }
-
-    #table-detail thead tr:nth-child(2) th {
-        top: 36px;
-        z-index: 1;
-    }
-
-    .nav-tabs .nav-link.active {
-        background-color: #f8f9fa;
-        border-bottom-color: #f8f9fa;
-        color: #007bff;
-    }
-</style>
-
 @section('content')
-<div class="card card-sb">
-    <div class="card-header bg-sb">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="card-title fw-bold text-white mb-0">
-                <i class="fas fa-check-circle"></i> Marketing Approval
-            </h5>
-        </div>
-    </div>
-    <div class="card-body bg-light">
-        <!-- Nav tabs -->
-        <ul class="nav nav-tabs" id="approvalTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active fw-bold px-4 py-2" id="costing-tab" data-toggle="tab" data-bs-toggle="tab" data-target="#costing" data-bs-target="#costing" type="button" role="tab" aria-controls="costing" aria-selected="true">
-                    <i class="fa-solid fa-dollar-sign"></i> Approval Costing
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold px-4 py-2" id="bom-tab" data-toggle="tab" data-bs-toggle="tab" data-target="#bom" data-bs-target="#bom" type="button" role="tab" aria-controls="bom" aria-selected="false">
-                    <i class="fa-solid fa-receipt"></i> Approval BOM
-                </button>
-            </li>
-        </ul>
+<div class="ac-page font-inter">
+    <h1 class="ac-title mb-3">Approval Center</h1>
 
-        <!-- Tab panes -->
-        <div class="tab-content bg-white p-4 border border-top-0" id="approvalTabContent">
-            <!-- TAB 1: COSTING -->
-            <div class="tab-pane fade show active" id="costing" role="tabpanel" aria-labelledby="costing-tab">
-                <div class="row align-items-end mb-4">
-                    <div class="col-md-2">
-                        <label class="small fw-bold">Tgl Awal</label>
-                        <input type="date" id="tgl-awal" name="tgl_awal" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="small fw-bold">Tgl Akhir</label>
-                        <input type="date" id="tgl-akhir" name="tgl_akhir" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-primary btn-sm fw-bold" onclick="dataTableReloadCosting()">
-                            <i class="fas fa-search"></i> Filter
-                        </button>
+    <div class="ac-summary">
+        <a href="#ac-doc-costing" class="ac-summary-card is-costing"><span>Approval Costing</span><strong data-summary="costing">{{ $summary['costing'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
+        <a href="#ac-doc-bom" class="ac-summary-card is-bom"><span>Approval BOM</span><strong data-summary="bom">{{ $summary['bom'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
+        <a href="#ac-unlock-costing" class="ac-summary-card is-unlock-costing"><span>Unlock Costing</span><strong data-summary="unlock-costing">{{ $summary['unlock_costing'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
+        <a href="#ac-unlock-bom" class="ac-summary-card is-unlock-bom"><span>Unlock BOM</span><strong data-summary="unlock-bom">{{ $summary['unlock_bom'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
+    </div>
+
+    @foreach ($docSections as $section)
+        <section id="ac-doc-{{ $section['key'] }}">
+            <h2 class="ac-section-title">{{ $section['title'] }}</h2>
+            <div class="ac-card" data-ac-kind="doc" data-ac-type="{{ $section['key'] }}" data-ac-number="{{ $section['number'] }}">
+                <div class="ac-toolbar">
+                    @include('marketing.approval_center_filters', ['numberLabel' => $section['number'], 'searchColumns' => $searchColumns])
+                    <div class="ac-actions">
+                        <button type="button" class="ac-btn is-approve" data-ac-action="approve" disabled>Approve</button>
+                        <button type="button" class="ac-btn is-return" data-ac-action="return" disabled>Return to Staff</button>
+                        <button type="button" class="ac-btn is-cancel" data-ac-action="cancel" disabled>Cancel</button>
                     </div>
                 </div>
-
+                <div class="ac-filter-summary"></div>
+                <div class="ac-status-tabs">
+                    <span class="ac-status-selected">Selected <span class="ac-count" data-selected>0</span></span>
+                    <button type="button" class="ac-status-tab" data-status="return">Return to Staff <span class="ac-count" data-count="return">0</span></button>
+                    <button type="button" class="ac-status-tab active" data-status="awaiting">Awaiting Approval <span class="ac-count" data-count="awaiting">0</span></button>
+                    <button type="button" class="ac-status-tab" data-status="cancel">Cancel <span class="ac-count" data-count="cancel">0</span></button>
+                    <button type="button" class="ac-status-tab" data-status="approved">Approved <span class="ac-count" data-count="approved">0</span></button>
+                    <button type="button" class="ac-status-tab" data-status="unlocked">Unlocked <span class="ac-count" data-count="unlocked">0</span></button>
+                </div>
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover w-100" id="table-costing-approval">
+                    <table class="table table-bordered ac-table w-100">
                         <thead>
-                            <tr class="text-center">
-                                <th>No Costing</th>
-                                <th>Tgl. Costing</th>
+                            <tr>
+                                <th><input type="checkbox" class="ac-check-all" aria-label="Pilih semua"></th>
+                                <th></th>
+                                <th>No</th>
+                                <th>Due Date</th>
+                                <th>{{ $section['number'] }}</th>
+                                <th>Status</th>
+                                <th>No Worksheet</th>
                                 <th>Buyer</th>
                                 <th>Brand</th>
                                 <th>Style</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 2: BOM -->
-            <div class="tab-pane fade" id="bom" role="tabpanel" aria-labelledby="bom-tab">
-                <div class="row align-items-end mb-4">
-                    <div class="col-md-2">
-                        <label class="small fw-bold">Tgl Awal</label>
-                        <input type="date" id="date_from" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="small fw-bold">Tgl Akhir</label>
-                        <input type="date" id="date_to" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-primary btn-sm fw-bold" onclick="refreshTableBom()">
-                            <i class="fas fa-search"></i> Filter
-                        </button>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover w-100" id="table-bom-approval">
-                        <thead>
-                            <tr class="text-center">
-                                <th>No</th>
-                                <th>No Katalog BOM</th>
-                                <th>Buyer</th>
-                                <th>Style</th>
                                 <th>Market</th>
-                                <th>Total Cons</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL APPROVAL COSTING -->
-<div class="modal fade" id="modalApprovalCosting" tabindex="-1" role="dialog" aria-labelledby="modalApprovalCostingLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form id="form-approve-costing" method="POST">
-                @csrf
-                <div class="modal-header bg-sb text-white">
-                    <h5 class="modal-title fw-bold" id="modalApprovalCostingLabel"><i class="fas fa-check"></i> Konfirmasi Approval Costing</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body bg-light">
-                    <input type="hidden" name="id_costing" id="approve_id_costing">
-                    <div class="text-center mb-3">
-                        <h6 class="mb-1">Apakah Anda yakin akan menyetujui Costing ini?</h6>
-                        <h4 class="fw-bold text-dark" id="approve_no_costing">-</h4>
-                    </div>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger fw-bold" data-dismiss="modal">
-                        <i class="fas fa-times-circle"></i> Batal
-                    </button>
-                    <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-check-circle"></i> Approve</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL APPROVAL BOM -->
-<div class="modal fade" id="modalApprovalBom" tabindex="-1" role="dialog" aria-labelledby="modalApprovalBomLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form id="form-approve-bom" method="POST">
-                @csrf
-                <div class="modal-header bg-sb text-white">
-                    <h5 class="modal-title fw-bold" id="modalApprovalBomLabel"><i class="fas fa-check"></i> Konfirmasi Approval BOM</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body bg-light">
-                    <input type="hidden" name="id_bom" id="approve_id_bom">
-                    <div class="text-center mb-3">
-                        <h6 class="mb-1">Apakah Anda yakin akan menyetujui BOM ini?</h6>
-                        <h4 class="fw-bold text-dark" id="approve_no_bom">-</h4>
-                    </div>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-danger fw-bold" data-dismiss="modal">
-                        <i class="fas fa-times-circle"></i> Batal
-                    </button>
-                    <button type="submit" class="btn btn-primary fw-bold"><i class="fas fa-check-circle"></i> Approve</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL DETAIL BOM -->
-<div class="modal fade" id="modalDetail" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-sb text-light">
-                <h5 class="modal-title fw-bold"><i class="fas fa-info-circle"></i> Detail BOM Marketing</h5>
-                <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                    <table class="table table-sm table-striped table-bordered w-100" id="table-detail">
-                        <thead class="bg-light">
-                            <tr class="text-center">
-                                <th width="5%">No</th>
-                                <th width="20%">Content</th>
-                                <th>Item Description</th>
-                                <th width="15%">Color</th>
-                                <th width="15%">Size</th>
-                                <th width="10%">Cons</th>
-                                <th width="10%">Unit</th>
-                            </tr>
-                            <tr class="bg-light filter-row">
-                                <th></th> <th><input type="text" class="form-control form-control-sm column-search" data-column="1"></th>
-                                <th><input type="text" class="form-control form-control-sm column-search" data-column="2"></th>
-                                <th><input type="text" class="form-control form-control-sm column-search" data-column="3"></th>
-                                <th><input type="text" class="form-control form-control-sm column-search" data-column="4"></th>
-                                <th></th> <th><input type="text" class="form-control form-control-sm column-search" data-column="6"></th>
+                                <th>Qty</th>
+                                <th>Confirm Price</th>
+                                <th>Product Group</th>
+                                <th>Product Items</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
                     </table>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-dismiss="modal"><i class="fas fa-times-circle"></i> Tutup</button>
-            </div>
-        </div>
+        </section>
+    @endforeach
+
+    <div class="ac-unlock-grid">
+        @foreach ($unlockSections as $section)
+            <section id="ac-unlock-{{ $section['key'] }}">
+                <h2 class="ac-section-title">{{ $section['title'] }} <i class="fas fa-lock text-muted" style="font-size: 13px;"></i></h2>
+                <div class="ac-card" data-ac-kind="unlock" data-ac-type="{{ $section['key'] }}" data-ac-enabled="{{ $section['enabled'] ? '1' : '0' }}">
+                    <div class="ac-toolbar">
+                        @include('marketing.approval_center_filters', ['numberLabel' => $section['number'], 'searchColumns' => $searchColumns])
+                        <div class="ac-actions">
+                            <button type="button" class="ac-btn is-unlock" data-ac-action="unlock" disabled>Unlock</button>
+                        </div>
+                    </div>
+                    <div class="ac-filter-summary"></div>
+                    <div class="ac-status-tabs">
+                        <span class="ac-status-selected">Selected <span class="ac-count" data-selected>0</span></span>
+                        <span class="ac-status-tab active" data-status="request">Request Unlock <span class="ac-count" data-count="request">0</span></span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered ac-table w-100">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" class="ac-check-all" aria-label="Pilih semua" {{ $section['enabled'] ? '' : 'disabled' }}></th>
+                                    <th></th>
+                                    <th>No</th>
+                                    <th>{{ $section['number'] }}</th>
+                                    <th>Status</th>
+                                    <th>Buyer</th>
+                                    <th>Brand</th>
+                                    <th>Product Items</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @unless ($section['enabled'])
+                                    <tr><td colspan="8" class="ac-empty"><i class="fas fa-hourglass-half"></i> Unlock BOM belum aktif.</td></tr>
+                                @endunless
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        @endforeach
     </div>
 </div>
 @endsection
@@ -237,268 +227,289 @@
 @section('custom-script')
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-
     <script>
-        let tableCosting;
-        let tableBom;
-        let tableDetail = null;
+        const AC_ROUTES = {
+            documents: "{{ route('marketing-approval-documents', ':type') }}",
+            unlockRequests: "{{ route('marketing-approval-unlock-requests', ':type') }}",
+            decide: "{{ route('marketing-approval-decide', ':type') }}",
+            unlock: "{{ route('marketing-approval-unlock') }}",
+            timeline: "{{ route('costing-timeline', ':id') }}"
+        };
+        const AC_CSRF = "{{ csrf_token() }}";
+        const AC_STATUS_LABEL = {
+            awaiting: 'Awaiting Approval', return: 'Return to Staff', cancel: 'Cancel',
+            approved: 'Approved', unlocked: 'Unlocked', request: 'Request Unlock'
+        };
+        const AC_ACTION_LABEL = { approve: 'Approve', return: 'Return to Staff', cancel: 'Cancel' };
+        const AC_SUMMARY_KEY = { 'doc-costing': 'costing', 'doc-bom': 'bom', 'unlock-costing': 'unlock-costing', 'unlock-bom': 'unlock-bom' };
 
-        $(document).ready(function() {
-            $('[data-dismiss="modal"], [data-bs-dismiss="modal"]').on('click', function() {
-                $(this).closest('.modal').modal('hide');
-            });
+        const escapeHtml = value => $('<div>').text(value ?? '').html();
+        const acFormatNumber = value => value === null || value === undefined || value === '' ? '-' : Number(value).toLocaleString('id-ID', { maximumFractionDigits: 4 });
+        const acFormatDate = value => {
+            if (!value) return '-';
+            const date = new Date(String(value).replace(' ', 'T'));
+            return isNaN(date) ? escapeHtml(value) : date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+        };
+        const statusBadge = (status, title) => `<span class="ac-badge is-${status}" title="${escapeHtml(title || '')}">${AC_STATUS_LABEL[status] || status}</span>`;
 
-            $('button[data-toggle="tab"], button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust().responsive.recalc();
-            });
-
-            // ==========================================
-            // DATATABLES COSTING APPROVAL
-            // ==========================================
-            tableCosting = $('#table-costing-approval').DataTable({
-                processing: true,
-                serverSide: true,
-                responsive: true,
-                ajax: {
-                    url: '{{ route("master-costing-approval") }}',
-                    data: function(d) {
-                        d.tgl_awal = $('#tgl-awal').val();
-                        d.tgl_akhir = $('#tgl-akhir').val();
-                    }
-                },
-                columns: [
-                    { data: 'no_costing', name: 'a.no_costing', className: 'text-center align-middle' },
-                    { data: 'tgl_costing', name: 'a.created_at', className: 'text-center align-middle' },
-                    { data: 'nama_buyer', name: 'a.buyer', className: 'align-middle' },
-                    { data: 'brand', name: 'a.brand', className: 'align-middle' },
-                    { data: 'style', name: 'a.style', className: 'align-middle' },
-                    {
-                        data: 'id',
-                        name: 'a.id',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center align-middle',
-                        render: function (data, type, row) {
-                            let pdfUrl = "{{ route('print-costing-pdf', ':id') }}".replace(':id', data);
-                            let excelUrl = "{{ route('print-excel-costing', ':id') }}".replace(':id', data);
-                            let noCosting = row.no_costing || 'Unknown';
-
-                            return `
-                                <div style="display: flex; justify-content: center; gap: 5px; flex-wrap: nowrap;">
-                                    <button type="button" class="btn btn-sm btn-info py-1 px-2 fw-bold" style="font-size: 12px; white-space: nowrap;" onclick="openApprovalCostingModal(${data}, '${noCosting}')">
-                                        <i class="fas fa-check-circle"></i> Approve
-                                    </button>
-
-                                    <a href="${pdfUrl}" target="_blank" class="btn btn-sm btn-danger py-1 px-2" style="font-size: 12px; white-space: nowrap;">
-                                        <i class="fas fa-file-pdf"></i> PDF
-                                    </a>
-                                    <a href="${excelUrl}" target="_blank" class="btn btn-sm btn-success py-1 px-2" style="font-size: 12px; white-space: nowrap;">
-                                        <i class="fas fa-file-excel"></i> Excel
-                                    </a>
-                                </div>
-                            `;
-                        }
-                    }
-                ],
-                order: [[2, 'desc']]
-            });
-
-            $('#form-approve-costing').on('submit', function(e) {
-                e.preventDefault();
-                let id = $('#approve_id_costing').val();
-                let actionUrl = "{{ route('submit-costing-approval', ':id') }}".replace(':id', id);
-
-                Swal.fire({
-                    title: 'Memproses...',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
-                $.ajax({
-                    url: actionUrl,
-                    type: "POST",
-                    data: $(this).serialize(),
-                    success: function(res) {
-                        if (res.status == 200) {
-                            $('#modalApprovalCosting').modal('hide');
-                            Swal.fire('Berhasil!', res.message, 'success');
-                            dataTableReloadCosting();
-                        } else {
-                            Swal.fire('Gagal!', res.message, 'error');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error!', 'Terjadi kesalahan sistem server.', 'error');
-                    }
-                });
-            });
-
-            // ==========================================
-            // DATATABLES BOM APPROVAL
-            // ==========================================
-            tableBom = $('#table-bom-approval').DataTable({
-                processing: true,
-                serverSide: false,
-                ajax: {
-                    url: '{{ route("master-bom-approval") }}',
-                    type: "GET",
-                    data: function (d) {
-                        d.date_from = $('#date_from').val();
-                        d.date_to = $('#date_to').val();
-                    }
-                },
-                columns: [
-                    {
-                        data: null,
-                        className: "text-center align-middle",
-                        width: "5%",
-                        render: (data, type, row, meta) => meta.row + 1
-                    },
-                    { data: 'no_katalog_bom', className: "align-middle" },
-                    { data: 'nama_buyer', className: "align-middle" },
-                    { data: 'style', className: "align-middle" },
-                    { data: 'market', className: "align-middle" },
-                    {
-                        data: 'total_cons',
-                        className: "align-middle text-right",
-                        render: function (data) {
-                            return data ? parseFloat(data).toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0,00';
-                        }
-                    },
-                    {
-                        data: 'id',
-                        className: "text-center align-middle",
-                        width: "15%",
-                        orderable: false,
-                        render: function (data, type, row) {
-                            let noBom = row.no_katalog_bom || 'Unknown';
-
-                            return `
-                                <div class="d-flex justify-content-center align-items-center">
-                                    <button class="btn btn-sm btn-info mr-1 py-1 px-2 fw-bold" style="font-size: 12px;" onclick="viewDetail(${data})">
-                                        <i class="fas fa-eye"></i> Detail
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-success py-1 px-2 fw-bold" style="font-size: 12px; white-space: nowrap;" onclick="openApprovalBomModal(${data}, '${noBom}')">
-                                        <i class="fas fa-check-circle"></i> Approve
-                                    </button>
-                                </div>
-                            `;
-                        }
-                    }
-                ],
-                paging: true,
-                lengthChange: true,
-                searching: true,
-                ordering: true,
-                info: true,
-                autoWidth: false,
-                responsive: true
-            });
-
-            $('#table-detail .column-search').on('keyup change clear', function() {
-                let colIdx = $(this).data('column');
-                if (tableDetail && tableDetail.column(colIdx).search() !== this.value) {
-                    tableDetail.column(colIdx).search(this.value).draw();
-                }
-            });
-
-            $('#form-approve-bom').on('submit', function(e) {
-                e.preventDefault();
-                let id = $('#approve_id_bom').val();
-                let actionUrl = "{{ route('submit-bom-approval', ':id') }}".replace(':id', id);
-
-                Swal.fire({
-                    title: 'Memproses...',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
-                $.ajax({
-                    url: actionUrl,
-                    type: "POST",
-                    data: $(this).serialize(),
-                    success: function(res) {
-                        if (res.status == 200) {
-                            $('#modalApprovalBom').modal('hide');
-                            Swal.fire('Berhasil!', res.message, 'success');
-                            refreshTableBom();
-                        } else {
-                            Swal.fire('Gagal!', res.message, 'error');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error!', 'Terjadi kesalahan sistem server.', 'error');
-                    }
-                });
+        $(function () {
+            $('.ac-card').each(function () { initApprovalCard($(this)); });
+            $(document).on('select2:open', () => document.querySelector('.select2-container--open .select2-search__field')?.focus());
+            $(document).on('click', function (event) {
+                if (!$(event.target).closest('.ac-date-wrap').length) $('.ac-date-panel').removeClass('show');
             });
         });
 
-        function dataTableReloadCosting() {
-            tableCosting.ajax.reload(null, false);
+        function initApprovalCard($card) {
+            const kind = $card.data('ac-kind');
+            const type = $card.data('ac-type');
+            const state = { status: kind === 'doc' ? 'awaiting' : '' };
+            $card.find('.ac-search-by').select2({ theme: 'bootstrap4', width: '100%', placeholder: 'Search By', closeOnSelect: false });
+            if (kind === 'unlock' && String($card.data('ac-enabled')) !== '1') return;
+
+            const columns = kind === 'doc' ? docColumns() : unlockColumns();
+            const table = $card.find('table').DataTable({
+                processing: true,
+                serverSide: true,
+                ordering: true,
+                order: [],
+                searching: false,
+                scrollX: true,
+                pageLength: 4,
+                lengthMenu: [[4, 10, 25, 50], [4, 10, 25, 50]],
+                dom: 'rt<"d-flex justify-content-between align-items-center flex-wrap"<"d-flex align-items-center"li>p>',
+                language: {
+                    lengthMenu: 'Item Per Page _MENU_',
+                    info: 'Of _TOTAL_',
+                    infoEmpty: 'Of 0',
+                    zeroRecords: 'Tidak ada data.',
+                    emptyTable: 'Tidak ada data.',
+                    processing: '<i class="fas fa-spinner fa-spin"></i>',
+                    paginate: { previous: '<i class="fas fa-chevron-left"></i>', next: '<i class="fas fa-chevron-right"></i>' }
+                },
+                ajax: {
+                    url: (kind === 'doc' ? AC_ROUTES.documents : AC_ROUTES.unlockRequests).replace(':type', type),
+                    data: function (d) {
+                        d.status = state.status;
+                        d.tgl_awal = $card.find('.ac-date-from').val();
+                        d.tgl_akhir = $card.find('.ac-date-to').val();
+                        d.keyword = $card.find('.ac-keyword').val();
+                        d.search_by = $card.find('.ac-search-by').val();
+                    }
+                },
+                columns: columns
+            });
+
+            const reload = () => table.ajax.reload();
+            const updateSelection = function () {
+                const count = $card.find('tbody .ac-row-check:checked').length;
+                $card.find('[data-selected]').text(count);
+                $card.find('[data-ac-action]').prop('disabled', count === 0);
+            };
+
+            table.on('xhr.dt', function (event, settings, json) {
+                if (!json) return;
+                if (kind === 'doc') {
+                    const counts = json.status_counts || {};
+                    $card.find('[data-count]').each(function () {
+                        $(this).text(Number(counts[$(this).data('count')] || 0).toLocaleString('id-ID'));
+                    });
+                    $(`[data-summary="${AC_SUMMARY_KEY['doc-' + type]}"]`).text(Number(counts.awaiting || 0).toLocaleString('id-ID'));
+                } else {
+                    $card.find('[data-count="request"]').text(Number(json.recordsTotal || 0).toLocaleString('id-ID'));
+                    $(`[data-summary="${AC_SUMMARY_KEY['unlock-' + type]}"]`).text(Number(json.recordsTotal || 0).toLocaleString('id-ID'));
+                }
+            });
+            table.on('draw.dt', function () {
+                $card.find('.ac-check-all').prop('checked', false);
+                updateSelection();
+            });
+
+            // Filter
+            let keywordTimer = null;
+            $card.on('input', '.ac-keyword', function () {
+                clearTimeout(keywordTimer);
+                keywordTimer = setTimeout(function () { renderFilterSummary($card); reload(); }, 350);
+            });
+            $card.on('change', '.ac-search-by', function () {
+                renderFilterSummary($card);
+                if ($card.find('.ac-keyword').val()) reload();
+            });
+            $card.on('click', '.ac-date-toggle', function (event) {
+                event.stopPropagation();
+                $card.find('.ac-date-panel').toggleClass('show');
+            });
+            $card.on('click', '.ac-date-apply', function () {
+                $card.find('.ac-date-panel').removeClass('show');
+                renderFilterSummary($card);
+                reload();
+            });
+            $card.on('click', '.ac-clear, .ac-chip-remove', function () {
+                const filter = $(this).data('filter');
+                if (!filter || filter === 'keyword') $card.find('.ac-keyword').val('');
+                if (!filter || filter === 'search-by') $card.find('.ac-search-by').val(null).trigger('change.select2');
+                if (!filter || filter === 'date') $card.find('.ac-date-from, .ac-date-to').val('');
+                renderFilterSummary($card);
+                reload();
+            });
+
+            // Tab status (approval): klik tab aktif lagi = tampilkan semua status.
+            $card.on('click', 'button.ac-status-tab', function () {
+                const status = $(this).data('status');
+                state.status = state.status === status ? '' : status;
+                $card.find('.ac-status-tab').removeClass('active').filter(`[data-status="${state.status}"]`).addClass('active');
+                reload();
+            });
+
+            // Seleksi baris
+            $card.on('change', '.ac-check-all', function () {
+                $card.find('tbody .ac-row-check').prop('checked', this.checked);
+                updateSelection();
+            });
+            $card.on('change', '.ac-row-check', updateSelection);
+
+            // Timeline per baris
+            $card.on('click', '.ac-timeline-toggle', function () {
+                const $button = $(this);
+                const row = table.row($button.closest('tr'));
+                if (row.child.isShown()) {
+                    row.child.hide();
+                    $button.attr('aria-expanded', 'false');
+                    return;
+                }
+                $button.attr('aria-expanded', 'true');
+                row.child('<div class="ac-timeline text-muted"><i class="fas fa-spinner fa-spin"></i> Memuat riwayat...</div>').show();
+                $.get(AC_ROUTES.timeline.replace(':id', row.data().id_costing))
+                    .done(res => row.child(renderTimeline(res.data || [], row.data())).show())
+                    .fail(xhr => row.child(`<div class="ac-timeline text-danger">${escapeHtml(xhr.responseJSON?.message || 'Riwayat gagal dimuat.')}</div>`).show());
+            });
+
+            // Aksi
+            $card.on('click', '[data-ac-action]', function () {
+                const action = $(this).data('ac-action');
+                const ids = $card.find('tbody .ac-row-check:checked').map((_, el) => el.value).get();
+                if (!ids.length) return;
+                action === 'unlock' ? submitUnlock(type, ids, reload) : submitDecision(type, action, ids, reload);
+            });
+
+            renderFilterSummary($card);
         }
 
-        function refreshTableBom() {
-            tableBom.ajax.reload(null, false);
+        // Kolom pilih, timeline & nomor urut tidak bisa di-sort; kolom lain di-sort server-side lewat `name`.
+        const fixedColumns = () => [
+            { data: 'id', className: 'text-center', orderable: false, render: id => `<input type="checkbox" class="ac-row-check" value="${id}">` },
+            { data: null, className: 'text-center', orderable: false, render: () => '<button type="button" class="ac-timeline-toggle" aria-expanded="false" title="Lihat timeline"><i class="far fa-clock"></i></button>' },
+            { data: 'DT_RowIndex', className: 'text-center', orderable: false }
+        ];
+        const textColumn = (data, name) => ({ data: data, name: name, render: value => escapeHtml(value || '-') });
+
+        function docColumns() {
+            return fixedColumns().concat([
+                { data: 'deldate', name: 'a.deldate', className: 'text-center', render: value => value ? `<span class="ac-date-badge">${acFormatDate(value)}</span>` : '-' },
+                textColumn('doc_no', 'doc_no'),
+                { data: 'approval_status', name: 'approval_status', render: (status, type, row) => statusBadge(status, row.approval_note ? `Catatan: ${row.approval_note}` : '') },
+                textColumn('kpno', 'a.kpno'),
+                textColumn('buyer', 'b.Supplier'),
+                textColumn('brand', 'a.brand'),
+                textColumn('styleno', 'a.styleno'),
+                textColumn('market', 'a.market'),
+                { data: 'qty', name: 'a.qty', className: 'text-right', render: acFormatNumber },
+                { data: 'cfm_price', name: 'a.cfm_price', className: 'text-right', render: acFormatNumber },
+                textColumn('product_group', 'p.product_group'),
+                textColumn('product_item', 'p.product_item')
+            ]);
         }
 
-        function openApprovalCostingModal(id, noCosting) {
-            $('#approve_id_costing').val(id);
-            $('#approve_no_costing').text(noCosting);
-            $('#modalApprovalCosting').modal('show');
+        function unlockColumns() {
+            return fixedColumns().concat([
+                textColumn('doc_no', 'doc_no'),
+                {
+                    data: 'doc_status', name: 'doc_status', render: (status, type, row) => `<span class="ac-badges">`
+                        + statusBadge('request', `Alasan: ${row.reason || '-'} · Diajukan ${row.requested_by || '-'} ${acFormatDate(row.requested_at)}`)
+                        + (status ? statusBadge(status) : '') + '</span>'
+                },
+                textColumn('buyer', 'b.Supplier'),
+                textColumn('brand', 'a.brand'),
+                textColumn('product_item', 'p.product_item')
+            ]);
         }
 
-        function openApprovalBomModal(id, noBom) {
-            $('#approve_id_bom').val(id);
-            $('#approve_no_bom').text(noBom);
-            $('#modalApprovalBom').modal('show');
+        function renderFilterSummary($card) {
+            const chips = [];
+            const searchBy = $card.find('.ac-search-by').select2('data').map(item => item.text);
+            const keyword = $card.find('.ac-keyword').val();
+            const from = $card.find('.ac-date-from').val();
+            const to = $card.find('.ac-date-to').val();
+            if (searchBy.length) chips.push({ filter: 'search-by', text: `Search By: ${searchBy.join(', ')}` });
+            if (keyword) chips.push({ filter: 'keyword', text: `Search: "${keyword}"` });
+            if (from && to) chips.push({ filter: 'date', text: `Tanggal: ${acFormatDate(from)} - ${acFormatDate(to)}` });
+            $card.find('.ac-filter-summary').html(
+                chips.length
+                    ? `<button type="button" class="ac-clear">Clear all</button><span>Filter: ${chips.length}</span>`
+                        + chips.map(chip => `<span class="ac-chip">${escapeHtml(chip.text)}<button type="button" class="ac-chip-remove" data-filter="${chip.filter}" title="Hapus filter">&times;</button></span>`).join('')
+                    : '<span>Filter: None</span>'
+            );
         }
 
-        function viewDetail(id) {
-            $('#modalDetail').modal('show');
-            let url = "{{ route('show-detail-bom', ':id') }}".replace(':id', id);
+        function renderTimeline(history, row) {
+            const items = history.slice(-8).map(item => `
+                <div class="ac-timeline-item">
+                    <time>${acFormatDate(item.created_at)} ${item.created_at ? String(item.created_at).slice(11, 16) : ''}</time>
+                    <span>${escapeHtml(item.desc || item.action)}${item.user ? ` <span class="text-muted">— ${escapeHtml(item.user)}</span>` : ''}</span>
+                </div>`).join('');
+            const reason = row.reason ? `<div class="mb-1"><b>Alasan unlock:</b> ${escapeHtml(row.reason)} <span class="text-muted">— ${escapeHtml(row.requested_by || '-')}</span></div>` : '';
+            return `<div class="ac-timeline"><b>${escapeHtml(row.doc_no)}</b>${reason}${items || '<div class="text-muted">Belum ada riwayat.</div>'}</div>`;
+        }
 
-            if ($.fn.DataTable.isDataTable('#table-detail')) {
-                $('.column-search').val('');
-                tableDetail.search('').columns().search('');
-                tableDetail.ajax.url(url).load();
-            } else {
-                tableDetail = $('#table-detail').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    orderCellsTop: true,
-                    ajax: url,
-                    columns: [
-                        { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center align-middle' },
-                        {
-                            data: 'content_name', name: 'content_name', className: 'align-middle',
-                            render: (data) => data ? data : '-'
-                        },
-                        { data: 'item_name', name: 'i.itemdesc', className: 'align-middle' },
-                        { data: 'color_name', name: 'color_name', className: 'text-center align-middle' },
-                        { data: 'size_name', name: 'size_name', className: 'text-center align-middle' },
-                        {
-                            data: 'qty', name: 'qty', className: 'text-center align-middle', searchable: false,
-                            render: (data) => parseFloat(data)
-                        },
-                        {
-                            data: 'unit',
-                            name: 'unit',
-                            className: 'text-center align-middle',
-                            render: function(data, type, row) {
-                                return data ? data : '-';
-                            }
-                        }
-                    ],
-                    language: { emptyTable: "Data tidak ditemukan" },
-                    autoWidth: false,
-                    responsive: true,
-                    lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "All"]],
-                    pageLength: -1
+        function submitDecision(type, action, ids, reload) {
+            const needsNote = action !== 'approve';
+            Swal.fire({
+                icon: needsNote ? undefined : 'question',
+                title: `${AC_ACTION_LABEL[action]} ${ids.length} data?`,
+                text: needsNote ? 'Catatan akan terlihat oleh staff.' : 'Data yang di-approve akan terkunci.',
+                input: needsNote ? 'textarea' : undefined,
+                inputPlaceholder: 'Catatan untuk staff...',
+                inputAttributes: { maxlength: 1000 },
+                inputValidator: needsNote ? value => (!value || !value.trim()) ? 'Catatan wajib diisi.' : undefined : undefined,
+                showCancelButton: true,
+                confirmButtonText: AC_ACTION_LABEL[action],
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (!result.isConfirmed) return;
+                postAction(AC_ROUTES.decide.replace(':type', type), { ids: ids, action: action, note: needsNote ? result.value.trim() : '' }, reload);
+            });
+        }
+
+        function submitUnlock(type, ids, reload) {
+            const label = type === 'bom' ? 'BOM' : 'Costing';
+            Swal.fire({
+                icon: 'question',
+                title: `Unlock ${ids.length} ${label}?`,
+                text: `${label} bisa diedit hari ini dan besok. Setelah staff menyimpan perubahan, ${label} kembali menunggu approval.`,
+                showCancelButton: true,
+                confirmButtonText: 'Unlock',
+                cancelButtonText: 'Batal'
+            }).then(function (result) {
+                if (result.isConfirmed) postAction(AC_ROUTES.unlock, { type: type, ids: ids }, reload);
+            });
+        }
+
+        function postAction(url, payload, reload) {
+            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            $.ajax({ url: url, method: 'POST', data: Object.assign({ _token: AC_CSRF }, payload) })
+                .done(function (res) {
+                    Swal.fire('Berhasil', res.message, 'success');
+                    reload();
+                    // Approve/Unlock mengubah tabel lain (mis. status costing), muat ulang semuanya.
+                    $('.ac-card table').each(function () {
+                        if ($.fn.DataTable.isDataTable(this)) $(this).DataTable().ajax.reload(null, false);
+                    });
+                })
+                .fail(function (xhr) {
+                    const errors = xhr.responseJSON?.errors;
+                    Swal.fire('Gagal', errors ? Object.values(errors).flat()[0] : (xhr.responseJSON?.message || 'Terjadi kesalahan.'), 'error');
                 });
-            }
         }
     </script>
 @endsection

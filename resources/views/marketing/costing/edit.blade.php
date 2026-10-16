@@ -1,7 +1,6 @@
 @extends('layouts.index')
 
 @section('custom-link')
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
@@ -162,18 +161,18 @@
         .costing-tab-panel .btn-info { background: #17b3d4; color: #fff; }
         .costing-tab-panel .btn-danger { background: #e5173f; color: #fff; }
 
-        /* ---- sel inline (Excel-like) ---- */
-        .costing-inline-control { width: 100%; min-width: 54px; padding: 3px 5px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: inherit; font-size: inherit; font-weight: inherit; }
-        .costing-inline-control:hover, .costing-inline-control:focus { border-color: #9db2c1; background: #fff; outline: none; }
-        .costing-inline-control[data-field="set"], .costing-inline-control[data-field="unit"], .costing-inline-control[data-field="supplier"] { min-width: 90px; }
-        .costing-inline-control.is-invalid { border-color: #dc3545; }
-        .costing-inline-select + .select2-container { width: 100% !important; min-width: 90px; }
-        .costing-inline-select + .select2-container .select2-selection--single {
-            height: 27px; min-height: 27px; padding: 1px 5px; border: 1px solid transparent;
-            background: transparent; font-size: inherit; line-height: 23px;
-        }
-        .costing-inline-select + .select2-container .select2-selection__rendered { padding-left: 0; line-height: 23px; }
-        .costing-inline-select + .select2-container .select2-selection__arrow { height: 25px; }
+        /* ---- sel inline (Excel-like): teks biasa, editor dibuat saat sel diedit ---- */
+        .costing-tab-panel table tbody td.xl-cell { min-width: 54px; height: 29px; padding: 4px 6px; cursor: cell; white-space: nowrap; outline: none; }
+        .costing-tab-panel table tbody td.xl-cell[data-field="set"],
+        .costing-tab-panel table tbody td.xl-cell[data-field="unit"],
+        .costing-tab-panel table tbody td.xl-cell[data-field="supplier"] { min-width: 110px; }
+        .costing-tab-panel table tbody td.xl-cell.xl-invalid { box-shadow: inset 0 0 0 2px #dc3545; }
+        .costing-tab-panel table tbody td.xl-editing { padding: 0; }
+        .xl-editor { position: absolute; inset: 0; z-index: 5; width: 100%; height: 100%; padding: 3px 6px; border: 2px solid #1a73e8; border-radius: 0; background: #fff; color: inherit; font: inherit; outline: none; }
+        td.xl-editing .select2-container { position: absolute; inset: 0; z-index: 5; width: 100% !important; min-width: 110px; }
+        td.xl-editing .select2-container .select2-selection--single { height: 100%; min-height: 27px; padding: 1px 6px; border: 2px solid #1a73e8; border-radius: 0; font-size: inherit; line-height: 23px; }
+        td.xl-editing .select2-container .select2-selection__rendered { padding-left: 0; line-height: 23px; }
+        td.xl-editing .select2-container .select2-selection__arrow { height: 25px; }
         .costing-tab-panel table th.costing-desc-column,
         .costing-tab-panel table td.desc-td { width: 280px; min-width: 280px; }
 
@@ -206,7 +205,6 @@
         }
         /* ===== Excel-like grid ===== */
         .costing-tab-panel table tbody td { position: relative; }
-        .costing-tab-panel table tbody td:has(> .costing-inline-control) { padding: 1px 2px; }
         body.xl-dragging { user-select: none; -webkit-user-select: none; }
         td.xl-sel {
             --xt: 0 0 0 0 transparent; --xb: 0 0 0 0 transparent; --xl: 0 0 0 0 transparent; --xr: 0 0 0 0 transparent;
@@ -217,7 +215,6 @@
         td.xl-sel.xl-bottom { --xb: inset 0 -2px 0 #1a73e8; }
         td.xl-sel.xl-left { --xl: inset 2px 0 0 #1a73e8; }
         td.xl-sel.xl-right { --xr: inset -2px 0 0 #1a73e8; }
-        td.xl-sel .costing-inline-control { background: transparent; }
         td.xl-fill-preview { background: #fff3c4 !important; box-shadow: inset 0 0 0 1px #e0a800; }
         .xl-fill-handle {
             position: absolute; right: -4px; bottom: -4px; z-index: 6;
@@ -240,22 +237,136 @@
         .xl-pager .xl-page-btn:disabled { opacity: .35; cursor: default; }
         .costing-category-content:not(.is-all-items) .costing-tab-panel table tfoot[id^="tfoot-"] tr:not(:last-child) { display: none; }
 
-        /* font size table costing-item-entry kecilin */
-        .costing-tab-panel table td, .costing-tab-panel table th {
-            font-size: 12px !important;
+        /* ===== Tampilan tabel item (mockup): header biru muda, kolom Auto abu, legend titik ===== */
+        .costing-tab-panel table td, .costing-tab-panel table th { font-family: Inter, sans-serif; }
+        .costing-tab-panel table thead th {
+            padding: 9px 8px; border: 0 !important; background: #cfe0ff !important; color: #1e293b !important;
+            font-size: 12px !important; font-weight: 500; text-align: left; text-transform: uppercase;
+        }
+        .costing-tab-panel table thead th:first-child { border-radius: 6px 0 0 0; }
+        .costing-tab-panel table thead th:last-child { border-radius: 0 6px 0 0; text-align: center; }
+        .costing-tab-panel table tbody td { height: 34px; padding: 4px 8px; border-bottom: 1px solid #edf1f5; color: #1e293b; font-size: 14px !important; font-weight: 500 !important; }
+        .costing-tab-panel table tbody td.px-idr-td, .costing-tab-panel table tbody td.px-usd-td,
+        .costing-tab-panel table tbody td.val-idr-td, .costing-tab-panel table tbody td.val-usd-td,
+        .costing-tab-panel table tbody td.val-usd-td-other, .costing-tab-panel table tbody td.pct-td,
+        .costing-tab-panel table tbody td.qty-bom-td, .costing-tab-panel table tbody td.tot-val-td {
+            border-right: 2px solid #fff; border-left: 2px solid #fff; background: #f1f4f8; color: #475569;
+        }
+        .costing-tab-panel table tfoot td { height: 36px; border: 0 !important; font-size: 14px !important; font-weight: 700; }
+        .costing-tab-panel table > :not(caption) > * > * { border-bottom-color: #edf1f5; }
+        .costing-tab-panel table > :not(:first-child) { border-top: 0 !important; }
+        .costing-tab-panel table.table-bordered > :not(caption) > * { border-width: 0; }
+        .xl-th-pen { margin-left: 6px; color: #1e293b; font-size: 10px; opacity: 1; }
+        .xl-dot { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; vertical-align: middle; }
+        .xl-dot.is-costing { background: #7c3aed; }
+        .xl-dot.is-so { background: #2563eb; }
+        .xl-dot.is-input { background: #f97316; }
+        .xl-dot.is-auto { background: #94a3b8; }
+        .xl-legend { display: flex; gap: 14px; margin: 4px 0 8px; color: #64748b; font-family: Inter, sans-serif; font-size: 10px; }
+        .xl-legend > span { display: inline-flex; align-items: center; }
+        .costing-tab-panel .table-responsive::-webkit-scrollbar { height: 8px; }
+        .costing-tab-panel .table-responsive::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
+        .costing-tab-panel .table-responsive::-webkit-scrollbar-thumb { background: #284a63; border-radius: 4px; }
+
+        /* pager: Item Per Page [n] Of N ...... ‹ 1 2 3 … 9 › */
+        .xl-pager { margin: 0 5px 14px; padding: 6px 12px; color: #1e293b; font-family: Inter, sans-serif; font-size: 12px; }
+        .xl-pager > div:first-child { display: inline-flex; align-items: center; gap: 10px; }
+        .xl-pager select { height: 32px; min-width: 64px; padding: 0 8px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 13px; }
+        .xl-pager .xl-pages { gap: 6px; }
+        .xl-pager .xl-page-btn { min-width: 28px; height: 28px; border-radius: 4px; color: #64748b; font-size: 13px; }
+        .xl-pager .xl-page-btn.active { background: #284a63; color: #fff; font-weight: 600; }
+        .xl-pager .xl-page-gap { min-width: 20px; color: #94a3b8; text-align: center; }
+
+        /* ================= HEADER (form-header) — tata letak sama dengan Create Costing =================
+           Hanya berlaku di #form-header supaya tab kategori & Summary Detail di bawahnya tidak berubah. */
+        .costing-page-title { font-size: 26px; margin: 0; }
+        .costing-page-title .info-icon { color: #64748b; font-size: 12px; vertical-align: super; }
+        .costing-page-subtitle { margin: 2px 0 18px; color: #475569; font-size: 10px; }
+        #form-header .costing-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; }
+        #form-header .costing-layout .span-full { grid-column: 1 / -1; }
+        #form-header .costing-top { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 18px; grid-column: 1 / -1; }
+        #form-header .costing-head-section { margin-bottom: 16px; }
+        #form-header .costing-head-title { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; margin: 0 0 8px; padding: 6px 12px; border: 1px solid #94a3b8; border-radius: 6px; background: #fff; color: #284a63; font-size: 15px; font-weight: 500; }
+        #form-header .costing-head-title .required-mark { color: #dc3545; margin-left: 2px; margin-right: auto; }
+        #form-header .costing-head-body { padding: 12px 10px 4px; border-radius: 6px; background: #fff; box-shadow: 0 3px 10px rgba(15, 23, 42, .10); }
+        #form-header .costing-head-chevron { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; background: #a3b2c7; color: #fff; font-size: 10px; }
+        #form-header .costing-head-chevron i { transition: transform .2s ease; }
+        #form-header .costing-head-section.is-collapsed .costing-head-chevron i { transform: rotate(180deg); }
+
+        /* Banner lock / request unlock / unlocked */
+        .unlock-card { margin-bottom: 16px; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; box-shadow: 0 2px 8px rgba(15, 23, 42, .06); }
+        .unlock-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+        .unlock-doc-no { color: #1e293b; font-size: 14px; font-weight: 600; }
+        .unlock-buyer { color: #475569; font-size: 13px; }
+        .unlock-badges, .unlock-actions { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+        .unlock-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+        .unlock-badge.is-approved { background: #dcfce7; color: #15803d; }
+        .unlock-badge.is-approved .fa-circle { font-size: 5px; }
+        .unlock-badge.is-locked { background: transparent; color: #475569; }
+        .unlock-badge.is-requested { background: #fde68a; color: #92400e; }
+        .unlock-badge.is-editing { background: #dbeafe; color: #1d4ed8; }
+        .unlock-card-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+        .unlock-note { margin: 8px 0 0; color: #475569; font-size: 11px; }
+        .unlock-alert { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+        .unlock-alert.is-warning { margin-top: 10px; background: #fcd9a0; color: #78350f; }
+        .unlock-alert.is-info { margin-bottom: 12px; background: #dbeafe; color: #1e3a8a; }
+        .unlock-alert i { margin-right: 6px; }
+        .unlock-btn-outline { padding: 4px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #1e293b; font-size: 12px; }
+        .unlock-btn-outline:hover { background: #f1f5f9; }
+
+        /* Read-only saat Costing terkunci / unlocked untuk user lain */
+        .costing-create-page.is-readonly #form-header .costing-head-body,
+        .costing-create-page.is-readonly #section-detail { pointer-events: none; opacity: .75; }
+        .costing-create-page.is-readonly .costing-form-actions,
+        .costing-create-page.is-unlocked .costing-form-actions { display: none; }
+
+        #form-header .costing-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 12px; row-gap: 0; }
+        #form-header .costing-fields.four-columns { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        #form-header .costing-fields.price-columns { grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); }
+        #form-header .costing-field.span-2 { grid-column: span 2; }
+        #form-header .costing-field label { min-height: 0; margin-bottom: 4px; color: #1e293b; font-size: 10px; font-weight: 500 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #form-header .costing-field .form-control,
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection { min-height: 34px; height: 34px; border-radius: 6px; font-size: 10px; font-weight: 400; box-shadow: 0 1px 3px rgba(30, 41, 59, .08); }
+        #form-header .costing-field .form-control { padding: 6px 10px; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection--single { padding: 4px 10px; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection__rendered { line-height: 24px; font-weight: 400; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection--multiple { height: auto; }
+
+        #form-header .costing-upload-box { padding: 10px; border: 1px solid var(--costing-border); border-radius: 6px; }
+        #form-header .costing-picture-dropzone { flex-direction: row; gap: 10px; min-height: 64px; padding: 10px; color: var(--costing-navy); font-size: 10px; font-weight: 600; }
+        #form-header .costing-picture-dropzone i { font-size: 24px; }
+        #form-header .costing-picture-dropzone b { color: #0056b3; }
+        #form-header .costing-upload-now { width: 100%; margin-top: 8px; padding: 6px; border: 0; border-radius: 6px; background: #c4c4c4; color: #fff; font-size: 10px; font-weight: 600; }
+        #form-header .costing-picture-thumbnails { gap: 8px; margin-top: 10px; padding: 8px; border-color: #8b5cf6; border-radius: 6px; }
+        #form-header .costing-picture-clear { margin-top: 6px; padding: 2px 8px; font-size: 10px; }
+        #form-header .costing-picture-carousel { min-height: 200px; height: auto; margin-top: 14px; }
+        #form-header .costing-picture-main { max-height: 200px; }
+        #form-header .costing-picture-nav { flex: 0 0 auto; width: 26px; height: 26px; }
+        #form-header .costing-picture-nav:disabled { opacity: .4; }
+        #form-header .costing-form-actions { padding-top: 0; }
+
+        @media (max-width: 1199.98px) {
+            #form-header .costing-top, #form-header .costing-layout { grid-template-columns: minmax(0, 1fr); }
+        }
+        @media (max-width: 767.98px) {
+            #form-header .costing-fields, #form-header .costing-fields.four-columns, #form-header .costing-fields.price-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #form-header .costing-field.span-2 { grid-column: auto; }
+        }
+        @media (max-width: 480px) {
+            #form-header .costing-fields, #form-header .costing-fields.four-columns, #form-header .costing-fields.price-columns { grid-template-columns: minmax(0, 1fr); }
         }
     </style>
 @endsection
 
 @section('content')
-<div class="costing-create-page">
+<div class="costing-create-page{{ $unlock['can_edit'] ? '' : ' is-readonly' }}{{ $unlock['state'] === 'unlocked' ? ' is-unlocked' : '' }}">
     {{-- <a href="{{ route('master-costing') }}" class="costing-back"><i class="fas fa-chevron-left" style="background:#a3b2c7; color:white; border-radius:4px; padding:3px 5px; font-size:10px;"></i> Back</a> --}}
 
     <div class="card costing-create-card">
         <div class="card-body">
             <div class="costing-crumb"><a href="{{ route('master-costing') }}">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing</a> &nbsp;›&nbsp; <b>Edit Costing</b></div>
-            <h1 class="costing-page-title">Edit Costing <span class="costing-no">{{ $costing->no_costing }}</span></h1>
-            <p class="costing-page-subtitle"></p>
+            <h1 class="costing-page-title">Edit Costing <i class="fas fa-info-circle info-icon"></i> <span class="costing-no">{{ $costing->no_costing }}</span></h1>
+            <p class="costing-page-subtitle"><i class="fas fa-database"></i> Untuk Mengubah Data Costing</p>
 
             @if ($errors->any())
             <div class="alert alert-danger py-2" role="alert">
@@ -267,131 +378,228 @@
             </div>
             @endif
 
+            @php
+                $unlockState = $unlock['state'];
+                $requestedAt = $unlock['request'] ? \Carbon\Carbon::parse($unlock['request']->dateinput) : null;
+                $unlockedAt = $unlock['unlock'] ? \Carbon\Carbon::parse($unlock['unlock']->approved_at ?? $unlock['unlock']->dateinput) : null;
+            @endphp
+            @if ($unlockState === 'locked')
+            <div class="unlock-card">
+                <div class="unlock-card-head">
+                    <span class="unlock-doc-no">{{ $costing->cost_no }}</span>
+                    <span class="unlock-buyer">{{ $buyerName }}</span>
+                    <span class="unlock-badges">
+                        <span class="unlock-badge is-approved"><i class="fas fa-circle"></i> Approved</span>
+                        <span class="unlock-badge is-locked"><i class="fas fa-lock"></i> Locked</span>
+                    </span>
+                </div>
+                <div class="unlock-card-foot">
+                    <p class="unlock-note mb-0">This document is approved and can't be edited. Request an unlock from the <b>marketing manager</b> if you need to change it.</p>
+                    <button type="button" class="btn unlock-btn-outline" id="btn-open-unlock"><i class="fas fa-lock-open"></i> Request unlock</button>
+                </div>
+            </div>
+            @elseif ($unlockState === 'requested')
+            <div class="unlock-card">
+                <div class="unlock-card-head">
+                    <span class="unlock-doc-no">{{ $costing->cost_no }}</span>
+                    <span class="unlock-badges">
+                        <span class="unlock-badge is-approved">Approved</span>
+                        <span class="unlock-badge is-requested"><i class="far fa-clock"></i> Unlock requested</span>
+                    </span>
+                </div>
+                <div class="unlock-alert is-warning">
+                    <span><i class="far fa-clock"></i> Request sent on {{ $requestedAt->format('d M Y, H:i') }}. You'll be notified when the manager responds.</span>
+                    <form method="POST" action="{{ route('costing-cancel-unlock-request', $costing->id) }}" class="m-0">
+                        @csrf
+                        <button type="submit" class="btn unlock-btn-outline">Cancel request</button>
+                    </form>
+                </div>
+            </div>
+            @elseif ($unlockState === 'unlocked')
+            <div class="unlock-card">
+                <div class="unlock-alert is-info">
+                    <span>
+                        <i class="fas fa-lock-open"></i>
+                        Unlocked by {{ $unlock['unlock']->approved_by ?: 'Marketing Manager' }} at {{ $unlockedAt->format('H:i') }}.
+                        @if ($unlock['can_edit'])
+                            Only you can edit. The document locks again when you save.
+                        @else
+                            Only {{ $unlock['unlock']->username }} can edit this document.
+                        @endif
+                    </span>
+                </div>
+                <div class="unlock-card-head">
+                    <span class="unlock-doc-no">{{ $costing->cost_no }}</span>
+                    <span class="unlock-badge is-editing">Rev {{ $unlock['rev'] }} · Editing</span>
+                    @if ($unlock['can_edit'])
+                    <span class="unlock-actions">
+                        <form method="POST" action="{{ route('costing-cancel-editing', $costing->id) }}" class="m-0" id="form-cancel-editing">
+                            @csrf
+                            <button type="submit" class="btn unlock-btn-outline">Cancel editing</button>
+                        </form>
+                        <button type="button" class="btn unlock-btn-outline" id="btn-save-and-lock">Save and lock</button>
+                    </span>
+                    @endif
+                </div>
+                <p class="unlock-note mb-0">After saving, the Costing locks and is approved automatically.</p>
+            </div>
+            @endif
+
+            @if ($unlockState === 'locked')
+                @include('marketing.costing.unlock_request_modal')
+            @endif
+
             <form action="{{ route('update-costing-header', $costing->id) }}" method="POST" id="form-header" enctype="multipart/form-data">
                 @csrf @method('PUT')
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-buyer" aria-expanded="true">
-                            <span>Information Buyer<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-buyer" class="collapse show">
-                        <div class="costing-section-body">
-                            <div class="costing-fields five-columns">
-                                <div class="costing-field">
-                                    <label>Buyer Name</label>
-                                    <select name="buyer" id="buyer" class="form-control select2bs4" required>
-                                        <option value="">Choose Buyer Name</option>
-                                        @foreach ($buyers as $b) @php $sup_id = $b->id_supplier ?? $b->Id_Supplier; @endphp
-                                        <option value="{{ $sup_id }}" data-buyer-code="{{ $b->supplier_code }}" {{ $costing->buyer == $sup_id ? 'selected' : '' }}> {{ $b->supplier ?? $b->Supplier }}
-                                        </option>
-                                        @endforeach
-                                    </select>
+                <input type="hidden" name="lock_after_save" id="lock_after_save" value="0">
+                <div class="costing-layout">
+                    <div class="costing-top">
+                        <div>
+                            <section class="costing-head-section">
+                                <h2 class="costing-head-title">Information Buyer<span class="required-mark">*</span></h2>
+                                <div class="costing-head-body">
+                                    <div class="costing-fields">
+                                        <div class="costing-field">
+                                            <label for="buyer">Buyer Name</label>
+                                            <select name="buyer" id="buyer" class="form-control select2bs4" required>
+                                                <option value="">Choose Buyer Name</option>
+                                                @foreach ($buyers as $b) @php $sup_id = $b->id_supplier ?? $b->Id_Supplier; @endphp
+                                                <option value="{{ $sup_id }}" data-buyer-code="{{ $b->supplier_code }}" {{ $costing->buyer == $sup_id ? 'selected' : '' }}> {{ $b->supplier ?? $b->Supplier }}
+                                                </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="buyer_code">Kode Buyer</label>
+                                            <input type="text" id="buyer_code" class="form-control" placeholder="Buyer" value="{{ $costing->buyer_code }}" readonly>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label>Brand</label>
+                                            <input type="text" name="brand" class="form-control" placeholder="Brand" value="{{ $costing->brand }}" required>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="season_id">Season</label>
+                                            <select name="season_id" id="season_id" class="form-control select2bs4" required>
+                                                <option value="">Choose Season</option>
+                                                @foreach ($seasons as $s)
+                                                <option value="{{ $s->id_season }}" {{ $costing->season_id == $s->id_season ? 'selected' : '' }}> {{ $s->season }} - {{ $s->season_desc }}
+                                                </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="costing-field span-2">
+                                            <label>Style</label>
+                                            <input type="text" name="style" class="form-control" placeholder="Style" value="{{ $costing->style }}" required>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="costing-field">
-                                    <label>Kode Buyer</label>
-                                    <input type="text" id="buyer_code" class="form-control" placeholder="Buyer" value="{{ $costing->buyer_code }}" readonly>
+                            </section>
+
+                            <section class="costing-head-section">
+                                <h2 class="costing-head-title">Product & Type<span class="required-mark">*</span></h2>
+                                <div class="costing-head-body">
+                                    <div class="costing-fields">
+                                        <div class="costing-field">
+                                            <label for="product_group">Product Group</label>
+                                            <select name="product_group" id="product_group" class="form-control select2bs4" required>
+                                                <option value="">Choose Product Group</option>
+                                                @foreach ($product_groups as $pg)
+                                                <option value="{{ $pg->product_group }}" {{ $costing->product_group == $pg->product_group ? 'selected' : '' }}> {{ $pg->product_group }}
+                                                </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="product_item">Product Item</label>
+                                            <select name="product_item" id="product_item" class="form-control select2bs4" required>
+                                                <option value="{{ $costing->product_item }}" selected>{{ $costing->product_item_name }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="type">Costing Type</label>
+                                            <select name="type" id="type" class="form-control select2bs4" required>
+                                                <option value="single" {{ $costing->type == 'single' ? 'selected' : '' }}>SINGLE</option>
+                                                <option value="multiple" {{ $costing->type == 'multiple' ? 'selected' : '' }}>MULTIPLE</option>
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="product_set">Product Type</label>
+                                            <select id="product_set" name="product_set[]" class="form-control select2bs4" data-placeholder="Product Type" multiple>
+                                                @php $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : []; $saved_sets = array_map('trim', $saved_sets); @endphp @foreach ($master_set as $m_set)
+                                                <option value="{{ $m_set->id }}" {{ in_array($m_set->id, $saved_sets) ? 'selected' : '' }}> {{ $m_set->nama ?? $m_set->id }}
+                                                </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="tipe_ws">WS Type</label>
+                                            <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
+                                                <option value="">Choose WS Type</option>
+                                                <option value="GLOBAL" {{ $costing->tipe_ws == 'GLOBAL' ? 'selected' : '' }}>GLOBAL</option>
+                                                <option value="STD" {{ $costing->tipe_ws == 'STD' ? 'selected' : '' }}>STANDAR</option>
+                                                {{--
+                                                <option value="DTH" {{ $costing->tipe_ws == 'DTH' ? 'selected' : '' }}>DTH</option> --}}
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="unit">Unit</label>
+                                            <select name="unit" id="unit" class="form-control select2bs4" required>
+                                                <option value="">Choose Unit</option>
+                                                @foreach ($units as $u)
+                                                <option value="{{ $u->nama_pilihan }}" {{ ($costing->unit ?? 'PCS') == $u->nama_pilihan ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="costing-field">
-                                    <label>Brand</label>
-                                    <input type="text" name="brand" class="form-control" placeholder="Brand" value="{{ $costing->brand }}" required>
-                                </div>
-                                <div class="costing-field">
-                                    <label>Season</label>
-                                    <select name="season_id" id="season_id" class="form-control select2bs4" required>
-                                        <option value="">Choose Season</option>
-                                        @foreach ($seasons as $s)
-                                        <option value="{{ $s->id_season }}" {{ $costing->season_id == $s->id_season ? 'selected' : '' }}> {{ $s->season }} - {{ $s->season_desc }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="costing-field">
-                                    <label>Style</label>
-                                    <input type="text" name="style" class="form-control" placeholder="Style" value="{{ $costing->style }}" required>
-                                </div>
-                            </div>
+                            </section>
                         </div>
-                    </div>
-                </div>
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-product" aria-expanded="true">
-                            <span>Product & Type<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-product" class="collapse show">
-                        <div class="costing-section-body">
-                            <div class="costing-fields">
-                                <div class="costing-field">
-                                    <label>Product Group</label>
-                                    <select name="product_group" id="product_group" class="form-control select2bs4" required>
-                                        <option value="">Choose Product Group</option>
-                                        @foreach ($product_groups as $pg)
-                                        <option value="{{ $pg->product_group }}" {{ $costing->product_group == $pg->product_group ? 'selected' : '' }}> {{ $pg->product_group }}
-                                        </option>
-                                        @endforeach
-                                    </select>
+
+                        <section class="costing-head-section">
+                            <h2 class="costing-head-title">Upload Image<span class="required-mark">*</span></h2>
+                            <div class="costing-head-body pb-2">
+                                <input type="file" name="upload_foto[]" id="upload_foto" accept="image/*" multiple hidden>
+                                <div class="costing-upload-box">
+                                    <div id="picture-dropzone" class="costing-picture-dropzone" role="button" tabindex="0">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>Drag n Drop here Or <b>Browse</b></span>
+                                    </div>
+                                    <button type="button" id="btn-upload-now" class="costing-upload-now">Upload Now</button>
                                 </div>
-                                <div class="costing-field">
-                                    <label>Product Item</label>
-                                    <select name="product_item" id="product_item" class="form-control select2bs4" required>
-                                        <option value="{{ $costing->product_item }}" selected>{{ $costing->product_item_name }}</option>
-                                    </select>
+
+                                <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Costing image previews"></div>
+                                <button type="button" id="clear-pictures" class="btn btn-outline-danger btn-sm costing-picture-clear" disabled>
+                                    <i class="fas fa-trash-alt"></i> Clear All
+                                </button>
+
+                                <div class="costing-picture-carousel">
+                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                        <button type="button" id="picture-prev" class="costing-picture-nav" aria-label="Previous image"><i class="fas fa-chevron-left"></i></button>
+                                        <div class="d-flex align-items-center justify-content-center flex-grow-1" style="min-height: 200px;">
+                                            <img id="img_preview" class="costing-picture-main" alt="Costing image preview" hidden>
+                                            <span id="no_img_text" class="text-muted" style="font-size: 11px;" hidden>Belum ada gambar</span>
+                                        </div>
+                                        <button type="button" id="picture-next" class="costing-picture-nav" aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                    <div id="carousel-dots" class="mt-3 d-flex justify-content-center" style="gap: 5px;"></div>
                                 </div>
-                                <div class="costing-field">
-                                    <label>Costing Type</label>
-                                    <select name="type" id="type" class="form-control select2bs4" required>
-                                        <option value="single" {{ $costing->type == 'single' ? 'selected' : '' }}>SINGLE</option>
-                                        <option value="multiple" {{ $costing->type == 'multiple' ? 'selected' : '' }}>MULTIPLE</option>
-                                    </select>
+
+                                <div id="saved-costing-pictures" class="d-none">
+                                    @foreach ($pictures as $picture)
+                                    <span data-url="/nds_wip/public/uploads/costing/{{ $picture->file_name }}" data-name="{{ $picture->original_name ?? $picture->file_name }}" data-file="{{ $picture->file_name }}"></span> @endforeach
                                 </div>
-                                <div class="costing-field">
-                                    <label>Product Type</label>
-                                    <select id="product_set" name="product_set[]" class="form-control select2bs4" data-placeholder="Product Type" multiple>
-                                        @php $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : []; $saved_sets = array_map('trim', $saved_sets); @endphp @foreach ($master_set as $m_set)
-                                        <option value="{{ $m_set->id }}" {{ in_array($m_set->id, $saved_sets) ? 'selected' : '' }}> {{ $m_set->nama ?? $m_set->id }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="costing-field">
-                                    <label>WS Type</label>
-                                    <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
-                                        <option value="">Choose WS Type</option>
-                                        <option value="GLOBAL" {{ $costing->tipe_ws == 'GLOBAL' ? 'selected' : '' }}>GLOBAL</option>
-                                        <option value="STD" {{ $costing->tipe_ws == 'STD' ? 'selected' : '' }}>STANDAR</option>
-                                        {{--
-                                        <option value="DTH" {{ $costing->tipe_ws == 'DTH' ? 'selected' : '' }}>DTH</option> --}}
-                                    </select>
-                                </div>
-                                <div class="costing-field">
-                                    <label>Unit</label>
-                                    <select name="unit" id="unit" class="form-control select2bs4" required>
-                                        <option value="">Choose Unit</option>
-                                        @foreach ($units as $u)
-                                        <option value="{{ $u->nama_pilihan }}" {{ ($costing->unit ?? 'PCS') == $u->nama_pilihan ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                <input type="hidden" name="clear_existing_pictures" id="clear_existing_pictures" value="0">
+                                <div id="removed-costing-pictures"></div>
                             </div>
-                        </div>
+                        </section>
                     </div>
-                </div>
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-shipping" aria-expanded="true">
-                            <span>Shipping & Destinations<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-shipping" class="collapse show">
-                        <div class="costing-section-body">
-                            <div class="costing-fields">
+
+                    <section class="costing-head-section span-full">
+                        <h2 class="costing-head-title">Shipping & Destinations<span class="required-mark">*</span></h2>
+                        <div class="costing-head-body">
+                            <div class="costing-fields four-columns">
                                 <div class="costing-field">
-                                    <label>Ship Mode</label>
+                                    <label for="ship_mode">Ship Mode</label>
                                     <select name="ship_mode" id="ship_mode" class="form-control select2bs4" required>
                                         <option value="">Choose Ship Mode</option>
                                         @foreach ($shipmodes as $sm)
@@ -401,18 +609,18 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Shipment Type</label>
+                                    <label for="shipment_type">Shipment Type</label>
                                     <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
                                         <option value="local" {{ $costing->shipment_type == 'local' ? 'selected' : '' }}>LOCAL</option>
                                         <option value="export" {{ $costing->shipment_type == 'export' ? 'selected' : '' }}>EXPORT</option>
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Delivery Date</label>
+                                    <label for="deldate">Delivery Date</label>
                                     <input type="date" name="deldate" id="deldate" class="form-control" value="{{ $costing->deldate }}" required>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Status</label>
+                                    <label for="status">Status</label>
                                     <select name="status" id="status" class="form-control select2bs4" required>
                                         <option value="">Choose Status</option>
                                         <option value="CONFIRM" {{ $costing->status == 'CONFIRM' ? 'selected' : '' }}>CONFIRM</option>
@@ -421,7 +629,7 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Marketing Order</label>
+                                    <label for="marketing_order">Marketing Order</label>
                                     <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
                                         <option value="">Choose Marketing Order</option>
                                         @foreach ($marketing_orders as $mo)
@@ -431,7 +639,7 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Main Destination</label>
+                                    <label for="main_dest">Main Destination</label>
                                     @php $saved_dests = $costing->main_dest ? explode(',', $costing->main_dest) : []; $saved_dests = array_map('trim', $saved_dests); @endphp
                                     <select name="main_dest[]" id="main_dest" class="form-control select2bs4" data-placeholder="Choose Destination" multiple>
                                         @foreach ($destinations as $dest)
@@ -440,29 +648,47 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Market</label>
+                                    <label for="market">Market</label>
                                     <input type="text" name="market" id="market" class="form-control" value="{{ $costing->market }}" placeholder="Market">
                                 </div>
                                 <div class="costing-field">
-                                    <label>Notes</label>
+                                    <label for="notes">Notes</label>
                                     <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Notes">{{ $costing->notes }}</textarea>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-price" aria-expanded="true">
-                            <span>Price & Currency<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-price" class="collapse show">
-                        <div class="costing-section-body">
-                            <div class="costing-fields">
+                    </section>
+
+                    <section class="costing-head-section">
+                        <h2 class="costing-head-title">Parameter Costing<span class="required-mark">*</span></h2>
+                        <div class="costing-head-body">
+                            <div class="costing-fields four-columns">
                                 <div class="costing-field">
-                                    <label>Currency</label>
+                                    <label for="qty_planned">QTY Planned (PCS)</label>
+                                    <input type="text" name="qty_planned" id="qty_planned" class="form-control input-decimal" placeholder="QTY Planned (PCS)" value="{{ isset($costing->qty_planned) ? number_format($costing->qty_planned, 0, '', '') : '' }}" required>
+                                </div>
+                                <div class="costing-field">
+                                    <label for="qty">QTY (PCS)</label>
+                                    <input type="text" name="qty" id="qty" class="form-control input-decimal" placeholder="QTY (PCS)" value="{{ number_format($costing->qty, 0, '', '') }}" required>
+                                </div>
+                                <div class="costing-field">
+                                    <label for="smv">SMV (Min)</label>
+                                    <input type="text" name="smv" id="smv" class="form-control input-decimal" placeholder="SMV (Min)" value="{{ number_format($costing->smv, 4, '.', '') }}" required>
+                                </div>
+                                <div class="costing-field">
+                                    <label for="vat">VAT (%)</label>
+                                    <input type="text" name="vat" id="vat" class="form-control input-decimal" placeholder="VAT (%)" value="{{ number_format($costing->vat, 2, '.', '') }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="costing-head-section">
+                        <h2 class="costing-head-title">Price & Currency<span class="required-mark">*</span></h2>
+                        <div class="costing-head-body">
+                            <div class="costing-fields price-columns">
+                                <div class="costing-field">
+                                    <label for="curr">Currency</label>
                                     <select name="curr" id="curr" class="form-control select2bs4" required>
                                         <option value="">Choose Currency</option>
                                         @foreach ($currencies as $cur)
@@ -472,103 +698,20 @@
                                     </select>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Confirm Price</label>
+                                    <label for="confirm_price">Confirm Price</label>
                                     <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal" placeholder="Confirm Price" value="{{ isset($costing->confirm_price) ? number_format($costing->confirm_price, 7, '.', '') : '' }}">
                                 </div>
                                 <div class="costing-field">
-                                    <label>Rate to IDR</label>
+                                    <label for="rate_to_idr">Rate to IDR</label>
                                     <input type="text" name="rate_to_idr" id="rate_to_idr" class="form-control input-decimal" placeholder="Rate to IDR" value="{{ number_format($costing->rate_to_idr, 2, '.', '') }}" required>
                                 </div>
                                 <div class="costing-field">
-                                    <label>Rate from IDR</label>
+                                    <label for="rate_from_idr">Rate from IDR</label>
                                     <input type="text" name="rate_from_idr" id="rate_from_idr" class="form-control input-decimal" placeholder="Rate from IDR" value="{{ number_format($costing->rate_from_idr, 2, '.', '') }}" required>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-parameters" aria-expanded="true">
-                            <span>Parameter Costing<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-parameters" class="collapse show">
-                        <div class="costing-section-body">
-                            <div class="costing-fields">
-                                <div class="costing-field">
-                                    <label>QTY Planned (PCS)</label>
-                                    <input type="text" name="qty_planned" id="qty_planned" class="form-control input-decimal" placeholder="QTY Planned (PCS)" value="{{ isset($costing->qty_planned) ? number_format($costing->qty_planned, 0, '', '') : '' }}" required>
-                                </div>
-                                <div class="costing-field">
-                                    <label>QTY (PCS)</label>
-                                    <input type="text" name="qty" id="qty" class="form-control input-decimal" placeholder="QTY (PCS)" value="{{ number_format($costing->qty, 0, '', '') }}" required>
-                                </div>
-                                <div class="costing-field">
-                                    <label>SMV (Min)</label>
-                                    <input type="text" name="smv" id="smv" class="form-control input-decimal" placeholder="SMV (Min)" value="{{ number_format($costing->smv, 4, '.', '') }}" required>
-                                </div>
-                                <div class="costing-field">
-                                    <label>VAT (%)</label>
-                                    <input type="text" name="vat" id="vat" class="form-control input-decimal" placeholder="VAT (%)" value="{{ number_format($costing->vat, 2, '.', '') }}" required>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="costing-section">
-                    <div class="costing-section-header">
-                        <button type="button" class="costing-section-toggle" data-section-target="#section-image" aria-expanded="true">
-                            <span>Upload Image Costing<span class="required-mark">*</span></span>
-                            <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
-                        </button>
-                    </div>
-                    <div id="section-image" class="collapse show">
-                        <div class="costing-section-body mb-4">
-                            <div class="row pt-3">
-                                <div class="col-md-4">
-                                    <input type="file" name="upload_foto[]" id="upload_foto" accept="image/*" multiple hidden>
-                                    <div class="upload-file-box mb-3">
-                                        <h6 style="font-size: 11px; font-weight: 700; color: var(--costing-navy); margin-bottom: 15px;">Upload File</h6>
-                                        <div id="picture-dropzone" class="costing-picture-dropzone" role="button" tabindex="0">
-                                            <i class="fas fa-file-alt" style="font-size: 30px; color: var(--costing-navy); margin-bottom: 12px;"></i>
-                                            <div style="font-size: 11px; font-weight: 600; color: var(--costing-navy);">
-                                                Drag n Drop here
-                                                <br>Or
-                                                <br><span style="color: #0056b3;">Browse</span>
-                                            </div>
-                                        </div>
-                                        <button type="button" id="btn-upload-now" class="btn btn-block mt-3" style="background-color: #c4c4c4; font-weight: 700; font-size: 11px; color: #333;">Upload Now</button>
-                                    </div>
-                                    <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Costing image previews"></div>
-                                    <button type="button" id="clear-pictures" class="btn btn-outline-danger btn-sm costing-picture-clear" disabled>
-                                        <i class="fas fa-trash-alt"></i> Clear All
-                                    </button>
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="costing-picture-carousel">
-                                        <div class="d-flex align-items-center justify-content-center gap-4 w-100">
-                                            <button type="button" id="picture-prev" class="costing-picture-nav" aria-label="Previous image"><i class="fas fa-chevron-left"></i></button>
-                                            <div class  ="main-img-container" style="min-height: 250px; display:flex; align-items:center;">
-                                                <img id="img_preview" class="costing-picture-main" alt="Costing image preview" hidden>
-                                                <span id="no_img_text" class="text-muted" style="font-size: 11px;" hidden>Belum ada gambar</span>
-                                            </div>
-                                            <button type="button" id="picture-next" class="costing-picture-nav" aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
-                                        </div>
-                                        <div id="carousel-dots" class="mt-4 d-flex justify-content-center" style="gap: 5px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="saved-costing-pictures" class="d-none">
-                                @foreach ($pictures as $picture)
-                                <span data-url="/nds_wip/public/uploads/costing/{{ $picture->file_name }}" data-name="{{ $picture->original_name ?? $picture->file_name }}" data-file="{{ $picture->file_name }}"></span> @endforeach
-                            </div>
-                            <input type="hidden" name="clear_existing_pictures" id="clear_existing_pictures" value="0">
-                            <div id="removed-costing-pictures"></div>
-
-                        </div>
-                    </div>
+                    </section>
                 </div>
 
                 <div class="costing-form-actions">
@@ -708,6 +851,12 @@
                         => 'accessories-sewing'], ['key' => 'Accessories Packing', 'title' => 'ACCESSORIES PACKING', 'tbody' => 'tbody-acc-packing', 'prefix' => 'pack', 'token' => 'accessories-packing'], ['key' => 'Manufacturing', 'title' => 'MANUFACTURING',
                         'tbody' => 'tbody-manufacturing', 'prefix' => 'mfg', 'token' => 'manufacturing'], ]; $order_qty = $costing->qty ?? 0; @endphp
 
+                        <div class="xl-legend">
+                            <span><span class="xl-dot is-costing"></span>Costing</span>
+                            <span><span class="xl-dot is-so"></span>SO</span>
+                            <span><span class="xl-dot is-input"></span>Input</span>
+                            <span><span class="xl-dot is-auto"></span>Auto</span>
+                        </div>
                         <div id="costing-category-content" class="costing-category-content">
                             @foreach($std_categories as $cat)
                             <div class="costing-tab-panel" data-panel-category="{{ $cat['key'] }}">
@@ -720,22 +869,22 @@
                                                     <input type="checkbox" class="xl-check-all" title="Pilih semua">
                                                 </th>
                                                 <th width="3%">NO</th>
-                                                <th width="14%">ITEM</th>
-                                                <th width="7%">SET</th>
-                                                <th class="costing-desc-column">DESC</th>
-                                                <th width="10%">SUPPLIER</th>
-                                                <th width="5%">CURR</th>
-                                                <th width="7%">PRICE</th>
-                                                <th width="7%">PRICE PX IDR</th>
-                                                <th width="7%">PRICE PX USD</th>
-                                                <th width="5%">CONS/PC</th>
-                                                <th width="5%">UNIT</th>
-                                                <th width="5%">ALLOW (%)</th>
-                                                <th width="8%">VALUE IDR</th>
-                                                <th width="8%">VALUE USD</th>
-                                                <th width="5%">%</th>
-                                                <th width="6%">QTY BOM</th>
-                                                <th width="8%">VALUE</th>
+                                                <th width="14%"><span class="xl-dot is-input"></span>ITEM</th>
+                                                <th width="7%"><span class="xl-dot is-input"></span>SET<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                <th class="costing-desc-column"><span class="xl-dot is-input"></span>DESCRIPTION<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                <th width="10%"><span class="xl-dot is-input"></span>SUPPLIER<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                <th width="5%"><span class="xl-dot is-input"></span>CURR<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                <th width="7%"><span class="xl-dot is-input"></span>PRICE<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                <th width="7%" class="xl-th-auto"><span class="xl-dot is-auto"></span>PRICE PX IDR</th>
+                                                <th width="7%" class="xl-th-auto"><span class="xl-dot is-auto"></span>PRICE PX USD</th>
+                                                <th width="5%"><span class="xl-dot is-input"></span>CONS/PC<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                <th width="5%"><span class="xl-dot is-input"></span>UNIT<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                <th width="5%"><span class="xl-dot is-input"></span>ALLOW (%)<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                <th width="8%" class="xl-th-auto"><span class="xl-dot is-auto"></span>VALUE IDR</th>
+                                                <th width="8%" class="xl-th-auto"><span class="xl-dot is-auto"></span>VALUE USD</th>
+                                                <th width="5%" class="xl-th-auto"><span class="xl-dot is-auto"></span>%</th>
+                                                <th width="6%" class="xl-th-auto"><span class="xl-dot is-auto"></span>QTY BOM</th>
+                                                <th width="8%" class="xl-th-auto"><span class="xl-dot is-auto"></span>VALUE</th>
                                                 <th width="7%">ACTION</th>
                                             </tr>
                                         </thead>
@@ -790,11 +939,11 @@
                                                     <input type="checkbox" class="xl-check-all" title="Pilih semua">
                                                 </th>
                                                 <th width="5%">NO</th>
-                                                <th width="30%">ITEM</th>
-                                                <th width="14%">ALLOW (%)</th>
-                                                <th width="15%">VALUE IDR</th>
-                                                <th width="15%">VALUE USD</th>
-                                                <th width="9%">%</th>
+                                                <th width="30%"><span class="xl-dot is-input"></span>ITEM</th>
+                                                <th width="14%"><span class="xl-dot is-input"></span>ALLOW (%)<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                <th width="15%"><span class="xl-dot is-input"></span>VALUE IDR<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                <th width="15%" class="xl-th-auto"><span class="xl-dot is-auto"></span>VALUE USD</th>
+                                                <th width="9%" class="xl-th-auto"><span class="xl-dot is-auto"></span>%</th>
                                                 <th width="9%">ACTION</th>
                                             </tr>
                                         </thead>
@@ -937,7 +1086,7 @@
                 <div class="row m-not-other">
                     <div class="col-md-3 form-group">
                         <label class="fw-bold">Curr</label>
-                        <select id="m_curr" class="form-control m-calc">
+                        <select id="m_curr" class="form-control m-calc select2modal">
                             @foreach ($currencies as $cur)
                             <option value="{{ $cur->nama_pilihan }}">{{ $cur->nama_pilihan }}</option>
                             @endforeach
@@ -1119,6 +1268,73 @@
             $section.collapse('toggle');
             $toggle.attr('aria-expanded', String(!isExpanded));
         });
+
+        $('#form-header .costing-head-title')
+            .attr({ role: 'button', tabindex: 0 })
+            .append('<span class="costing-head-chevron"><i class="fas fa-chevron-down"></i></span>')
+            .on('click keydown', function(event) {
+                if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                const $section = $(this).closest('.costing-head-section');
+                $section.toggleClass('is-collapsed').children('.costing-head-body').stop(true, true).slideToggle(150);
+            });
+
+        if ($('.costing-create-page').hasClass('is-readonly')) {
+            $('#form-header .costing-head-body :input, #section-detail :input').prop('disabled', true);
+        }
+
+        $('#btn-open-unlock').on('click', function() {
+            openUnlockRequest({
+                type: 'costing',
+                id: {{ (int) $costing->id }},
+                number: @json($costing->cost_no),
+                buyer: @json($buyerName),
+                onSuccess: () => window.location.reload()
+            });
+        });
+
+        $('#btn-save-and-lock').on('click', function() {
+            Swal.fire({
+                title: 'Save and lock?',
+                text: 'Costing akan disimpan, dikunci lagi dan tetap Approved.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Save and lock',
+                cancelButtonText: 'Batal'
+            }).then(function(result) {
+                if (!result.isConfirmed) return;
+                $('#lock_after_save').val('1');
+                const form = document.getElementById('form-header');
+                if (!form.reportValidity()) {
+                    $('#lock_after_save').val('0');
+                    return;
+                }
+                $('#form-header').trigger('submit');
+            });
+        });
+
+        $('#form-cancel-editing').on('submit', function(event) {
+            if (this.dataset.confirmed) return;
+            event.preventDefault();
+            Swal.fire({
+                title: 'Cancel editing?',
+                text: 'Perubahan header yang belum disimpan dibuang dan Costing dikunci lagi.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, kunci lagi',
+                cancelButtonText: 'Batal'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+                this.dataset.confirmed = '1';
+                this.submit();
+            });
+        });
+
+        @if (session('success'))
+            Swal.fire({ icon: 'success', title: @json(session('success')), timer: 2000, showConfirmButton: false });
+        @elseif (session('error') || session('warning'))
+            Swal.fire('Gagal', @json(session('error') ?? session('warning')), 'error');
+        @endif
 
         $(document).on('click keydown', '.costing-panel-heading', function(event) {
             if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
@@ -1505,46 +1721,23 @@
         return is_duplicate;
     }
 
+    // Sel cukup berisi teks; editor (input / select2) baru dibuat saat sel diedit (lihat xlOpenEditor).
+    const XL_CELLS = {
+        material: {
+            set: '.set-td', desc: '.desc-td', supplier: '.supplier-td', curr: '.curr-td', price: '.price-td',
+            price_px_idr: '.px-idr-td', price_px_usd: '.px-usd-td', cons: '.cons-td', unit: '.unit-td',
+            allowance: '.allow-td', value_idr: '.val-idr-td', value_usd: '.val-usd-td'
+        },
+        other: { allowance: '.allow-td', value_idr: '.val-idr-td-other', value_usd: '.val-usd-td-other' }
+    };
+
     function initializeCostingInlineRow($row) {
         if ($row.data('inline-ready')) return;
-        const isOtherCost = $row.attr('data-category') === 'Other Cost';
-        const input = (field, value, numeric = false) => $('<input>', {
-            type: 'text',
-            class: `costing-inline-control${numeric ? ' text-right' : ''}`,
-            'data-field': field,
-            draggable: false,
-            value: value || ''
-        });
-        const select = (field, options, value) => {
-            const $select = $('<select>', {
-                class: 'costing-inline-control costing-inline-select',
-                'data-field': field,
-                draggable: false
-            }).html(options);
-            return $select.val(value || '');
-        };
-
-        if (!isOtherCost) {
-            $row.find('.set-td').empty().append(select('set', $('#txt_set').html(), $row.attr('data-set')));
-            $row.find('.desc-td').empty().append(input('desc', $row.attr('data-desc')));
-            $row.find('.supplier-td').empty().append(select('supplier', $('#txt_supplier').html(), $row.attr('data-supplier')));
-            $row.find('.curr-td').empty().append(select('curr', $('#txt_curr').html(), $row.attr('data-curr')));
-            $row.find('.price-td').empty().append(input('price', $row.attr('data-price'), true));
-            $row.find('.px-idr-td').empty().append(input('price_px_idr', $row.attr('data-px-idr'), true));
-            $row.find('.px-usd-td').empty().append(input('price_px_usd', $row.attr('data-px-usd'), true));
-            $row.find('.cons-td').empty().append(input('cons', $row.attr('data-cons'), true));
-            $row.find('.unit-td').empty().append(select('unit', $('#txt_unit').html(), $row.attr('data-unit')));
-            $row.find('.allow-td').empty().append(input('allowance', $row.attr('data-allowance'), true));
-            $row.find('.val-idr-td').empty().append(input('value_idr', $row.attr('data-value-idr'), true));
-            $row.find('.val-usd-td').empty().append(input('value_usd', $row.attr('data-value-usd'), true));
-        } else {
-            $row.find('.allow-td').empty().append(input('allowance', $row.attr('data-allowance'), true));
-            $row.find('.val-idr-td-other').empty().append(input('value_idr', $row.attr('data-value-idr'), true));
-            $row.find('.val-usd-td-other').empty().append(input('value_usd', $row.attr('data-value-usd'), true));
-        }
-        $row.find('.costing-inline-select').select2({
-            theme: 'bootstrap4',
-            width: '100%'
+        const cells = XL_CELLS[$row.attr('data-category') === 'Other Cost' ? 'other' : 'material'];
+        $.each(cells, function (field, selector) {
+            const $td = $row.find(selector).first();
+            $td.addClass('xl-cell').attr({ 'data-field': field, tabindex: -1 });
+            xlRenderCell($td);
         });
         $row.data('inline-ready', true);
     }
@@ -1643,7 +1836,9 @@
                 if (category !== 'Other Cost') sortTbody(target);
                 calculate_summary();
                 xlShowRow($row);
-                $row.find('.costing-inline-control').first().trigger('focus');
+                const $firstCell = $row.find('.xl-cell').first();
+                xlSelect($firstCell, $firstCell);
+                xlFocus($firstCell);
             },
             error: function(xhr) {
                 const message = xhr.responseJSON && xhr.responseJSON.message;
@@ -1755,7 +1950,6 @@
                                 <td class="text-right val-usd-td- fw-bold" data-val="${val_usd_raw}">${val_usd_text}</td>
                                 <td class="text-center pct-td fw-bold">0%</td>
                                 <td class="text-center align-middle">
-                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 mr-1" onclick="editRowModal(this, ${res.insert_id}, '${cat}')"><i class="fas fa-edit"></i></button>
                                     <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
@@ -1778,7 +1972,6 @@
                                 <td class="text-right qty-bom-td fw-bold" data-val="${qty_bom_js}">${qty_bom_text}</td>
                                 <td class="text-right tot-val-td fw-bold" data-val="${tot_val_js}">${tot_val_text}</td>
                                 <td class="text-center align-middle">
-                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 mr-1" onclick="editRowModal(this, ${res.insert_id}, '${cat}')"><i class="fas fa-edit"></i></button>
                                     <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
@@ -2288,15 +2481,9 @@
             let val_usd = val_idr / rate_to_idr;
             let $usdCell = $(this).find('.val-usd-td-other');
             $usdCell.data('val', val_usd);
-            let $usdCtl = $usdCell.find('.costing-inline-control');
-            if ($usdCtl.length) {
-                if (document.activeElement !== $usdCtl[0]) $usdCtl.val(Number(val_usd.toFixed(7)));
-            } else {
-                $usdCell.text(val_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
-            }
-            let $allowCell = $(this).find('.allow-td');
-            if (!$allowCell.find('.costing-inline-control').length) {
-                $allowCell.text(allow_val > 0 ? allow_val.toFixed(2) + '%' : '');
+            if (!$usdCell.find('.xl-editor').length) {
+                $usdCell.contents().filter(function () { return !$(this).hasClass('xl-fill-handle'); }).remove();
+                $usdCell.prepend(document.createTextNode(val_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 })));
             }
 
             sum_oth_norm_idr += val_idr;
@@ -2364,7 +2551,7 @@
 
             tfoot_html += `
                 <tr class="bg-warning text-dark">
-                    <td colspan="13" class="text-left">TOTAL ${title} :</td>
+                    <td colspan="2"></td><td colspan="11" class="text-left">TOTAL</td>
                     <td class="text-right">${obj.idr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     <td class="text-right">${obj.usd.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
                     <td class="text-center"></td>
@@ -2483,10 +2670,145 @@
         value_idr: '.val-idr-td, .val-idr-td-other', value_usd: '.val-usd-td, .val-usd-td-other'
     };
 
+    const XL_SELECT_SOURCE = { set: '#txt_set', supplier: '#txt_supplier', curr: '#txt_curr', unit: '#txt_unit' };
+    const XL_TEXT_FIELDS = ['desc'];
+    const XL_OPTION_CACHE = {};
+
     function xlRows($tbody) { return $tbody.children('tr.row-costing'); }
-    function xlHasCtrl($td) { return $td.children('.costing-inline-control').length > 0; }
-    function xlCtrl($td) { return $td.children('.costing-inline-control').first(); }
+    function xlHasCtrl($td) { return $td.hasClass('xl-cell'); }
     function xlTdAt($tbody, r, c) { return xlRows($tbody).eq(r).children().eq(c); }
+    function xlField($td) { return $td.attr('data-field'); }
+    function xlIsSelect(field) { return !!XL_SELECT_SOURCE[field]; }
+    function xlIsNumber(field) { return !xlIsSelect(field) && XL_TEXT_FIELDS.indexOf(field) === -1; }
+
+    // Opsi dropdown dibaca sekali dari select sumber (set bisa berubah, jadi di-cache per isi HTML-nya).
+    function xlOptions(field) {
+        const html = $(XL_SELECT_SOURCE[field]).html() || '';
+        const cached = XL_OPTION_CACHE[field];
+        if (cached && cached.html === html) return cached;
+        const list = [], labels = {};
+        $('<select>').html(html).find('option').each(function () {
+            const v = String($(this).val()), t = $.trim($(this).text());
+            list.push({ v: v, t: t });
+            labels[v] = t;
+        });
+        return (XL_OPTION_CACHE[field] = { html: html, list: list, labels: labels });
+    }
+
+    function xlCellVal($td) {
+        const v = $td.parent().attr('data-' + XL_ATTR[xlField($td)]);
+        return v === undefined || v === null ? '' : String(v);
+    }
+
+    function xlCellText($td) {
+        const field = xlField($td), v = xlCellVal($td);
+        if (xlIsSelect(field)) return v === '' ? '' : (xlOptions(field).labels[v] || '');
+        return v;
+    }
+
+    function xlFormat(field, v) {
+        if (!xlIsNumber(field) || v === '') return v;
+        const n = Number(v);
+        return Number.isFinite(n) ? n.toLocaleString('en-US', { maximumFractionDigits: 7 }) : v;
+    }
+
+    function xlRenderCell($td) {
+        if ($td.find('.xl-editor').length) return;
+        const field = xlField($td);
+        $td.contents().filter(function () { return !$(this).hasClass('xl-fill-handle'); }).remove();
+        const text = xlIsSelect(field) ? xlCellText($td) : xlFormat(field, xlCellVal($td));
+        $td.prepend(document.createTextNode(text === '' ? '--' : text));
+    }
+
+    // Normalisasi nilai baru (ketik / paste / fill). null = tidak valid.
+    function xlNormalize(field, val) {
+        val = val === null || val === undefined ? '' : String(val).trim();
+        if (xlIsSelect(field)) {
+            if (val === '') return '';
+            const needle = val.toLowerCase(), opts = xlOptions(field).list;
+            for (let i = 0; i < opts.length; i++) {
+                if (opts[i].v.toLowerCase() === needle || opts[i].t.toLowerCase() === needle) return opts[i].v;
+            }
+            return null;
+        }
+        if (!xlIsNumber(field)) return val;
+        if (val === '') return 0;
+        const n = xlNum(val);
+        return Number.isNaN(n) ? null : n;
+    }
+
+    /* ---------- set nilai sel (auto hitung + save) ---------- */
+    function xlSetCell($td, val) {
+        const field = xlField($td);
+        const value = xlNormalize(field, val);
+        if (value === null) { $td.addClass('xl-invalid'); return false; }
+        $td.removeClass('xl-invalid');
+        if (String(value) === xlCellVal($td)) return true;
+        const $row = $td.parent();
+        xlPut($row, field, value, false);
+        xlRenderCell($td);
+        xlRecalc($row, field);
+        xlScheduleSummary();
+        xlQueueSave($row, field === 'set');
+        return true;
+    }
+
+    let xlSummaryTimer = null;
+    function xlScheduleSummary() {
+        clearTimeout(xlSummaryTimer);
+        xlSummaryTimer = setTimeout(calculate_summary_core, 60);
+    }
+
+    /* ---------- editor: hanya 1 sel yang punya input / select2 ---------- */
+    const XL_EDIT = { $td: null, $input: null };
+
+    function xlOpenEditor($td, initial) {
+        if (!xlHasCtrl($td)) return;
+        xlCloseEditor(true);
+        const field = xlField($td);
+        XL_EDIT.$td = $td;
+        $td.addClass('xl-editing');
+        $td.contents().filter(function () { return !$(this).hasClass('xl-fill-handle'); }).remove();
+
+        if (xlIsSelect(field)) {
+            const $select = $('<select class="xl-editor xl-editor-select">').html(xlOptions(field).html).val(xlCellVal($td));
+            $td.prepend($select);
+            XL_EDIT.$input = $select;
+            // select2 memicu close sebelum select; Esc tidak mengubah nilai, jadi close = simpan nilai terpilih.
+            $select.select2({ theme: 'bootstrap4', width: '100%', dropdownAutoWidth: true })
+                .on('select2:close', function () {
+                    setTimeout(function () { if (XL_EDIT.$td && XL_EDIT.$td.is($td)) { xlCloseEditor(true); xlFocus($td); } }, 0);
+                });
+            $select.select2('open');
+            if (initial) {
+                const $search = $('.select2-container--open .select2-search__field');
+                $search.val(initial).trigger('input');
+            }
+            return;
+        }
+
+        const $input = $('<input type="text" class="xl-editor" autocomplete="off">')
+            .toggleClass('text-right', xlIsNumber(field))
+            .val(initial !== undefined ? initial : xlCellVal($td));
+        $td.prepend($input);
+        XL_EDIT.$input = $input;
+        $input[0].focus();
+        if (initial === undefined) $input[0].select();
+        else $input[0].setSelectionRange(initial.length, initial.length);
+    }
+
+    function xlCloseEditor(commit) {
+        const $td = XL_EDIT.$td, $input = XL_EDIT.$input;
+        if (!$td) return true;
+        XL_EDIT.$td = null; XL_EDIT.$input = null;
+        let ok = true;
+        if (commit && $input) ok = xlSetCell($td, $input.val());
+        if ($input && $input.data('select2')) $input.select2('destroy');
+        if ($input) $input.remove();
+        $td.removeClass('xl-editing');
+        xlRenderCell($td);
+        return ok;
+    }
     function xlPosOf($td) { return { r: xlRows($td.closest('tbody')).index($td.parent()), c: $td.index() }; }
     function xlInGrid(el) { return !!$(el).closest('#costing-category-content').length; }
 
@@ -2525,32 +2847,24 @@
 
     function xlFocus($td) {
         xlShowRow($td.parent());
-        const $c = xlCtrl($td);
-        if (!$c.length) return;
-        $c[0].focus();
-        if ($c.is('input') && $c[0].select) $c[0].select();
+        if ($td.length) $td[0].focus({ preventScroll: false });
     }
 
-    /* ---------- set nilai sel (memicu change -> auto hitung + save) ---------- */
-    function xlSet($ctrl, val) {
-        val = (val === null || val === undefined) ? '' : String(val);
-        if ($ctrl.is('select')) {
-            const needle = val.trim().toLowerCase();
-            let match = null;
-            $ctrl.find('option').each(function () {
-                if ($(this).val().toLowerCase() === needle || $(this).text().trim().toLowerCase() === needle) { match = $(this).val(); return false; }
-            });
-            if (match === null || $ctrl.val() === match) return;
-            $ctrl.val(match).trigger('change');
+    // Pindah ke sel editable berikutnya (panah / Enter / Tab). extend = Shift+panah memperluas blok.
+    function xlMove($td, dr, dc, extend) {
+        const $tb = $td.closest('tbody'), p = xlPosOf($td), total = xlRows($tb).length;
+        let r = p.r + dr, c = p.c + dc, $target = $();
+        if (dr !== 0) {
+            if (r >= 0 && r < total) $target = xlTdAt($tb, r, c);
         } else {
-            val = val.trim();
-            if ($ctrl.val() === val) return;
-            $ctrl.val(val).trigger('change');
+            const cols = xlRows($tb).eq(r).children().length;
+            while (c >= 0 && c < cols && !xlHasCtrl(xlTdAt($tb, r, c))) c += dc;
+            if (c >= 0 && c < cols) $target = xlTdAt($tb, r, c);
         }
-    }
-
-    function xlText($ctrl) {
-        return $ctrl.is('select') ? $.trim($ctrl.find('option:selected').text()) : $ctrl.val();
+        if (!$target.length || !xlHasCtrl($target)) return false;
+        if (extend && XL.anchor) xlSelect(XL.anchor, $target); else xlSelect($target, $target);
+        xlFocus($target);
+        return true;
     }
 
     function xlRectToTSV() {
@@ -2559,7 +2873,7 @@
             const cells = [];
             for (let c = R.c0; c <= R.c1; c++) {
                 const $td = xlTdAt(XL.$tbody, r, c);
-                cells.push(xlHasCtrl($td) ? xlText(xlCtrl($td)) : '');
+                cells.push(xlHasCtrl($td) ? xlCellText($td) : '');
             }
             lines.push(cells.join('\t'));
         }
@@ -2579,7 +2893,7 @@
             const sr = R.r0 + ((((i - R.r0) % n) + n) % n);
             for (let c = R.c0; c <= R.c1; c++) {
                 const $s = xlTdAt($tb, sr, c), $d = xlTdAt($tb, i, c);
-                if (xlHasCtrl($s) && xlHasCtrl($d)) xlSet(xlCtrl($d), xlCtrl($s).val());
+                if (xlHasCtrl($s) && xlHasCtrl($d) && xlField($s) === xlField($d)) xlSetCell($d, xlCellVal($s));
             }
         }
         const nr0 = Math.min(R.r0, from), nr1 = Math.max(R.r1, to);
@@ -2593,13 +2907,13 @@
             if (R.r0 === 0) return;
             for (let c = R.c0; c <= R.c1; c++) {
                 const $s = xlTdAt($tb, R.r0 - 1, c), $d = xlTdAt($tb, R.r0, c);
-                if (xlHasCtrl($s) && xlHasCtrl($d)) xlSet(xlCtrl($d), xlCtrl($s).val());
+                if (xlHasCtrl($s) && xlHasCtrl($d) && xlField($s) === xlField($d)) xlSetCell($d, xlCellVal($s));
             }
         } else {
             for (let r = R.r0 + 1; r <= R.r1; r++) {
                 for (let c = R.c0; c <= R.c1; c++) {
                     const $s = xlTdAt($tb, R.r0, c), $d = xlTdAt($tb, r, c);
-                    if (xlHasCtrl($s) && xlHasCtrl($d)) xlSet(xlCtrl($d), xlCtrl($s).val());
+                    if (xlHasCtrl($s) && xlHasCtrl($d) && xlField($s) === xlField($d)) xlSetCell($d, xlCellVal($s));
                 }
             }
         }
@@ -2611,9 +2925,7 @@
         for (let r = R.r0; r <= R.r1; r++) {
             for (let c = R.c0; c <= R.c1; c++) {
                 const $td = xlTdAt(XL.$tbody, r, c);
-                if (!xlHasCtrl($td)) continue;
-                const $ctrl = xlCtrl($td);
-                xlSet($ctrl, $ctrl.is('select') ? '' : ($ctrl.hasClass('text-right') ? '0' : ''));
+                if (xlHasCtrl($td)) xlSetCell($td, '');
             }
         }
     }
@@ -2627,11 +2939,7 @@
         $row.attr('data-' + attr, value);
         $row.data(attr, value);
         if (XL_TD[field]) $row.find(XL_TD[field]).attr('data-val', value).data('val', value);
-        if (syncControl) {
-            const $control = $row.find('.costing-inline-control[data-field="' + field + '"]');
-            $control.val(value);
-            if ($control.hasClass('costing-inline-select')) $control.trigger('change.select2');
-        }
+        if (syncControl) xlRenderCell($row.find('.xl-cell[data-field="' + field + '"]'));
     }
 
     function xlRecalc($row, field) {
@@ -2658,29 +2966,6 @@
             xlPut($row, 'value_idr', xlRound(g('px-idr') * g('cons') * allow), true);
             xlPut($row, 'value_usd', xlRound(g('px-usd') * g('cons') * allow), true);
         }
-    }
-
-    function saveCostingInlineField($control) {
-        const $row = $control.closest('.row-costing');
-        const field = $control.data('field');
-        if (!XL_ATTR[field]) return;
-        let value = $control.val();
-        if ($control.is('input')) {
-            if (field === 'desc') {
-                value = String(value).trim();
-            } else {
-                const raw = String(value).trim();
-                const n = xlNum(raw);
-                if (raw !== '' && Number.isNaN(n)) { $control.addClass('is-invalid'); return; }
-                value = Number.isNaN(n) ? 0 : n;
-                $control.val(value);
-            }
-        }
-        $control.removeClass('is-invalid');
-        xlPut($row, field, value, false);
-        xlRecalc($row, field);
-        calculate_summary();
-        xlQueueSave($row, field === 'set');
     }
 
     function xlQueueSave($row, resort) {
@@ -2787,9 +3072,14 @@
         const $pager = $panel.find('.xl-pager');
         $pager.find('.xl-total').text('Of ' + total);
         let html = '<button type="button" class="xl-page-btn" data-page="' + (page - 1) + '"' + (page <= 1 ? ' disabled' : '') + '>&lsaquo;</button>';
-        const start = Math.max(1, Math.min(page - 2, pages - 4)), end = Math.min(pages, start + 4);
-        for (let p = start; p <= end; p++) {
+        // 1 2 3 … 7 8 9: halaman awal, sekitar halaman aktif, dan akhir.
+        const shown = new Set([1, 2, 3, pages - 2, pages - 1, pages, page - 1, page, page + 1]);
+        let last = 0;
+        for (let p = 1; p <= pages; p++) {
+            if (!shown.has(p)) continue;
+            if (p - last > 1) html += '<span class="xl-page-gap">&hellip;</span>';
             html += '<button type="button" class="xl-page-btn' + (p === page ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+            last = p;
         }
         html += '<button type="button" class="xl-page-btn" data-page="' + (page + 1) + '"' + (page >= pages ? ' disabled' : '') + '>&rsaquo;</button>';
         $pager.find('.xl-pages').html(html);
@@ -2882,23 +3172,28 @@
         });
         $('#xl-bulk-delete').on('click', xlBulkDelete);
 
-        // simpan saat nilai sel berubah
-        $('#costing-category-content').on('change', '.costing-inline-control', function () {
-            saveCostingInlineField($(this));
+        // dobel klik / F2 / langsung ketik = edit sel
+        $(document).on('dblclick', '#costing-category-content td.xl-cell', function (e) {
+            if ($(e.target).closest('.xl-editor, .select2-container').length) return;
+            xlOpenEditor($(this));
         });
 
         // pilih sel dengan mouse
         $(document).on('mousedown', '#costing-category-content .xl-fill-handle', function (e) {
             e.preventDefault(); e.stopPropagation();
+            if (XL_EDIT.$td) xlCloseEditor(true);
             XL.filling = true; XL.fillTarget = null;
             $('body').addClass('xl-dragging');
         });
         $(document).on('mousedown', '#costing-category-content tbody td', function (e) {
             if ($(e.target).hasClass('xl-fill-handle') || e.which !== 1) return;
+            if ($(e.target).closest('.xl-editor, .select2-container').length) return;
             const $td = $(this);
             if (!xlHasCtrl($td)) return;
+            if (XL_EDIT.$td) xlCloseEditor(true);
+            e.preventDefault();
+            $td[0].focus({ preventScroll: true });
             if (e.shiftKey && XL.anchor && XL.$tbody && XL.$tbody[0] === $td.closest('tbody')[0]) {
-                e.preventDefault();
                 xlSelect(XL.anchor, $td);
                 return;
             }
@@ -2934,55 +3229,66 @@
                 if (XL.fillTarget !== null) xlFillTo(XL.fillTarget);
                 XL.fillTarget = null;
             }
-            if (XL.dragging && XL.moved && XL.anchor) xlCtrl(XL.anchor)[0].focus({ preventScroll: true });
+            if (XL.dragging && XL.moved && XL.anchor) XL.anchor[0].focus({ preventScroll: true });
             XL.dragging = false; XL.moved = false;
             $('body').removeClass('xl-dragging');
         });
         $(document).on('mousedown', function (e) {
-            if (!$(e.target).closest('#costing-category-content, .swal2-container').length) xlClear();
+            const $t = $(e.target);
+            if (XL_EDIT.$td && !$t.closest('.xl-editing, .select2-container').length) xlCloseEditor(true);
+            if (!$t.closest('#costing-category-content, .swal2-container, .select2-container').length) xlClear();
         });
-        $(document).on('focusin', '#costing-category-content .costing-inline-control', function () {
-            const $td = $(this).parent();
+        $(document).on('focusin', '#costing-category-content td.xl-cell', function (e) {
+            if (e.target !== this) return;
+            const $td = $(this);
             if (!$td.hasClass('xl-sel')) xlSelect($td, $td);
         });
+        $(document).on('focusout', '#costing-category-content input.xl-editor', function () {
+            const $td = $(this).closest('td');
+            setTimeout(function () {
+                if (XL_EDIT.$td && XL_EDIT.$td.is($td) && !$td[0].contains(document.activeElement)) xlCloseEditor(true);
+            }, 0);
+        });
 
-        // keyboard
-        $(document).on('keydown', '#costing-category-content .costing-inline-control', function (e) {
-            const $c = $(this), $td = $c.parent(), key = e.key, ctrl = e.ctrlKey || e.metaKey;
+        // keyboard: sel terpilih (belum diedit)
+        $(document).on('keydown', '#costing-category-content td.xl-cell', function (e) {
+            if (e.target !== this) return;
+            const $td = $(this), key = e.key, ctrl = e.ctrlKey || e.metaKey;
             if (ctrl && (key === 'd' || key === 'D')) { e.preventDefault(); xlFillDown(); return; }
             if (ctrl || e.altKey) return;
             if (key === 'Escape') { xlClear(); return; }
-            if (key === 'Delete' && xlIsMulti()) { e.preventDefault(); xlClearValues(); return; }
+            if (key === 'Delete') { e.preventDefault(); xlClearValues(); return; }
+            if (key === 'Backspace') { e.preventDefault(); xlIsMulti() ? xlClearValues() : xlOpenEditor($td, ''); return; }
+            if (key === 'F2') { e.preventDefault(); xlOpenEditor($td); return; }
+            if (key.length === 1) { e.preventDefault(); xlOpenEditor($td, key); return; }
 
-            const isInput = $c.is('input'), el = $c[0];
             let dr = 0, dc = 0;
             if (key === 'ArrowDown') dr = 1;
             else if (key === 'ArrowUp') dr = -1;
+            else if (key === 'ArrowRight') dc = 1;
+            else if (key === 'ArrowLeft') dc = -1;
             else if (key === 'Enter') dr = e.shiftKey ? -1 : 1;
-            else if (isInput && key === 'ArrowRight' && !e.shiftKey && el.selectionStart === el.selectionEnd && el.selectionEnd === el.value.length) dc = 1;
-            else if (isInput && key === 'ArrowLeft' && !e.shiftKey && el.selectionStart === el.selectionEnd && el.selectionStart === 0) dc = -1;
+            else if (key === 'Tab') dc = e.shiftKey ? -1 : 1;
             else return;
-            if (!isInput && (key === 'ArrowDown' || key === 'ArrowUp')) return; // biarkan dropdown berganti pilihan
-
-            const $tb = $td.closest('tbody'), p = xlPosOf($td), total = xlRows($tb).length;
-            let r = p.r + dr, c = p.c + dc, $target = $();
-            if (dr !== 0) {
-                if (r >= 0 && r < total) $target = xlTdAt($tb, r, c);
-            } else {
-                const cols = xlRows($tb).eq(r).children().length;
-                while (c >= 0 && c < cols && !xlHasCtrl(xlTdAt($tb, r, c))) c += dc;
-                if (c >= 0 && c < cols) $target = xlTdAt($tb, r, c);
-            }
-            if (!$target.length || !xlHasCtrl($target)) return;
             e.preventDefault();
-            if (e.shiftKey && (key === 'ArrowDown' || key === 'ArrowUp') && XL.anchor) {
-                xlSelect(XL.anchor, $target);
-                xlShowRow($target.parent());
-                $target.children('.costing-inline-control')[0].focus();
-            } else {
-                xlSelect($target, $target);
-                xlFocus($target);
-            }
+            xlMove($td, dr, dc, e.shiftKey && key.indexOf('Arrow') === 0);
+        });
+
+        // keyboard: sedang mengedit (input)
+        $(document).on('keydown', '#costing-category-content input.xl-editor', function (e) {
+            const $td = $(this).closest('td'), key = e.key, el = this;
+            if (key === 'Escape') { e.preventDefault(); xlCloseEditor(false); xlFocus($td); return; }
+            let dr = 0, dc = 0;
+            if (key === 'Enter') dr = e.shiftKey ? -1 : 1;
+            else if (key === 'Tab') dc = e.shiftKey ? -1 : 1;
+            else if (key === 'ArrowDown') dr = 1;
+            else if (key === 'ArrowUp') dr = -1;
+            else if (key === 'ArrowRight' && el.selectionStart === el.selectionEnd && el.selectionEnd === el.value.length) dc = 1;
+            else if (key === 'ArrowLeft' && el.selectionStart === el.selectionEnd && el.selectionStart === 0) dc = -1;
+            else return;
+            e.preventDefault();
+            xlCloseEditor(true);
+            if (!xlMove($td, dr, dc, false)) xlFocus($td);
         });
 
         // copy & paste (kompatibel dengan Excel)
@@ -3005,11 +3311,12 @@
             const multi = xlIsMulti();
             if (!isGrid && !multi && $(ae).is('input')) return; // paste biasa di dalam input
             e.preventDefault();
+            if (XL_EDIT.$td) xlCloseEditor(false);
             const R = XL.rect, $tb = XL.$tbody;
             if (!isGrid) {
                 for (let r = R.r0; r <= R.r1; r++) for (let c = R.c0; c <= R.c1; c++) {
                     const $td = xlTdAt($tb, r, c);
-                    if (xlHasCtrl($td)) xlSet(xlCtrl($td), clean);
+                    if (xlHasCtrl($td)) xlSetCell($td, clean);
                 }
                 return;
             }
@@ -3019,7 +3326,7 @@
                 maxC = Math.max(maxC, cols.length);
                 cols.forEach(function (v, j) {
                     const $td = xlTdAt($tb, R.r0 + i, R.c0 + j);
-                    if ($td.length && xlHasCtrl($td)) xlSet(xlCtrl($td), v);
+                    if ($td.length && xlHasCtrl($td)) xlSetCell($td, v);
                 });
             });
             const lastR = Math.min(xlRows($tb).length - 1, R.r0 + data.length - 1);
