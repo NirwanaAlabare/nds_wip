@@ -426,6 +426,33 @@
             return row.status !== 'N' && !isClosingRow(row);
         }
 
+        // Pilihan cancel lintas halaman:
+        // - mode biasa: selectedIds = id yang dicentang
+        // - mode check all: semua hasil filter (seluruh halaman), excludedIds = id yang di-uncheck
+        let selectAllMode = false;
+        let selectedIds = new Set();
+        let excludedIds = new Set();
+        // Jumlah baris hasil filter yang bisa dicancel (dari server)
+        let cancelableCount = 0;
+        // Filter terakhir yang dikirim, pilihan direset jika filter berubah (pindah halaman tidak)
+        let lastFilterKey = null;
+
+        function resetSelection() {
+            selectAllMode = false;
+            selectedIds.clear();
+            excludedIds.clear();
+        }
+
+        function isRowChecked(row) {
+            if (!isCancelable(row)) return false;
+
+            return selectAllMode ? !excludedIds.has(row.id) : selectedIds.has(row.id);
+        }
+
+        function selectedTotal() {
+            return selectAllMode ? Math.max(0, cancelableCount - excludedIds.size) : selectedIds.size;
+        }
+
         function buildListTable(type) {
             currentListType = type;
 
@@ -437,7 +464,7 @@
                     width: '40px',
                     searchable: false,
                     render: function (data, type, row) {
-                        return `<input type="checkbox" class="form-check-input check-adjustment" ${isCancelable(row) ? '' : 'disabled'}>`;
+                        return `<input type="checkbox" class="form-check-input check-adjustment" ${isCancelable(row) ? '' : 'disabled'} ${isRowChecked(row) ? 'checked' : ''}>`;
                     }
                 },
                 { title: 'ID', data: 'id', className: 'text-center' },
@@ -495,11 +522,19 @@
                 <tbody></tbody>
             `);
 
+            // Search per kolom dikirim ke server, ditunda sampai berhenti mengetik
+            let searchTimer;
+
             $('#list-table thead tr:eq(1) th').each(function (i) {
                 $('input', this).on('keyup change', function () {
-                    if (listTable.column(i).search() !== this.value) {
-                        listTable.column(i).search(this.value).draw();
-                    }
+                    const value = this.value;
+
+                    clearTimeout(searchTimer);
+                    searchTimer = setTimeout(function () {
+                        if (listTable.column(i).search() !== value) {
+                            listTable.column(i).search(value).draw();
+                        }
+                    }, 500);
                 });
             });
 
@@ -508,7 +543,12 @@
                 ordering: false,
                 processing: true,
                 serverSide: true,
-                paging: false,
+                paging: true,
+                pageLength: 50,
+                lengthMenu: [
+                    [25, 50, 100, 500],
+                    [25, 50, 100, 500]
+                ],
                 searching: true,
                 scrollY: '300px',
                 scrollX: true,
@@ -525,11 +565,25 @@
                     },
                     url: '{{ route('get-data-wip-adjustment') }}',
                     dataType: 'json',
-                    dataSrc: 'data',
+                    dataSrc: function (json) {
+                        cancelableCount = json.cancelable_count ?? 0;
+
+                        return json.data;
+                    },
                     data: function(d) {
                         d.dateFrom = $('#tgl-awal').val();
                         d.dateTo = $('#tgl-akhir').val();
                         d.type_report = currentListType;
+
+                        const filterKey = JSON.stringify([
+                            d.dateFrom, d.dateTo, d.type_report, d.search.value,
+                            d.columns.map(col => col.search.value),
+                        ]);
+
+                        if (filterKey !== lastFilterKey) {
+                            resetSelection();
+                            lastFilterKey = filterKey;
+                        }
                     },
                 },
                 columns: columns,
@@ -548,7 +602,7 @@
 
             if (!$body.length) return;
 
-            const reserved = 110; // info "Showing ..." + padding card + footer
+            const reserved = 130; // info "Showing ..." + pagination + padding card + footer
             const height = Math.max(300, window.innerHeight - $body.offset().top - reserved);
 
             $body.css({ 'height': height + 'px', 'max-height': height + 'px' });
@@ -561,7 +615,8 @@
 
         buildListTable($('#type_report_filter').val());
 
-        function cancelAdjustment(rows, html) {
+        // payload: { ids: [...] } atau { select_all: 1, excluded_ids: [...], ...parameter filter datatables }
+        function cancelAdjustment(payload, html) {
             Swal.fire({
                 title: 'Cancel Adjustment?',
                 html: html,
@@ -580,14 +635,15 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: {
+                        ...payload,
                         type_report: currentListType,
-                        ids: rows.map(row => row.id),
                     },
                     beforeSend: function () {
                         showLoading();
                     },
                     success: function (res) {
                         iziToast.success({ title: 'Berhasil', message: res.message, position: 'topCenter' });
+                        resetSelection();
                         listTableReload();
                     },
                     error: function (xhr) {
@@ -608,42 +664,54 @@
         $('#list-table').on('click', '.btn-cancel-adjustment', function () {
             const row = listTable.row($(this).closest('tr')).data();
 
-            cancelAdjustment([row], currentListType === 'CUTTING_FABRIC'
+            cancelAdjustment({ ids: [row.id] }, currentListType === 'CUTTING_FABRIC'
                 ? `ID ${row.id} — WS <b>${row.ws}</b> — Roll ${row.id_roll}<br>Tanggal saldo ${row.tgl_saldo}`
                 : `ID ${row.id} — WS <b>${row.no_ws}</b> — ${row.color} / ${row.size}<br>${row.type_report}, tanggal saldo ${row.tgl_saldo}`);
         });
 
-        // Multi cancel: baris yang diceklis
-        function getSelectedRows() {
-            return $('#list-table .check-adjustment:checked').map(function () {
-                return listTable.row($(this).closest('tr')).data();
-            }).get();
-        }
-
+        // Multi cancel: baris yang diceklis (lintas halaman)
         function updateSelectedState() {
-            const $checks = $('#list-table .check-adjustment:not(:disabled)');
-            const selected = $checks.filter(':checked').length;
+            const total = selectedTotal();
 
-            $('#selectedCount').text(selected);
-            $('#btnCancelSelected').prop('disabled', selected === 0);
+            $('#selectedCount').text(total.toLocaleString('id-ID'));
+            $('#btnCancelSelected').prop('disabled', total === 0);
             $('.check-all-adjustment')
-                .prop('checked', $checks.length > 0 && selected === $checks.length)
-                .prop('indeterminate', selected > 0 && selected < $checks.length);
+                .prop('checked', cancelableCount > 0 && total === cancelableCount)
+                .prop('indeterminate', total > 0 && total < cancelableCount);
         }
 
+        // Check all = semua data hasil filter, bukan hanya halaman ini
         $(document).on('change', '.check-all-adjustment', function () {
+            resetSelection();
+            selectAllMode = this.checked;
+
             $('#list-table .check-adjustment:not(:disabled)').prop('checked', this.checked);
             updateSelectedState();
         });
 
-        $('#list-table').on('change', '.check-adjustment', updateSelectedState);
+        $('#list-table').on('change', '.check-adjustment', function () {
+            const id = listTable.row($(this).closest('tr')).data().id;
+
+            if (selectAllMode) {
+                this.checked ? excludedIds.delete(id) : excludedIds.add(id);
+            } else {
+                this.checked ? selectedIds.add(id) : selectedIds.delete(id);
+            }
+
+            updateSelectedState();
+        });
 
         function cancelSelected() {
-            const rows = getSelectedRows();
+            const total = selectedTotal();
 
-            if (!rows.length) return;
+            if (!total) return;
 
-            cancelAdjustment(rows, `<b>${rows.length}</b> data terpilih akan dicancel.`);
+            const payload = selectAllMode
+                // Kirim ulang filter datatables terakhir supaya server memakai hasil filter yang sama
+                ? { ...listTable.ajax.params(), select_all: 1, excluded_ids: [...excludedIds] }
+                : { ids: [...selectedIds] };
+
+            cancelAdjustment(payload, `<b>${total.toLocaleString('id-ID')}</b> data terpilih akan dicancel.`);
         }
 
         function listTableReload() {
