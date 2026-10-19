@@ -63,7 +63,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/export-excel', 'exportExcel')->name('dc-in-export-excel');
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('dc-in-detail-export-excel');
 
-        Route::get('/dc-in-list', 'dcInList')->name('dc-in-list');
+        Route::post('/dc-in-list', 'dcInList')->name('dc-in-list');
     });
 
     // Secondary INHOUSE IN
