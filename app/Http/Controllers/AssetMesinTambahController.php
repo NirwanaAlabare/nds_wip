@@ -237,25 +237,41 @@ group by id_bpb, id_item, a.bpbno_int
         ?string $id_item = null,
         ?string $id_supplier = null,
         ?string $ids = null,
-        ?string $bgColorHex = null
+        ?string $bgColorHex = null,
+        ?string $serial_number = null,
+        bool $serial_only = false
     ) {
         $query = DB::table('asset_penerimaan_mesin as a')
             ->select('a.id', 'a.serial_number', 'a.kode_qr')
             ->leftJoin('signalbit_erp.bpb as bpb', 'a.id_bpb', '=', 'bpb.id');
 
+        // Serial Number bisa lebih dari satu, dipisah koma / titik koma / spasi / enter
+        $serials = array_values(array_filter(preg_split('/[\s,;]+/', (string) $serial_number)));
+
         if ($ids) {
             $query->whereIn('a.id', array_filter(explode(',', $ids)));
         } else {
-            $query->whereBetween('a.tgl_trans', [$tgl_awal, $tgl_akhir])
-                ->when($bpbno, function ($query) use ($bpbno) {
-                    $query->where('a.bpbno_int', $bpbno);
-                })
-                ->when($id_item, function ($query) use ($id_item) {
-                    $query->where('a.id_item', $id_item);
-                })
-                ->when($id_supplier, function ($query) use ($id_supplier) {
-                    $query->where('bpb.id_supplier', $id_supplier);
+            // Mode Serial Number: tanpa batas tanggal / filter BPB, Mesin, Supplier
+            if (!$serial_only) {
+                $query->whereBetween('a.tgl_trans', [$tgl_awal, $tgl_akhir])
+                    ->when($bpbno, function ($query) use ($bpbno) {
+                        $query->where('a.bpbno_int', $bpbno);
+                    })
+                    ->when($id_item, function ($query) use ($id_item) {
+                        $query->where('a.id_item', $id_item);
+                    })
+                    ->when($id_supplier, function ($query) use ($id_supplier) {
+                        $query->where('bpb.id_supplier', $id_supplier);
+                    });
+            }
+
+            if ($serials) {
+                $query->where(function ($query) use ($serials) {
+                    foreach ($serials as $serial) {
+                        $query->orWhere('a.serial_number', 'like', '%' . $serial . '%');
+                    }
                 });
+            }
         }
 
         $units = $query->whereNotNull('a.serial_number')
@@ -285,7 +301,11 @@ group by id_bpb, id_item, a.bpbno_int
             $request->tgl_akhir,
             $request->bpbno,
             $request->id_item,
-            $request->id_supplier
+            $request->id_supplier,
+            null,
+            null,
+            $request->serial_number,
+            $request->search_by === 'serial'
         );
 
         return response()->json($units);

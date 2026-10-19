@@ -371,33 +371,50 @@
                 <div class="modal-body">
                     <div class="mb-3 d-flex align-items-end gap-2 flex-wrap">
                         <div>
-                            <label for="qrTglAwal" class="col-form-label"><small><b>Tgl Awal :</b></small></label>
-                            <input type="date" id="qrTglAwal" class="form-control form-control-sm">
-                        </div>
-                        <div>
-                            <label for="qrTglAkhir" class="col-form-label"><small><b>Tgl Akhir :</b></small></label>
-                            <input type="date" id="qrTglAkhir" class="form-control form-control-sm">
-                        </div>
-                        <div>
-                            <label for="qrBpbno" class="col-form-label"><small><b>No BPB :</b></small></label>
-                            <select id="qrBpbno" class="form-control form-control-sm select2bs4 border-primary"
-                                style="width: 180px;">
-                                <option value="">Semua BPB</option>
+                            <label for="qrSearchBy" class="col-form-label"><small><b>Cari Berdasarkan :</b></small></label>
+                            <select id="qrSearchBy" class="form-control form-control-sm select2bs4 border-primary"
+                                style="width: 160px;">
+                                <option value="tanggal">Range Tanggal</option>
+                                <option value="serial">Serial Number</option>
                             </select>
                         </div>
-                        <div>
-                            <label for="qrMesin" class="col-form-label"><small><b>Mesin :</b></small></label>
-                            <select id="qrMesin" class="form-control form-control-sm select2bs4 border-primary"
-                                style="width: 220px;">
-                                <option value="">Semua Mesin</option>
-                            </select>
+                        <div id="qrFilterTanggalGroup">
+                            <div class="d-flex align-items-end gap-2 flex-wrap">
+                                <div>
+                                    <label for="qrTglAwal" class="col-form-label"><small><b>Tgl Awal :</b></small></label>
+                                    <input type="date" id="qrTglAwal" class="form-control form-control-sm">
+                                </div>
+                                <div>
+                                    <label for="qrTglAkhir" class="col-form-label"><small><b>Tgl Akhir :</b></small></label>
+                                    <input type="date" id="qrTglAkhir" class="form-control form-control-sm">
+                                </div>
+                                <div>
+                                    <label for="qrBpbno" class="col-form-label"><small><b>No BPB :</b></small></label>
+                                    <select id="qrBpbno" class="form-control form-control-sm select2bs4 border-primary"
+                                        style="width: 180px;">
+                                        <option value="">Semua BPB</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="qrMesin" class="col-form-label"><small><b>Mesin :</b></small></label>
+                                    <select id="qrMesin" class="form-control form-control-sm select2bs4 border-primary"
+                                        style="width: 220px;">
+                                        <option value="">Semua Mesin</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="qrSupplier" class="col-form-label"><small><b>Supplier :</b></small></label>
+                                    <select id="qrSupplier" class="form-control form-control-sm select2bs4 border-primary"
+                                        style="width: 200px;">
+                                        <option value="">Semua Supplier</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label for="qrSupplier" class="col-form-label"><small><b>Supplier :</b></small></label>
-                            <select id="qrSupplier" class="form-control form-control-sm select2bs4 border-primary"
-                                style="width: 200px;">
-                                <option value="">Semua Supplier</option>
-                            </select>
+                        <div id="qrFilterSerialGroup">
+                            <label for="qrSerialNumber" class="col-form-label"><small><b>Serial Number :</b></small></label>
+                            <input type="text" id="qrSerialNumber" class="form-control form-control-sm"
+                                style="width: 280px;" placeholder="Bisa banyak, pisah koma / spasi" autocomplete="off">
                         </div>
                         <button type="button" class="btn btn-primary btn-sm" id="btnFilterPrintQr">
                             <i class="fas fa-search"></i> Tampilkan
@@ -1252,6 +1269,8 @@
         $('#btnPrintQrUnit').on('click', function() {
             $('#qrTglAwal').val($('#txttgl_awal').val());
             $('#qrTglAkhir').val($('#txttgl_akhir').val());
+            $('#qrSerialNumber').val('');
+            $('#qrSearchBy').val('tanggal').trigger('change');
             $('#printQrListBody').empty();
             $('#qrCheckAll').prop('checked', false);
             updateQrCheckedCounter();
@@ -1265,6 +1284,22 @@
             let checked = $('.qr-row-check:checked').length;
             $('#qrCheckedCounter').text(`${checked}/${total} terpilih`);
         }
+
+        // Pilihan "Cari Berdasarkan": Range Tanggal (Tgl/BPB/Mesin/Supplier + Serial Number opsional)
+        // atau Serial Number saja (tanpa batas tanggal). Kolom Serial Number selalu tampil di kedua mode.
+        $('#qrSearchBy').on('change', function() {
+            let bySerial = $(this).val() === 'serial';
+            $('#qrFilterTanggalGroup').toggle(!bySerial);
+            if (bySerial) $('#qrSerialNumber').trigger('focus');
+        });
+
+        // Tekan Enter di kolom Serial Number langsung menjalankan Tampilkan
+        $('#qrSerialNumber').on('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                $('#btnFilterPrintQr').trigger('click');
+            }
+        });
 
         // Dropdown BPB/Mesin/Supplier menyesuaikan otomatis tiap kali rentang tanggal diubah
         $('#qrTglAwal, #qrTglAkhir').on('change', function() {
@@ -1280,25 +1315,58 @@
             let bpbno = $('#qrBpbno').val();
             let id_item = $('#qrMesin').val();
             let id_supplier = $('#qrSupplier').val();
+            let search_by = $('#qrSearchBy').val();
+            let serial_number = $('#qrSerialNumber').val().trim();
+
+            if (search_by === 'serial' && !serial_number) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Serial Number Kosong',
+                    text: 'Ketik Serial Number yang mau dicari.',
+                });
+                return;
+            }
 
             $.ajax({
                 type: 'GET',
                 url: '{{ route('asset_mesin_tambah_qr_list') }}',
                 data: {
+                    search_by: search_by,
+                    serial_number: serial_number,
                     tgl_awal: tgl_awal,
                     tgl_akhir: tgl_akhir,
                     bpbno: bpbno,
                     id_item: id_item,
                     id_supplier: id_supplier
                 },
+                // Animasi loading: tombol Tampilkan dikunci + spinner, dan tabel menampilkan baris "Memuat..."
+                beforeSend: function() {
+                    $('#btnFilterPrintQr').prop('disabled', true)
+                        .html('<span class="spinner-border spinner-border-sm"></span> Memuat...');
+                    $('#qrCheckAll').prop('checked', false);
+                    $('#printQrListBody').html(`
+                        <tr><td colspan="4" class="text-center text-muted py-4">
+                            <span class="spinner-border text-primary"></span>
+                            <div class="mt-2"><small>Mencari data QR Code...</small></div>
+                        </td></tr>`);
+                    updateQrCheckedCounter();
+                },
+                complete: function() {
+                    $('#btnFilterPrintQr').prop('disabled', false)
+                        .html('<i class="fas fa-search"></i> Tampilkan');
+                },
                 success: function(units) {
                     let $body = $('#printQrListBody').empty();
                     $('#qrCheckAll').prop('checked', false);
 
                     if (!units.length) {
+                        let emptyText = search_by === 'serial' ?
+                            'Tidak ada unit dengan Serial Number tersebut (atau Foto belum lengkap).' :
+                            'Tidak ada unit dengan Serial Number & Foto lengkap pada periode ini.';
                         $body.append(
-                            '<tr><td colspan="4" class="text-center text-muted">Tidak ada unit dengan Serial Number & Foto lengkap pada periode ini.</td></tr>'
+                            `<tr><td colspan="4" class="text-center text-muted">${emptyText}</td></tr>`
                         );
+                        updateQrCheckedCounter();
                         return;
                     }
 
@@ -1320,6 +1388,8 @@
                 },
                 error: function(xhr) {
                     console.error(xhr.responseText);
+                    $('#printQrListBody').empty();
+                    updateQrCheckedCounter();
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
