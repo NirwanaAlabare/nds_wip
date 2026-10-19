@@ -361,7 +361,7 @@
 
     <!-- Modal Preview Print QR Code (bulk, untuk unit yang QR-nya sudah aktif) -->
     <div class="modal fade" id="PrintQrPreviewModal" tabindex="-1" aria-labelledby="PrintQrPreviewModalLabel"
-        aria-hidden="true">
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-white">
@@ -369,39 +369,66 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3 d-flex align-items-end gap-2 flex-wrap">
+                    <div class="mb-3 d-flex align-items-start gap-2 flex-wrap">
                         <div>
-                            <label for="qrTglAwal" class="col-form-label"><small><b>Tgl Awal :</b></small></label>
-                            <input type="date" id="qrTglAwal" class="form-control form-control-sm">
-                        </div>
-                        <div>
-                            <label for="qrTglAkhir" class="col-form-label"><small><b>Tgl Akhir :</b></small></label>
-                            <input type="date" id="qrTglAkhir" class="form-control form-control-sm">
-                        </div>
-                        <div>
-                            <label for="qrBpbno" class="col-form-label"><small><b>No BPB :</b></small></label>
-                            <select id="qrBpbno" class="form-control form-control-sm select2bs4 border-primary"
-                                style="width: 180px;">
-                                <option value="">Semua BPB</option>
+                            <label for="qrSearchBy" class="col-form-label"><small><b>Cari Berdasarkan :</b></small></label>
+                            <select id="qrSearchBy" class="form-control form-control-sm select2bs4 border-primary"
+                                style="width: 160px;">
+                                <option value="tanggal">Range Tanggal</option>
+                                <option value="serial">Serial Number</option>
                             </select>
                         </div>
-                        <div>
-                            <label for="qrMesin" class="col-form-label"><small><b>Mesin :</b></small></label>
-                            <select id="qrMesin" class="form-control form-control-sm select2bs4 border-primary"
-                                style="width: 220px;">
-                                <option value="">Semua Mesin</option>
-                            </select>
+                        <div id="qrFilterTanggalGroup">
+                            <div class="d-flex align-items-end gap-2 flex-wrap">
+                                <div>
+                                    <label for="qrTglAwal" class="col-form-label"><small><b>Tgl Awal :</b></small></label>
+                                    <input type="date" id="qrTglAwal" class="form-control form-control-sm">
+                                </div>
+                                <div>
+                                    <label for="qrTglAkhir" class="col-form-label"><small><b>Tgl Akhir :</b></small></label>
+                                    <input type="date" id="qrTglAkhir" class="form-control form-control-sm">
+                                </div>
+                                <div>
+                                    <label for="qrBpbno" class="col-form-label"><small><b>No BPB :</b></small></label>
+                                    <select id="qrBpbno" class="form-control form-control-sm select2bs4 border-primary"
+                                        style="width: 180px;">
+                                        <option value="">Semua BPB</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="qrMesin" class="col-form-label"><small><b>Mesin :</b></small></label>
+                                    <select id="qrMesin" class="form-control form-control-sm select2bs4 border-primary"
+                                        style="width: 220px;">
+                                        <option value="">Semua Mesin</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="qrSupplier" class="col-form-label"><small><b>Supplier :</b></small></label>
+                                    <select id="qrSupplier" class="form-control form-control-sm select2bs4 border-primary"
+                                        style="width: 200px;">
+                                        <option value="">Semua Supplier</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="qrFilterSerialGroup" style="width: 300px;">
+                            <label for="qrSerialInput" class="col-form-label"><small><b>Serial Number
+                                        (<span id="qrSerialCount">0</span>) :</b></small></label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="qrSerialInput" class="form-control form-control-sm"
+                                    placeholder="Ketik serial lalu Enter" autocomplete="off">
+                                <button type="button" class="btn btn-outline-danger" id="btnQrSerialClear"
+                                    title="Hapus semua serial"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <ul id="qrSerialList" class="list-group mt-1"
+                                style="max-height: 150px; overflow-y: auto; display: none;"></ul>
                         </div>
                         <div>
-                            <label for="qrSupplier" class="col-form-label"><small><b>Supplier :</b></small></label>
-                            <select id="qrSupplier" class="form-control form-control-sm select2bs4 border-primary"
-                                style="width: 200px;">
-                                <option value="">Semua Supplier</option>
-                            </select>
+                            <label class="col-form-label d-block"><small>&nbsp;</small></label>
+                            <button type="button" class="btn btn-primary btn-sm" id="btnFilterPrintQr">
+                                <i class="fas fa-search"></i> Tampilkan
+                            </button>
                         </div>
-                        <button type="button" class="btn btn-primary btn-sm" id="btnFilterPrintQr">
-                            <i class="fas fa-search"></i> Tampilkan
-                        </button>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <p class="text-muted mb-0"><small><i class="fas fa-circle-info"></i> Centang Kode QR yang
@@ -416,9 +443,11 @@
                                     <th class="text-center" style="width: 40px;">
                                         <input type="checkbox" id="qrCheckAll">
                                     </th>
-                                    <th class="text-center" style="width: 70px;">Preview</th>
                                     <th>Kode QR</th>
                                     <th>Serial Number</th>
+                                    <th>Jenis</th>
+                                    <th>Merk</th>
+                                    <th>Tipe</th>
                                 </tr>
                             </thead>
                             <tbody id="printQrListBody"></tbody>
@@ -1252,6 +1281,10 @@
         $('#btnPrintQrUnit').on('click', function() {
             $('#qrTglAwal').val($('#txttgl_awal').val());
             $('#qrTglAkhir').val($('#txttgl_akhir').val());
+            qrSerials = [];
+            $('#qrSerialInput').val('');
+            renderQrSerialList();
+            $('#qrSearchBy').val('tanggal').trigger('change');
             $('#printQrListBody').empty();
             $('#qrCheckAll').prop('checked', false);
             updateQrCheckedCounter();
@@ -1265,6 +1298,74 @@
             let checked = $('.qr-row-check:checked').length;
             $('#qrCheckedCounter').text(`${checked}/${total} terpilih`);
         }
+
+        // Pilihan "Cari Berdasarkan": Range Tanggal (Tgl/BPB/Mesin/Supplier + Serial Number opsional)
+        // atau Serial Number saja (tanpa batas tanggal). Kolom Serial Number selalu tampil di kedua mode.
+        $('#qrSearchBy').on('change', function() {
+            let bySerial = $(this).val() === 'serial';
+            $('#qrFilterTanggalGroup').toggle(!bySerial);
+            if (bySerial) $('#qrSerialInput').trigger('focus');
+        });
+
+        // Daftar Serial Number yang dicari: ketik lalu Enter -> masuk ke list di bawah input, tiap item bisa dihapus (x)
+        let qrSerials = [];
+
+        function renderQrSerialList() {
+            let $list = $('#qrSerialList').empty();
+            qrSerials.forEach(function(serial, index) {
+                $('<li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2"></li>')
+                    .append($('<small></small>').text(serial))
+                    .append(`<button type="button" class="btn-close btn-sm qr-serial-remove" data-index="${index}"
+                        title="Hapus" style="font-size: 0.6rem;"></button>`)
+                    .appendTo($list);
+            });
+            $list.toggle(qrSerials.length > 0);
+            $('#qrSerialCount').text(qrSerials.length);
+        }
+
+        // Tambah satu/banyak serial ke list (abaikan yang kosong & yang sudah ada)
+        function addQrSerials(values) {
+            values.forEach(function(value) {
+                let serial = String(value).trim();
+                if (serial && !qrSerials.includes(serial)) qrSerials.push(serial);
+            });
+            renderQrSerialList();
+            // Scroll ke item paling bawah supaya serial yang baru ditambahkan kelihatan
+            let list = document.getElementById('qrSerialList');
+            list.scrollTop = list.scrollHeight;
+        }
+
+        // Enter = masukkan serial ke list; Ctrl+Enter = langsung Tampilkan
+        $('#qrSerialInput').on('keydown', function(e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            if (e.ctrlKey) {
+                $('#btnFilterPrintQr').trigger('click');
+                return;
+            }
+            addQrSerials([$(this).val()]);
+            $(this).val('');
+        });
+
+        // Paste banyak serial sekaligus (misal copy 1 kolom dari Excel): tiap baris jadi 1 item di list
+        $('#qrSerialInput').on('paste', function(e) {
+            let text = (e.originalEvent.clipboardData || window.clipboardData).getData('text');
+            if (!/[\r\n]/.test(text)) return;
+            e.preventDefault();
+            addQrSerials(text.split(/[\r\n]+/));
+            $(this).val('');
+        });
+
+        $(document).on('click', '.qr-serial-remove', function() {
+            qrSerials.splice($(this).data('index'), 1);
+            renderQrSerialList();
+        });
+
+        $('#btnQrSerialClear').on('click', function() {
+            qrSerials = [];
+            $('#qrSerialInput').val('');
+            renderQrSerialList();
+        });
 
         // Dropdown BPB/Mesin/Supplier menyesuaikan otomatis tiap kali rentang tanggal diubah
         $('#qrTglAwal, #qrTglAkhir').on('change', function() {
@@ -1280,25 +1381,63 @@
             let bpbno = $('#qrBpbno').val();
             let id_item = $('#qrMesin').val();
             let id_supplier = $('#qrSupplier').val();
+            let search_by = $('#qrSearchBy').val();
+
+            // Serial yang masih diketik tapi belum di-Enter ikut dimasukkan ke list
+            if ($('#qrSerialInput').val().trim()) {
+                addQrSerials([$('#qrSerialInput').val()]);
+                $('#qrSerialInput').val('');
+            }
+
+            if (search_by === 'serial' && !qrSerials.length) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Serial Number Kosong',
+                    text: 'Ketik Serial Number yang mau dicari lalu tekan Enter.',
+                });
+                return;
+            }
 
             $.ajax({
                 type: 'GET',
                 url: '{{ route('asset_mesin_tambah_qr_list') }}',
                 data: {
+                    search_by: search_by,
+                    serial_numbers: qrSerials,
                     tgl_awal: tgl_awal,
                     tgl_akhir: tgl_akhir,
                     bpbno: bpbno,
                     id_item: id_item,
                     id_supplier: id_supplier
                 },
+                // Animasi loading: tombol Tampilkan dikunci + spinner, dan tabel menampilkan baris "Memuat..."
+                beforeSend: function() {
+                    $('#btnFilterPrintQr').prop('disabled', true)
+                        .html('<span class="spinner-border spinner-border-sm"></span> Memuat...');
+                    $('#qrCheckAll').prop('checked', false);
+                    $('#printQrListBody').html(`
+                        <tr><td colspan="6" class="text-center text-muted py-4">
+                            <span class="spinner-border text-primary"></span>
+                            <div class="mt-2"><small>Mencari data QR Code...</small></div>
+                        </td></tr>`);
+                    updateQrCheckedCounter();
+                },
+                complete: function() {
+                    $('#btnFilterPrintQr').prop('disabled', false)
+                        .html('<i class="fas fa-search"></i> Tampilkan');
+                },
                 success: function(units) {
                     let $body = $('#printQrListBody').empty();
                     $('#qrCheckAll').prop('checked', false);
 
                     if (!units.length) {
+                        let emptyText = search_by === 'serial' ?
+                            'Tidak ada unit dengan Serial Number tersebut (atau Foto belum lengkap).' :
+                            'Tidak ada unit dengan Serial Number & Foto lengkap pada periode ini.';
                         $body.append(
-                            '<tr><td colspan="4" class="text-center text-muted">Tidak ada unit dengan Serial Number & Foto lengkap pada periode ini.</td></tr>'
+                            `<tr><td colspan="6" class="text-center text-muted">${emptyText}</td></tr>`
                         );
+                        updateQrCheckedCounter();
                         return;
                     }
 
@@ -1309,9 +1448,11 @@
                                     <input type="checkbox" class="qr-row-check" value="${unit.id}"
                                         data-kode-qr="${unit.kode_qr ?? ''}" data-serial="${unit.serial_number ?? ''}" checked>
                                 </td>
-                                <td class="text-center"><img src="data:image/svg+xml;base64,${unit.qr}"></td>
                                 <td>${unit.kode_qr ?? '-'}</td>
                                 <td>${unit.serial_number ?? '-'}</td>
+                                <td>${unit.nm_jenis ?? '-'}</td>
+                                <td>${unit.nm_merk ?? '-'}</td>
+                                <td>${unit.tipe ?? '-'}</td>
                             </tr>`);
                     });
 
@@ -1320,6 +1461,8 @@
                 },
                 error: function(xhr) {
                     console.error(xhr.responseText);
+                    $('#printQrListBody').empty();
+                    updateQrCheckedCounter();
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
@@ -1398,7 +1541,8 @@
                 (parseInt($(b).css('z-index')) || 0) - (parseInt($(a).css('z-index')) || 0)
             )[0];
 
-            if ($topModal) {
+            // Modal Preview Print QR hanya bisa ditutup lewat tombol Tutup / silang (Esc diabaikan)
+            if ($topModal && $topModal.id !== 'PrintQrPreviewModal') {
                 $($topModal).modal('hide');
             }
         });

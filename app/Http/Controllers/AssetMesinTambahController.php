@@ -237,25 +237,45 @@ group by id_bpb, id_item, a.bpbno_int
         ?string $id_item = null,
         ?string $id_supplier = null,
         ?string $ids = null,
-        ?string $bgColorHex = null
+        ?string $bgColorHex = null,
+        ?array $serial_numbers = null,
+        bool $serial_only = false,
+        bool $with_qr = true
     ) {
         $query = DB::table('asset_penerimaan_mesin as a')
-            ->select('a.id', 'a.serial_number', 'a.kode_qr')
-            ->leftJoin('signalbit_erp.bpb as bpb', 'a.id_bpb', '=', 'bpb.id');
+            ->select('a.id', 'a.serial_number', 'a.kode_qr', 'd.nm_jenis', 'e.nm_merk', 'c.tipe')
+            ->leftJoin('signalbit_erp.bpb as bpb', 'a.id_bpb', '=', 'bpb.id')
+            ->leftJoin('asset_master_jenis_mesin as c', 'a.id_jenis', '=', 'c.id_jenis')
+            ->leftJoin('asset_master_kd_jenis as d', 'c.kd_jenis', '=', 'd.kd_jenis')
+            ->leftJoin('asset_master_kd_merk as e', 'c.kd_merk', '=', 'e.kd_merk');
+
+        // Serial Number bisa lebih dari satu (list dari modal, tiap item dicari pakai LIKE)
+        $serials = array_values(array_filter(array_map('trim', array_map('strval', $serial_numbers ?? [])), 'strlen'));
 
         if ($ids) {
             $query->whereIn('a.id', array_filter(explode(',', $ids)));
         } else {
-            $query->whereBetween('a.tgl_trans', [$tgl_awal, $tgl_akhir])
-                ->when($bpbno, function ($query) use ($bpbno) {
-                    $query->where('a.bpbno_int', $bpbno);
-                })
-                ->when($id_item, function ($query) use ($id_item) {
-                    $query->where('a.id_item', $id_item);
-                })
-                ->when($id_supplier, function ($query) use ($id_supplier) {
-                    $query->where('bpb.id_supplier', $id_supplier);
+            // Mode Serial Number: tanpa batas tanggal / filter BPB, Mesin, Supplier
+            if (!$serial_only) {
+                $query->whereBetween('a.tgl_trans', [$tgl_awal, $tgl_akhir])
+                    ->when($bpbno, function ($query) use ($bpbno) {
+                        $query->where('a.bpbno_int', $bpbno);
+                    })
+                    ->when($id_item, function ($query) use ($id_item) {
+                        $query->where('a.id_item', $id_item);
+                    })
+                    ->when($id_supplier, function ($query) use ($id_supplier) {
+                        $query->where('bpb.id_supplier', $id_supplier);
+                    });
+            }
+
+            if ($serials) {
+                $query->where(function ($query) use ($serials) {
+                    foreach ($serials as $serial) {
+                        $query->orWhere('a.serial_number', 'like', '%' . $serial . '%');
+                    }
                 });
+            }
         }
 
         $units = $query->whereNotNull('a.serial_number')
@@ -266,6 +286,11 @@ group by id_bpb, id_item, a.bpbno_int
             ->where('a.kode_qr', '<>', '')
             ->orderBy('a.id', 'ASC')
             ->get();
+
+        // Generate gambar QR cukup berat (~3-4ms per unit), jadi hanya dibuat kalau memang dibutuhkan (halaman cetak)
+        if (!$with_qr) {
+            return $units;
+        }
 
         foreach ($units as $unit) {
             $qr = QrCode::format('svg')->size(80);
@@ -285,7 +310,12 @@ group by id_bpb, id_item, a.bpbno_int
             $request->tgl_akhir,
             $request->bpbno,
             $request->id_item,
-            $request->id_supplier
+            $request->id_supplier,
+            null,
+            null,
+            (array) $request->input('serial_numbers', []),
+            $request->search_by === 'serial',
+            false
         );
 
         return response()->json($units);

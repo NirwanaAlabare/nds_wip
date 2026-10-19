@@ -272,6 +272,8 @@ class WipAdjustmentController extends Controller
             }
         }
 
+        $panelMaster = in_array('panel', $template['text']) ? $this->panelMaster() : [];
+
         foreach (array_slice($rows, 1) as $i => $row) {
             // Lewati baris kosong (hanya cek kolom template, kolom lain seperti note diabaikan)
             $filled = array_filter($index, fn ($pos) => trim((string) ($row[$pos] ?? '')) !== '');
@@ -300,6 +302,11 @@ class WipAdjustmentController extends Controller
                 $value = trim((string) ($row[$index[$field]] ?? ''));
 
                 $item[$field] = $value === '' && !in_array($field, $template['required']) ? null : $value;
+            }
+
+            // Panel disamakan dengan penulisan di masterpanel (beda spasi diabaikan)
+            if (!empty($item['panel'])) {
+                $item['panel'] = $panelMaster[$this->panelKey($item['panel'])] ?? $item['panel'];
             }
 
             foreach ($template['required'] as $field) {
@@ -373,6 +380,29 @@ class WipAdjustmentController extends Controller
             'date_from' => min($tglSaldo),
             'date_to'   => max($tglSaldo),
         ]);
+    }
+
+    // Kunci pencocokan panel: huruf besar, tanpa spasi
+    private function panelKey($panel)
+    {
+        return strtoupper(preg_replace('/\s+/', '', (string) $panel));
+    }
+
+    // Nama panel di masterpanel: [kunci => nama_panel asli]
+    private function panelMaster()
+    {
+        $panels = [];
+
+        $names = DB::connection('mysql_sb')
+            ->table('masterpanel')
+            ->distinct()
+            ->pluck('nama_panel');
+
+        foreach ($names as $name) {
+            $panels[$this->panelKey($name)] ??= $name;
+        }
+
+        return $panels;
     }
 
     // Simpan Cutting Fabric: 1 baris Excel = 1 baris wip_adjustment_fabric

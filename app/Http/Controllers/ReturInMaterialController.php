@@ -1151,8 +1151,9 @@ public function lokreturmaterial($id)
 {
 
     $kode_gr = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id'");
-    $det_data = DB::connection('mysql_sb')->select("select *, round((a.qty_good - COALESCE(b.qty_lok,0)),2) qty_sisa  from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a left join
-        (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
+    // Item yang tercatat di beberapa baris detail (beda No PO) dijumlahkan jadi satu baris - lihat sqlDetReturPerItem()
+    $det_data = DB::connection('mysql_sb')->select("select *, round((a.qty_good - COALESCE(b.qty_lok,0)),2) qty_sisa  from (" . $this->sqlDetReturPerItem("b.id = ?") . ") a left join
+        (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item", [$id]);
 
     $no_bppb = DB::connection('mysql_sb')->table('bppb')->select('bppbno_int')->where('bppbno', '=', $kode_gr[0]->ori_dok)->get();
 
@@ -1165,6 +1166,24 @@ public function lokreturmaterial($id)
     $lokasi = DB::connection('mysql_sb')->select("select a.id,a.kode_lok, CONCAT(a.kode_lok,' (Used ',COALESCE(qty,0),' Of ',kapasitas,')') lokasi,a.kapasitas,COALESCE(qty,0) qty_used from (select id,kode_lok,kapasitas from whs_master_lokasi) a left join (select COUNT(id) qty,kode_lok from (select id,kode_lok from whs_lokasi_inmaterial where status = 'Y') a GROUP BY kode_lok) b on b.kode_lok = a.kode_lok ORDER BY kode_lok asc");
 
     return view('inmaterial.lokasi-inmaterial', ['no_bppb' => $no_bppb,'det_data' => $det_data,'kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'lokasi' => $lokasi,'is_retur' => true, 'page' => 'dashboard-warehouse']);
+}
+
+// Detail BPB retur per item. Satu item bisa tercatat di beberapa baris detail (beda No PO, mis.
+// GK/RI/1026/00070), sedangkan lokasi dicatat per item (no_dok, no_ws, id_jo, id_item). Baris item yang
+// sama dijumlahkan supaya qty-nya dibandingkan dengan total lokasi item itu; dulu tiap baris dikurangi
+// total lokasi sehingga balance-nya minus. id = baris pertama (dipakai link Upload Lokasi).
+// $kondisi memakai alias a (detail) / b (header); nilainya lewat binding.
+private function sqlDetReturPerItem($kondisi)
+{
+    return "select MIN(a.id) id, MAX(b.id) id_dok, a.no_dok, MAX(a.tgl_dok) tgl_dok, a.no_ws,
+            GROUP_CONCAT(DISTINCT a.no_po ORDER BY a.no_po SEPARATOR ', ') no_po, a.id_jo, a.id_item,
+            MAX(a.kode_item) kode_item, MAX(a.produk_item) produk_item, MAX(a.desc_item) desc_item,
+            SUM(a.qty_po) qty_po, SUM(a.qty_good) qty_good, SUM(COALESCE(a.qty_reject, 0)) qty_reject, a.unit,
+            MAX(a.curr) curr, MAX(a.price) price, MAX(a.status) status
+        from whs_inmaterial_fabric_det a
+        inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok
+        where a.status = 'Y' and " . $kondisi . "
+        group by a.no_dok, a.no_ws, a.id_jo, a.id_item, a.unit";
 }
 
 
@@ -1292,8 +1311,9 @@ public function savelokasiretur(Request $request)
 public function UploadLokasiRetur($id)
 {
 
-    $data_head = DB::connection('mysql_sb')->select("select id_dok,id,no_dok,no_ws,id_jo,id_item,kode_item,produk_item,desc_item,qty_good qty,unit,COALESCE(qty_lok,0) qty_lok,qty_sisa from (select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (select b.id id_dok,a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.id = '$id' and a.status = 'Y') a left join
-        (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item) a");
+    // Qty & balance item dari semua baris detail item yang sama dengan baris $id (lihat sqlDetReturPerItem())
+    $data_head = DB::connection('mysql_sb')->select("select id_dok,id,no_dok,no_ws,id_jo,id_item,kode_item,produk_item,desc_item,qty_good qty,unit,COALESCE(qty_lok,0) qty_lok,qty_sisa from (select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (" . $this->sqlDetReturPerItem("(a.no_dok, a.no_ws, a.id_jo, a.id_item, a.unit) = (select no_dok, no_ws, id_jo, id_item, unit from whs_inmaterial_fabric_det where id = ?)") . ") a left join
+        (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item) a", [$id]);
 
     $det_data = DB::connection('mysql_sb')->select("select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a left join
         (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
@@ -1377,28 +1397,71 @@ public function saveuploadlokasirtr(Request $request)
     $delete_temp = InMaterialLokTemp::where('created_by',Auth::user()->name)->delete();
 
     if ($updateItemQty) {
+        // orig_qty_bpb = total qty item (semua baris detail item ini dijumlahkan, lihat sqlDetReturPerItem())
         $newQtyGood = floatval($request['orig_qty_bpb']) + (floatval($request['qty_upload']) - floatval($request['qty_bal']));
 
-        DB::connection('mysql_sb')
+        $barisDet = DB::connection('mysql_sb')
             ->table('whs_inmaterial_fabric_det')
             ->where('no_dok', $nodok)
             ->where('id_item', $iditem)
             ->where('id_jo', $idjo)
-            ->update([
-                'qty_good' => $newQtyGood,
-            ]);
+            ->orderBy('id')
+            ->get(['id', 'qty_good']);
 
-        DB::connection('mysql_sb')
-            ->table('bpb')
-            ->where('bpbno_int', $nodok)
-            ->where('id_item', $iditem)
-            ->where('id_jo', $idjo)
-            ->update([
-                'qty_old' => DB::raw('qty'),
-                'qty' => $newQtyGood,
-                // ikut diubah supaya Konfirmasi Pemasukan (qty = qty_temp) tidak mengembalikan qty lama
-                'qty_temp' => $newQtyGood,
-            ]);
+        if ($barisDet->count() <= 1) {
+            DB::connection('mysql_sb')
+                ->table('whs_inmaterial_fabric_det')
+                ->where('no_dok', $nodok)
+                ->where('id_item', $iditem)
+                ->where('id_jo', $idjo)
+                ->update([
+                    'qty_good' => $newQtyGood,
+                ]);
+
+            DB::connection('mysql_sb')
+                ->table('bpb')
+                ->where('bpbno_int', $nodok)
+                ->where('id_item', $iditem)
+                ->where('id_jo', $idjo)
+                ->update([
+                    'qty_old' => DB::raw('qty'),
+                    'qty' => $newQtyGood,
+                    // ikut diubah supaya Konfirmasi Pemasukan (qty = qty_temp) tidak mengembalikan qty lama
+                    'qty_temp' => $newQtyGood,
+                ]);
+        } else {
+            // Item ini ada di beberapa baris (beda No PO): total item jadi $newQtyGood dengan membebankan
+            // selisihnya ke baris pertama saja. Kalau semua baris di-set ke angka yang sama, totalnya berlipat.
+            $selisih = $newQtyGood - $barisDet->sum('qty_good');
+
+            DB::connection('mysql_sb')
+                ->table('whs_inmaterial_fabric_det')
+                ->where('id', $barisDet->first()->id)
+                ->update([
+                    'qty_good' => DB::raw('qty_good + ' . floatval($selisih)),
+                ]);
+
+            $barisBpb = DB::connection('mysql_sb')
+                ->table('bpb')
+                ->where('bpbno_int', $nodok)
+                ->where('id_item', $iditem)
+                ->where('id_jo', $idjo)
+                ->orderBy('id')
+                ->get(['id', 'qty_temp']);
+
+            foreach ($barisBpb as $i => $bpbRow) {
+                $qtyBaru = floatval($bpbRow->qty_temp) + ($i === 0 ? floatval($selisih) : 0);
+                DB::connection('mysql_sb')
+                    ->table('bpb')
+                    ->where('id', $bpbRow->id)
+                    ->update([
+                        'qty_old' => DB::raw('qty'),
+                        'qty' => $qtyBaru,
+                        // ikut diubah supaya Konfirmasi Pemasukan (qty = qty_temp) tidak mengembalikan qty lama
+                        'qty_temp' => $qtyBaru,
+                    ]);
+            }
+        }
     }
 
     $activity = $updateItemQty ? 'Upload Lokasi Roll & Qty Item Retur' : 'Upload Lokasi Roll Retur';
