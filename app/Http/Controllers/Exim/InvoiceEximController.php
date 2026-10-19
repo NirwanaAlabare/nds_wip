@@ -5281,8 +5281,15 @@ class InvoiceEximController extends Controller
             $saring .= " AND mk.kode_konsumen = ?";
             $bind[] = $kodeKnitting;
         }
+        // Barisnya GRUP, bukan roll: satu baris menggabung semua roll dengan
+        // kain & harga yang sama dalam satu SJ, dan id_baris-nya roll pertama.
+        // Jadi yang disaring grupnya - lewat HAVING. Kalau disaring per roll
+        // (AND b.id IN ...), yang terbaca cuma roll itu saja dan qty-nya
+        // anjlok jadi satu roll.
+        $having = '';
         if ($idBaris) {
-            $saring .= " AND b.id IN (" . implode(',', array_fill(0, count($idBaris), '?')) . ")";
+            $having = " HAVING MIN(barcode_id) IN ("
+                . implode(',', array_fill(0, count($idBaris), '?')) . ")";
             $bind = array_merge($bind, array_values($idBaris));
         }
 
@@ -5356,7 +5363,7 @@ class InvoiceEximController extends Controller
                         OR a.tipe_pengeluaran ILIKE 'Penggantian%')
                    AND a.tgl_bppb BETWEEN ? AND ?" . $saring . "
               ) x
-             GROUP BY kain_id, harga, sj
+             GROUP BY kain_id, harga, sj" . $having . "
              ORDER BY MIN(sj) ASC";
 
         return $this->baris(DB::connection(self::KONEKSI_NAK)->select($sql, $bind), 'NAK');
