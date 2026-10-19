@@ -436,6 +436,9 @@
                                     <th class="text-center" style="width: 70px;">Preview</th>
                                     <th>Kode QR</th>
                                     <th>Serial Number</th>
+                                    <th>Jenis</th>
+                                    <th>Merk</th>
+                                    <th>Tipe</th>
                                 </tr>
                             </thead>
                             <tbody id="printQrListBody"></tbody>
@@ -1345,7 +1348,7 @@
                         .html('<span class="spinner-border spinner-border-sm"></span> Memuat...');
                     $('#qrCheckAll').prop('checked', false);
                     $('#printQrListBody').html(`
-                        <tr><td colspan="4" class="text-center text-muted py-4">
+                        <tr><td colspan="7" class="text-center text-muted py-4">
                             <span class="spinner-border text-primary"></span>
                             <div class="mt-2"><small>Mencari data QR Code...</small></div>
                         </td></tr>`);
@@ -1364,7 +1367,7 @@
                             'Tidak ada unit dengan Serial Number tersebut (atau Foto belum lengkap).' :
                             'Tidak ada unit dengan Serial Number & Foto lengkap pada periode ini.';
                         $body.append(
-                            `<tr><td colspan="4" class="text-center text-muted">${emptyText}</td></tr>`
+                            `<tr><td colspan="7" class="text-center text-muted">${emptyText}</td></tr>`
                         );
                         updateQrCheckedCounter();
                         return;
@@ -1380,6 +1383,9 @@
                                 <td class="text-center"><img src="data:image/svg+xml;base64,${unit.qr}"></td>
                                 <td>${unit.kode_qr ?? '-'}</td>
                                 <td>${unit.serial_number ?? '-'}</td>
+                                <td>${unit.nm_jenis ?? '-'}</td>
+                                <td>${unit.nm_merk ?? '-'}</td>
+                                <td>${unit.tipe ?? '-'}</td>
                             </tr>`);
                     });
 

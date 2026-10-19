@@ -242,8 +242,11 @@ group by id_bpb, id_item, a.bpbno_int
         bool $serial_only = false
     ) {
         $query = DB::table('asset_penerimaan_mesin as a')
-            ->select('a.id', 'a.serial_number', 'a.kode_qr')
-            ->leftJoin('signalbit_erp.bpb as bpb', 'a.id_bpb', '=', 'bpb.id');
+            ->select('a.id', 'a.serial_number', 'a.kode_qr', 'd.nm_jenis', 'e.nm_merk', 'c.tipe')
+            ->leftJoin('signalbit_erp.bpb as bpb', 'a.id_bpb', '=', 'bpb.id')
+            ->leftJoin('asset_master_jenis_mesin as c', 'a.id_jenis', '=', 'c.id_jenis')
+            ->leftJoin('asset_master_kd_jenis as d', 'c.kd_jenis', '=', 'd.kd_jenis')
+            ->leftJoin('asset_master_kd_merk as e', 'c.kd_merk', '=', 'e.kd_merk');
 
         // Serial Number bisa lebih dari satu, dipisah koma / titik koma / spasi / enter
         $serials = array_values(array_filter(preg_split('/[\s,;]+/', (string) $serial_number)));
