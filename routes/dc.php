@@ -305,6 +305,7 @@ Route::middleware('auth')->group(function () {
 
         // Route untuk cancel data
         Route::post('/secondary-luar/cancel', 'cancelTerimaSecLuar')->name('terima.secondary.luar.cancel');
+        Route::post('/secondary-luar/check-all', 'checkAllTerimaSecondaryLuar')->name('terima.secondary.luar.check-all');
     });
 
     // Stocker Process

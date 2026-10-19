@@ -184,6 +184,8 @@
     <script>
         let datatableDcReport;
         let selectedCancelIds = new Set();
+        // Filter terakhir yang dikirim ke server, untuk reset pilihan saat filter berubah
+        let lastCancelFilterKey = null;
 
         // 1. Fungsi Upload & Preview (Global Scope)
         function uploadAndPreviewFile(file) {
@@ -315,11 +317,34 @@
             $('#tgl-awal').val(formatDate(firstDay));
             $('#tgl-akhir').val(formatDate(lastDay));
 
+            var currentPageCheck = 0;
+
+            var terimaSecLuarFilter = ['check', 'action', 'tanggal_filter', 'no_ws_filter', 'buyer_filter', 'style_filter', 'color_filter', 'size_filter', 'panel_filter', 'part_filter', 'qty_filter', 'created_by_filter', 'created_at_filter'];
+
+            $('#datatable-dc-report thead tr').clone(true).appendTo('#datatable-dc-report thead');
+            $('#datatable-dc-report thead tr:eq(1) th').each(function(i) {
+                if (i != 0 && i != 1) {
+                    var title = $(this).text();
+                    $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%" id="'+terimaSecLuarFilter[i]+'" />');
+
+                    $('input', this).on('keyup change', function() {
+                        if (datatableDcReport.column(i).search() !== this.value) {
+                            datatableDcReport
+                                .column(i)
+                                .search(this.value)
+                                .draw();
+                        }
+                    });
+                } else {
+                    $(this).html('');
+                }
+            });
+
             // Inisialisasi DataTables Main Report
             datatableDcReport = $("#datatable-dc-report").DataTable({
                 ordering: false,
                 processing: true,
-                serverSide: false,
+                serverSide: true,
                 scrollX: true,
                 scrollY: "60vh",
                 scrollCollapse: true,
@@ -333,6 +358,18 @@
                     data: function (d) {
                         d.dateFrom = $("#tgl-awal").val();
                         d.dateTo = $("#tgl-akhir").val();
+
+                        // Pilihan cancel direset hanya jika filter berubah (pindah halaman / reload tidak)
+                        const filterKey = JSON.stringify([
+                            d.dateFrom, d.dateTo, d.search.value,
+                            d.columns.map(col => col.search.value),
+                        ]);
+
+                        if (lastCancelFilterKey !== null && filterKey !== lastCancelFilterKey) {
+                            selectedCancelIds.clear();
+                        }
+
+                        lastCancelFilterKey = filterKey;
                     }
                 },
                 columns: [
@@ -370,12 +407,24 @@
                         className: 'align-middle text-nowrap'
                     },
                 ],
-            });
+                rowCallback: function( row, data, index ) {
+                    let currentSelectedIds = selectedCancelIds;
+                    const isSelected = selectedCancelIds.has(String(data['id']));
+                    if (isSelected) {
+                        currentPageCheck++;
 
-            // Reset pilihan setiap kali data di-reload
-            datatableDcReport.on('xhr', function () {
-                selectedCancelIds.clear();
-                updateSelectedCancel();
+                        $(row).find('.cancel-checkbox').prop('checked', true);
+                    }
+                },
+                drawCallback: function (settings) {
+                    if (currentPageCheck == 0) {
+                        $('#check-all-cancel').prop('checked', false);
+                    } else {
+                        $('#check-all-cancel').prop("checked", true);
+                    }
+
+                    currentPageCheck = 0;
+                },
             });
 
             // Sinkronkan status check all saat pindah halaman / search
@@ -395,16 +444,70 @@
 
             // Check all (semua data hasil filter/search, lintas halaman)
             $(document).on('change', '#check-all-cancel', function () {
-                const checked = this.checked;
-                datatableDcReport.rows({ search: 'applied' }).data().each(function (row) {
-                    if (checked) {
-                        selectedCancelIds.add(String(row.id));
-                    } else {
-                        selectedCancelIds.delete(String(row.id));
+                const isChecked = this.checked;
+
+                // 1. Jika di-uncheck, langsung kosongkan Set tanpa perlu panggil AJAX
+                if (!isChecked) {
+                    selectedCancelIds.clear();
+                    $("#datatable-dc-report").DataTable().ajax.reload(null, false);
+                    return;
+                }
+
+                // Tampilkan loading jika ada
+                document.getElementById("loading")?.classList.remove("d-none");
+
+                // 2. Jika di-check, ambil seluruh ID sesuai filter via AJAX
+                $.ajax({
+                    url: '{{ route('terima.secondary.luar.check-all') }}',
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        dateFrom: $("#tgl-awal").val(),
+                        dateTo: $("#tgl-akhir").val(),
+                        tanggal_filter: $("#tanggal_filter").val(),
+                        no_ws_filter: $("#no_ws_filter").val(),
+                        buyer_filter: $("#buyer_filter").val(),
+                        style_filter: $("#style_filter").val(),
+                        color_filter: $("#color_filter").val(),
+                        size_filter: $("#size_filter").val(),
+                        panel_filter: $("#panel_filter").val(),
+                        part_filter: $("#part_filter").val(),
+                        qty_filter: $("#qty_filter").val(),
+                        created_by_filter: $("#created_by_filter").val()
+                    },
+                    success: function (res) {
+                        if (Array.isArray(res)) {
+                            // Masukkan ID baru ke Set yang sudah ada
+                            res.forEach(item => selectedCancelIds.add(String(item.id)));
+
+                            // Upadte Function
+                            updateSelectedCancel();
+
+                            // Reload DataTable (opsional: false agar tidak reset pagination)
+                            $("#datatable-dc-report").DataTable().ajax.reload(null, false);
+                        }
+                    },
+                    error: function (jqXHR) {
+                        console.error("Failed to fetch check-all IDs:", jqXHR);
+                    },
+                    complete: function () {
+                        // Sembunyikan loading
+                        document.getElementById("loading")?.classList.add("d-none");
                     }
                 });
-                $('.check-cancel').prop('checked', checked);
-                updateSelectedCancel();
+
+                // const checked = this.checked;
+                // datatableDcReport.rows({ search: 'applied' }).data().each(function (row) {
+                //     if (checked) {
+                //         selectedCancelIds.add(String(row.id));
+                //     } else {
+                //         selectedCancelIds.delete(String(row.id));
+                //     }
+                // });
+                // $('.check-cancel').prop('checked', checked);
+                // updateSelectedCancel();
             });
 
             // Event Browse File
@@ -560,6 +663,8 @@
                                 timer: 1500,
                                 showConfirmButton: false
                             });
+                            selectedCancelIds.clear();
+                            updateSelectedCancel();
                             datatableDcReport.ajax.reload(null, false);
                         },
                         error: function (xhr) {

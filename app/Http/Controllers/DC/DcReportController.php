@@ -349,8 +349,8 @@ class DcReportController extends Controller
                         $row->style,
                         $row->color,
                         $row->size,
-                        preg_replace('/\s+/', ' ', (string) $row->panel),
-                        preg_replace('/\s+/', ' ', (string) $row->nama_part),
+                        $row->panel,
+                        $row->nama_part,
 
                         (float) $saldoAwal,
                         (float) $masuk,
@@ -4065,7 +4065,7 @@ class DcReportController extends Controller
         return $excel->download();
     }
 
-    public function report_terima_secondary_luar(Request $request){
+    public function report_terima_secondary_luar(Request $request) {
         ini_set("max_execution_time", 36000);
         ini_set('memory_limit', '1024M');
 
@@ -4094,6 +4094,76 @@ class DcReportController extends Controller
             "subPageGroup" => "report",
             "subPage" => "report_terima_secondary_luar",
         ]);
+    }
+
+    public function checkAllTerimaSecondaryLuar(Request $request) {
+        $dateFrom = $request->dateFrom;
+        $dateTo = $request->dateTo;
+
+        $tanggal_filter = $request->tanggal_filter;
+        $no_ws_filter = $request->no_ws_filter;
+        $buyer_filter = $request->buyer_filter;
+        $style_filter = $request->style_filter;
+        $color_filter = $request->color_filter;
+        $size_filter = $request->size_filter;
+        $panel_filter = $request->panel_filter;
+        $part_filter = $request->part_filter;
+        $qty_filter = $request->qty_filter;
+        $created_by_filter = $request->created_by_filter;
+
+        $additionalQuery = "";
+        if ($tanggal_filter) {
+            $additionalQuery = " AND tanggal LIKE '%".$tanggal_filter."%'";
+        }
+
+        if ($no_ws_filter) {
+            $additionalQuery = " AND no_ws LIKE '%".$no_ws_filter."%'";
+        }
+
+        if ($buyer_filter) {
+            $additionalQuery = " AND buyer LIKE '%".$buyer_filter."%'";
+        }
+
+        if ($style_filter) {
+            $additionalQuery = " AND style LIKE '%".$style_filter."%'";
+        }
+
+        if ($color_filter) {
+            $additionalQuery = " AND color LIKE '%".$color_filter."%'";
+        }
+
+        if ($size_filter) {
+            $additionalQuery = " AND size LIKE '%".$size_filter."%'";
+        }
+
+        if ($panel_filter) {
+            $additionalQuery = " AND panel LIKE '%".$panel_filter."%'";
+        }
+
+        if ($part_filter) {
+            $additionalQuery = " AND part LIKE '%".$part_filter."%'";
+        }
+
+        if ($qty_filter) {
+            $additionalQuery = " AND qty LIKE '%".$qty_filter."%'";
+        }
+
+        if ($created_by_filter) {
+            $additionalQuery = " AND created_by_username LIKE '%".$created_by_filter."%'";
+        }
+
+
+        $dataInject = DB::select("
+                SELECT
+                        *,
+                        DATE_FORMAT(tanggal, '%d-%m-%Y') AS tanggal
+                FROM inject_mutasi_dc
+                WHERE tanggal BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                ".$additionalQuery."
+                AND cancelled_at IS NULL
+            ");
+
+        return $dataInject;
     }
 
     public function previewImportTerimaSecLuar(Request $request)
@@ -4335,8 +4405,8 @@ class DcReportController extends Controller
                 $row->style ?: '',
                 $row->color ?: '',
                 $row->size ?: '',
-                preg_replace('/\s+/', ' ', (string) $row->panel),
-                preg_replace('/\s+/', ' ', (string) $row->part),
+                (string) $row->panel,
+                (string) $row->part,
                 (float) ($row->qty ?? 0),
                 $row->created_by_username ?: '',
                 $row->created_at ?: '',
