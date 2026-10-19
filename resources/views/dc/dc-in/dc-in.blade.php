@@ -184,23 +184,11 @@
                     </thead>
                     <tfoot>
                         <tr>
-                            <th colspan="16"></th>
-                            <th>
-                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_awal'> --}}
-                                ...
-                            </th>
-                            <th>
-                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'> --}}
-                                ...
-                            </th>
-                            <th>
-                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'> --}}
-                                ...
-                            </th>
-                            <th>
-                                {{-- <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'> --}}
-                                ...
-                            </th>
+                            <th colspan="18"></th>
+                            <th>...</th>
+                            <th>...</th>
+                            <th>...</th>
+                            <th>...</th>
                             <th colspan="3"></th>
                         </tr>
                     </tfoot>
@@ -468,10 +456,10 @@
                 var api = this.api(),data;
 
                 $(api.column(0).footer()).html('Total');
-                $(api.column(16).footer()).html("...");
-                $(api.column(17).footer()).html("...");
                 $(api.column(18).footer()).html("...");
                 $(api.column(19).footer()).html("...");
+                $(api.column(20).footer()).html("...");
+                $(api.column(21).footer()).html("...");
 
                 // Legacy
                     // // converting to interger to find total
@@ -568,10 +556,10 @@
                         if (response && response[0]) {
                             // Update footer by showing the total with the reference of the column index
                             $(api.column(0).footer()).html('Total');
-                            $(api.column(16).footer()).html(response[0]['qty_awal']);
-                            $(api.column(17).footer()).html(response[0]['qty_reject']);
-                            $(api.column(18).footer()).html(response[0]['qty_replace']);
-                            $(api.column(19).footer()).html(response[0]['qty_in']);
+                            $(api.column(18).footer()).html(response[0]['qty_awal']);
+                            $(api.column(19).footer()).html(response[0]['qty_reject']);
+                            $(api.column(20).footer()).html(response[0]['qty_replace']);
+                            $(api.column(21).footer()).html(response[0]['qty_in']);
                         }
                     },
                     error: function(request, status, error) {

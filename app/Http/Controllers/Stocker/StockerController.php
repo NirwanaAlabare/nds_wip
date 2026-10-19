@@ -26,6 +26,7 @@ use App\Models\Stocker\MonthCount;
 use App\Models\Stocker\YearSequence;
 use App\Models\Stocker\StockerAdditional;
 use App\Models\Stocker\StockerAdditionalDetail;
+use App\Models\MasterSbWs;
 use App\Models\Dc\DCIn;
 use App\Models\Stocker\StockerSeparate;
 use App\Models\Stocker\StockerSeparateDetail;
@@ -1955,67 +1956,115 @@ class StockerController extends Controller
         ini_set('max_execution_time', 36000);
 
         $formData = FormCutInput::where("id", $request['form_cut_id'])->first();
+        if (!$formData) {
+            return response()->json([
+                "status" => 400,
+                "message" => "Form tidak ditemukan",
+            ], 400);
+        }
 
         $partDetail = collect($request['part_detail_id_add']);
 
         $partDetailKeys = $partDetail->intersect($request['generate_stocker_add'])->keys();
 
-        $i = 0;
-        $storeItemArr = [];
-        $incompleteModSizeQty = [];
+        // Cek Marker
+        $formMarker = $formData->marker;
+        $formMarkerDetails = $formMarker ? $formMarker->markerDetails()->with("masterSbWs")->where("ratio", ">", 0)->get() : collect([]);
+
+        if ($formMarkerDetails->isEmpty()) {
+            return response()->json([
+                "status" => 400,
+                "message" => "Size dan rasio form tidak ditemukan",
+            ], 400);
+        }
+
         foreach ($partDetailKeys as $index) {
-            $data = [
-                "formCutId" => $request['form_cut_id'],
-                "soDetId" => $request['so_det_id_add'][$index],
-                "rangeAwal" => $request['range_awal_add'][$index],
-                "rangeAkhir" => $request['range_akhir_add'][$index],
-                "ratio" => $request['ratio_add'][$index],
-                "qtyPlyGroup" => $request['qty_ply_group_add'][$index],
-                "qtyCut" => $request['qty_cut_add'][$index],
-                "groupRoll" => $request['group_add'][$index],
-                "groupStocker" => $request['group_stocker_add'][$index],
-                "minGroupStocker" => min($request['group_stocker_add']),
-                "noWs" => $request['no_ws_add'],
-                "color" => $request['color_add'],
-                "size" => $request['size_add'][$index],
-                "panel" => $request['panel_add'],
-                "partDetailId" => $request['part_detail_id_add'][$index],
-                "note" => $request['note_add_'.$request['group_stocker_add'][$index]] ? $request['note_add_'.$request['group_stocker_add'][$index]] : $request['note'],
-            ];
+            $currentSoDetId = $request['so_det_id_add'][$index];
+            $currentMasterSbWs = MasterSbWs::where("id_so_det", $currentSoDetId)->first();
+            $currentSize = $currentMasterSbWs ? $currentMasterSbWs->size : $request['size_add'][$index];
 
-            $processStockerData = $this->processStocker($data, $i, $additional = true);
+            // Cari marker detail dengan so det yang sama, jika tidak ada cari dengan size master sb ws yang sama
+            $currentFormMarkerDetail = $formMarkerDetails->firstWhere("so_det_id", $currentSoDetId) ?? $formMarkerDetails->first(function ($markerDetail) use ($currentSize) {
+                return $markerDetail->masterSbWs && $markerDetail->masterSbWs->size == $currentSize;
+            });
 
-            \Log::info($processStockerData);
+            if (!$currentFormMarkerDetail) {
+                return response()->json([
+                    "status" => 400,
+                    "message" => "Rasio dari size '".$currentSize."' tidak ditemukan",
+                ], 400);
+            }
+        }
 
-            $storeItemArr = [...$storeItemArr, ...$processStockerData['storeItemArr']];
-            $incompleteModSizeQty = [...$incompleteModSizeQty, ...$processStockerData['incompleteModSizeQty']];
-            $lastRatio = $processStockerData['lastRatio'];
+        DB::beginTransaction();
 
-            if ($lastRatio > 0) {
-                $deleteStocker = Stocker::whereRaw("
-                        part_detail_id = '" . $request['part_detail_id_add'][$index] . "' AND
-                        form_cut_id = '" . $request['form_cut_id'] . "' AND
-                        so_det_id = '" . $request['so_det_id_add'][$index] . "' AND
-                        color = '" . $request['color_add'] . "' AND
-                        panel = '" . $request['panel_add'] . "' AND
-                        shade = '" . $request['group_add'][$index] . "' AND
-                        " . ($request['group_stocker_add'][$index] && $request['group_stocker_add'][$index] != "" ? "group_stocker = '" . $request['group_stocker_add'][$index] . "' AND" : "") . "
-                        ratio > " . ($lastRatio) . " AND
-                        stocker_reject IS NULL
-                    ")->update([
-                        "cancel" => "y",
-                    ]);
+        try {
+            $i = 0;
+            $storeItemArr = [];
+            $incompleteModSizeQty = [];
+            foreach ($partDetailKeys as $index) {
+                $data = [
+                    "formCutId" => $request['form_cut_id'],
+                    "soDetId" => $request['so_det_id_add'][$index],
+                    "rangeAwal" => $request['range_awal_add'][$index],
+                    "rangeAkhir" => $request['range_akhir_add'][$index],
+                    "ratio" => $request['ratio_add'][$index],
+                    "qtyPlyGroup" => $request['qty_ply_group_add'][$index],
+                    "qtyCut" => $request['qty_cut_add'][$index],
+                    "groupRoll" => $request['group_add'][$index],
+                    "groupStocker" => $request['group_stocker_add'][$index],
+                    "minGroupStocker" => min($request['group_stocker_add']),
+                    "noWs" => $request['no_ws_add'],
+                    "color" => $request['color_add'],
+                    "size" => $request['size_add'][$index],
+                    "panel" => $request['panel_add'],
+                    "partDetailId" => $request['part_detail_id_add'][$index],
+                    "note" => $request['note_add_'.$request['group_stocker_add'][$index]] ? $request['note_add_'.$request['group_stocker_add'][$index]] : $request['note'],
+                ];
+
+                $processStockerData = $this->processStocker($data, $i, $additional = true);
+
+                \Log::info($processStockerData);
+
+                $storeItemArr = [...$storeItemArr, ...$processStockerData['storeItemArr']];
+                $incompleteModSizeQty = [...$incompleteModSizeQty, ...$processStockerData['incompleteModSizeQty']];
+                $lastRatio = $processStockerData['lastRatio'];
+
+                if ($lastRatio > 0) {
+                    $deleteStocker = Stocker::whereRaw("
+                            part_detail_id = '" . $request['part_detail_id_add'][$index] . "' AND
+                            form_cut_id = '" . $request['form_cut_id'] . "' AND
+                            so_det_id = '" . $request['so_det_id_add'][$index] . "' AND
+                            color = '" . $request['color_add'] . "' AND
+                            panel = '" . $request['panel_add'] . "' AND
+                            shade = '" . $request['group_add'][$index] . "' AND
+                            " . ($request['group_stocker_add'][$index] && $request['group_stocker_add'][$index] != "" ? "group_stocker = '" . $request['group_stocker_add'][$index] . "' AND" : "") . "
+                            ratio > " . ($lastRatio) . " AND
+                            stocker_reject IS NULL
+                        ")->update([
+                            "cancel" => "y",
+                        ]);
+                }
+
+                $i = $i + $lastRatio;
             }
 
-            $i = $i + $lastRatio;
-        }
+            if (count($storeItemArr) > 0) {
+                $storeItem = Stocker::insert($storeItemArr);
+            }
 
-        if (count($storeItemArr) > 0) {
-            $storeItem = Stocker::insert($storeItemArr);
-        }
+            // Modify Incomplete Mod Size
+            $stockerService->modifyIncompleteModSizeQty($incompleteModSizeQty, $storeItemArr, $additional = true);
 
-        // Modify Incomplete Mod Size
-        $stockerService->modifyIncompleteModSizeQty($incompleteModSizeQty, $storeItemArr, $additional = true);
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                "status" => 400,
+                "message" => "Gagal generate stocker additional: ".$e->getMessage(),
+            ], 400);
+        }
 
         $dataStockers = $stockerService->getStockerAdditionalForPrint(["multiPartDetail" => $request["generate_stocker_add"], "formCutId" => $request['form_cut_id']]);
 
@@ -2043,11 +2092,66 @@ class StockerController extends Controller
             "add_panel" => "required",
         ]);
 
-        foreach ($request["add_cut_qty"] as $qty) {
+        foreach ($request["add_cut_qty"] ?? [] as $qty) {
             $totalQty += $qty;
         }
 
-        if ($totalQty > 0) {
+        if ($totalQty < 1) {
+            return array(
+                "status" => 400,
+                "message" => "Total Cut Qty Kosong",
+                "additional" => [],
+            );
+        }
+
+        // Cek form
+        $form = FormCutInput::where("id", $validatedRequest['add_form_cut_id'])->first();
+        if (!$form) {
+            return array(
+                "status" => 400,
+                "message" => "Form tidak ditemukan",
+                "additional" => [],
+            );
+        }
+
+        // Cek Marker
+        $formMarker = $form->marker;
+        $formMarkerDetails = $formMarker ? $formMarker->markerDetails()->with("masterSbWs")->where("ratio", ">", 0)->get() : collect([]);
+
+        if ($formMarkerDetails->isEmpty()) {
+            return array(
+                "status" => 400,
+                "message" => "Size dan rasio form tidak ditemukan",
+                "additional" => [],
+            );
+        }
+
+        // Cek kelengkapan size, semua size ratio form harus ada di additional dengan cut qty > 0
+        $normalizeSize = fn ($size) => strtoupper(trim((string) $size));
+
+        $formSizes = $formMarkerDetails->map(function ($markerDetail) use ($normalizeSize) {
+            return $normalizeSize($markerDetail->size ?: ($markerDetail->masterSbWs ? $markerDetail->masterSbWs->size : null));
+        })->filter()->unique()->values();
+
+        $additionalSizes = collect();
+        for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
+            if (intval($request["add_cut_qty"][$i] ?? 0) > 0) {
+                $additionalSizes->push($normalizeSize($request["add_size"][$i] ?? null));
+            }
+        }
+
+        $missingSizes = $formSizes->diff($additionalSizes);
+        if ($missingSizes->isNotEmpty()) {
+            return array(
+                "status" => 400,
+                "message" => "Size tidak lengkap. Size ".$missingSizes->implode(", ")." dari ratio form tidak ada di WS/Color ini.",
+                "additional" => [],
+            );
+        }
+
+        DB::beginTransaction();
+
+        try {
             $stockerAddId = StockerAdditional::create([
                 'form_cut_id' => $validatedRequest['add_form_cut_id'],
                 'no_form' => $validatedRequest['add_no_form'],
@@ -2064,6 +2168,24 @@ class StockerController extends Controller
             $addId = $stockerAddId->id;
             $stockerAddDetailData = [];
             for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
+                $currentMasterSbWs = MasterSbWs::where("id_so_det", $request["add_so_det_id"][$i])->first();
+                $currentSize = $currentMasterSbWs ? $currentMasterSbWs->size : $request["add_size"][$i];
+
+                // Cari marker detail dengan so det yang sama, jika tidak ada cari dengan size master sb ws yang sama
+                $currentFormMarkerDetail = $formMarkerDetails->firstWhere("so_det_id", $request["add_so_det_id"][$i]) ?? $formMarkerDetails->first(function ($markerDetail) use ($currentSize) {
+                    return $markerDetail->masterSbWs && $markerDetail->masterSbWs->size == $currentSize;
+                });
+
+                if (!$currentFormMarkerDetail && intval($request["add_cut_qty"][$i]) > 0) {
+                    DB::rollBack();
+
+                    return array(
+                        "status" => 400,
+                        "message" => "Rasio dari size '".$currentSize."' tidak ditemukan",
+                        "additional" => [],
+                    );
+                }
+
                 array_push($stockerAddDetailData, [
                     "stocker_additional_id" => $addId,
                     "so_det_id" => $request["add_so_det_id"][$i],
@@ -2076,20 +2198,24 @@ class StockerController extends Controller
                 ]);
             }
 
-            $stockerAddDetailStore = StockerAdditionalDetail::insert($stockerAddDetailData);
+            StockerAdditionalDetail::insert($stockerAddDetailData);
+
+            DB::commit();
 
             return array(
                 "status" => 200,
                 "message" => $validatedRequest['add_ws_ws'],
                 "additional" => [],
             );
-        }
+        } catch (\Throwable $e) {
+            DB::rollBack();
 
-        return array(
-            "status" => 400,
-            "message" => "Total Cut Qty Kosong",
-            "additional" => [],
-        );
+            return array(
+                "status" => 400,
+                "message" => "Gagal menyimpan stocker additional: ".$e->getMessage(),
+                "additional" => [],
+            );
+        }
     }
 
     public function printNumbering(Request $request, $index)

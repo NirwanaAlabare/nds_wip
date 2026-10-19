@@ -349,8 +349,8 @@ class DcReportController extends Controller
                         $row->style,
                         $row->color,
                         $row->size,
-                        preg_replace('/\s+/', ' ', $row->panel),
-                        preg_replace('/\s+/', ' ', $row->nama_part),
+                        preg_replace('/\s+/', ' ', (string) $row->panel),
+                        preg_replace('/\s+/', ' ', (string) $row->nama_part),
 
                         (float) $saldoAwal,
                         (float) $masuk,
@@ -4082,6 +4082,7 @@ class DcReportController extends Controller
                                 DATE_FORMAT(tanggal, '%d-%m-%Y') AS tanggal
                         FROM inject_mutasi_dc
                         WHERE tanggal BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                        AND cancelled_at IS NULL
                 ");
             }
 
@@ -4232,6 +4233,40 @@ class DcReportController extends Controller
         ]);
     }
 
+    // 4. FUNGSI CANCEL DATA TERIMA SECONDARY LUAR
+    public function cancelTerimaSecLuar(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer',
+        ]);
+
+        $user = Auth::user();
+
+        $cancelled = DB::table('inject_mutasi_dc')
+            ->whereIn('id', $request->ids)
+            ->where('type_report', 'SECONDARY_LUAR')
+            ->whereNull('cancelled_at')
+            ->update([
+                'cancelled_at'          => now(),
+                'cancelled_by'          => $user->id,
+                'cancelled_by_username' => $user->username,
+                'updated_at'            => now(),
+            ]);
+
+        if (!$cancelled) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan atau sudah dicancel.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $cancelled . ' data berhasil dicancel.'
+        ]);
+    }
+
     public function export_excel_report_terima_secondary_luar(Request $request)
     {
         $start_date = $request->from;
@@ -4245,6 +4280,7 @@ class DcReportController extends Controller
                         DATE_FORMAT(tanggal, '%d-%m-%Y') AS tanggal
                 FROM inject_mutasi_dc
                 WHERE tanggal BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                AND cancelled_at IS NULL
         ");
 
         $fileName = 'report-mutasi-wip-set-dc';
@@ -4299,8 +4335,8 @@ class DcReportController extends Controller
                 $row->style ?: '',
                 $row->color ?: '',
                 $row->size ?: '',
-                $row->panel ?: '',
-                $row->part ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
+                preg_replace('/\s+/', ' ', (string) $row->part),
                 (float) ($row->qty ?? 0),
                 $row->created_by_username ?: '',
                 $row->created_at ?: '',

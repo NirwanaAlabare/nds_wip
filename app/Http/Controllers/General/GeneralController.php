@@ -1402,7 +1402,7 @@ class GeneralController extends Controller
                             return "Roll sudah habis di form '".($formCutPiping ? $formCutPiping->no_form : "-")."'";
                         } else {
                             // Reject
-                            $formCutReject = DB::table('form_cut_alokasi_gr_panel_barcode')->where("id_roll", $id)->orderBy("updated_at", "desc")->first();
+                            $formCutReject = DB::table('form_cut_alokasi_gr_panel_barcode')->where("barcode", $id)->orderBy("updated_at", "desc")->first();
 
                             if ($formCutReject) {
 

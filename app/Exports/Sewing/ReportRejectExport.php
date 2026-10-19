@@ -14,9 +14,15 @@ use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
 use PhpOffice\PhpSpreadsheet\Chart\Legend;
 use PhpOffice\PhpSpreadsheet\Chart\Title;
 use App\Models\SignalBit\RejectIn;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use DB;
 
-class ReportRejectExport implements FromView, ShouldAutoSize, WithTitle
+class ReportRejectExport extends DefaultValueBinder implements FromView, ShouldAutoSize, WithTitle, WithCustomValueBinder, WithColumnFormatting
 {
     protected $query;
     protected $dateFrom;
@@ -52,6 +58,26 @@ class ReportRejectExport implements FromView, ShouldAutoSize, WithTitle
     public function title(): string
     {
         return 'ReportReject';
+    }
+
+    // Worksheet (D), Color (G) & Size (H) as text, data rows start after heading row 4
+    public function bindValue(Cell $cell, $value)
+    {
+        if (in_array($cell->getColumn(), ['D', 'G', 'H'], true) && $cell->getRow() > 4 && $value !== null) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'D' => NumberFormat::FORMAT_TEXT,
+            'G' => NumberFormat::FORMAT_TEXT,
+            'H' => NumberFormat::FORMAT_TEXT,
+        ];
     }
 
     public function view(): View

@@ -1111,8 +1111,8 @@ class PPIC_LaporanTrackingController extends Controller
                                             marker_input_detail.id,
                                             form_cut.id
                                         union all
-                                            -- FORM CUT REJECT
-                                            SELECT
+                                        -- FORM CUT REJECT
+                                        SELECT
                                             COALESCE ( DATE ( form_cut_reject.updated_at ), DATE ( form_cut_reject.created_at ), form_cut_reject.tanggal ) tgl_form_cut,
                                             form_cut_reject.panel,
                                             form_cut_reject_detail.so_det_id,
@@ -1133,8 +1133,8 @@ class PPIC_LaporanTrackingController extends Controller
                                             form_cut_reject.id,
                                             form_cut_reject_detail.so_det_id
                                         union all
-                                            -- FORM CUT PIECE
-                                            SELECT
+                                        -- FORM CUT PIECE
+                                        SELECT
                                             COALESCE ( DATE ( form_cut_piece.waktu_selesai ), DATE ( form_cut_piece.created_at ), DATE ( form_cut_piece.updated_at ), form_cut_piece.tanggal ) tgl_form_cut,
                                             form_cut_piece.panel,
                                             form_cut_piece_detail_size.so_det_id,
@@ -1434,6 +1434,52 @@ class PPIC_LaporanTrackingController extends Controller
                             group by
                                 ws, styleno_prod, reff_no, color, size, panel, part
                         ) wip_switching
+                        GROUP BY
+                            ws, styleno_prod, reff_no, color, size, panel
+                        UNION ALL
+                        -- 	SCRAP
+                        SELECT
+                            buyer,
+                            ws,
+                            color,
+                            size,
+                            styleno_prod,
+                            reff_no,
+                            id_so_det,
+                            panel,
+                            MIN(qty) qty
+                        FROM (
+                            SELECT
+                                master_sb_ws.buyer,
+                                master_sb_ws.ws,
+                                master_sb_ws.color,
+                                master_sb_ws.size,
+                                master_sb_ws.styleno_prod,
+                                master_sb_ws.reff_no,
+                                master_sb_ws.id_so_det,
+                                (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
+                                pd.id as part_detail_id,
+                                SUM(fss.qty) as qty
+                            FROM
+                                form_cut_scrap fcs
+                                LEFT JOIN form_cut_scrap_detail fcsd ON fcs.id = fcsd.form_scrap_id
+                                LEFT JOIN form_cut_scrap_part fcsp ON fcsd.id = fcsp.form_scrap_detail_id
+                                LEFT JOIN part_detail pd ON fcsp.part_detail_id = pd.id
+                                left join part p on pd.part_id = p.id
+                                left join part_detail pd_com on pd_com.id = pd.from_part_detail
+                                left join part p_com on p_com.id = pd_com.part_id
+                                LEFT JOIN form_cut_scrap_size fss ON fcsp.id = fss.form_scrap_part_id
+                                LEFT JOIN master_sb_ws on master_sb_ws.id_so_det = fss.so_det_id
+                                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = master_sb_ws.color and (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= '".$curdate." 23:59:59' ELSE 1=1 END)
+                            WHERE
+                                fcs.status = 'complete' and
+                                master_sb_ws.buyer = '$buyer'
+                                $cond_ws_msb
+                                $cond_color_msb
+                                $cond_size_msb
+                            GROUP BY
+                                master_sb_ws.ws, master_sb_ws.styleno_prod, master_sb_ws.reff_no, master_sb_ws.color, master_sb_ws.size, panel, pd.id
+                        ) scrap
                         GROUP BY
                             ws, styleno_prod, reff_no, color, size, panel
                     ) cutting

@@ -135,8 +135,8 @@ class ReportCuttingController extends Controller
                 $row->style ?? '',
                 $row->color ?? '',
                 $row->size ?? '',
-                $row->panel ?? '',
-                $row->part ?? '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
+                preg_replace('/\s+/', ' ', (string) $row->part),
                 (float) ($row->qty ?? 0),
                 $row->status == 'Y' ? 'Active' : 'Cancel',
             ], ['border' => 'thin']);
@@ -1014,7 +1014,7 @@ class ReportCuttingController extends Controller
                 $row->worksheet ?: '',
                 $row->style ?: '',
                 $row->color ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
                 (float) $row->qty_awal,
                 (float) $row->qty_switching_out,
                 (float) $row->qty_switching_in,
@@ -2373,900 +2373,900 @@ class ReportCuttingController extends Controller
                 return response()->json(['data' => []]);
             } else {
                 $rawData = DB::select("WITH
-sau as (
-SELECT * from sa_report_cut_barcode where tgl_saldo = '$tgl_saldo'
-),
-gk_out_sa as (
-SELECT
-id_roll,
-id_item,
-id_jo,
-    SUM(
-        CASE
-            WHEN satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ) AS qty_out,
-CASE
-		WHEN satuan = 'YRD' THEN 'METER'
-		WHEN satuan = 'KGM' THEN 'KGM'
-		ELSE satuan
-		END as satuan,
-ifnull(no_ws_aktual,no_ws) ws
-from signalbit_erp.whs_bppb_h a
-inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
-where tgl_bppb >= '$tgl_saldo' and tgl_bppb < '$start_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-group by id_roll, ws
-),
-gr_set_sa as (
-select
-barcode,
-id_item,
-    SUM(
-        CASE
-            WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
-            ELSE b.qty_pakai
-        END
-    ) AS qty_pakai,
-CASE
-		WHEN s.unit = 'YRD' THEN 'METER'
-		WHEN s.unit = 'KGM' THEN 'KGM'
-		ELSE s.unit
-		END as satuan,
-a.act_costing_ws as ws
-from form_cut_reject a
-inner join form_cut_reject_barcode b on a.id = b.form_id
-left join scanned_item s on b.barcode = s.id_roll
-where b.created_at >= '$tgl_saldo 00:00:00' and b.created_at < '$start_date 00:00:00'
-group by barcode, ws
-),
-gr_set_alokasi_sa as (
-SELECT
-barcode,
-id_item,
-    SUM(
-        CASE
-            WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
-            ELSE a.qty_pakai
-        END
-    ) AS qty_pakai,
-CASE
-		WHEN s.unit = 'YRD' THEN 'METER'
-		WHEN s.unit = 'KGM' THEN 'KGM'
-		ELSE s.unit
-		END as satuan,
-ws,
-min(sisa_kain) sisa_kain
-from form_cut_alokasi_gr_panel_barcode a
-left join scanned_item s on a.barcode = s.id_roll
-where a.tgl_trans >= '$tgl_saldo' and a.tgl_trans < '$start_date'
-group by barcode, ws
-),
-gk_retur_sa as (
-SELECT
-no_barcode,
-a.id_item,
-    SUM(
-        CASE
-            WHEN satuan = 'YRD' THEN qty_aktual * 0.9144
-            ELSE qty_aktual
-        END
-    ) AS qty_retur,
-CASE
-		WHEN satuan = 'YRD' THEN 'METER'
-		WHEN satuan = 'KGM' THEN 'KGM'
-		ELSE satuan
-		END as satuan,
-ifnull(c.idws_act,a.no_ws) as no_ws
-from signalbit_erp.whs_lokasi_inmaterial a
-inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
-left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
+                    sau as (
+                    SELECT * from sa_report_cut_barcode where tgl_saldo = '$tgl_saldo'
+                    ),
+                    gk_out_sa as (
+                    SELECT
+                    id_roll,
+                    id_item,
+                    id_jo,
+                        SUM(
+                            CASE
+                                WHEN satuan = 'YRD' THEN qty_out * 0.9144
+                                ELSE qty_out
+                            END
+                        ) AS qty_out,
+                    CASE
+                            WHEN satuan = 'YRD' THEN 'METER'
+                            WHEN satuan = 'KGM' THEN 'KGM'
+                            ELSE satuan
+                            END as satuan,
+                    ifnull(no_ws_aktual,no_ws) ws
+                    from signalbit_erp.whs_bppb_h a
+                    inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
+                    where tgl_bppb >= '$tgl_saldo' and tgl_bppb < '$start_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
+                    group by id_roll, ws
+                    ),
+                    gr_set_sa as (
+                    select
+                    barcode,
+                    id_item,
+                        SUM(
+                            CASE
+                                WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
+                                ELSE b.qty_pakai
+                            END
+                        ) AS qty_pakai,
+                    CASE
+                            WHEN s.unit = 'YRD' THEN 'METER'
+                            WHEN s.unit = 'KGM' THEN 'KGM'
+                            ELSE s.unit
+                            END as satuan,
+                    a.act_costing_ws as ws
+                    from form_cut_reject a
+                    inner join form_cut_reject_barcode b on a.id = b.form_id
+                    left join scanned_item s on b.barcode = s.id_roll
+                    where b.created_at >= '$tgl_saldo 00:00:00' and b.created_at < '$start_date 00:00:00'
+                    group by barcode, ws
+                    ),
+                    gr_set_alokasi_sa as (
+                    SELECT
+                    barcode,
+                    id_item,
+                        SUM(
+                            CASE
+                                WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
+                                ELSE a.qty_pakai
+                            END
+                        ) AS qty_pakai,
+                    CASE
+                            WHEN s.unit = 'YRD' THEN 'METER'
+                            WHEN s.unit = 'KGM' THEN 'KGM'
+                            ELSE s.unit
+                            END as satuan,
+                    ws,
+                    min(sisa_kain) sisa_kain
+                    from form_cut_alokasi_gr_panel_barcode a
+                    left join scanned_item s on a.barcode = s.id_roll
+                    where a.tgl_trans >= '$tgl_saldo' and a.tgl_trans < '$start_date'
+                    group by barcode, ws
+                    ),
+                    gk_retur_sa as (
+                    SELECT
+                    no_barcode,
+                    a.id_item,
+                        SUM(
+                            CASE
+                                WHEN satuan = 'YRD' THEN qty_aktual * 0.9144
+                                ELSE qty_aktual
+                            END
+                        ) AS qty_retur,
+                    CASE
+                            WHEN satuan = 'YRD' THEN 'METER'
+                            WHEN satuan = 'KGM' THEN 'KGM'
+                            ELSE satuan
+                            END as satuan,
+                    ifnull(c.idws_act,a.no_ws) as no_ws
+                    from signalbit_erp.whs_lokasi_inmaterial a
+                    inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
+                    left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
 
-where b.tgl_dok >= '$tgl_saldo' and b.tgl_dok < '$start_date' and supplier = 'Production - Cutting' and a.status = 'Y'
-group by no_barcode, ifnull(c.idws_act,a.no_ws)
-),
-cutt_sa as (
-SELECT
-	id_roll,
-	id_item,
-	roll_status,
-	ROUND(SUM(qty_in) - SUM(CASE WHEN roll_status != 'latest' THEN sisa_kain ELSE 0 END), 2) qty_in,
-	ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-	MIN(sisa_kain) sisa_kain,
-	SUM(short_roll) as short_roll,
-	unit_roll,
-	act_costing_ws
-FROM (
-	select
-		COALESCE(b.qty) qty_in,
-		a.waktu_mulai,
-		a.waktu_selesai,
-		b.id,
-		DATE_FORMAT(a.waktu_selesai, '%M') bulan,
-		DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
-		b.no_form_cut_input,
-		UPPER(meja.name) nama_meja,
-		mrk.act_costing_ws,
-		master_sb_ws.buyer,
-		mrk.style,
-		mrk.color,
-		COALESCE(b.color_act, '-') color_act,
-		mrk.panel,
-		master_sb_ws.qty,
-		cons_ws,
-		cons_marker,
-		a.cons_ampar,
-		a.cons_act,
-		(CASE WHEN a.cons_pipping > 0 THEN a.cons_pipping ELSE mrk.cons_piping END) cons_piping,
-		panjang_marker,
-		unit_panjang_marker,
-		comma_marker,
-		unit_comma_marker,
-		lebar_marker,
-		unit_lebar_marker,
-		a.p_act panjang_actual,
-		a.unit_p_act unit_panjang_actual,
-		a.comma_p_act comma_actual,
-		a.unit_comma_p_act unit_comma_actual,
-		a.l_act lebar_actual,
-		a.unit_l_act unit_lebar_actual,
-		COALESCE(b.id_roll, '-') id_roll,
-		b.id_item,
-		b.detail_item,
-		COALESCE(b.roll_buyer, b.roll) roll,
-		COALESCE(b.lot, '-') lot,
-		COALESCE(b.group_roll, '-') group_roll,
-		(
-				CASE WHEN
-						b.status != 'extension' AND b.status != 'extension complete'
-				THEN
-						(CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
-				ELSE
-						'Sambungan'
-				END
-		) status_roll,
-		COALESCE(c.qty, b.qty) qty_awal,
-		b.qty qty_roll,
-		b.unit unit_roll,
-		COALESCE(b.berat_amparan, '-') berat_amparan,
-		b.est_amparan,
-		b.lembar_gelaran,
-		mrk.total_ratio,
-		(mrk.total_ratio * b.lembar_gelaran) qty_cut,
-		b.average_time,
-		b.sisa_gelaran,
-		b.sambungan,
-		b.sambungan_roll,
-		b.kepala_kain,
-		b.sisa_tidak_bisa,
-		b.reject,
-		b.piping,
-		ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
-		ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran ) + (b.sambungan_roll ) , 2) pemakaian_lembar,
-		ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
-		ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll,
-		ROUND((((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping)+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2)))-b.qty)/b.qty*100, 2) short_roll_percentage,
-		b.status,
-		a.operator,
-		a.tipe_form_cut,
-		b.created_at,
-		b.updated_at,
-		(CASE WHEN d.id is null and e.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	from
-		form_cut_input a
-		left join form_cut_input_detail b on a.id = b.form_cut_id
-		left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
-		LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at
-		and d.created_at >= '$tgl_saldo 00:00:00' and d.created_at < '$start_date 00:00:00'
-		LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '$tgl_saldo 00:00:00' and e.created_at < '$start_date 00:00:00'
-		left join users meja on meja.id = a.no_meja
-		left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
-		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
-		left join scanned_item on scanned_item.id_roll = b.id_roll
-	where
-		(a.cancel = 'N'  OR a.cancel IS NULL)
-		AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
-		AND a.status = 'SELESAI PENGERJAAN'
-		and b.status != 'not complete'
-		and b.id_item is not null
-		and a.waktu_selesai >= '$tgl_saldo 00:00:00' and a.waktu_selesai < '$start_date 00:00:00'
-	group by
-		b.id
-	UNION ALL
-	select
-		COALESCE(form_cut_piping.qty) qty_in,
-		form_cut_piping.created_at waktu_mulai,
-		form_cut_piping.updated_at waktu_selesai,
-		form_cut_piping.id,
-		DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
-		DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
-		'PIPING' no_form_cut_input,
-		'-' nama_meja,
-		form_cut_piping.act_costing_ws,
-		master_sb_ws.buyer,
-		form_cut_piping.style,
-		form_cut_piping.color,
-		form_cut_piping.color color_act,
-		form_cut_piping.panel,
-		master_sb_ws.qty,
-		'0' cons_ws,
-		0 cons_marker,
-		'0' cons_ampar,
-		0 cons_act,
-		form_cut_piping.cons_piping cons_piping,
-		0 panjang_marker,
-		'-' unit_panjang_marker,
-		0 comma_marker,
-		'-' unit_comma_marker,
-		0 lebar_marker,
-		'-' unit_lebar_marker,
-		0 panjang_actual,
-		'-' unit_panjang_actual,
-		0 comma_actual,
-		'-' unit_comma_actual,
-		0 lebar_actual,
-		'-' unit_lebar_actual,
-		form_cut_piping.id_roll,
-		scanned_item.id_item,
-		scanned_item.detail_item,
-		COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
-		scanned_item.lot,
-		'-' group_roll,
-		'Piping' status_roll,
-		COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_awal,
-		form_cut_piping.qty qty_roll,
-		form_cut_piping.unit unit_roll,
-		0 berat_amparan,
-		0 est_amparan,
-		0 lembar_gelaran,
-		0 total_ratio,
-		0 qty_cut,
-		'00:00' average_time,
-		'0' sisa_gelaran,
-		0 sambungan,
-		0 sambungan_roll,
-		0 kepala_kain,
-		0 sisa_tidak_bisa,
-		0 reject,
-		form_cut_piping.piping piping,
-		form_cut_piping.qty_sisa sisa_kain,
-		form_cut_piping.piping pemakaian_lembar,
-		form_cut_piping.piping total_pemakaian_roll,
-		ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
-		ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/coalesce(scanned_item.qty_in, form_cut_piping.qty) * 100, 2) short_roll_percentage,
-		null `status`,
-		form_cut_piping.operator,
-		'PIPING' tipe_form_cut,
-		form_cut_piping.created_at,
-		form_cut_piping.updated_at,
-		(CASE WHEN c.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	from
-		form_cut_piping
-		LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '$tgl_saldo 00:00:00'
-		and b.created_at < '$start_date 00:00:00'
-		LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '$tgl_saldo 00:00:00'
-        and c.created_at < '$start_date 00:00:00'
-		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
-		left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
-	where
-		scanned_item.id_item is not null
-		and form_cut_piping.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piping.updated_at < '$start_date 00:00:00'
-	group by
-		form_cut_piping.id
-	UNION ALL
-	SELECT
-		form_cut_piece_detail.qty qty_in,
-		form_cut_piece.created_at waktu_mulai,
-		form_cut_piece.waktu_selesai waktu_selesai,
-		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
-		form_cut_piece.no_form no_form_cut_input,
-		'-' nama_meja,
-		form_cut_piece.act_costing_ws,
-		master_sb_ws.buyer,
-		form_cut_piece.style,
-		form_cut_piece.color,
-		form_cut_piece.color color_act,
-		form_cut_piece.panel,
-		master_sb_ws.qty,
-		form_cut_piece.cons_ws cons_ws,
-		form_cut_piece.cons_ws cons_marker,
-		'0' cons_ampar,
-		0 cons_act,
-		0 cons_piping,
-		0 panjang_marker,
-		'-' unit_panjang_marker,
-		0 comma_marker,
-		'-' unit_comma_marker,
-		0 lebar_marker,
-		'-' unit_lebar_marker,
-		0 panjang_actual,
-		'-' unit_panjang_actual,
-		0 comma_actual,
-		'-' unit_comma_actual,
-		0 lebar_actual,
-		'-' unit_lebar_actual,
-		form_cut_piece_detail.id_roll,
-		scanned_item.id_item,
-		scanned_item.detail_item,
-		COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
-		scanned_item.lot,
-		'-' group_roll,
-		( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
-		COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
-		form_cut_piece_detail.qty qty_roll,
-		form_cut_piece_detail.qty_unit unit_roll,
-		0 berat_amparan,
-		0 est_amparan,
-		0 lembar_gelaran,
-		0 total_ratio,
-		0 qty_cut,
-		'00:00' average_time,
-		'0' sisa_gelaran,
-		0 sambungan,
-		0 sambungan_roll,
-		0 kepala_kain,
-		0 sisa_tidak_bisa,
-		0 reject,
-		0 piping,
-		form_cut_piece_detail.qty_sisa sisa_kain,
-		form_cut_piece_detail.qty_pemakaian pemakaian_lembar,
-		form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
-		ROUND(
-		form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll,
-		ROUND((form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa ))/ COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) * 100, 2 ) short_roll_percentage,
-		form_cut_piece_detail.STATUS `status`,
-		form_cut_piece.employee_name,
-		'PCS' tipe_form_cut,
-		form_cut_piece.created_at,
-		form_cut_piece.updated_at,
-		(CASE WHEN b.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	FROM
-		form_cut_piece
-		LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-		LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
-		LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
-		LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
-	WHERE
-		scanned_item.id_item IS NOT NULL
-		AND form_cut_piece_detail.STATUS = 'complete'
-        AND form_cut_piece_detail.id not in (7207)
-		and form_cut_piece.waktu_selesai >= '$tgl_saldo 00:00:00' and form_cut_piece.waktu_selesai < '$start_date 00:00:00'
-	GROUP BY
-		form_cut_piece_detail.id
-) cutting
--- where
--- 	cutting.id_roll is not null and cutting.id_roll != '-'
-group by
-	id_roll,
-    id_item,
-	act_costing_ws
-order by
-	created_at
-),
--- Periode Transaksi
-gk_out as (SELECT
-id_roll,
-id_item,
-id_jo,
-    SUM(
-        CASE
-            WHEN satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ) AS qty_out,
-CASE
-		WHEN satuan = 'YRD' THEN 'METER'
-		WHEN satuan = 'KGM' THEN 'KGM'
-		ELSE satuan
-		END as satuan,
-ifnull(no_ws_aktual,no_ws) ws
-from signalbit_erp.whs_bppb_h a
-inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
-where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-group by id_roll, ws
-),
-gr_set as (
-select
-barcode,
-id_item,
-    SUM(
-        CASE
-            WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
-            ELSE b.qty_pakai
-        END
-    ) AS qty_pakai,
-CASE
-		WHEN s.unit = 'YRD' THEN 'METER'
-		WHEN s.unit = 'KGM' THEN 'KGM'
-		ELSE s.unit
-		END as satuan,
-a.act_costing_ws as ws
-from form_cut_reject a
-inner join form_cut_reject_barcode b on a.id = b.form_id
-left join scanned_item s on b.barcode = s.id_roll
-where b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
-group by barcode, ws
-),
-gr_set_alokasi as (
-SELECT
-barcode,
-id_item,
-    SUM(
-        CASE
-            WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
-            ELSE a.qty_pakai
-        END
-    ) AS qty_pakai,
-CASE
-		WHEN s.unit = 'YRD' THEN 'METER'
-		WHEN s.unit = 'KGM' THEN 'KGM'
-		ELSE s.unit
-		END as satuan,
-ws,
-min(sisa_kain) sisa_kain
-from form_cut_alokasi_gr_panel_barcode a
-left join scanned_item s on a.barcode = s.id_roll
-where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
-group by barcode, ws
-),
-gk_retur as (
-SELECT
-no_barcode,
-a.id_item,
-    SUM(
-        CASE
-            WHEN satuan = 'YRD' THEN qty_aktual * 0.9144
-            ELSE qty_aktual
-        END
-    ) AS qty_retur,
-CASE
-		WHEN satuan = 'YRD' THEN 'METER'
-		WHEN satuan = 'KGM' THEN 'KGM'
-		ELSE satuan
-		END as satuan,
-ifnull(c.idws_act,a.no_ws) as no_ws
-from signalbit_erp.whs_lokasi_inmaterial a
-inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
-left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
-where b.tgl_dok >= '$start_date' and b.tgl_dok <= '$end_date' and supplier = 'Production - Cutting' and a.status = 'Y'
-group by no_barcode, ifnull(c.idws_act,a.no_ws)
-),
-cutt as  (
-SELECT
-	id_roll,
-	id_item,
-	roll_status,
-	ROUND(SUM(qty_in) - SUM(CASE WHEN roll_status != 'latest' THEN sisa_kain ELSE 0 END), 2) qty_in,
-	ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-	MIN(sisa_kain) sisa_kain,
-	SUM(short_roll) as short_roll,
-	unit_roll,
-	act_costing_ws
-FROM (
-	select
-		COALESCE(b.qty) qty_in,
-		a.waktu_mulai,
-		a.waktu_selesai,
-		b.id,
-		DATE_FORMAT(a.waktu_selesai, '%M') bulan,
-		DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
-		b.no_form_cut_input,
-		UPPER(meja.name) nama_meja,
-		mrk.act_costing_ws,
-		master_sb_ws.buyer,
-		mrk.style,
-		mrk.color,
-		COALESCE(b.color_act, '-') color_act,
-		mrk.panel,
-		master_sb_ws.qty,
-		cons_ws,
-		cons_marker,
-		a.cons_ampar,
-		a.cons_act,
-		(CASE WHEN a.cons_pipping > 0 THEN a.cons_pipping ELSE mrk.cons_piping END) cons_piping,
-		panjang_marker,
-		unit_panjang_marker,
-		comma_marker,
-		unit_comma_marker,
-		lebar_marker,
-		unit_lebar_marker,
-		a.p_act panjang_actual,
-		a.unit_p_act unit_panjang_actual,
-		a.comma_p_act comma_actual,
-		a.unit_comma_p_act unit_comma_actual,
-		a.l_act lebar_actual,
-		a.unit_l_act unit_lebar_actual,
-		COALESCE(b.id_roll, '-') id_roll,
-		b.id_item,
-		b.detail_item,
-		COALESCE(b.roll_buyer, b.roll) roll,
-		COALESCE(b.lot, '-') lot,
-		COALESCE(b.group_roll, '-') group_roll,
-		(
-				CASE WHEN
-						b.status != 'extension' AND b.status != 'extension complete'
-				THEN
-						(CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
-				ELSE
-						'Sambungan'
-				END
-		) status_roll,
-		COALESCE(c.qty, b.qty) qty_awal,
-		b.qty qty_roll,
-		b.unit unit_roll,
-		COALESCE(b.berat_amparan, '-') berat_amparan,
-		b.est_amparan,
-		b.lembar_gelaran,
-		mrk.total_ratio,
-		(mrk.total_ratio * b.lembar_gelaran) qty_cut,
-		b.average_time,
-		b.sisa_gelaran,
-		b.sambungan,
-		b.sambungan_roll,
-		b.kepala_kain,
-		b.sisa_tidak_bisa,
-		b.reject,
-		b.piping,
-		ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
-		ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran ) + (b.sambungan_roll ) , 2) pemakaian_lembar,
-		ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
-		ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll,
-		ROUND((((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping)+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2)))-b.qty)/b.qty*100, 2) short_roll_percentage,
-		b.status,
-		a.operator,
-		a.tipe_form_cut,
-		b.created_at,
-		b.updated_at,
-		(CASE WHEN d.id is null and e.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	from
-		form_cut_input a
-		left join form_cut_input_detail b on a.id = b.form_cut_id
-		left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
-		LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '$start_date 00:00:00' and d.created_at <= '$end_date 23:59:59'
-		LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '$start_date 00:00:00' and e.created_at <= '$end_date 23:59:59'
-		left join users meja on meja.id = a.no_meja
-		left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
-		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
-		left join scanned_item on scanned_item.id_roll = b.id_roll
-	where
-		(a.cancel = 'N'  OR a.cancel IS NULL)
-		AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
-		AND a.status = 'SELESAI PENGERJAAN'
-		and b.status != 'not complete'
-		and b.id_item is not null
-		and a.waktu_selesai >= '$start_date 00:00:00' and a.waktu_selesai <= '$end_date 23:59:59'
-	group by
-		b.id
-	UNION ALL
-	select
-		COALESCE(form_cut_piping.qty) qty_in,
-		form_cut_piping.created_at waktu_mulai,
-		form_cut_piping.updated_at waktu_selesai,
-		form_cut_piping.id,
-		DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
-		DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
-		'PIPING' no_form_cut_input,
-		'-' nama_meja,
-		form_cut_piping.act_costing_ws,
-		master_sb_ws.buyer,
-		form_cut_piping.style,
-		form_cut_piping.color,
-		form_cut_piping.color color_act,
-		form_cut_piping.panel,
-		master_sb_ws.qty,
-		'0' cons_ws,
-		0 cons_marker,
-		'0' cons_ampar,
-		0 cons_act,
-		form_cut_piping.cons_piping cons_piping,
-		0 panjang_marker,
-		'-' unit_panjang_marker,
-		0 comma_marker,
-		'-' unit_comma_marker,
-		0 lebar_marker,
-		'-' unit_lebar_marker,
-		0 panjang_actual,
-		'-' unit_panjang_actual,
-		0 comma_actual,
-		'-' unit_comma_actual,
-		0 lebar_actual,
-		'-' unit_lebar_actual,
-		form_cut_piping.id_roll,
-		scanned_item.id_item,
-		scanned_item.detail_item,
-		COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
-		scanned_item.lot,
-		'-' group_roll,
-		'Piping' status_roll,
-		COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_awal,
-		form_cut_piping.qty qty_roll,
-		form_cut_piping.unit unit_roll,
-		0 berat_amparan,
-		0 est_amparan,
-		0 lembar_gelaran,
-		0 total_ratio,
-		0 qty_cut,
-		'00:00' average_time,
-		'0' sisa_gelaran,
-		0 sambungan,
-		0 sambungan_roll,
-		0 kepala_kain,
-		0 sisa_tidak_bisa,
-		0 reject,
-		form_cut_piping.piping piping,
-		form_cut_piping.qty_sisa sisa_kain,
-		form_cut_piping.piping pemakaian_lembar,
-		form_cut_piping.piping total_pemakaian_roll,
-		ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
-		ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/coalesce(scanned_item.qty_in, form_cut_piping.qty) * 100, 2) short_roll_percentage,
-		null `status`,
-		form_cut_piping.operator,
-		'PIPING' tipe_form_cut,
-		form_cut_piping.created_at,
-		form_cut_piping.updated_at,
-		(CASE WHEN c.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	from
-		form_cut_piping
-		LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '$start_date 00:00:00' and b.created_at < '$end_date 23:59:59'
-		LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '$start_date 00:00:00' and c.created_at < '$end_date 23:59:59'
-		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
-		left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
-	where
-		scanned_item.id_item is not null
-		and form_cut_piping.updated_at >= '$start_date 00:00:00' and form_cut_piping.updated_at <= '$end_date 23:59:59'
-	group by
-		form_cut_piping.id
-	UNION ALL
-	SELECT
-		form_cut_piece_detail.qty qty_in,
-		form_cut_piece.created_at waktu_mulai,
-		form_cut_piece.waktu_selesai waktu_selesai,
-		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
-		form_cut_piece.no_form no_form_cut_input,
-		'-' nama_meja,
-		form_cut_piece.act_costing_ws,
-		master_sb_ws.buyer,
-		form_cut_piece.style,
-		form_cut_piece.color,
-		form_cut_piece.color color_act,
-		form_cut_piece.panel,
-		master_sb_ws.qty,
-		form_cut_piece.cons_ws cons_ws,
-		form_cut_piece.cons_ws cons_marker,
-		'0' cons_ampar,
-		0 cons_act,
-		0 cons_piping,
-		0 panjang_marker,
-		'-' unit_panjang_marker,
-		0 comma_marker,
-		'-' unit_comma_marker,
-		0 lebar_marker,
-		'-' unit_lebar_marker,
-		0 panjang_actual,
-		'-' unit_panjang_actual,
-		0 comma_actual,
-		'-' unit_comma_actual,
-		0 lebar_actual,
-		'-' unit_lebar_actual,
-		form_cut_piece_detail.id_roll,
-		scanned_item.id_item,
-		scanned_item.detail_item,
-		COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
-		scanned_item.lot,
-		'-' group_roll,
-		( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
-		COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
-		form_cut_piece_detail.qty qty_roll,
-		form_cut_piece_detail.qty_unit unit_roll,
-		0 berat_amparan,
-		0 est_amparan,
-		0 lembar_gelaran,
-		0 total_ratio,
-		0 qty_cut,
-		'00:00' average_time,
-		'0' sisa_gelaran,
-		0 sambungan,
-		0 sambungan_roll,
-		0 kepala_kain,
-		0 sisa_tidak_bisa,
-		0 reject,
-		0 piping,
-		form_cut_piece_detail.qty_sisa sisa_kain,
-		form_cut_piece_detail.qty_pemakaian pemakaian_lembar,
-		form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
-		ROUND(
-		form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll,
-		ROUND((form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa ))/ COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) * 100, 2 ) short_roll_percentage,
-		form_cut_piece_detail.STATUS `status`,
-		form_cut_piece.employee_name,
-		'PCS' tipe_form_cut,
-		form_cut_piece.created_at,
-		form_cut_piece.updated_at,
-		(CASE WHEN b.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	FROM
-		form_cut_piece
-		LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-		LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
-		LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
-		LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
-	WHERE
-		scanned_item.id_item IS NOT NULL
-		AND form_cut_piece_detail.STATUS = 'complete'
-        AND form_cut_piece_detail.id not in (7207)
-		and form_cut_piece.waktu_selesai >= '$start_date 00:00:00' and form_cut_piece.waktu_selesai <= '$end_date 23:59:59'
-	GROUP BY
-		form_cut_piece_detail.id
-) cutting
--- where
--- 	cutting.id_roll is not null and cutting.id_roll != '-'
-group by
-	id_roll,
-    id_item,
-	act_costing_ws
-order by
-	created_at
-),
+                    where b.tgl_dok >= '$tgl_saldo' and b.tgl_dok < '$start_date' and supplier = 'Production - Cutting' and a.status = 'Y'
+                    group by no_barcode, ifnull(c.idws_act,a.no_ws)
+                    ),
+                    cutt_sa as (
+                    SELECT
+                        id_roll,
+                        id_item,
+                        roll_status,
+                        ROUND(SUM(qty_in) - SUM(CASE WHEN roll_status != 'latest' THEN sisa_kain ELSE 0 END), 2) qty_in,
+                        ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                        MIN(sisa_kain) sisa_kain,
+                        SUM(short_roll) as short_roll,
+                        unit_roll,
+                        act_costing_ws
+                    FROM (
+                        select
+                            COALESCE(b.qty) qty_in,
+                            a.waktu_mulai,
+                            a.waktu_selesai,
+                            b.id,
+                            DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+                            DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
+                            b.no_form_cut_input,
+                            UPPER(meja.name) nama_meja,
+                            mrk.act_costing_ws,
+                            master_sb_ws.buyer,
+                            mrk.style,
+                            mrk.color,
+                            COALESCE(b.color_act, '-') color_act,
+                            mrk.panel,
+                            master_sb_ws.qty,
+                            cons_ws,
+                            cons_marker,
+                            a.cons_ampar,
+                            a.cons_act,
+                            (CASE WHEN a.cons_pipping > 0 THEN a.cons_pipping ELSE mrk.cons_piping END) cons_piping,
+                            panjang_marker,
+                            unit_panjang_marker,
+                            comma_marker,
+                            unit_comma_marker,
+                            lebar_marker,
+                            unit_lebar_marker,
+                            a.p_act panjang_actual,
+                            a.unit_p_act unit_panjang_actual,
+                            a.comma_p_act comma_actual,
+                            a.unit_comma_p_act unit_comma_actual,
+                            a.l_act lebar_actual,
+                            a.unit_l_act unit_lebar_actual,
+                            COALESCE(b.id_roll, '-') id_roll,
+                            b.id_item,
+                            b.detail_item,
+                            COALESCE(b.roll_buyer, b.roll) roll,
+                            COALESCE(b.lot, '-') lot,
+                            COALESCE(b.group_roll, '-') group_roll,
+                            (
+                                    CASE WHEN
+                                            b.status != 'extension' AND b.status != 'extension complete'
+                                    THEN
+                                            (CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
+                                    ELSE
+                                            'Sambungan'
+                                    END
+                            ) status_roll,
+                            COALESCE(c.qty, b.qty) qty_awal,
+                            b.qty qty_roll,
+                            b.unit unit_roll,
+                            COALESCE(b.berat_amparan, '-') berat_amparan,
+                            b.est_amparan,
+                            b.lembar_gelaran,
+                            mrk.total_ratio,
+                            (mrk.total_ratio * b.lembar_gelaran) qty_cut,
+                            b.average_time,
+                            b.sisa_gelaran,
+                            b.sambungan,
+                            b.sambungan_roll,
+                            b.kepala_kain,
+                            b.sisa_tidak_bisa,
+                            b.reject,
+                            b.piping,
+                            ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
+                            ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran ) + (b.sambungan_roll ) , 2) pemakaian_lembar,
+                            ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+                            ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll,
+                            ROUND((((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping)+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2)))-b.qty)/b.qty*100, 2) short_roll_percentage,
+                            b.status,
+                            a.operator,
+                            a.tipe_form_cut,
+                            b.created_at,
+                            b.updated_at,
+                            (CASE WHEN d.id is null and e.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                        from
+                            form_cut_input a
+                            left join form_cut_input_detail b on a.id = b.form_cut_id
+                            left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+                            LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at
+                            and d.created_at >= '$tgl_saldo 00:00:00' and d.created_at < '$start_date 00:00:00'
+                            LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '$tgl_saldo 00:00:00' and e.created_at < '$start_date 00:00:00'
+                            left join users meja on meja.id = a.no_meja
+                            left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                            left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                            left join scanned_item on scanned_item.id_roll = b.id_roll
+                        where
+                            (a.cancel = 'N'  OR a.cancel IS NULL)
+                            AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                            AND a.status = 'SELESAI PENGERJAAN'
+                            and b.status != 'not complete'
+                            and b.id_item is not null
+                            and a.waktu_selesai >= '$tgl_saldo 00:00:00' and a.waktu_selesai < '$start_date 00:00:00'
+                        group by
+                            b.id
+                        UNION ALL
+                        select
+                            COALESCE(form_cut_piping.qty) qty_in,
+                            form_cut_piping.created_at waktu_mulai,
+                            form_cut_piping.updated_at waktu_selesai,
+                            form_cut_piping.id,
+                            DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
+                            DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
+                            'PIPING' no_form_cut_input,
+                            '-' nama_meja,
+                            form_cut_piping.act_costing_ws,
+                            master_sb_ws.buyer,
+                            form_cut_piping.style,
+                            form_cut_piping.color,
+                            form_cut_piping.color color_act,
+                            form_cut_piping.panel,
+                            master_sb_ws.qty,
+                            '0' cons_ws,
+                            0 cons_marker,
+                            '0' cons_ampar,
+                            0 cons_act,
+                            form_cut_piping.cons_piping cons_piping,
+                            0 panjang_marker,
+                            '-' unit_panjang_marker,
+                            0 comma_marker,
+                            '-' unit_comma_marker,
+                            0 lebar_marker,
+                            '-' unit_lebar_marker,
+                            0 panjang_actual,
+                            '-' unit_panjang_actual,
+                            0 comma_actual,
+                            '-' unit_comma_actual,
+                            0 lebar_actual,
+                            '-' unit_lebar_actual,
+                            form_cut_piping.id_roll,
+                            scanned_item.id_item,
+                            scanned_item.detail_item,
+                            COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
+                            scanned_item.lot,
+                            '-' group_roll,
+                            'Piping' status_roll,
+                            COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_awal,
+                            form_cut_piping.qty qty_roll,
+                            form_cut_piping.unit unit_roll,
+                            0 berat_amparan,
+                            0 est_amparan,
+                            0 lembar_gelaran,
+                            0 total_ratio,
+                            0 qty_cut,
+                            '00:00' average_time,
+                            '0' sisa_gelaran,
+                            0 sambungan,
+                            0 sambungan_roll,
+                            0 kepala_kain,
+                            0 sisa_tidak_bisa,
+                            0 reject,
+                            form_cut_piping.piping piping,
+                            form_cut_piping.qty_sisa sisa_kain,
+                            form_cut_piping.piping pemakaian_lembar,
+                            form_cut_piping.piping total_pemakaian_roll,
+                            ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
+                            ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/coalesce(scanned_item.qty_in, form_cut_piping.qty) * 100, 2) short_roll_percentage,
+                            null `status`,
+                            form_cut_piping.operator,
+                            'PIPING' tipe_form_cut,
+                            form_cut_piping.created_at,
+                            form_cut_piping.updated_at,
+                            (CASE WHEN c.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                        from
+                            form_cut_piping
+                            LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '$tgl_saldo 00:00:00'
+                            and b.created_at < '$start_date 00:00:00'
+                            LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '$tgl_saldo 00:00:00'
+                            and c.created_at < '$start_date 00:00:00'
+                            left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                            left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+                        where
+                            scanned_item.id_item is not null
+                            and form_cut_piping.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piping.updated_at < '$start_date 00:00:00'
+                        group by
+                            form_cut_piping.id
+                        UNION ALL
+                        SELECT
+                            form_cut_piece_detail.qty qty_in,
+                            form_cut_piece.created_at waktu_mulai,
+                            form_cut_piece.waktu_selesai waktu_selesai,
+                            form_cut_piece.id,
+                            DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+                            DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
+                            form_cut_piece.no_form no_form_cut_input,
+                            '-' nama_meja,
+                            form_cut_piece.act_costing_ws,
+                            master_sb_ws.buyer,
+                            form_cut_piece.style,
+                            form_cut_piece.color,
+                            form_cut_piece.color color_act,
+                            form_cut_piece.panel,
+                            master_sb_ws.qty,
+                            form_cut_piece.cons_ws cons_ws,
+                            form_cut_piece.cons_ws cons_marker,
+                            '0' cons_ampar,
+                            0 cons_act,
+                            0 cons_piping,
+                            0 panjang_marker,
+                            '-' unit_panjang_marker,
+                            0 comma_marker,
+                            '-' unit_comma_marker,
+                            0 lebar_marker,
+                            '-' unit_lebar_marker,
+                            0 panjang_actual,
+                            '-' unit_panjang_actual,
+                            0 comma_actual,
+                            '-' unit_comma_actual,
+                            0 lebar_actual,
+                            '-' unit_lebar_actual,
+                            form_cut_piece_detail.id_roll,
+                            scanned_item.id_item,
+                            scanned_item.detail_item,
+                            COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
+                            scanned_item.lot,
+                            '-' group_roll,
+                            ( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
+                            COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
+                            form_cut_piece_detail.qty qty_roll,
+                            form_cut_piece_detail.qty_unit unit_roll,
+                            0 berat_amparan,
+                            0 est_amparan,
+                            0 lembar_gelaran,
+                            0 total_ratio,
+                            0 qty_cut,
+                            '00:00' average_time,
+                            '0' sisa_gelaran,
+                            0 sambungan,
+                            0 sambungan_roll,
+                            0 kepala_kain,
+                            0 sisa_tidak_bisa,
+                            0 reject,
+                            0 piping,
+                            form_cut_piece_detail.qty_sisa sisa_kain,
+                            form_cut_piece_detail.qty_pemakaian pemakaian_lembar,
+                            form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
+                            ROUND(
+                            form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll,
+                            ROUND((form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa ))/ COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) * 100, 2 ) short_roll_percentage,
+                            form_cut_piece_detail.STATUS `status`,
+                            form_cut_piece.employee_name,
+                            'PCS' tipe_form_cut,
+                            form_cut_piece.created_at,
+                            form_cut_piece.updated_at,
+                            (CASE WHEN b.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                        FROM
+                            form_cut_piece
+                            LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                            LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+                            LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                            LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+                        WHERE
+                            scanned_item.id_item IS NOT NULL
+                            AND form_cut_piece_detail.STATUS = 'complete'
+                            AND form_cut_piece_detail.id not in (7207)
+                            and form_cut_piece.waktu_selesai >= '$tgl_saldo 00:00:00' and form_cut_piece.waktu_selesai < '$start_date 00:00:00'
+                        GROUP BY
+                            form_cut_piece_detail.id
+                    ) cutting
+                    -- where
+                    -- 	cutting.id_roll is not null and cutting.id_roll != '-'
+                    group by
+                        id_roll,
+                        id_item,
+                        act_costing_ws
+                    order by
+                        created_at
+                    ),
+                    -- Periode Transaksi
+                    gk_out as (SELECT
+                    id_roll,
+                    id_item,
+                    id_jo,
+                        SUM(
+                            CASE
+                                WHEN satuan = 'YRD' THEN qty_out * 0.9144
+                                ELSE qty_out
+                            END
+                        ) AS qty_out,
+                    CASE
+                            WHEN satuan = 'YRD' THEN 'METER'
+                            WHEN satuan = 'KGM' THEN 'KGM'
+                            ELSE satuan
+                            END as satuan,
+                    ifnull(no_ws_aktual,no_ws) ws
+                    from signalbit_erp.whs_bppb_h a
+                    inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
+                    where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
+                    group by id_roll, ws
+                    ),
+                    gr_set as (
+                    select
+                    barcode,
+                    id_item,
+                        SUM(
+                            CASE
+                                WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
+                                ELSE b.qty_pakai
+                            END
+                        ) AS qty_pakai,
+                    CASE
+                            WHEN s.unit = 'YRD' THEN 'METER'
+                            WHEN s.unit = 'KGM' THEN 'KGM'
+                            ELSE s.unit
+                            END as satuan,
+                    a.act_costing_ws as ws
+                    from form_cut_reject a
+                    inner join form_cut_reject_barcode b on a.id = b.form_id
+                    left join scanned_item s on b.barcode = s.id_roll
+                    where b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
+                    group by barcode, ws
+                    ),
+                    gr_set_alokasi as (
+                    SELECT
+                    barcode,
+                    id_item,
+                        SUM(
+                            CASE
+                                WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
+                                ELSE a.qty_pakai
+                            END
+                        ) AS qty_pakai,
+                    CASE
+                            WHEN s.unit = 'YRD' THEN 'METER'
+                            WHEN s.unit = 'KGM' THEN 'KGM'
+                            ELSE s.unit
+                            END as satuan,
+                    ws,
+                    min(sisa_kain) sisa_kain
+                    from form_cut_alokasi_gr_panel_barcode a
+                    left join scanned_item s on a.barcode = s.id_roll
+                    where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
+                    group by barcode, ws
+                    ),
+                    gk_retur as (
+                    SELECT
+                    no_barcode,
+                    a.id_item,
+                        SUM(
+                            CASE
+                                WHEN satuan = 'YRD' THEN qty_aktual * 0.9144
+                                ELSE qty_aktual
+                            END
+                        ) AS qty_retur,
+                    CASE
+                            WHEN satuan = 'YRD' THEN 'METER'
+                            WHEN satuan = 'KGM' THEN 'KGM'
+                            ELSE satuan
+                            END as satuan,
+                    ifnull(c.idws_act,a.no_ws) as no_ws
+                    from signalbit_erp.whs_lokasi_inmaterial a
+                    inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
+                    left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
+                    where b.tgl_dok >= '$start_date' and b.tgl_dok <= '$end_date' and supplier = 'Production - Cutting' and a.status = 'Y'
+                    group by no_barcode, ifnull(c.idws_act,a.no_ws)
+                    ),
+                    cutt as  (
+                    SELECT
+                        id_roll,
+                        id_item,
+                        roll_status,
+                        ROUND(SUM(qty_in) - SUM(CASE WHEN roll_status != 'latest' THEN sisa_kain ELSE 0 END), 2) qty_in,
+                        ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                        MIN(sisa_kain) sisa_kain,
+                        SUM(short_roll) as short_roll,
+                        unit_roll,
+                        act_costing_ws
+                    FROM (
+                        select
+                            COALESCE(b.qty) qty_in,
+                            a.waktu_mulai,
+                            a.waktu_selesai,
+                            b.id,
+                            DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+                            DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
+                            b.no_form_cut_input,
+                            UPPER(meja.name) nama_meja,
+                            mrk.act_costing_ws,
+                            master_sb_ws.buyer,
+                            mrk.style,
+                            mrk.color,
+                            COALESCE(b.color_act, '-') color_act,
+                            mrk.panel,
+                            master_sb_ws.qty,
+                            cons_ws,
+                            cons_marker,
+                            a.cons_ampar,
+                            a.cons_act,
+                            (CASE WHEN a.cons_pipping > 0 THEN a.cons_pipping ELSE mrk.cons_piping END) cons_piping,
+                            panjang_marker,
+                            unit_panjang_marker,
+                            comma_marker,
+                            unit_comma_marker,
+                            lebar_marker,
+                            unit_lebar_marker,
+                            a.p_act panjang_actual,
+                            a.unit_p_act unit_panjang_actual,
+                            a.comma_p_act comma_actual,
+                            a.unit_comma_p_act unit_comma_actual,
+                            a.l_act lebar_actual,
+                            a.unit_l_act unit_lebar_actual,
+                            COALESCE(b.id_roll, '-') id_roll,
+                            b.id_item,
+                            b.detail_item,
+                            COALESCE(b.roll_buyer, b.roll) roll,
+                            COALESCE(b.lot, '-') lot,
+                            COALESCE(b.group_roll, '-') group_roll,
+                            (
+                                    CASE WHEN
+                                            b.status != 'extension' AND b.status != 'extension complete'
+                                    THEN
+                                            (CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
+                                    ELSE
+                                            'Sambungan'
+                                    END
+                            ) status_roll,
+                            COALESCE(c.qty, b.qty) qty_awal,
+                            b.qty qty_roll,
+                            b.unit unit_roll,
+                            COALESCE(b.berat_amparan, '-') berat_amparan,
+                            b.est_amparan,
+                            b.lembar_gelaran,
+                            mrk.total_ratio,
+                            (mrk.total_ratio * b.lembar_gelaran) qty_cut,
+                            b.average_time,
+                            b.sisa_gelaran,
+                            b.sambungan,
+                            b.sambungan_roll,
+                            b.kepala_kain,
+                            b.sisa_tidak_bisa,
+                            b.reject,
+                            b.piping,
+                            ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
+                            ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran ) + (b.sambungan_roll ) , 2) pemakaian_lembar,
+                            ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+                            ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll,
+                            ROUND((((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping)+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2)))-b.qty)/b.qty*100, 2) short_roll_percentage,
+                            b.status,
+                            a.operator,
+                            a.tipe_form_cut,
+                            b.created_at,
+                            b.updated_at,
+                            (CASE WHEN d.id is null and e.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                        from
+                            form_cut_input a
+                            left join form_cut_input_detail b on a.id = b.form_cut_id
+                            left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+                            LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '$start_date 00:00:00' and d.created_at <= '$end_date 23:59:59'
+                            LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '$start_date 00:00:00' and e.created_at <= '$end_date 23:59:59'
+                            left join users meja on meja.id = a.no_meja
+                            left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                            left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                            left join scanned_item on scanned_item.id_roll = b.id_roll
+                        where
+                            (a.cancel = 'N'  OR a.cancel IS NULL)
+                            AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                            AND a.status = 'SELESAI PENGERJAAN'
+                            and b.status != 'not complete'
+                            and b.id_item is not null
+                            and a.waktu_selesai >= '$start_date 00:00:00' and a.waktu_selesai <= '$end_date 23:59:59'
+                        group by
+                            b.id
+                        UNION ALL
+                        select
+                            COALESCE(form_cut_piping.qty) qty_in,
+                            form_cut_piping.created_at waktu_mulai,
+                            form_cut_piping.updated_at waktu_selesai,
+                            form_cut_piping.id,
+                            DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
+                            DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
+                            'PIPING' no_form_cut_input,
+                            '-' nama_meja,
+                            form_cut_piping.act_costing_ws,
+                            master_sb_ws.buyer,
+                            form_cut_piping.style,
+                            form_cut_piping.color,
+                            form_cut_piping.color color_act,
+                            form_cut_piping.panel,
+                            master_sb_ws.qty,
+                            '0' cons_ws,
+                            0 cons_marker,
+                            '0' cons_ampar,
+                            0 cons_act,
+                            form_cut_piping.cons_piping cons_piping,
+                            0 panjang_marker,
+                            '-' unit_panjang_marker,
+                            0 comma_marker,
+                            '-' unit_comma_marker,
+                            0 lebar_marker,
+                            '-' unit_lebar_marker,
+                            0 panjang_actual,
+                            '-' unit_panjang_actual,
+                            0 comma_actual,
+                            '-' unit_comma_actual,
+                            0 lebar_actual,
+                            '-' unit_lebar_actual,
+                            form_cut_piping.id_roll,
+                            scanned_item.id_item,
+                            scanned_item.detail_item,
+                            COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
+                            scanned_item.lot,
+                            '-' group_roll,
+                            'Piping' status_roll,
+                            COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_awal,
+                            form_cut_piping.qty qty_roll,
+                            form_cut_piping.unit unit_roll,
+                            0 berat_amparan,
+                            0 est_amparan,
+                            0 lembar_gelaran,
+                            0 total_ratio,
+                            0 qty_cut,
+                            '00:00' average_time,
+                            '0' sisa_gelaran,
+                            0 sambungan,
+                            0 sambungan_roll,
+                            0 kepala_kain,
+                            0 sisa_tidak_bisa,
+                            0 reject,
+                            form_cut_piping.piping piping,
+                            form_cut_piping.qty_sisa sisa_kain,
+                            form_cut_piping.piping pemakaian_lembar,
+                            form_cut_piping.piping total_pemakaian_roll,
+                            ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
+                            ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/coalesce(scanned_item.qty_in, form_cut_piping.qty) * 100, 2) short_roll_percentage,
+                            null `status`,
+                            form_cut_piping.operator,
+                            'PIPING' tipe_form_cut,
+                            form_cut_piping.created_at,
+                            form_cut_piping.updated_at,
+                            (CASE WHEN c.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                        from
+                            form_cut_piping
+                            LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '$start_date 00:00:00' and b.created_at < '$end_date 23:59:59'
+                            LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '$start_date 00:00:00' and c.created_at < '$end_date 23:59:59'
+                            left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                            left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+                        where
+                            scanned_item.id_item is not null
+                            and form_cut_piping.updated_at >= '$start_date 00:00:00' and form_cut_piping.updated_at <= '$end_date 23:59:59'
+                        group by
+                            form_cut_piping.id
+                        UNION ALL
+                        SELECT
+                            form_cut_piece_detail.qty qty_in,
+                            form_cut_piece.created_at waktu_mulai,
+                            form_cut_piece.waktu_selesai waktu_selesai,
+                            form_cut_piece.id,
+                            DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+                            DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
+                            form_cut_piece.no_form no_form_cut_input,
+                            '-' nama_meja,
+                            form_cut_piece.act_costing_ws,
+                            master_sb_ws.buyer,
+                            form_cut_piece.style,
+                            form_cut_piece.color,
+                            form_cut_piece.color color_act,
+                            form_cut_piece.panel,
+                            master_sb_ws.qty,
+                            form_cut_piece.cons_ws cons_ws,
+                            form_cut_piece.cons_ws cons_marker,
+                            '0' cons_ampar,
+                            0 cons_act,
+                            0 cons_piping,
+                            0 panjang_marker,
+                            '-' unit_panjang_marker,
+                            0 comma_marker,
+                            '-' unit_comma_marker,
+                            0 lebar_marker,
+                            '-' unit_lebar_marker,
+                            0 panjang_actual,
+                            '-' unit_panjang_actual,
+                            0 comma_actual,
+                            '-' unit_comma_actual,
+                            0 lebar_actual,
+                            '-' unit_lebar_actual,
+                            form_cut_piece_detail.id_roll,
+                            scanned_item.id_item,
+                            scanned_item.detail_item,
+                            COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
+                            scanned_item.lot,
+                            '-' group_roll,
+                            ( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
+                            COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
+                            form_cut_piece_detail.qty qty_roll,
+                            form_cut_piece_detail.qty_unit unit_roll,
+                            0 berat_amparan,
+                            0 est_amparan,
+                            0 lembar_gelaran,
+                            0 total_ratio,
+                            0 qty_cut,
+                            '00:00' average_time,
+                            '0' sisa_gelaran,
+                            0 sambungan,
+                            0 sambungan_roll,
+                            0 kepala_kain,
+                            0 sisa_tidak_bisa,
+                            0 reject,
+                            0 piping,
+                            form_cut_piece_detail.qty_sisa sisa_kain,
+                            form_cut_piece_detail.qty_pemakaian pemakaian_lembar,
+                            form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
+                            ROUND(
+                            form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll,
+                            ROUND((form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa ))/ COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) * 100, 2 ) short_roll_percentage,
+                            form_cut_piece_detail.STATUS `status`,
+                            form_cut_piece.employee_name,
+                            'PCS' tipe_form_cut,
+                            form_cut_piece.created_at,
+                            form_cut_piece.updated_at,
+                            (CASE WHEN b.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                        FROM
+                            form_cut_piece
+                            LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                            LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+                            LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                            LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+                        WHERE
+                            scanned_item.id_item IS NOT NULL
+                            AND form_cut_piece_detail.STATUS = 'complete'
+                            AND form_cut_piece_detail.id not in (7207)
+                            and form_cut_piece.waktu_selesai >= '$start_date 00:00:00' and form_cut_piece.waktu_selesai <= '$end_date 23:59:59'
+                        GROUP BY
+                            form_cut_piece_detail.id
+                    ) cutting
+                    -- where
+                    -- 	cutting.id_roll is not null and cutting.id_roll != '-'
+                    group by
+                        id_roll,
+                        id_item,
+                        act_costing_ws
+                    order by
+                        created_at
+                    ),
 
-sa as
-(
-SELECT
-barcode,
-ws,
-a.id_item,
-SUM(qty_out) as qty_out,
-SUM(qty_pakai) as qty_pakai,
-SUM(qty_retur) as qty_retur,
-SUM(qty_reject_set) as qty_reject_set,
-SUM(qty_reject_panel) as qty_reject_panel,
-SUM(short_roll) as short_roll,
-satuan
-FROM
-(
-		SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gk_out_sa
-		UNION ALL
-		SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,
-		short_roll as short_roll, unit_roll as satuan, act_costing_ws as ws
-		FROM cutt_sa
-		UNION ALL
-		SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, no_ws as ws  FROM gk_retur_sa
-		UNION ALL
-		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, 0 qty_reject_set, qty_pakai as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gr_set_alokasi_sa
-		UNION ALL
-		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gr_set_sa
-) a
-group by barcode, ws, a.satuan
-),
-m as
-(
-SELECT
-barcode,
-ws,
-a.id_item,
-SUM(qty_out) as qty_out,
-SUM(qty_pakai) as qty_pakai,
-SUM(qty_retur) as qty_retur,
-SUM(qty_reject_set) as qty_reject_set,
-SUM(qty_reject_panel) as qty_reject_panel,
-SUM(short_roll) as short_roll,
-satuan
-FROM
-(
-		SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gk_out
-		UNION ALL
-		SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,
-		short_roll as short_roll, unit_roll as satuan, act_costing_ws as ws
-		FROM cutt
-		UNION ALL
-		SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, no_ws as ws  FROM gk_retur
-		UNION ALL
-		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, 0 qty_reject_set, qty_pakai as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gr_set_alokasi
-		UNION ALL
-		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gr_set
-) a
-group by barcode, ws, a.satuan
-),
-sf as(
-SELECT
-$barcode,
-mut.id_item,
-mi.itemdesc,
-mi.color,
-ws,
-ROUND(SUM(saldo_awal), 2)     AS saldo_awal,
-ROUND(SUM(penerimaan), 2)    AS penerimaan,
-ROUND(SUM(pemakaian), 2)     AS pemakaian,
-ROUND(SUM(retur), 2)         AS retur,
-ROUND(SUM(gr_set), 2)        AS gr_set,
-ROUND(SUM(gr_panel), 2)      AS gr_panel,
-ROUND(SUM(short_roll), 2)    AS short_roll,
-ROUND(SUM(saldo_awal) + SUM(penerimaan) - SUM(pemakaian) + SUM(short_roll) - SUM(gr_set) - SUM(gr_panel) - SUM(retur),2) as saldo_akhir,
-satuan
-FROM
-(
-SELECT
-sa.barcode,
-sa.id_item,
-round(sa.qty_out - sa.qty_pakai + sa.short_roll  - sa.qty_reject_set - sa.qty_reject_panel - qty_retur,2) as saldo_awal,
-0 as penerimaan,
-0 as pemakaian,
-0 as retur,
-0 as gr_set,
-0 as gr_panel,
-0 as short_roll,
-sa.satuan,
-sa.ws
-FROM sa
-UNION ALL
-SELECT
-barcode,
-id_item,
-saldo_awal,
-0 as penerimaan,
-0 as pemakaian,
-0 as retur,
-0 as gr_set,
-0 as gr_panel,
-0 as short_roll,
-satuan,
-ws
-FROM sau
-UNION ALL
-SELECT
-m.barcode,
-id_item,
-0 as saldo_awal,
-qty_out as penerimaan,
-qty_pakai as pemakaian,
-qty_retur as retur,
-qty_reject_set as gr_set,
-qty_reject_panel as gr_panel,
-short_roll as short_roll,
-m.satuan,
-m.ws
-FROM m
--- TAMBAH DATA UNTUK YANG NON SISTEM
-UNION ALL
-SELECT
-barcode,
-id_item,
-saldo_awal,
-0 as penerimaan,
-0 as pemakaian,
-0 as retur,
-0 as gr_set,
-0 as gr_panel,
-0 as short_roll,
-satuan,
-ws
-FROM sa_report_cut_non_sistem
-) mut
-left join signalbit_erp.masteritem mi on mut.id_item = mi.id_item
-$group)
-select sf.*, buyer,styleno from sf
-LEFT JOIN (
-SELECT
-		ac.kpno,
-        supplier as buyer,
-        styleno
-		FROM signalbit_erp.jo_det jd
-		INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-		INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-		WHERE jd.cancel = 'N'
-		GROUP BY jd.id_jo
-) k on sf.ws = k.kpno
-order by  ws asc, color asc
-        ");
+                    sa as
+                    (
+                    SELECT
+                    barcode,
+                    ws,
+                    a.id_item,
+                    SUM(qty_out) as qty_out,
+                    SUM(qty_pakai) as qty_pakai,
+                    SUM(qty_retur) as qty_retur,
+                    SUM(qty_reject_set) as qty_reject_set,
+                    SUM(qty_reject_panel) as qty_reject_panel,
+                    SUM(short_roll) as short_roll,
+                    satuan
+                    FROM
+                    (
+                            SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
+                            FROM gk_out_sa
+                            UNION ALL
+                            SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,
+                            short_roll as short_roll, unit_roll as satuan, act_costing_ws as ws
+                            FROM cutt_sa
+                            UNION ALL
+                            SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, no_ws as ws  FROM gk_retur_sa
+                            UNION ALL
+                            SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, 0 qty_reject_set, qty_pakai as qty_reject_panel, 0 as short_roll, satuan, ws
+                            FROM gr_set_alokasi_sa
+                            UNION ALL
+                            SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
+                            FROM gr_set_sa
+                    ) a
+                    group by barcode, ws, a.satuan
+                    ),
+                    m as
+                    (
+                    SELECT
+                    barcode,
+                    ws,
+                    a.id_item,
+                    SUM(qty_out) as qty_out,
+                    SUM(qty_pakai) as qty_pakai,
+                    SUM(qty_retur) as qty_retur,
+                    SUM(qty_reject_set) as qty_reject_set,
+                    SUM(qty_reject_panel) as qty_reject_panel,
+                    SUM(short_roll) as short_roll,
+                    satuan
+                    FROM
+                    (
+                            SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
+                            FROM gk_out
+                            UNION ALL
+                            SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,
+                            short_roll as short_roll, unit_roll as satuan, act_costing_ws as ws
+                            FROM cutt
+                            UNION ALL
+                            SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, no_ws as ws  FROM gk_retur
+                            UNION ALL
+                            SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, 0 qty_reject_set, qty_pakai as qty_reject_panel, 0 as short_roll, satuan, ws
+                            FROM gr_set_alokasi
+                            UNION ALL
+                            SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
+                            FROM gr_set
+                    ) a
+                    group by barcode, ws, a.satuan
+                    ),
+                    sf as(
+                    SELECT
+                    $barcode,
+                    mut.id_item,
+                    mi.itemdesc,
+                    mi.color,
+                    ws,
+                    ROUND(SUM(saldo_awal), 2)     AS saldo_awal,
+                    ROUND(SUM(penerimaan), 2)    AS penerimaan,
+                    ROUND(SUM(pemakaian), 2)     AS pemakaian,
+                    ROUND(SUM(retur), 2)         AS retur,
+                    ROUND(SUM(gr_set), 2)        AS gr_set,
+                    ROUND(SUM(gr_panel), 2)      AS gr_panel,
+                    ROUND(SUM(short_roll), 2)    AS short_roll,
+                    ROUND(SUM(saldo_awal) + SUM(penerimaan) - SUM(pemakaian) + SUM(short_roll) - SUM(gr_set) - SUM(gr_panel) - SUM(retur),2) as saldo_akhir,
+                    satuan
+                    FROM
+                    (
+                    SELECT
+                    sa.barcode,
+                    sa.id_item,
+                    round(sa.qty_out - sa.qty_pakai + sa.short_roll  - sa.qty_reject_set - sa.qty_reject_panel - qty_retur,2) as saldo_awal,
+                    0 as penerimaan,
+                    0 as pemakaian,
+                    0 as retur,
+                    0 as gr_set,
+                    0 as gr_panel,
+                    0 as short_roll,
+                    sa.satuan,
+                    sa.ws
+                    FROM sa
+                    UNION ALL
+                    SELECT
+                    barcode,
+                    id_item,
+                    saldo_awal,
+                    0 as penerimaan,
+                    0 as pemakaian,
+                    0 as retur,
+                    0 as gr_set,
+                    0 as gr_panel,
+                    0 as short_roll,
+                    satuan,
+                    ws
+                    FROM sau
+                    UNION ALL
+                    SELECT
+                    m.barcode,
+                    id_item,
+                    0 as saldo_awal,
+                    qty_out as penerimaan,
+                    qty_pakai as pemakaian,
+                    qty_retur as retur,
+                    qty_reject_set as gr_set,
+                    qty_reject_panel as gr_panel,
+                    short_roll as short_roll,
+                    m.satuan,
+                    m.ws
+                    FROM m
+                    -- TAMBAH DATA UNTUK YANG NON SISTEM
+                    UNION ALL
+                    SELECT
+                    barcode,
+                    id_item,
+                    saldo_awal,
+                    0 as penerimaan,
+                    0 as pemakaian,
+                    0 as retur,
+                    0 as gr_set,
+                    0 as gr_panel,
+                    0 as short_roll,
+                    satuan,
+                    ws
+                    FROM sa_report_cut_non_sistem
+                    ) mut
+                    left join signalbit_erp.masteritem mi on mut.id_item = mi.id_item
+                    $group)
+                    select sf.*, buyer,styleno from sf
+                    LEFT JOIN (
+                    SELECT
+                            ac.kpno,
+                            supplier as buyer,
+                            styleno
+                            FROM signalbit_erp.jo_det jd
+                            INNER JOIN signalbit_erp.so ON jd.id_so = so.id
+                            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                            INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                            WHERE jd.cancel = 'N'
+                            GROUP BY jd.id_jo
+                    ) k on sf.ws = k.kpno
+                    order by  ws asc, color asc
+                ");
 
                 return response()->json([
                     'data' => $rawData // ✅ simplified response
@@ -3309,900 +3309,900 @@ order by  ws asc, color asc
         }
 
         $data = DB::select("WITH
-sau as (
-SELECT * from sa_report_cut_barcode where tgl_saldo = '$tgl_saldo'
-),
-gk_out_sa as (
-SELECT
-id_roll,
-id_item,
-id_jo,
-    SUM(
-        CASE
-            WHEN satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ) AS qty_out,
-CASE
-		WHEN satuan = 'YRD' THEN 'METER'
-		WHEN satuan = 'KGM' THEN 'KGM'
-		ELSE satuan
-		END as satuan,
-ifnull(no_ws_aktual,no_ws) ws
-from signalbit_erp.whs_bppb_h a
-inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
-where tgl_bppb >= '$tgl_saldo' and tgl_bppb < '$start_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-group by id_roll, ws
-),
-gr_set_sa as (
-select
-barcode,
-id_item,
-    SUM(
-        CASE
-            WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
-            ELSE b.qty_pakai
-        END
-    ) AS qty_pakai,
-CASE
-		WHEN s.unit = 'YRD' THEN 'METER'
-		WHEN s.unit = 'KGM' THEN 'KGM'
-		ELSE s.unit
-		END as satuan,
-a.act_costing_ws as ws
-from form_cut_reject a
-inner join form_cut_reject_barcode b on a.id = b.form_id
-left join scanned_item s on b.barcode = s.id_roll
-where b.created_at >= '$tgl_saldo 00:00:00' and b.created_at < '$start_date 00:00:00'
-group by barcode, ws
-),
-gr_set_alokasi_sa as (
-SELECT
-barcode,
-id_item,
-    SUM(
-        CASE
-            WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
-            ELSE a.qty_pakai
-        END
-    ) AS qty_pakai,
-CASE
-		WHEN s.unit = 'YRD' THEN 'METER'
-		WHEN s.unit = 'KGM' THEN 'KGM'
-		ELSE s.unit
-		END as satuan,
-ws,
-min(sisa_kain) sisa_kain
-from form_cut_alokasi_gr_panel_barcode a
-left join scanned_item s on a.barcode = s.id_roll
-where a.tgl_trans >= '$tgl_saldo' and a.tgl_trans < '$start_date'
-group by barcode, ws
-),
-gk_retur_sa as (
-SELECT
-no_barcode,
-a.id_item,
-    SUM(
-        CASE
-            WHEN satuan = 'YRD' THEN qty_aktual * 0.9144
-            ELSE qty_aktual
-        END
-    ) AS qty_retur,
-CASE
-		WHEN satuan = 'YRD' THEN 'METER'
-		WHEN satuan = 'KGM' THEN 'KGM'
-		ELSE satuan
-		END as satuan,
-ifnull(c.idws_act,a.no_ws) as no_ws
-from signalbit_erp.whs_lokasi_inmaterial a
-inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
-left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
+            sau as (
+            SELECT * from sa_report_cut_barcode where tgl_saldo = '$tgl_saldo'
+            ),
+            gk_out_sa as (
+            SELECT
+            id_roll,
+            id_item,
+            id_jo,
+                SUM(
+                    CASE
+                        WHEN satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ) AS qty_out,
+            CASE
+                    WHEN satuan = 'YRD' THEN 'METER'
+                    WHEN satuan = 'KGM' THEN 'KGM'
+                    ELSE satuan
+                    END as satuan,
+            ifnull(no_ws_aktual,no_ws) ws
+            from signalbit_erp.whs_bppb_h a
+            inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
+            where tgl_bppb >= '$tgl_saldo' and tgl_bppb < '$start_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
+            group by id_roll, ws
+            ),
+            gr_set_sa as (
+            select
+            barcode,
+            id_item,
+                SUM(
+                    CASE
+                        WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
+                        ELSE b.qty_pakai
+                    END
+                ) AS qty_pakai,
+            CASE
+                    WHEN s.unit = 'YRD' THEN 'METER'
+                    WHEN s.unit = 'KGM' THEN 'KGM'
+                    ELSE s.unit
+                    END as satuan,
+            a.act_costing_ws as ws
+            from form_cut_reject a
+            inner join form_cut_reject_barcode b on a.id = b.form_id
+            left join scanned_item s on b.barcode = s.id_roll
+            where b.created_at >= '$tgl_saldo 00:00:00' and b.created_at < '$start_date 00:00:00'
+            group by barcode, ws
+            ),
+            gr_set_alokasi_sa as (
+            SELECT
+            barcode,
+            id_item,
+                SUM(
+                    CASE
+                        WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
+                        ELSE a.qty_pakai
+                    END
+                ) AS qty_pakai,
+            CASE
+                    WHEN s.unit = 'YRD' THEN 'METER'
+                    WHEN s.unit = 'KGM' THEN 'KGM'
+                    ELSE s.unit
+                    END as satuan,
+            ws,
+            min(sisa_kain) sisa_kain
+            from form_cut_alokasi_gr_panel_barcode a
+            left join scanned_item s on a.barcode = s.id_roll
+            where a.tgl_trans >= '$tgl_saldo' and a.tgl_trans < '$start_date'
+            group by barcode, ws
+            ),
+            gk_retur_sa as (
+            SELECT
+            no_barcode,
+            a.id_item,
+                SUM(
+                    CASE
+                        WHEN satuan = 'YRD' THEN qty_aktual * 0.9144
+                        ELSE qty_aktual
+                    END
+                ) AS qty_retur,
+            CASE
+                    WHEN satuan = 'YRD' THEN 'METER'
+                    WHEN satuan = 'KGM' THEN 'KGM'
+                    ELSE satuan
+                    END as satuan,
+            ifnull(c.idws_act,a.no_ws) as no_ws
+            from signalbit_erp.whs_lokasi_inmaterial a
+            inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
+            left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
 
-where b.tgl_dok >= '$tgl_saldo' and b.tgl_dok < '$start_date' and supplier = 'Production - Cutting' and a.status = 'Y'
-group by no_barcode, ifnull(c.idws_act,a.no_ws)
-),
-cutt_sa as (
-SELECT
-	id_roll,
-	id_item,
-	roll_status,
-	ROUND(SUM(qty_in) - SUM(CASE WHEN roll_status != 'latest' THEN sisa_kain ELSE 0 END), 2) qty_in,
-	ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-	MIN(sisa_kain) sisa_kain,
-	SUM(short_roll) as short_roll,
-	unit_roll,
-	act_costing_ws
-FROM (
-	select
-		COALESCE(b.qty) qty_in,
-		a.waktu_mulai,
-		a.waktu_selesai,
-		b.id,
-		DATE_FORMAT(a.waktu_selesai, '%M') bulan,
-		DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
-		b.no_form_cut_input,
-		UPPER(meja.name) nama_meja,
-		mrk.act_costing_ws,
-		master_sb_ws.buyer,
-		mrk.style,
-		mrk.color,
-		COALESCE(b.color_act, '-') color_act,
-		mrk.panel,
-		master_sb_ws.qty,
-		cons_ws,
-		cons_marker,
-		a.cons_ampar,
-		a.cons_act,
-		(CASE WHEN a.cons_pipping > 0 THEN a.cons_pipping ELSE mrk.cons_piping END) cons_piping,
-		panjang_marker,
-		unit_panjang_marker,
-		comma_marker,
-		unit_comma_marker,
-		lebar_marker,
-		unit_lebar_marker,
-		a.p_act panjang_actual,
-		a.unit_p_act unit_panjang_actual,
-		a.comma_p_act comma_actual,
-		a.unit_comma_p_act unit_comma_actual,
-		a.l_act lebar_actual,
-		a.unit_l_act unit_lebar_actual,
-		COALESCE(b.id_roll, '-') id_roll,
-		b.id_item,
-		b.detail_item,
-		COALESCE(b.roll_buyer, b.roll) roll,
-		COALESCE(b.lot, '-') lot,
-		COALESCE(b.group_roll, '-') group_roll,
-		(
-				CASE WHEN
-						b.status != 'extension' AND b.status != 'extension complete'
-				THEN
-						(CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
-				ELSE
-						'Sambungan'
-				END
-		) status_roll,
-		COALESCE(c.qty, b.qty) qty_awal,
-		b.qty qty_roll,
-		b.unit unit_roll,
-		COALESCE(b.berat_amparan, '-') berat_amparan,
-		b.est_amparan,
-		b.lembar_gelaran,
-		mrk.total_ratio,
-		(mrk.total_ratio * b.lembar_gelaran) qty_cut,
-		b.average_time,
-		b.sisa_gelaran,
-		b.sambungan,
-		b.sambungan_roll,
-		b.kepala_kain,
-		b.sisa_tidak_bisa,
-		b.reject,
-		b.piping,
-		ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
-		ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran ) + (b.sambungan_roll ) , 2) pemakaian_lembar,
-		ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
-		ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll,
-		ROUND((((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping)+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2)))-b.qty)/b.qty*100, 2) short_roll_percentage,
-		b.status,
-		a.operator,
-		a.tipe_form_cut,
-		b.created_at,
-		b.updated_at,
-		(CASE WHEN d.id is null and e.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	from
-		form_cut_input a
-		left join form_cut_input_detail b on a.id = b.form_cut_id
-		left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
-		LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at
-		and d.created_at >= '$tgl_saldo 00:00:00' and d.created_at < '$start_date 00:00:00'
-		LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '$tgl_saldo 00:00:00' and e.created_at < '$start_date 00:00:00'
-		left join users meja on meja.id = a.no_meja
-		left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
-		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
-		left join scanned_item on scanned_item.id_roll = b.id_roll
-	where
-		(a.cancel = 'N'  OR a.cancel IS NULL)
-		AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
-		AND a.status = 'SELESAI PENGERJAAN'
-		and b.status != 'not complete'
-		and b.id_item is not null
-		and a.waktu_selesai >= '$tgl_saldo 00:00:00' and a.waktu_selesai < '$start_date 00:00:00'
-	group by
-		b.id
-	UNION ALL
-	select
-		COALESCE(form_cut_piping.qty) qty_in,
-		form_cut_piping.created_at waktu_mulai,
-		form_cut_piping.updated_at waktu_selesai,
-		form_cut_piping.id,
-		DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
-		DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
-		'PIPING' no_form_cut_input,
-		'-' nama_meja,
-		form_cut_piping.act_costing_ws,
-		master_sb_ws.buyer,
-		form_cut_piping.style,
-		form_cut_piping.color,
-		form_cut_piping.color color_act,
-		form_cut_piping.panel,
-		master_sb_ws.qty,
-		'0' cons_ws,
-		0 cons_marker,
-		'0' cons_ampar,
-		0 cons_act,
-		form_cut_piping.cons_piping cons_piping,
-		0 panjang_marker,
-		'-' unit_panjang_marker,
-		0 comma_marker,
-		'-' unit_comma_marker,
-		0 lebar_marker,
-		'-' unit_lebar_marker,
-		0 panjang_actual,
-		'-' unit_panjang_actual,
-		0 comma_actual,
-		'-' unit_comma_actual,
-		0 lebar_actual,
-		'-' unit_lebar_actual,
-		form_cut_piping.id_roll,
-		scanned_item.id_item,
-		scanned_item.detail_item,
-		COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
-		scanned_item.lot,
-		'-' group_roll,
-		'Piping' status_roll,
-		COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_awal,
-		form_cut_piping.qty qty_roll,
-		form_cut_piping.unit unit_roll,
-		0 berat_amparan,
-		0 est_amparan,
-		0 lembar_gelaran,
-		0 total_ratio,
-		0 qty_cut,
-		'00:00' average_time,
-		'0' sisa_gelaran,
-		0 sambungan,
-		0 sambungan_roll,
-		0 kepala_kain,
-		0 sisa_tidak_bisa,
-		0 reject,
-		form_cut_piping.piping piping,
-		form_cut_piping.qty_sisa sisa_kain,
-		form_cut_piping.piping pemakaian_lembar,
-		form_cut_piping.piping total_pemakaian_roll,
-		ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
-		ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/coalesce(scanned_item.qty_in, form_cut_piping.qty) * 100, 2) short_roll_percentage,
-		null `status`,
-		form_cut_piping.operator,
-		'PIPING' tipe_form_cut,
-		form_cut_piping.created_at,
-		form_cut_piping.updated_at,
-		(CASE WHEN c.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	from
-		form_cut_piping
-		LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '$tgl_saldo 00:00:00'
-		and b.created_at < '$start_date 00:00:00'
-		LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '$tgl_saldo 00:00:00'
-        and c.created_at < '$start_date 00:00:00'
-		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
-		left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
-	where
-		scanned_item.id_item is not null
-		and form_cut_piping.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piping.updated_at < '$start_date 00:00:00'
-	group by
-		form_cut_piping.id
-	UNION ALL
-	SELECT
-		form_cut_piece_detail.qty qty_in,
-		form_cut_piece.created_at waktu_mulai,
-		form_cut_piece.waktu_selesai waktu_selesai,
-		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
-		form_cut_piece.no_form no_form_cut_input,
-		'-' nama_meja,
-		form_cut_piece.act_costing_ws,
-		master_sb_ws.buyer,
-		form_cut_piece.style,
-		form_cut_piece.color,
-		form_cut_piece.color color_act,
-		form_cut_piece.panel,
-		master_sb_ws.qty,
-		form_cut_piece.cons_ws cons_ws,
-		form_cut_piece.cons_ws cons_marker,
-		'0' cons_ampar,
-		0 cons_act,
-		0 cons_piping,
-		0 panjang_marker,
-		'-' unit_panjang_marker,
-		0 comma_marker,
-		'-' unit_comma_marker,
-		0 lebar_marker,
-		'-' unit_lebar_marker,
-		0 panjang_actual,
-		'-' unit_panjang_actual,
-		0 comma_actual,
-		'-' unit_comma_actual,
-		0 lebar_actual,
-		'-' unit_lebar_actual,
-		form_cut_piece_detail.id_roll,
-		scanned_item.id_item,
-		scanned_item.detail_item,
-		COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
-		scanned_item.lot,
-		'-' group_roll,
-		( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
-		COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
-		form_cut_piece_detail.qty qty_roll,
-		form_cut_piece_detail.qty_unit unit_roll,
-		0 berat_amparan,
-		0 est_amparan,
-		0 lembar_gelaran,
-		0 total_ratio,
-		0 qty_cut,
-		'00:00' average_time,
-		'0' sisa_gelaran,
-		0 sambungan,
-		0 sambungan_roll,
-		0 kepala_kain,
-		0 sisa_tidak_bisa,
-		0 reject,
-		0 piping,
-		form_cut_piece_detail.qty_sisa sisa_kain,
-		form_cut_piece_detail.qty_pemakaian pemakaian_lembar,
-		form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
-		ROUND(
-		form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll,
-		ROUND((form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa ))/ COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) * 100, 2 ) short_roll_percentage,
-		form_cut_piece_detail.STATUS `status`,
-		form_cut_piece.employee_name,
-		'PCS' tipe_form_cut,
-		form_cut_piece.created_at,
-		form_cut_piece.updated_at,
-		(CASE WHEN b.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	FROM
-		form_cut_piece
-		LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-		LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
-		LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
-		LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
-	WHERE
-		scanned_item.id_item IS NOT NULL
-		AND form_cut_piece_detail.STATUS = 'complete'
-        AND form_cut_piece_detail.id not in (7207)
-		and form_cut_piece.waktu_selesai >= '$tgl_saldo 00:00:00' and form_cut_piece.waktu_selesai < '$start_date 00:00:00'
-	GROUP BY
-		form_cut_piece_detail.id
-) cutting
--- where
--- 	cutting.id_roll is not null and cutting.id_roll != '-'
-group by
-	id_roll,
-	id_item,
-	act_costing_ws
-order by
-	created_at
-),
--- Periode Transaksi
-gk_out as (SELECT
-id_roll,
-id_item,
-id_jo,
-    SUM(
-        CASE
-            WHEN satuan = 'YRD' THEN qty_out * 0.9144
-            ELSE qty_out
-        END
-    ) AS qty_out,
-CASE
-		WHEN satuan = 'YRD' THEN 'METER'
-		WHEN satuan = 'KGM' THEN 'KGM'
-		ELSE satuan
-		END as satuan,
-ifnull(no_ws_aktual,no_ws) ws
-from signalbit_erp.whs_bppb_h a
-inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
-where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-group by id_roll, ws
-),
-gr_set as (
-select
-barcode,
-id_item,
-    SUM(
-        CASE
-            WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
-            ELSE b.qty_pakai
-        END
-    ) AS qty_pakai,
-CASE
-		WHEN s.unit = 'YRD' THEN 'METER'
-		WHEN s.unit = 'KGM' THEN 'KGM'
-		ELSE s.unit
-		END as satuan,
-a.act_costing_ws as ws
-from form_cut_reject a
-inner join form_cut_reject_barcode b on a.id = b.form_id
-left join scanned_item s on b.barcode = s.id_roll
-where b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
-group by barcode, ws
-),
-gr_set_alokasi as (
-SELECT
-barcode,
-id_item,
-    SUM(
-        CASE
-            WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
-            ELSE a.qty_pakai
-        END
-    ) AS qty_pakai,
-CASE
-		WHEN s.unit = 'YRD' THEN 'METER'
-		WHEN s.unit = 'KGM' THEN 'KGM'
-		ELSE s.unit
-		END as satuan,
-ws,
-min(sisa_kain) sisa_kain
-from form_cut_alokasi_gr_panel_barcode a
-left join scanned_item s on a.barcode = s.id_roll
-where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
-group by barcode, ws
-),
-gk_retur as (
-SELECT
-no_barcode,
-a.id_item,
-    SUM(
-        CASE
-            WHEN satuan = 'YRD' THEN qty_aktual * 0.9144
-            ELSE qty_aktual
-        END
-    ) AS qty_retur,
-CASE
-		WHEN satuan = 'YRD' THEN 'METER'
-		WHEN satuan = 'KGM' THEN 'KGM'
-		ELSE satuan
-		END as satuan,
-ifnull(c.idws_act,a.no_ws) as no_ws
-from signalbit_erp.whs_lokasi_inmaterial a
-inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
-left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
-where b.tgl_dok >= '$start_date' and b.tgl_dok <= '$end_date' and supplier = 'Production - Cutting' and a.status = 'Y'
-group by no_barcode, ifnull(c.idws_act,a.no_ws)
-),
-cutt as  (
-SELECT
-	id_roll,
-	id_item,
-	roll_status,
-	ROUND(SUM(qty_in) - SUM(CASE WHEN roll_status != 'latest' THEN sisa_kain ELSE 0 END), 2) qty_in,
-	ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
-	MIN(sisa_kain) sisa_kain,
-	SUM(short_roll) as short_roll,
-	unit_roll,
-	act_costing_ws
-FROM (
-	select
-		COALESCE(b.qty) qty_in,
-		a.waktu_mulai,
-		a.waktu_selesai,
-		b.id,
-		DATE_FORMAT(a.waktu_selesai, '%M') bulan,
-		DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
-		b.no_form_cut_input,
-		UPPER(meja.name) nama_meja,
-		mrk.act_costing_ws,
-		master_sb_ws.buyer,
-		mrk.style,
-		mrk.color,
-		COALESCE(b.color_act, '-') color_act,
-		mrk.panel,
-		master_sb_ws.qty,
-		cons_ws,
-		cons_marker,
-		a.cons_ampar,
-		a.cons_act,
-		(CASE WHEN a.cons_pipping > 0 THEN a.cons_pipping ELSE mrk.cons_piping END) cons_piping,
-		panjang_marker,
-		unit_panjang_marker,
-		comma_marker,
-		unit_comma_marker,
-		lebar_marker,
-		unit_lebar_marker,
-		a.p_act panjang_actual,
-		a.unit_p_act unit_panjang_actual,
-		a.comma_p_act comma_actual,
-		a.unit_comma_p_act unit_comma_actual,
-		a.l_act lebar_actual,
-		a.unit_l_act unit_lebar_actual,
-		COALESCE(b.id_roll, '-') id_roll,
-		b.id_item,
-		b.detail_item,
-		COALESCE(b.roll_buyer, b.roll) roll,
-		COALESCE(b.lot, '-') lot,
-		COALESCE(b.group_roll, '-') group_roll,
-		(
-				CASE WHEN
-						b.status != 'extension' AND b.status != 'extension complete'
-				THEN
-						(CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
-				ELSE
-						'Sambungan'
-				END
-		) status_roll,
-		COALESCE(c.qty, b.qty) qty_awal,
-		b.qty qty_roll,
-		b.unit unit_roll,
-		COALESCE(b.berat_amparan, '-') berat_amparan,
-		b.est_amparan,
-		b.lembar_gelaran,
-		mrk.total_ratio,
-		(mrk.total_ratio * b.lembar_gelaran) qty_cut,
-		b.average_time,
-		b.sisa_gelaran,
-		b.sambungan,
-		b.sambungan_roll,
-		b.kepala_kain,
-		b.sisa_tidak_bisa,
-		b.reject,
-		b.piping,
-		ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
-		ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran ) + (b.sambungan_roll ) , 2) pemakaian_lembar,
-		ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
-		ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll,
-		ROUND((((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping)+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2)))-b.qty)/b.qty*100, 2) short_roll_percentage,
-		b.status,
-		a.operator,
-		a.tipe_form_cut,
-		b.created_at,
-		b.updated_at,
-		(CASE WHEN d.id is null and e.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	from
-		form_cut_input a
-		left join form_cut_input_detail b on a.id = b.form_cut_id
-		left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
-		LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '$start_date 00:00:00' and d.created_at <= '$end_date 23:59:59'
-		LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '$start_date 00:00:00' and e.created_at <= '$end_date 23:59:59'
-		left join users meja on meja.id = a.no_meja
-		left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
-		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
-		left join scanned_item on scanned_item.id_roll = b.id_roll
-	where
-		(a.cancel = 'N'  OR a.cancel IS NULL)
-		AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
-		AND a.status = 'SELESAI PENGERJAAN'
-		and b.status != 'not complete'
-		and b.id_item is not null
-		and a.waktu_selesai >= '$start_date 00:00:00' and a.waktu_selesai <= '$end_date 23:59:59'
-	group by
-		b.id
-	UNION ALL
-	select
-		COALESCE(form_cut_piping.qty) qty_in,
-		form_cut_piping.created_at waktu_mulai,
-		form_cut_piping.updated_at waktu_selesai,
-		form_cut_piping.id,
-		DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
-		DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
-		'PIPING' no_form_cut_input,
-		'-' nama_meja,
-		form_cut_piping.act_costing_ws,
-		master_sb_ws.buyer,
-		form_cut_piping.style,
-		form_cut_piping.color,
-		form_cut_piping.color color_act,
-		form_cut_piping.panel,
-		master_sb_ws.qty,
-		'0' cons_ws,
-		0 cons_marker,
-		'0' cons_ampar,
-		0 cons_act,
-		form_cut_piping.cons_piping cons_piping,
-		0 panjang_marker,
-		'-' unit_panjang_marker,
-		0 comma_marker,
-		'-' unit_comma_marker,
-		0 lebar_marker,
-		'-' unit_lebar_marker,
-		0 panjang_actual,
-		'-' unit_panjang_actual,
-		0 comma_actual,
-		'-' unit_comma_actual,
-		0 lebar_actual,
-		'-' unit_lebar_actual,
-		form_cut_piping.id_roll,
-		scanned_item.id_item,
-		scanned_item.detail_item,
-		COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
-		scanned_item.lot,
-		'-' group_roll,
-		'Piping' status_roll,
-		COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_awal,
-		form_cut_piping.qty qty_roll,
-		form_cut_piping.unit unit_roll,
-		0 berat_amparan,
-		0 est_amparan,
-		0 lembar_gelaran,
-		0 total_ratio,
-		0 qty_cut,
-		'00:00' average_time,
-		'0' sisa_gelaran,
-		0 sambungan,
-		0 sambungan_roll,
-		0 kepala_kain,
-		0 sisa_tidak_bisa,
-		0 reject,
-		form_cut_piping.piping piping,
-		form_cut_piping.qty_sisa sisa_kain,
-		form_cut_piping.piping pemakaian_lembar,
-		form_cut_piping.piping total_pemakaian_roll,
-		ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
-		ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/coalesce(scanned_item.qty_in, form_cut_piping.qty) * 100, 2) short_roll_percentage,
-		null `status`,
-		form_cut_piping.operator,
-		'PIPING' tipe_form_cut,
-		form_cut_piping.created_at,
-		form_cut_piping.updated_at,
-		(CASE WHEN c.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	from
-		form_cut_piping
-		LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '$start_date 00:00:00' and b.created_at < '$end_date 23:59:59'
-		LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '$start_date 00:00:00' and c.created_at < '$end_date 23:59:59'
-		left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
-		left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
-	where
-		scanned_item.id_item is not null
-		and form_cut_piping.updated_at >= '$start_date 00:00:00' and form_cut_piping.updated_at <= '$end_date 23:59:59'
-	group by
-		form_cut_piping.id
-	UNION ALL
-	SELECT
-		form_cut_piece_detail.qty qty_in,
-		form_cut_piece.created_at waktu_mulai,
-		form_cut_piece.waktu_selesai waktu_selesai,
-		form_cut_piece.id,
-		DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
-		DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
-		form_cut_piece.no_form no_form_cut_input,
-		'-' nama_meja,
-		form_cut_piece.act_costing_ws,
-		master_sb_ws.buyer,
-		form_cut_piece.style,
-		form_cut_piece.color,
-		form_cut_piece.color color_act,
-		form_cut_piece.panel,
-		master_sb_ws.qty,
-		form_cut_piece.cons_ws cons_ws,
-		form_cut_piece.cons_ws cons_marker,
-		'0' cons_ampar,
-		0 cons_act,
-		0 cons_piping,
-		0 panjang_marker,
-		'-' unit_panjang_marker,
-		0 comma_marker,
-		'-' unit_comma_marker,
-		0 lebar_marker,
-		'-' unit_lebar_marker,
-		0 panjang_actual,
-		'-' unit_panjang_actual,
-		0 comma_actual,
-		'-' unit_comma_actual,
-		0 lebar_actual,
-		'-' unit_lebar_actual,
-		form_cut_piece_detail.id_roll,
-		scanned_item.id_item,
-		scanned_item.detail_item,
-		COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
-		scanned_item.lot,
-		'-' group_roll,
-		( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
-		COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
-		form_cut_piece_detail.qty qty_roll,
-		form_cut_piece_detail.qty_unit unit_roll,
-		0 berat_amparan,
-		0 est_amparan,
-		0 lembar_gelaran,
-		0 total_ratio,
-		0 qty_cut,
-		'00:00' average_time,
-		'0' sisa_gelaran,
-		0 sambungan,
-		0 sambungan_roll,
-		0 kepala_kain,
-		0 sisa_tidak_bisa,
-		0 reject,
-		0 piping,
-		form_cut_piece_detail.qty_sisa sisa_kain,
-		form_cut_piece_detail.qty_pemakaian pemakaian_lembar,
-		form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
-		ROUND(
-		form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll,
-		ROUND((form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa ))/ COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) * 100, 2 ) short_roll_percentage,
-		form_cut_piece_detail.STATUS `status`,
-		form_cut_piece.employee_name,
-		'PCS' tipe_form_cut,
-		form_cut_piece.created_at,
-		form_cut_piece.updated_at,
-		(CASE WHEN b.id is null THEN 'latest' ELSE 'not latest' END) roll_status
-	FROM
-		form_cut_piece
-		LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-		LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
-		LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
-		LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
-	WHERE
-		scanned_item.id_item IS NOT NULL
-		AND form_cut_piece_detail.STATUS = 'complete'
-        AND form_cut_piece_detail.id not in (7207)
-		and form_cut_piece.waktu_selesai >= '$start_date 00:00:00' and form_cut_piece.waktu_selesai <= '$end_date 23:59:59'
-	GROUP BY
-		form_cut_piece_detail.id
-) cutting
--- where
--- 	cutting.id_roll is not null and cutting.id_roll != '-'
-group by
-	id_roll,
-	id_item,
-	act_costing_ws
-order by
-	created_at
-),
+            where b.tgl_dok >= '$tgl_saldo' and b.tgl_dok < '$start_date' and supplier = 'Production - Cutting' and a.status = 'Y'
+            group by no_barcode, ifnull(c.idws_act,a.no_ws)
+            ),
+            cutt_sa as (
+            SELECT
+                id_roll,
+                id_item,
+                roll_status,
+                ROUND(SUM(qty_in) - SUM(CASE WHEN roll_status != 'latest' THEN sisa_kain ELSE 0 END), 2) qty_in,
+                ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                MIN(sisa_kain) sisa_kain,
+                SUM(short_roll) as short_roll,
+                unit_roll,
+                act_costing_ws
+            FROM (
+                select
+                    COALESCE(b.qty) qty_in,
+                    a.waktu_mulai,
+                    a.waktu_selesai,
+                    b.id,
+                    DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+                    DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
+                    b.no_form_cut_input,
+                    UPPER(meja.name) nama_meja,
+                    mrk.act_costing_ws,
+                    master_sb_ws.buyer,
+                    mrk.style,
+                    mrk.color,
+                    COALESCE(b.color_act, '-') color_act,
+                    mrk.panel,
+                    master_sb_ws.qty,
+                    cons_ws,
+                    cons_marker,
+                    a.cons_ampar,
+                    a.cons_act,
+                    (CASE WHEN a.cons_pipping > 0 THEN a.cons_pipping ELSE mrk.cons_piping END) cons_piping,
+                    panjang_marker,
+                    unit_panjang_marker,
+                    comma_marker,
+                    unit_comma_marker,
+                    lebar_marker,
+                    unit_lebar_marker,
+                    a.p_act panjang_actual,
+                    a.unit_p_act unit_panjang_actual,
+                    a.comma_p_act comma_actual,
+                    a.unit_comma_p_act unit_comma_actual,
+                    a.l_act lebar_actual,
+                    a.unit_l_act unit_lebar_actual,
+                    COALESCE(b.id_roll, '-') id_roll,
+                    b.id_item,
+                    b.detail_item,
+                    COALESCE(b.roll_buyer, b.roll) roll,
+                    COALESCE(b.lot, '-') lot,
+                    COALESCE(b.group_roll, '-') group_roll,
+                    (
+                            CASE WHEN
+                                    b.status != 'extension' AND b.status != 'extension complete'
+                            THEN
+                                    (CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
+                            ELSE
+                                    'Sambungan'
+                            END
+                    ) status_roll,
+                    COALESCE(c.qty, b.qty) qty_awal,
+                    b.qty qty_roll,
+                    b.unit unit_roll,
+                    COALESCE(b.berat_amparan, '-') berat_amparan,
+                    b.est_amparan,
+                    b.lembar_gelaran,
+                    mrk.total_ratio,
+                    (mrk.total_ratio * b.lembar_gelaran) qty_cut,
+                    b.average_time,
+                    b.sisa_gelaran,
+                    b.sambungan,
+                    b.sambungan_roll,
+                    b.kepala_kain,
+                    b.sisa_tidak_bisa,
+                    b.reject,
+                    b.piping,
+                    ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
+                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran ) + (b.sambungan_roll ) , 2) pemakaian_lembar,
+                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+                    ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll,
+                    ROUND((((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping)+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2)))-b.qty)/b.qty*100, 2) short_roll_percentage,
+                    b.status,
+                    a.operator,
+                    a.tipe_form_cut,
+                    b.created_at,
+                    b.updated_at,
+                    (CASE WHEN d.id is null and e.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                from
+                    form_cut_input a
+                    left join form_cut_input_detail b on a.id = b.form_cut_id
+                    left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+                    LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at
+                    and d.created_at >= '$tgl_saldo 00:00:00' and d.created_at < '$start_date 00:00:00'
+                    LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '$tgl_saldo 00:00:00' and e.created_at < '$start_date 00:00:00'
+                    left join users meja on meja.id = a.no_meja
+                    left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = b.id_roll
+                where
+                    (a.cancel = 'N'  OR a.cancel IS NULL)
+                    AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                    AND a.status = 'SELESAI PENGERJAAN'
+                    and b.status != 'not complete'
+                    and b.id_item is not null
+                    and a.waktu_selesai >= '$tgl_saldo 00:00:00' and a.waktu_selesai < '$start_date 00:00:00'
+                group by
+                    b.id
+                UNION ALL
+                select
+                    COALESCE(form_cut_piping.qty) qty_in,
+                    form_cut_piping.created_at waktu_mulai,
+                    form_cut_piping.updated_at waktu_selesai,
+                    form_cut_piping.id,
+                    DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
+                    DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
+                    'PIPING' no_form_cut_input,
+                    '-' nama_meja,
+                    form_cut_piping.act_costing_ws,
+                    master_sb_ws.buyer,
+                    form_cut_piping.style,
+                    form_cut_piping.color,
+                    form_cut_piping.color color_act,
+                    form_cut_piping.panel,
+                    master_sb_ws.qty,
+                    '0' cons_ws,
+                    0 cons_marker,
+                    '0' cons_ampar,
+                    0 cons_act,
+                    form_cut_piping.cons_piping cons_piping,
+                    0 panjang_marker,
+                    '-' unit_panjang_marker,
+                    0 comma_marker,
+                    '-' unit_comma_marker,
+                    0 lebar_marker,
+                    '-' unit_lebar_marker,
+                    0 panjang_actual,
+                    '-' unit_panjang_actual,
+                    0 comma_actual,
+                    '-' unit_comma_actual,
+                    0 lebar_actual,
+                    '-' unit_lebar_actual,
+                    form_cut_piping.id_roll,
+                    scanned_item.id_item,
+                    scanned_item.detail_item,
+                    COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
+                    scanned_item.lot,
+                    '-' group_roll,
+                    'Piping' status_roll,
+                    COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_awal,
+                    form_cut_piping.qty qty_roll,
+                    form_cut_piping.unit unit_roll,
+                    0 berat_amparan,
+                    0 est_amparan,
+                    0 lembar_gelaran,
+                    0 total_ratio,
+                    0 qty_cut,
+                    '00:00' average_time,
+                    '0' sisa_gelaran,
+                    0 sambungan,
+                    0 sambungan_roll,
+                    0 kepala_kain,
+                    0 sisa_tidak_bisa,
+                    0 reject,
+                    form_cut_piping.piping piping,
+                    form_cut_piping.qty_sisa sisa_kain,
+                    form_cut_piping.piping pemakaian_lembar,
+                    form_cut_piping.piping total_pemakaian_roll,
+                    ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
+                    ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/coalesce(scanned_item.qty_in, form_cut_piping.qty) * 100, 2) short_roll_percentage,
+                    null `status`,
+                    form_cut_piping.operator,
+                    'PIPING' tipe_form_cut,
+                    form_cut_piping.created_at,
+                    form_cut_piping.updated_at,
+                    (CASE WHEN c.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                from
+                    form_cut_piping
+                    LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '$tgl_saldo 00:00:00'
+                    and b.created_at < '$start_date 00:00:00'
+                    LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '$tgl_saldo 00:00:00'
+                    and c.created_at < '$start_date 00:00:00'
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+                where
+                    scanned_item.id_item is not null
+                    and form_cut_piping.updated_at >= '$tgl_saldo 00:00:00' and form_cut_piping.updated_at < '$start_date 00:00:00'
+                group by
+                    form_cut_piping.id
+                UNION ALL
+                SELECT
+                    form_cut_piece_detail.qty qty_in,
+                    form_cut_piece.created_at waktu_mulai,
+                    form_cut_piece.waktu_selesai waktu_selesai,
+                    form_cut_piece.id,
+                    DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+                    DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
+                    form_cut_piece.no_form no_form_cut_input,
+                    '-' nama_meja,
+                    form_cut_piece.act_costing_ws,
+                    master_sb_ws.buyer,
+                    form_cut_piece.style,
+                    form_cut_piece.color,
+                    form_cut_piece.color color_act,
+                    form_cut_piece.panel,
+                    master_sb_ws.qty,
+                    form_cut_piece.cons_ws cons_ws,
+                    form_cut_piece.cons_ws cons_marker,
+                    '0' cons_ampar,
+                    0 cons_act,
+                    0 cons_piping,
+                    0 panjang_marker,
+                    '-' unit_panjang_marker,
+                    0 comma_marker,
+                    '-' unit_comma_marker,
+                    0 lebar_marker,
+                    '-' unit_lebar_marker,
+                    0 panjang_actual,
+                    '-' unit_panjang_actual,
+                    0 comma_actual,
+                    '-' unit_comma_actual,
+                    0 lebar_actual,
+                    '-' unit_lebar_actual,
+                    form_cut_piece_detail.id_roll,
+                    scanned_item.id_item,
+                    scanned_item.detail_item,
+                    COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
+                    scanned_item.lot,
+                    '-' group_roll,
+                    ( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
+                    COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
+                    form_cut_piece_detail.qty qty_roll,
+                    form_cut_piece_detail.qty_unit unit_roll,
+                    0 berat_amparan,
+                    0 est_amparan,
+                    0 lembar_gelaran,
+                    0 total_ratio,
+                    0 qty_cut,
+                    '00:00' average_time,
+                    '0' sisa_gelaran,
+                    0 sambungan,
+                    0 sambungan_roll,
+                    0 kepala_kain,
+                    0 sisa_tidak_bisa,
+                    0 reject,
+                    0 piping,
+                    form_cut_piece_detail.qty_sisa sisa_kain,
+                    form_cut_piece_detail.qty_pemakaian pemakaian_lembar,
+                    form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
+                    ROUND(
+                    form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll,
+                    ROUND((form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa ))/ COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) * 100, 2 ) short_roll_percentage,
+                    form_cut_piece_detail.STATUS `status`,
+                    form_cut_piece.employee_name,
+                    'PCS' tipe_form_cut,
+                    form_cut_piece.created_at,
+                    form_cut_piece.updated_at,
+                    (CASE WHEN b.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                FROM
+                    form_cut_piece
+                    LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                    LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+                    LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                    LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+                WHERE
+                    scanned_item.id_item IS NOT NULL
+                    AND form_cut_piece_detail.STATUS = 'complete'
+                    AND form_cut_piece_detail.id not in (7207)
+                    and form_cut_piece.waktu_selesai >= '$tgl_saldo 00:00:00' and form_cut_piece.waktu_selesai < '$start_date 00:00:00'
+                GROUP BY
+                    form_cut_piece_detail.id
+            ) cutting
+            -- where
+            -- 	cutting.id_roll is not null and cutting.id_roll != '-'
+            group by
+                id_roll,
+                id_item,
+                act_costing_ws
+            order by
+                created_at
+            ),
+            -- Periode Transaksi
+            gk_out as (SELECT
+            id_roll,
+            id_item,
+            id_jo,
+                SUM(
+                    CASE
+                        WHEN satuan = 'YRD' THEN qty_out * 0.9144
+                        ELSE qty_out
+                    END
+                ) AS qty_out,
+            CASE
+                    WHEN satuan = 'YRD' THEN 'METER'
+                    WHEN satuan = 'KGM' THEN 'KGM'
+                    ELSE satuan
+                    END as satuan,
+            ifnull(no_ws_aktual,no_ws) ws
+            from signalbit_erp.whs_bppb_h a
+            inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
+            where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
+            group by id_roll, ws
+            ),
+            gr_set as (
+            select
+            barcode,
+            id_item,
+                SUM(
+                    CASE
+                        WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
+                        ELSE b.qty_pakai
+                    END
+                ) AS qty_pakai,
+            CASE
+                    WHEN s.unit = 'YRD' THEN 'METER'
+                    WHEN s.unit = 'KGM' THEN 'KGM'
+                    ELSE s.unit
+                    END as satuan,
+            a.act_costing_ws as ws
+            from form_cut_reject a
+            inner join form_cut_reject_barcode b on a.id = b.form_id
+            left join scanned_item s on b.barcode = s.id_roll
+            where b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
+            group by barcode, ws
+            ),
+            gr_set_alokasi as (
+            SELECT
+            barcode,
+            id_item,
+                SUM(
+                    CASE
+                        WHEN s.unit = 'YRD' THEN a.qty_pakai * 0.9144
+                        ELSE a.qty_pakai
+                    END
+                ) AS qty_pakai,
+            CASE
+                    WHEN s.unit = 'YRD' THEN 'METER'
+                    WHEN s.unit = 'KGM' THEN 'KGM'
+                    ELSE s.unit
+                    END as satuan,
+            ws,
+            min(sisa_kain) sisa_kain
+            from form_cut_alokasi_gr_panel_barcode a
+            left join scanned_item s on a.barcode = s.id_roll
+            where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
+            group by barcode, ws
+            ),
+            gk_retur as (
+            SELECT
+            no_barcode,
+            a.id_item,
+                SUM(
+                    CASE
+                        WHEN satuan = 'YRD' THEN qty_aktual * 0.9144
+                        ELSE qty_aktual
+                    END
+                ) AS qty_retur,
+            CASE
+                    WHEN satuan = 'YRD' THEN 'METER'
+                    WHEN satuan = 'KGM' THEN 'KGM'
+                    ELSE satuan
+                    END as satuan,
+            ifnull(c.idws_act,a.no_ws) as no_ws
+            from signalbit_erp.whs_lokasi_inmaterial a
+            inner join signalbit_erp.whs_inmaterial_fabric b on a.no_dok = b.no_dok
+            left join signalbit_erp.bppb_req c on b.no_invoice = c.bppbno and a.id_item = c.id_item and a.id_jo = c.id_jo
+            where b.tgl_dok >= '$start_date' and b.tgl_dok <= '$end_date' and supplier = 'Production - Cutting' and a.status = 'Y'
+            group by no_barcode, ifnull(c.idws_act,a.no_ws)
+            ),
+            cutt as  (
+            SELECT
+                id_roll,
+                id_item,
+                roll_status,
+                ROUND(SUM(qty_in) - SUM(CASE WHEN roll_status != 'latest' THEN sisa_kain ELSE 0 END), 2) qty_in,
+                ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                MIN(sisa_kain) sisa_kain,
+                SUM(short_roll) as short_roll,
+                unit_roll,
+                act_costing_ws
+            FROM (
+                select
+                    COALESCE(b.qty) qty_in,
+                    a.waktu_mulai,
+                    a.waktu_selesai,
+                    b.id,
+                    DATE_FORMAT(a.waktu_selesai, '%M') bulan,
+                    DATE_FORMAT(a.waktu_selesai, '%d-%m-%Y') tgl_input,
+                    b.no_form_cut_input,
+                    UPPER(meja.name) nama_meja,
+                    mrk.act_costing_ws,
+                    master_sb_ws.buyer,
+                    mrk.style,
+                    mrk.color,
+                    COALESCE(b.color_act, '-') color_act,
+                    mrk.panel,
+                    master_sb_ws.qty,
+                    cons_ws,
+                    cons_marker,
+                    a.cons_ampar,
+                    a.cons_act,
+                    (CASE WHEN a.cons_pipping > 0 THEN a.cons_pipping ELSE mrk.cons_piping END) cons_piping,
+                    panjang_marker,
+                    unit_panjang_marker,
+                    comma_marker,
+                    unit_comma_marker,
+                    lebar_marker,
+                    unit_lebar_marker,
+                    a.p_act panjang_actual,
+                    a.unit_p_act unit_panjang_actual,
+                    a.comma_p_act comma_actual,
+                    a.unit_comma_p_act unit_comma_actual,
+                    a.l_act lebar_actual,
+                    a.unit_l_act unit_lebar_actual,
+                    COALESCE(b.id_roll, '-') id_roll,
+                    b.id_item,
+                    b.detail_item,
+                    COALESCE(b.roll_buyer, b.roll) roll,
+                    COALESCE(b.lot, '-') lot,
+                    COALESCE(b.group_roll, '-') group_roll,
+                    (
+                            CASE WHEN
+                                    b.status != 'extension' AND b.status != 'extension complete'
+                            THEN
+                                    (CASE WHEN COALESCE(scanned_item.qty_in, b.qty) > b.qty AND c.id IS NULL THEN 'Sisa Kain' ELSE 'Roll Utuh' END)
+                            ELSE
+                                    'Sambungan'
+                            END
+                    ) status_roll,
+                    COALESCE(c.qty, b.qty) qty_awal,
+                    b.qty qty_roll,
+                    b.unit unit_roll,
+                    COALESCE(b.berat_amparan, '-') berat_amparan,
+                    b.est_amparan,
+                    b.lembar_gelaran,
+                    mrk.total_ratio,
+                    (mrk.total_ratio * b.lembar_gelaran) qty_cut,
+                    b.average_time,
+                    b.sisa_gelaran,
+                    b.sambungan,
+                    b.sambungan_roll,
+                    b.kepala_kain,
+                    b.sisa_tidak_bisa,
+                    b.reject,
+                    b.piping,
+                    ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2) sisa_kain,
+                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran ) + (b.sambungan_roll ) , 2) pemakaian_lembar,
+                    ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+                    ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll,
+                    ROUND((((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping)+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2)))-b.qty)/b.qty*100, 2) short_roll_percentage,
+                    b.status,
+                    a.operator,
+                    a.tipe_form_cut,
+                    b.created_at,
+                    b.updated_at,
+                    (CASE WHEN d.id is null and e.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                from
+                    form_cut_input a
+                    left join form_cut_input_detail b on a.id = b.form_cut_id
+                    left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+                    LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '$start_date 00:00:00' and d.created_at <= '$end_date 23:59:59'
+                    LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '$start_date 00:00:00' and e.created_at <= '$end_date 23:59:59'
+                    left join users meja on meja.id = a.no_meja
+                    left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = b.id_roll
+                where
+                    (a.cancel = 'N'  OR a.cancel IS NULL)
+                    AND (mrk.cancel = 'N'  OR mrk.cancel IS NULL)
+                    AND a.status = 'SELESAI PENGERJAAN'
+                    and b.status != 'not complete'
+                    and b.id_item is not null
+                    and a.waktu_selesai >= '$start_date 00:00:00' and a.waktu_selesai <= '$end_date 23:59:59'
+                group by
+                    b.id
+                UNION ALL
+                select
+                    COALESCE(form_cut_piping.qty) qty_in,
+                    form_cut_piping.created_at waktu_mulai,
+                    form_cut_piping.updated_at waktu_selesai,
+                    form_cut_piping.id,
+                    DATE_FORMAT(form_cut_piping.updated_at, '%M') bulan,
+                    DATE_FORMAT(form_cut_piping.updated_at, '%d-%m-%Y') tgl_input,
+                    'PIPING' no_form_cut_input,
+                    '-' nama_meja,
+                    form_cut_piping.act_costing_ws,
+                    master_sb_ws.buyer,
+                    form_cut_piping.style,
+                    form_cut_piping.color,
+                    form_cut_piping.color color_act,
+                    form_cut_piping.panel,
+                    master_sb_ws.qty,
+                    '0' cons_ws,
+                    0 cons_marker,
+                    '0' cons_ampar,
+                    0 cons_act,
+                    form_cut_piping.cons_piping cons_piping,
+                    0 panjang_marker,
+                    '-' unit_panjang_marker,
+                    0 comma_marker,
+                    '-' unit_comma_marker,
+                    0 lebar_marker,
+                    '-' unit_lebar_marker,
+                    0 panjang_actual,
+                    '-' unit_panjang_actual,
+                    0 comma_actual,
+                    '-' unit_comma_actual,
+                    0 lebar_actual,
+                    '-' unit_lebar_actual,
+                    form_cut_piping.id_roll,
+                    scanned_item.id_item,
+                    scanned_item.detail_item,
+                    COALESCE(scanned_item.roll_buyer, scanned_item.roll) roll,
+                    scanned_item.lot,
+                    '-' group_roll,
+                    'Piping' status_roll,
+                    COALESCE(scanned_item.qty_in, form_cut_piping.qty) qty_awal,
+                    form_cut_piping.qty qty_roll,
+                    form_cut_piping.unit unit_roll,
+                    0 berat_amparan,
+                    0 est_amparan,
+                    0 lembar_gelaran,
+                    0 total_ratio,
+                    0 qty_cut,
+                    '00:00' average_time,
+                    '0' sisa_gelaran,
+                    0 sambungan,
+                    0 sambungan_roll,
+                    0 kepala_kain,
+                    0 sisa_tidak_bisa,
+                    0 reject,
+                    form_cut_piping.piping piping,
+                    form_cut_piping.qty_sisa sisa_kain,
+                    form_cut_piping.piping pemakaian_lembar,
+                    form_cut_piping.piping total_pemakaian_roll,
+                    ROUND((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty, 2) short_roll,
+                    ROUND(((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty)/coalesce(scanned_item.qty_in, form_cut_piping.qty) * 100, 2) short_roll_percentage,
+                    null `status`,
+                    form_cut_piping.operator,
+                    'PIPING' tipe_form_cut,
+                    form_cut_piping.created_at,
+                    form_cut_piping.updated_at,
+                    (CASE WHEN c.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                from
+                    form_cut_piping
+                    LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '$start_date 00:00:00' and b.created_at < '$end_date 23:59:59'
+                    LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '$start_date 00:00:00' and c.created_at < '$end_date 23:59:59'
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+                where
+                    scanned_item.id_item is not null
+                    and form_cut_piping.updated_at >= '$start_date 00:00:00' and form_cut_piping.updated_at <= '$end_date 23:59:59'
+                group by
+                    form_cut_piping.id
+                UNION ALL
+                SELECT
+                    form_cut_piece_detail.qty qty_in,
+                    form_cut_piece.created_at waktu_mulai,
+                    form_cut_piece.waktu_selesai waktu_selesai,
+                    form_cut_piece.id,
+                    DATE_FORMAT( form_cut_piece.waktu_selesai, '%M' ) bulan,
+                    DATE_FORMAT( form_cut_piece.waktu_selesai, '%d-%m-%Y' ) tgl_input,
+                    form_cut_piece.no_form no_form_cut_input,
+                    '-' nama_meja,
+                    form_cut_piece.act_costing_ws,
+                    master_sb_ws.buyer,
+                    form_cut_piece.style,
+                    form_cut_piece.color,
+                    form_cut_piece.color color_act,
+                    form_cut_piece.panel,
+                    master_sb_ws.qty,
+                    form_cut_piece.cons_ws cons_ws,
+                    form_cut_piece.cons_ws cons_marker,
+                    '0' cons_ampar,
+                    0 cons_act,
+                    0 cons_piping,
+                    0 panjang_marker,
+                    '-' unit_panjang_marker,
+                    0 comma_marker,
+                    '-' unit_comma_marker,
+                    0 lebar_marker,
+                    '-' unit_lebar_marker,
+                    0 panjang_actual,
+                    '-' unit_panjang_actual,
+                    0 comma_actual,
+                    '-' unit_comma_actual,
+                    0 lebar_actual,
+                    '-' unit_lebar_actual,
+                    form_cut_piece_detail.id_roll,
+                    scanned_item.id_item,
+                    scanned_item.detail_item,
+                    COALESCE ( scanned_item.roll_buyer, scanned_item.roll ) roll,
+                    scanned_item.lot,
+                    '-' group_roll,
+                    ( CASE WHEN form_cut_piece_detail.qty >= COALESCE ( scanned_item.qty_in, 0 ) THEN 'Roll Utuh' ELSE 'Sisa Kain' END ) status_roll,
+                    COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) qty_awal,
+                    form_cut_piece_detail.qty qty_roll,
+                    form_cut_piece_detail.qty_unit unit_roll,
+                    0 berat_amparan,
+                    0 est_amparan,
+                    0 lembar_gelaran,
+                    0 total_ratio,
+                    0 qty_cut,
+                    '00:00' average_time,
+                    '0' sisa_gelaran,
+                    0 sambungan,
+                    0 sambungan_roll,
+                    0 kepala_kain,
+                    0 sisa_tidak_bisa,
+                    0 reject,
+                    0 piping,
+                    form_cut_piece_detail.qty_sisa sisa_kain,
+                    form_cut_piece_detail.qty_pemakaian pemakaian_lembar,
+                    form_cut_piece_detail.qty_pemakaian total_pemakaian_roll,
+                    ROUND(
+                    form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa )) short_roll,
+                    ROUND((form_cut_piece_detail.qty - ( form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa ))/ COALESCE ( scanned_item.qty_in, form_cut_piece_detail.qty ) * 100, 2 ) short_roll_percentage,
+                    form_cut_piece_detail.STATUS `status`,
+                    form_cut_piece.employee_name,
+                    'PCS' tipe_form_cut,
+                    form_cut_piece.created_at,
+                    form_cut_piece.updated_at,
+                    (CASE WHEN b.id is null THEN 'latest' ELSE 'not latest' END) roll_status
+                FROM
+                    form_cut_piece
+                    LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                    LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+                    LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                    LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+                WHERE
+                    scanned_item.id_item IS NOT NULL
+                    AND form_cut_piece_detail.STATUS = 'complete'
+                    AND form_cut_piece_detail.id not in (7207)
+                    and form_cut_piece.waktu_selesai >= '$start_date 00:00:00' and form_cut_piece.waktu_selesai <= '$end_date 23:59:59'
+                GROUP BY
+                    form_cut_piece_detail.id
+            ) cutting
+            -- where
+            -- 	cutting.id_roll is not null and cutting.id_roll != '-'
+            group by
+                id_roll,
+                id_item,
+                act_costing_ws
+            order by
+                created_at
+            ),
 
-sa as
-(
-SELECT
-barcode,
-ws,
-a.id_item,
-SUM(qty_out) as qty_out,
-SUM(qty_pakai) as qty_pakai,
-SUM(qty_retur) as qty_retur,
-SUM(qty_reject_set) as qty_reject_set,
-SUM(qty_reject_panel) as qty_reject_panel,
-SUM(short_roll) as short_roll,
-satuan
-FROM
-(
-		SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gk_out_sa
-		UNION ALL
-		SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,
-		short_roll as short_roll, unit_roll as satuan, act_costing_ws as ws
-		FROM cutt_sa
-		UNION ALL
-		SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, no_ws as ws  FROM gk_retur_sa
-		UNION ALL
-		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, 0 qty_reject_set, qty_pakai as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gr_set_alokasi_sa
-		UNION ALL
-		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gr_set_sa
-) a
-group by barcode, ws, a.satuan
-),
-m as
-(
-SELECT
-barcode,
-ws,
-a.id_item,
-SUM(qty_out) as qty_out,
-SUM(qty_pakai) as qty_pakai,
-SUM(qty_retur) as qty_retur,
-SUM(qty_reject_set) as qty_reject_set,
-SUM(qty_reject_panel) as qty_reject_panel,
-SUM(short_roll) as short_roll,
-satuan
-FROM
-(
-		SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gk_out
-		UNION ALL
-		SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,
-		short_roll as short_roll, unit_roll as satuan, act_costing_ws as ws
-		FROM cutt
-		UNION ALL
-		SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, no_ws as ws  FROM gk_retur
-		UNION ALL
-		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, 0 qty_reject_set, qty_pakai as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gr_set_alokasi
-		UNION ALL
-		SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
-		FROM gr_set
-) a
-group by barcode, ws, a.satuan
-),
-sf as(
-SELECT
-$barcode,
-mut.id_item,
-mi.itemdesc,
-mi.color,
-ws,
-ROUND(SUM(saldo_awal), 2)     AS saldo_awal,
-ROUND(SUM(penerimaan), 2)    AS penerimaan,
-ROUND(SUM(pemakaian), 2)     AS pemakaian,
-ROUND(SUM(retur), 2)         AS retur,
-ROUND(SUM(gr_set), 2)        AS gr_set,
-ROUND(SUM(gr_panel), 2)      AS gr_panel,
-ROUND(SUM(short_roll), 2)    AS short_roll,
-ROUND(SUM(saldo_awal) + SUM(penerimaan) - SUM(pemakaian) + SUM(short_roll) - SUM(gr_set) - SUM(gr_panel) - SUM(retur),2) as saldo_akhir,
-satuan
-FROM
-(
-SELECT
-sa.barcode,
-sa.id_item,
-round(sa.qty_out - sa.qty_pakai + sa.short_roll  - sa.qty_reject_set - sa.qty_reject_panel - qty_retur,2) as saldo_awal,
-0 as penerimaan,
-0 as pemakaian,
-0 as retur,
-0 as gr_set,
-0 as gr_panel,
-0 as short_roll,
-sa.satuan,
-sa.ws
-FROM sa
-UNION ALL
-SELECT
-barcode,
-id_item,
-saldo_awal,
-0 as penerimaan,
-0 as pemakaian,
-0 as retur,
-0 as gr_set,
-0 as gr_panel,
-0 as short_roll,
-satuan,
-ws
-FROM sau
-UNION ALL
-SELECT
-m.barcode,
-id_item,
-0 as saldo_awal,
-qty_out as penerimaan,
-qty_pakai as pemakaian,
-qty_retur as retur,
-qty_reject_set as gr_set,
-qty_reject_panel as gr_panel,
-short_roll as short_roll,
-m.satuan,
-m.ws
-FROM m
--- TAMBAH DATA UNTUK YANG NON SISTEM
-UNION ALL
-SELECT
-barcode,
-id_item,
-saldo_awal,
-0 as penerimaan,
-0 as pemakaian,
-0 as retur,
-0 as gr_set,
-0 as gr_panel,
-0 as short_roll,
-satuan,
-ws
-FROM sa_report_cut_non_sistem
-) mut
-left join signalbit_erp.masteritem mi on mut.id_item = mi.id_item
-$group)
-select sf.*, buyer,styleno from sf
-LEFT JOIN (
-SELECT
-		ac.kpno,
-        supplier as buyer,
-        styleno
-		FROM signalbit_erp.jo_det jd
-		INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-		INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-        INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-		WHERE jd.cancel = 'N'
-		GROUP BY jd.id_jo
-) k on sf.ws = k.kpno
-order by  ws asc, color asc
-    ");
+            sa as
+            (
+            SELECT
+            barcode,
+            ws,
+            a.id_item,
+            SUM(qty_out) as qty_out,
+            SUM(qty_pakai) as qty_pakai,
+            SUM(qty_retur) as qty_retur,
+            SUM(qty_reject_set) as qty_reject_set,
+            SUM(qty_reject_panel) as qty_reject_panel,
+            SUM(short_roll) as short_roll,
+            satuan
+            FROM
+            (
+                    SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
+                    FROM gk_out_sa
+                    UNION ALL
+                    SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,
+                    short_roll as short_roll, unit_roll as satuan, act_costing_ws as ws
+                    FROM cutt_sa
+                    UNION ALL
+                    SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, no_ws as ws  FROM gk_retur_sa
+                    UNION ALL
+                    SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, 0 qty_reject_set, qty_pakai as qty_reject_panel, 0 as short_roll, satuan, ws
+                    FROM gr_set_alokasi_sa
+                    UNION ALL
+                    SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
+                    FROM gr_set_sa
+            ) a
+            group by barcode, ws, a.satuan
+            ),
+            m as
+            (
+            SELECT
+            barcode,
+            ws,
+            a.id_item,
+            SUM(qty_out) as qty_out,
+            SUM(qty_pakai) as qty_pakai,
+            SUM(qty_retur) as qty_retur,
+            SUM(qty_reject_set) as qty_reject_set,
+            SUM(qty_reject_panel) as qty_reject_panel,
+            SUM(short_roll) as short_roll,
+            satuan
+            FROM
+            (
+                    SELECT id_roll as barcode,id_item, qty_out, 0 as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
+                    FROM gk_out
+                    UNION ALL
+                    SELECT id_roll as barcode,id_item, 0 qty_out, total_pemakaian_roll as qty_pakai, 0 as qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel,
+                    short_roll as short_roll, unit_roll as satuan, act_costing_ws as ws
+                    FROM cutt
+                    UNION ALL
+                    SELECT no_barcode as barcode,id_item, 0 qty_out, 0 as qty_pakai, qty_retur, 0  as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, no_ws as ws  FROM gk_retur
+                    UNION ALL
+                    SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, 0 qty_reject_set, qty_pakai as qty_reject_panel, 0 as short_roll, satuan, ws
+                    FROM gr_set_alokasi
+                    UNION ALL
+                    SELECT  barcode,id_item, 0 qty_out, 0 as qty_pakai, 0 as qty_retur, qty_pakai as qty_reject_set, 0 as qty_reject_panel, 0 as short_roll, satuan, ws
+                    FROM gr_set
+            ) a
+            group by barcode, ws, a.satuan
+            ),
+            sf as(
+            SELECT
+            $barcode,
+            mut.id_item,
+            mi.itemdesc,
+            mi.color,
+            ws,
+            ROUND(SUM(saldo_awal), 2)     AS saldo_awal,
+            ROUND(SUM(penerimaan), 2)    AS penerimaan,
+            ROUND(SUM(pemakaian), 2)     AS pemakaian,
+            ROUND(SUM(retur), 2)         AS retur,
+            ROUND(SUM(gr_set), 2)        AS gr_set,
+            ROUND(SUM(gr_panel), 2)      AS gr_panel,
+            ROUND(SUM(short_roll), 2)    AS short_roll,
+            ROUND(SUM(saldo_awal) + SUM(penerimaan) - SUM(pemakaian) + SUM(short_roll) - SUM(gr_set) - SUM(gr_panel) - SUM(retur),2) as saldo_akhir,
+            satuan
+            FROM
+            (
+            SELECT
+            sa.barcode,
+            sa.id_item,
+            round(sa.qty_out - sa.qty_pakai + sa.short_roll  - sa.qty_reject_set - sa.qty_reject_panel - qty_retur,2) as saldo_awal,
+            0 as penerimaan,
+            0 as pemakaian,
+            0 as retur,
+            0 as gr_set,
+            0 as gr_panel,
+            0 as short_roll,
+            sa.satuan,
+            sa.ws
+            FROM sa
+            UNION ALL
+            SELECT
+            barcode,
+            id_item,
+            saldo_awal,
+            0 as penerimaan,
+            0 as pemakaian,
+            0 as retur,
+            0 as gr_set,
+            0 as gr_panel,
+            0 as short_roll,
+            satuan,
+            ws
+            FROM sau
+            UNION ALL
+            SELECT
+            m.barcode,
+            id_item,
+            0 as saldo_awal,
+            qty_out as penerimaan,
+            qty_pakai as pemakaian,
+            qty_retur as retur,
+            qty_reject_set as gr_set,
+            qty_reject_panel as gr_panel,
+            short_roll as short_roll,
+            m.satuan,
+            m.ws
+            FROM m
+            -- TAMBAH DATA UNTUK YANG NON SISTEM
+            UNION ALL
+            SELECT
+            barcode,
+            id_item,
+            saldo_awal,
+            0 as penerimaan,
+            0 as pemakaian,
+            0 as retur,
+            0 as gr_set,
+            0 as gr_panel,
+            0 as short_roll,
+            satuan,
+            ws
+            FROM sa_report_cut_non_sistem
+            ) mut
+            left join signalbit_erp.masteritem mi on mut.id_item = mi.id_item
+            $group)
+            select sf.*, buyer,styleno from sf
+            LEFT JOIN (
+            SELECT
+                    ac.kpno,
+                    supplier as buyer,
+                    styleno
+                    FROM signalbit_erp.jo_det jd
+                    INNER JOIN signalbit_erp.so ON jd.id_so = so.id
+                    INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                    INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                    WHERE jd.cancel = 'N'
+                    GROUP BY jd.id_jo
+            ) k on sf.ws = k.kpno
+            order by  ws asc, color asc
+        ");
 
         $fileName = 'report-mutasi-fabric';
 
@@ -4723,7 +4723,14 @@ order by  ws asc, color asc
                     ), 0) qty_retur_adjustment,
                     0 saldo,
                     wip_adjustment_fabric.satuan,
-                    (CASE WHEN '{$prev_date}' < '2026-08-01' OR wip_adjustment_fabric.type = 'NON REKAP' THEN ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) ELSE ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '2026-07-01',wip_adjustment_fabric.qty,0)), 2) END) qty_adjustment_before,
+                    (
+                        CASE WHEN '{$prev_date}' < '2026-08-01' OR wip_adjustment_fabric.type = 'NON REKAP'
+                            THEN
+                                ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2)
+                            ELSE
+                                ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '2026-07-01' AND wip_adjustment_fabric.tgl_saldo < '{$start_date}', wip_adjustment_fabric.qty, 0)), 2)
+                        END
+                    ) qty_adjustment_before,
                     -- ROUND(SUM(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}',wip_adjustment_fabric.qty,0)), 2) qty_adjustment_before_old,
                     SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}',wip_adjustment_fabric.qty,0)) qty_adjustment,
                     COALESCE(
@@ -4762,6 +4769,44 @@ order by  ws asc, color asc
                 WHERE
                     wip_adjustment_fabric.tgl_saldo <= '{$end_date}'
                     AND wip_adjustment_fabric.status = 'Y'
+                GROUP BY
+                    $groupBy
+
+                UNION ALL
+
+                -- ADJUSTMENT CURRENT PREV
+                SELECT
+                    wip_adjustment_fabric.ws,
+                    wip_adjustment_fabric.id_roll,
+                    wip_adjustment_fabric.id_item,
+                    0 saldo_awal,
+                    0 qty_in,
+                    0 qty_pakai,
+                    0 qty_pakai_adjustment,
+                    0 sr,
+                    0 sr_adjustment,
+                    0 gr_p,
+                    0 gr_g,
+                    0 qty_retur,
+                    0 qty_retur_adjustment,
+                    0 saldo,
+                    wip_adjustment_fabric.satuan,
+                    SUM(COALESCE(wip_adjustment_fabric.qty, 0)) qty_adjustment_before,
+                    0 qty_adjustment,
+                    0 qty_pakai_adjustment_before,
+                    0 sr_adjustment_before,
+                    0 qty_retur_adjustment_before,
+                    0 qty_pakai_before,
+                    0 sr_before,
+                    0 qty_retur_before,
+                    type
+                FROM
+                    wip_adjustment_fabric
+                WHERE
+                    wip_adjustment_fabric.tgl_saldo = '{$prev_date}'
+                    AND wip_adjustment_fabric.tgl_saldo >= '2026-09-01'
+                    AND wip_adjustment_fabric.status = 'Y'
+                    AND (wip_adjustment_fabric.type = 'REKAP' OR wip_adjustment_fabric.type IS NULL)
                 GROUP BY
                     $groupBy
             ) mut
@@ -4923,10 +4968,22 @@ order by  ws asc, color asc
         );
     }
 
-    // public function export_excel_report_cutting_mutasi_fabric_proporsional(Request $request)
-    // {
-    //     return Excel::download(new export_excel_report_cutting_mutasi_fabric_proporsional($request->start_date, $request->end_date, $request->cbotipe), 'Laporan_Penerimaan FG_Stok.xlsx');
-    // }
+    public function generate_saldo_mutasi_fabric_proporsional(Request $request)
+    {
+        ini_set("max_execution_time", 3600);
+
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+        ]);
+
+        DB::statement('CALL sp_mut_cut_fab_saldo_adj_new(?, ?)', [$request->start_date, $request->end_date]);
+
+        return response()->json([
+            'status'  => 200,
+            'message' => 'Generate saldo berhasil',
+        ]);
+    }
 
     public function export_excel_report_cutting_mutasi_fabric_proporsional(Request $request)
     {
@@ -5049,6 +5106,722 @@ order by  ws asc, color asc
         return $excel->download();
     }
 
+    public function buildMutasiFabricBarcodeQuery($startDate, $endDate, $type)
+    {
+        $start_date = $startDate;
+        $end_date   = $endDate;
+        $tipe       = $type;
+        $prev_date  = date('Y-m-d', strtotime($start_date . ' -1 day'));
+
+        if ($tipe == 'Barcode') {
+            $barcode = 'mut.id_roll as barcode';
+            $groupBy = 'mut.id_roll';
+        } else {
+            $barcode = 'NULL as barcode';
+            $groupBy = 'mut.id_item';
+        }
+
+        $query = "WITH
+            manajemen_roll_before as (
+                select
+                    act_costing_ws,
+                    id_roll,
+                    id_item,
+                    unit_roll,
+                    ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                    ROUND(SUM(short_roll), 2) short_roll
+                from (
+                    select
+                        mrk.act_costing_ws,
+                        COALESCE(b.id_roll, '-') id_roll,
+                        b.id_item,
+                        b.unit unit_roll,
+                        ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+                        ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll
+                    from form_cut_input a
+                    left join form_cut_input_detail b on a.id = b.form_cut_id
+                    left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+                    LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '2025-01-01 00:00:00' and d.created_at <= '2025-12-31 23:59:59'
+                    LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '2025-01-01 00:00:00' and e.created_at <= '2025-12-31 23:59:59'
+                    left join users meja on meja.id = a.no_meja
+                    left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = b.id_roll
+                    where
+                        (a.cancel = 'N' OR a.cancel IS NULL)
+                        AND (mrk.cancel = 'N' OR mrk.cancel IS NULL)
+                        AND a.status = 'SELESAI PENGERJAAN'
+                        and b.status != 'not complete'
+                        and b.id_item is not null
+                        and a.waktu_selesai > '2026-05-01 00:00:00'
+                        and a.waktu_selesai <= '" . $start_date . " 23:59:59'
+                    group by b.id
+                ) roll_detail
+                group by id_roll
+
+                UNION ALL
+
+                select
+                    form_cut_piping.act_costing_ws,
+                    form_cut_piping.id_roll,
+                    scanned_item.id_item,
+                    form_cut_piping.unit unit_roll,
+                    SUM(form_cut_piping.piping) total_pemakaian_roll,
+                    ROUND(SUM((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty), 2) short_roll
+                from form_cut_piping
+                LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2025-01-01 00:00:00' and b.created_at <= '2025-12-31 23:59:59'
+                LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '2025-01-01 00:00:00' and c.created_at <= '2025-12-31 23:59:59'
+                left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+                where
+                    scanned_item.id_item is not null
+                    and form_cut_piping.updated_at > '2026-05-01 00:00:00'
+                    and form_cut_piping.updated_at <= '" . $start_date . " 23:59:59'
+                group by form_cut_piping.id_roll
+
+                UNION ALL
+
+                SELECT
+                    form_cut_piece.act_costing_ws,
+                    form_cut_piece_detail.id_roll,
+                    COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item) id_item,
+                    form_cut_piece_detail.qty_unit unit_roll,
+                    SUM(form_cut_piece_detail.qty_pemakaian) total_pemakaian_roll,
+                    ROUND(SUM(form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa))) short_roll
+                FROM form_cut_piece
+                LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+                LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+                WHERE
+                    form_cut_piece_detail.STATUS = 'complete'
+                    and form_cut_piece.waktu_selesai > '2026-05-01 00:00:00'
+                    and form_cut_piece.waktu_selesai <= '" . $start_date . " 23:59:59'
+                GROUP BY form_cut_piece_detail.id_roll
+            ),
+
+            manajemen_roll as (
+                select
+                    act_costing_ws,
+                    id_roll,
+                    id_item,
+                    unit_roll,
+                    ROUND(SUM(total_pemakaian_roll), 2) total_pemakaian_roll,
+                    ROUND(SUM(short_roll), 2) short_roll
+                from (
+                    select
+                        mrk.act_costing_ws,
+                        COALESCE(b.id_roll, '-') id_roll,
+                        b.id_item,
+                        b.unit unit_roll,
+                        ROUND((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping), 2) total_pemakaian_roll,
+                        ROUND(((CASE WHEN b.status != 'extension complete' THEN ((CASE WHEN b.unit = 'KGM' THEN b.berat_amparan ELSE a.p_act + (a.comma_p_act/100) END) * b.lembar_gelaran) ELSE b.sambungan END) + (b.sisa_gelaran) + (b.sambungan_roll) + (b.kepala_kain) + (b.sisa_tidak_bisa) + (b.reject) + (b.piping))+(ROUND(MIN(CASE WHEN b.status != 'extension' AND b.status != 'extension complete' THEN (b.sisa_kain) ELSE (b.qty - b.total_pemakaian_roll) END), 2))-b.qty, 2) short_roll
+                    from form_cut_input a
+                    left join form_cut_input_detail b on a.id = b.form_cut_id
+                    left join form_cut_input_detail c ON c.form_cut_id = b.form_cut_id and c.id_roll = b.id_roll and (c.status = 'extension' OR c.status = 'extension complete')
+                    LEFT JOIN form_cut_input_detail d on d.id_roll = b.id_roll AND b.id != d.id AND d.created_at > b.created_at and d.created_at >= '2025-01-01 00:00:00' and d.created_at <= '2025-12-31 23:59:59'
+                    LEFT JOIN form_cut_piping e on e.id_roll = b.id_roll AND e.created_at > b.created_at and e.created_at >= '2025-01-01 00:00:00' and e.created_at <= '2025-12-31 23:59:59'
+                    left join users meja on meja.id = a.no_meja
+                    left join (SELECT marker_input.*, SUM(marker_input_detail.ratio) total_ratio FROM marker_input LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id GROUP BY marker_input.id) mrk on a.id_marker = mrk.kode
+                    left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = mrk.act_costing_id
+                    left join scanned_item on scanned_item.id_roll = b.id_roll
+                    where
+                        (a.cancel = 'N' OR a.cancel IS NULL)
+                        AND (mrk.cancel = 'N' OR mrk.cancel IS NULL)
+                        AND a.status = 'SELESAI PENGERJAAN'
+                        and b.status != 'not complete'
+                        and b.id_item is not null
+                        and a.waktu_selesai >= '" . $start_date . " 00:00:00'
+                        and a.waktu_selesai <= '" . $end_date . " 23:59:59'
+                    group by b.id
+                ) roll_detail
+                group by id_roll
+
+                UNION ALL
+
+                select
+                    form_cut_piping.act_costing_ws,
+                    form_cut_piping.id_roll,
+                    scanned_item.id_item,
+                    form_cut_piping.unit unit_roll,
+                    SUM(form_cut_piping.piping) total_pemakaian_roll,
+                    ROUND(SUM((form_cut_piping.piping + form_cut_piping.qty_sisa) - form_cut_piping.qty), 2) short_roll
+                from form_cut_piping
+                LEFT JOIN form_cut_input_detail b on b.id_roll = form_cut_piping.id_roll AND b.created_at > form_cut_piping.created_at and b.created_at >= '2025-01-01 00:00:00' and b.created_at <= '2025-12-31 23:59:59'
+                LEFT JOIN form_cut_piping c on c.id_roll = form_cut_piping.id_roll AND c.id != form_cut_piping.id and c.created_at > form_cut_piping.created_at and c.created_at >= '2025-01-01 00:00:00' and c.created_at <= '2025-12-31 23:59:59'
+                left join (SELECT * FROM master_sb_ws GROUP BY id_act_cost) master_sb_ws on master_sb_ws.id_act_cost = form_cut_piping.act_costing_id
+                left join scanned_item on scanned_item.id_roll = form_cut_piping.id_roll
+                where
+                    scanned_item.id_item is not null
+                    and form_cut_piping.updated_at >= '" . $start_date . " 00:00:00'
+                    and form_cut_piping.updated_at <= '" . $end_date . " 23:59:59'
+                group by form_cut_piping.id_roll
+
+                UNION ALL
+
+                SELECT
+                    form_cut_piece.act_costing_ws,
+                    form_cut_piece_detail.id_roll,
+                    COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item) id_item,
+                    form_cut_piece_detail.qty_unit unit_roll,
+                    SUM(form_cut_piece_detail.qty_pemakaian) total_pemakaian_roll,
+                    ROUND(SUM(form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa))) short_roll
+                FROM form_cut_piece
+                LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
+                LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
+                LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
+                LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
+                WHERE
+                    form_cut_piece_detail.STATUS = 'complete'
+                    and form_cut_piece.waktu_selesai >= '" . $start_date . " 00:00:00'
+                    and form_cut_piece.waktu_selesai <= '" . $end_date . " 23:59:59'
+                GROUP BY form_cut_piece_detail.id_roll
+            ),
+
+            retur_before as (
+                SELECT
+                    COALESCE(bppb_req.idws_act, whs_lokasi_inmaterial.no_ws) no_ws,
+                    whs_lokasi_inmaterial.no_barcode,
+                    whs_lokasi_inmaterial.id_item,
+                    SUM(whs_lokasi_inmaterial.qty_aktual) qty_aktual,
+                    whs_lokasi_inmaterial.satuan
+                FROM signalbit_erp.whs_lokasi_inmaterial
+                LEFT JOIN signalbit_erp.whs_inmaterial_fabric ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
+                LEFT JOIN signalbit_erp.bppb_req ON bppb_req.bppbno = whs_inmaterial_fabric.no_invoice and bppb_req.id_item = whs_lokasi_inmaterial.id_item and whs_inmaterial_fabric.tgl_dok >= '2026-07-31'
+                WHERE
+                    whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
+                    AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
+                    and whs_inmaterial_fabric.tgl_dok > '2026-05-01 00:00:00'
+                    and whs_inmaterial_fabric.tgl_dok <= '" . $start_date . " 23:59:59'
+                group by whs_lokasi_inmaterial.no_barcode
+            ),
+
+            retur as (
+                SELECT
+                    COALESCE(bppb_req.idws_act, whs_lokasi_inmaterial.no_ws) no_ws,
+                    whs_lokasi_inmaterial.no_barcode,
+                    whs_lokasi_inmaterial.id_item,
+                    SUM(whs_lokasi_inmaterial.qty_aktual) qty_aktual,
+                    whs_lokasi_inmaterial.satuan
+                FROM signalbit_erp.whs_lokasi_inmaterial
+                LEFT JOIN signalbit_erp.whs_inmaterial_fabric ON whs_inmaterial_fabric.no_dok = whs_lokasi_inmaterial.no_dok
+                LEFT JOIN signalbit_erp.bppb_req ON bppb_req.bppbno = whs_inmaterial_fabric.no_invoice and bppb_req.id_item = whs_lokasi_inmaterial.id_item and whs_inmaterial_fabric.tgl_dok >= '2026-07-31'
+                WHERE
+                    whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
+                    AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
+                    AND DATE(whs_inmaterial_fabric.tgl_dok) BETWEEN '" . $start_date . "' AND '" . $end_date . "'
+                group by whs_lokasi_inmaterial.no_barcode
+            )
+
+            SELECT
+                {$barcode},
+                mut.id_item,
+                MAX(mi.itemdesc) as itemdesc,
+
+                ROUND(
+                    SUM(saldo_awal)
+                    - CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                            AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                        THEN SUM(qty_pakai_adjustment_before)
+                        ELSE 0
+                    END
+                    + CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(sr_before), 0) = 0
+                            AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                        THEN SUM(sr_adjustment_before)
+                        ELSE 0
+                    END
+                    - CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_retur_before), 0) = 0
+                            AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                        THEN SUM(qty_retur_adjustment_before)
+                        ELSE 0
+                    END
+                    + COALESCE(SUM(qty_adjustment_before), 0),
+                2) AS saldo_awal,
+                ROUND(SUM(qty_in), 2) AS penerimaan,
+                ROUND(
+                    CASE
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(qty_pakai)
+                        ELSE SUM(qty_pakai_adjustment)
+                    END
+                , 2) AS pemakaian,
+                ROUND(
+                    CASE
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(sr)
+                        ELSE SUM(sr_adjustment)
+                    END
+                , 2) AS short_roll,
+                ROUND(SUM(gr_p), 2) AS gr_panel,
+                ROUND(SUM(gr_g), 2) AS gr_set,
+                ROUND(
+                    CASE
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(qty_retur)
+                        ELSE SUM(qty_retur_adjustment)
+                    END
+                , 2) AS retur,
+                ROUND(SUM(qty_adjustment), 2) AS adjustment,
+                ROUND(
+                    (
+                        SUM(saldo_awal)
+                        - CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                                AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                            THEN SUM(qty_pakai_adjustment_before)
+                            ELSE 0
+                        END
+                        + CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(sr_before), 0) = 0
+                                AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                            THEN SUM(sr_adjustment_before)
+                            ELSE 0
+                        END
+                        - CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_retur_before), 0) = 0
+                                AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
+                            THEN SUM(qty_retur_adjustment_before)
+                            ELSE 0
+                        END
+                        + COALESCE(SUM(qty_adjustment_before), 0)
+                    )
+                    + SUM(qty_in)
+                    - CASE
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(qty_pakai)
+                        ELSE SUM(qty_pakai_adjustment)
+                    END
+                    + CASE
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(sr)
+                        ELSE SUM(sr_adjustment)
+                    END
+                    - SUM(gr_p)
+                    - SUM(gr_g)
+                    - CASE
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(qty_retur)
+                        ELSE SUM(qty_retur_adjustment)
+                    END
+                    + SUM(qty_adjustment),
+                2) AS saldo_akhir,
+                MAX(satuan) as satuan
+
+            FROM (
+                SELECT
+                    id_roll, id_item,
+                    0 saldo_awal,
+                    SUM(qty_in) qty_in,
+                    SUM(qty_pakai) qty_pakai,
+                    0 qty_pakai_adjustment,
+                    SUM(sr) sr,
+                    0 sr_adjustment,
+                    SUM(gr_p) gr_p,
+                    SUM(gr_g) gr_g,
+                    SUM(qty_retur) qty_retur,
+                    0 qty_retur_adjustment,
+                    SUM(saldo) saldo,
+                    satuan,
+                    0 qty_adjustment_before,
+                    0 qty_adjustment,
+                    0 qty_pakai_adjustment_before,
+                    0 sr_adjustment_before,
+                    0 qty_retur_adjustment_before,
+                    0 qty_pakai_before,
+                    0 sr_before,
+                    0 qty_retur_before,
+                    null type
+                FROM mut_cut_fab_saldo_tmp
+                WHERE tgl_trans BETWEEN ? AND ?
+                GROUP BY id_roll
+
+                UNION ALL
+
+                SELECT
+                    id_roll, id_item,
+                    SUM(saldo) saldo_awal,
+                    0,0,0,0,0,0,0,0,0,0,
+                    satuan,
+                    0 qty_adjustment_before,
+                    0 qty_adjustment,
+                    0 qty_pakai_adjustment_before,
+                    0 sr_adjustment_before,
+                    0 qty_retur_adjustment_before,
+                    0 qty_pakai_before,
+                    0 sr_before,
+                    0 qty_retur_before,
+                    null type
+                FROM mut_cut_fab_saldo_tmp
+                WHERE tgl_trans = ?
+                GROUP BY id_roll
+
+                UNION ALL
+
+                SELECT
+                    id_roll, id_item,
+                    0 saldo_awal,
+                    0,0,0,0,0,0,0,0,0,0,
+                    satuan,
+                    0 qty_adjustment_before,
+                    0 qty_adjustment,
+                    0 qty_pakai_adjustment_before,
+                    0 sr_adjustment_before,
+                    0 qty_retur_adjustment_before,
+                    SUM(qty_pakai) qty_pakai_before,
+                    SUM(sr) sr_before,
+                    SUM(qty_retur) qty_retur_before,
+                    null type
+                FROM mut_cut_fab_saldo_tmp
+                WHERE tgl_trans > '2026-05-01' and tgl_trans <= '{$start_date}'
+                GROUP BY id_roll
+
+                UNION ALL
+
+                SELECT
+                    wip_adjustment_fabric.id_roll,
+                    wip_adjustment_fabric.id_item,
+                    0 saldo_awal,
+                    0 qty_in,
+                    0 qty_pakai,
+                    COALESCE((
+                        SELECT SUM(mr.total_pemakaian_roll)
+                        FROM manajemen_roll mr
+                        WHERE mr.id_roll = wip_adjustment_fabric.id_roll
+                        AND mr.id_item = wip_adjustment_fabric.id_item
+                        AND mr.unit_roll = wip_adjustment_fabric.satuan
+                    ), 0) qty_pakai_adjustment,
+                    0 sr,
+                    COALESCE((
+                        SELECT SUM(mr.short_roll)
+                        FROM manajemen_roll mr
+                        WHERE mr.id_roll = wip_adjustment_fabric.id_roll
+                        AND mr.id_item = wip_adjustment_fabric.id_item
+                        AND mr.unit_roll = wip_adjustment_fabric.satuan
+                    ), 0) sr_adjustment,
+                    0 gr_p,
+                    0 gr_g,
+                    0 qty_retur,
+                    COALESCE((
+                        SELECT SUM(retur.qty_aktual)
+                        FROM retur
+                        WHERE retur.no_barcode = wip_adjustment_fabric.id_roll
+                        AND retur.id_item = wip_adjustment_fabric.id_item
+                        AND retur.satuan = wip_adjustment_fabric.satuan
+                    ), 0) qty_retur_adjustment,
+                    0 saldo,
+                    wip_adjustment_fabric.satuan,
+                    SUM(
+                        CASE WHEN '{$prev_date}' < '2026-08-01' OR wip_adjustment_fabric.type = 'NON REKAP'
+                            THEN ROUND(IF(wip_adjustment_fabric.tgl_saldo < '{$start_date}', wip_adjustment_fabric.qty, 0), 2)
+                            ELSE ROUND(IF(wip_adjustment_fabric.tgl_saldo < '2026-07-01' AND wip_adjustment_fabric.tgl_saldo < '{$start_date}', wip_adjustment_fabric.qty, 0), 2)
+                        END
+                    ) qty_adjustment_before,
+                    SUM(IF(wip_adjustment_fabric.tgl_saldo >= '{$start_date}', wip_adjustment_fabric.qty, 0)) qty_adjustment,
+                    COALESCE((
+                        SELECT SUM(mr.total_pemakaian_roll)
+                        FROM manajemen_roll_before mr
+                        WHERE mr.id_roll = wip_adjustment_fabric.id_roll
+                        AND mr.id_item = wip_adjustment_fabric.id_item
+                        AND mr.unit_roll = wip_adjustment_fabric.satuan
+                    ), 0) qty_pakai_adjustment_before,
+                    COALESCE((
+                        SELECT SUM(mr.short_roll)
+                        FROM manajemen_roll_before mr
+                        WHERE mr.id_roll = wip_adjustment_fabric.id_roll
+                        AND mr.id_item = wip_adjustment_fabric.id_item
+                        AND mr.unit_roll = wip_adjustment_fabric.satuan
+                    ), 0) sr_adjustment_before,
+                    COALESCE((
+                        SELECT SUM(retur_before.qty_aktual)
+                        FROM retur_before
+                        WHERE retur_before.no_barcode = wip_adjustment_fabric.id_roll
+                        AND retur_before.id_item = wip_adjustment_fabric.id_item
+                        AND retur_before.satuan = wip_adjustment_fabric.satuan
+                    ), 0) qty_retur_adjustment_before,
+                    0 qty_pakai_before,
+                    0 sr_before,
+                    0 qty_retur_before,
+                    type
+                FROM wip_adjustment_fabric
+                WHERE
+                    wip_adjustment_fabric.tgl_saldo <= '{$end_date}'
+                    AND wip_adjustment_fabric.status = 'Y'
+                GROUP BY id_roll
+
+                UNION ALL
+
+                -- ADJUSTMENT CURRENT PREV
+                SELECT
+                    wip_adjustment_fabric.id_roll,
+                    wip_adjustment_fabric.id_item,
+                    0 saldo_awal,
+                    0 qty_in,
+                    0 qty_pakai,
+                    0 qty_pakai_adjustment,
+                    0 sr,
+                    0 sr_adjustment,
+                    0 gr_p,
+                    0 gr_g,
+                    0 qty_retur,
+                    0 qty_retur_adjustment,
+                    0 saldo,
+                    wip_adjustment_fabric.satuan,
+                    SUM(COALESCE(wip_adjustment_fabric.qty, 0)) qty_adjustment_before,
+                    0 qty_adjustment,
+                    0 qty_pakai_adjustment_before,
+                    0 sr_adjustment_before,
+                    0 qty_retur_adjustment_before,
+                    0 qty_pakai_before,
+                    0 sr_before,
+                    0 qty_retur_before,
+                    type
+                FROM wip_adjustment_fabric
+                WHERE
+                    wip_adjustment_fabric.tgl_saldo = '{$prev_date}'
+                    AND wip_adjustment_fabric.tgl_saldo >= '2026-09-01'
+                    AND wip_adjustment_fabric.status = 'Y'
+                    AND (wip_adjustment_fabric.type = 'REKAP' OR wip_adjustment_fabric.type IS NULL)
+                GROUP BY id_roll
+            ) mut
+            LEFT JOIN signalbit_erp.masteritem mi ON mut.id_item = mi.id_item
+            GROUP BY {$groupBy}
+            HAVING
+                ROUND(
+                    SUM(saldo_awal)
+                    - CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                        THEN SUM(qty_pakai_adjustment_before)
+                        ELSE 0
+                    END
+                    + CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(sr_before), 0) = 0
+                        THEN SUM(sr_adjustment_before)
+                        ELSE 0
+                    END
+                    - CASE
+                        WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                            AND COALESCE(SUM(qty_retur_before), 0) = 0
+                        THEN SUM(qty_retur_adjustment_before)
+                        ELSE 0
+                    END
+                    + COALESCE(SUM(qty_adjustment_before), 0),
+                2) <> 0
+                OR ROUND(SUM(qty_in), 2) <> 0
+                OR ROUND(
+                    CASE
+                        WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+                        ELSE SUM(qty_pakai_adjustment)
+                    END
+                , 2) <> 0
+                OR ROUND(
+                    CASE
+                        WHEN COALESCE(SUM(sr), 0) <> 0 THEN SUM(sr)
+                        ELSE SUM(sr_adjustment)
+                    END
+                , 2) <> 0
+                OR ROUND(SUM(gr_p), 2) <> 0
+                OR ROUND(SUM(gr_g), 2) <> 0
+                OR ROUND(SUM(qty_retur), 2) <> 0
+                OR ROUND(SUM(qty_adjustment), 2) <> 0
+                OR ROUND(
+                    (
+                        SUM(saldo_awal)
+                        - CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                            THEN SUM(qty_pakai_adjustment_before)
+                            ELSE 0
+                        END
+                        + CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(sr_before), 0) = 0
+                            THEN SUM(sr_adjustment_before)
+                            ELSE 0
+                        END
+                        - CASE
+                            WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
+                                AND COALESCE(SUM(qty_retur_before), 0) = 0
+                            THEN SUM(qty_retur_adjustment_before)
+                            ELSE 0
+                        END
+                        + COALESCE(SUM(qty_adjustment_before), 0)
+                    )
+                    + SUM(qty_in)
+                    - CASE
+                        WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+                        ELSE SUM(qty_pakai_adjustment)
+                    END
+                    + CASE
+                        WHEN COALESCE(SUM(sr), 0) <> 0 THEN SUM(sr)
+                        ELSE SUM(sr_adjustment)
+                    END
+                    - SUM(gr_p)
+                    - SUM(gr_g)
+                    - CASE
+                        WHEN COALESCE(SUM(qty_retur), 0) <> 0 THEN SUM(qty_retur)
+                        ELSE SUM(qty_retur_adjustment)
+                    END
+                    + SUM(qty_adjustment),
+                2) <> 0
+            ORDER BY {$groupBy} ASC";
+
+        return $query;
+    }
+
+    public function mutasiFabricBarcode(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $prev_date = date('Y-m-d', strtotime($start_date . ' -1 day'));
+        $tipe = $request->input('cbotipe');
+
+        if ($request->ajax()) {
+            // Tanggal belum diisi, kembalikan data kosong
+            if ($start_date === null || $end_date === null) {
+                return response()->json(['data' => []]);
+            } else {
+                $mutasiFabricBarcodeQuery = $this->buildMutasiFabricBarcodeQuery($start_date, $end_date, $tipe);
+
+                $rawData = DB::select($mutasiFabricBarcodeQuery, [$start_date, $end_date, $prev_date]);
+
+                return response()->json([
+                    'data' => $rawData
+                ]);
+            }
+        }
+
+        // Non-AJAX (initial page load)
+        return view(
+            'cutting.report.mutasi-fabric-barcode',
+            [
+                'page' => 'dashboard-cutting',
+                "subPageGroup" => "cutting-report",
+                "subPage" => "report-mutasi-fabric-barcode",
+                'containerFluid' => true
+            ]
+        );
+    }
+
+    public function mutasiFabricBarcodeExport(Request $request)
+    {
+        ini_set("max_execution_time", 3600);
+        ini_set("memory_limit", '4024M');
+
+        $start_date = $request->start_date;
+        $end_date   = $request->end_date;
+        $tipe       = $request->cbotipe;
+        $prev_date  = date('Y-m-d', strtotime($start_date . ' -1 day'));
+
+        $mutasiFabricBarcodeQuery = $this->buildMutasiFabricBarcodeQuery($start_date, $end_date, $tipe);
+
+        $data = DB::select($mutasiFabricBarcodeQuery, [$start_date, $end_date, $prev_date]);
+
+        $fileName = 'report-mutasi-fabric-barcode';
+
+        $excel = FastExcel::create($fileName);
+
+        $sheet = $excel->sheet();
+
+        $sheet->writeRow(
+            ['Report Mutasi Fabric Barcode'],
+            [
+                'font-style' => 'bold',
+                'font-size'  => 14,
+            ]
+        );
+
+        $sheet->writeRow(
+            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            [
+                'font-size' => 12,
+            ]
+        );
+
+        $sheet->writeRow(['']);
+
+        $header = [];
+
+        if ($tipe == 'Barcode') {
+            $header[] = 'Barcode';
+        }
+
+        $header = array_merge($header, [
+            'ID Item',
+            'Item Name',
+            'Satuan',
+            'Saldo Awal',
+            'Penerimaan',
+            'Pemakaian Cutting',
+            'Short Roll',
+            'Ganti Reject Set',
+            'Ganti Reject Panel',
+            'Retur',
+            'Adjustment',
+            'Saldo Akhir',
+        ]);
+
+        $sheet->writeRow(
+            $header,
+            [
+                'font-style' => 'bold',
+                'border'     => 'thin',
+            ]
+        );
+
+        foreach ($data as $row) {
+            $rows = [];
+
+            if ($tipe == 'Barcode') {
+                $rows[] = $row->barcode ?: '';
+            }
+
+            $rows = array_merge($rows, [
+                $row->id_item ?: '',
+                $row->itemdesc ?: '',
+                $row->satuan ?: '',
+                (float) $row->saldo_awal,
+                (float) $row->penerimaan,
+                (float) $row->pemakaian,
+                (float) $row->short_roll,
+                (float) $row->gr_set,
+                (float) $row->gr_panel,
+                (float) $row->retur,
+                (float) $row->adjustment,
+                (float) $row->saldo_akhir,
+            ]);
+
+            $sheet->writeRow(
+                $rows,
+                [
+                    'border' => 'thin',
+                ]
+            );
+        }
+
+        foreach (range('A', 'Z') as $col) {
+            $sheet->setColWidth($col, 20);
+        }
+
+        return $excel->download();
+    }
+
     /// Penerimaan Fabric Cutting
     public function roll_fabric_cutting_in(Request $request)
     {
@@ -5063,48 +5836,47 @@ order by  ws asc, color asc
                 return response()->json(['data' => []]);
             } else {
                 $rawData = DB::select("SELECT
-a.no_bppb,
-DATE_FORMAT(tgl_bppb, '%d-%M-%Y') AS tgl_bppb_fix,
-tgl_bppb,
-no_req,
-id_roll,
-no_roll,
-no_roll_buyer,
-no_lot,
-mi.id_item,
-no_ws,
-no_ws_aktual,
-styleno,
-mi.itemdesc,
-mi.color,
-qty_out,
-satuan,
-        CASE
-            WHEN satuan = 'YRD' THEN ROUND(qty_out * 0.9144,2)
-            ELSE qty_out
-        END as qty_out_konversi,
-CASE
-		WHEN satuan = 'YRD' THEN 'METER'
-		WHEN satuan = 'KGM' THEN 'KGM'
-		ELSE satuan
-		END as satuan_konversi
-FROM signalbit_erp.whs_bppb_h a
-inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
-inner join signalbit_erp.masteritem mi on b.id_item = mi.id_item
-LEFT JOIN (SELECT
-						jd.id_jo,
-						ac.kpno,
-            supplier as buyer,
-            styleno
-				FROM signalbit_erp.jo_det jd
-				INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-				INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-				WHERE jd.cancel = 'N'
-				GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
-where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-
-            ");
+                    a.no_bppb,
+                    DATE_FORMAT(tgl_bppb, '%d-%M-%Y') AS tgl_bppb_fix,
+                    tgl_bppb,
+                    no_req,
+                    id_roll,
+                    no_roll,
+                    no_roll_buyer,
+                    no_lot,
+                    mi.id_item,
+                    no_ws,
+                    no_ws_aktual,
+                    styleno,
+                    mi.itemdesc,
+                    mi.color,
+                    qty_out,
+                    satuan,
+                            CASE
+                                WHEN satuan = 'YRD' THEN ROUND(qty_out * 0.9144,2)
+                                ELSE qty_out
+                            END as qty_out_konversi,
+                    CASE
+                            WHEN satuan = 'YRD' THEN 'METER'
+                            WHEN satuan = 'KGM' THEN 'KGM'
+                            ELSE satuan
+                            END as satuan_konversi
+                    FROM signalbit_erp.whs_bppb_h a
+                    inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
+                    inner join signalbit_erp.masteritem mi on b.id_item = mi.id_item
+                    LEFT JOIN (SELECT
+                                            jd.id_jo,
+                                            ac.kpno,
+                                supplier as buyer,
+                                styleno
+                                    FROM signalbit_erp.jo_det jd
+                                    INNER JOIN signalbit_erp.so ON jd.id_so = so.id
+                                    INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                                    INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                                    WHERE jd.cancel = 'N'
+                                    GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
+                    where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
+                ");
 
                 return response()->json([
                     'data' => $rawData // ✅ simplified response
@@ -5280,32 +6052,32 @@ where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Produc
                 return response()->json(['data' => []]);
             } else {
                 $rawData = DB::select("SELECT
-tanggal,
-DATE_FORMAT(tanggal, '%d-%M-%Y') AS tanggal_fix,
-no_form,
-panel,
-act_costing_ws,
-style,
-a.color,
-barcode,
-s.id_item,
-mi.itemdesc,
-        CASE
-            WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
-            ELSE b.qty_pakai
-        END
-     AS qty_pakai,
-CASE
-		WHEN s.unit = 'YRD' THEN 'METER'
-		WHEN s.unit = 'KGM' THEN 'KGM'
-		ELSE s.unit
-		END as satuan
-from form_cut_reject a
-inner join form_cut_reject_barcode b on a.id = b.form_id
-left join scanned_item s on b.barcode = s.id_roll
-left join signalbit_erp.masteritem mi on s.id_item = mi.id_item
-where b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
-order by tanggal asc, no_form asc
+                tanggal,
+                DATE_FORMAT(tanggal, '%d-%M-%Y') AS tanggal_fix,
+                no_form,
+                panel,
+                act_costing_ws,
+                style,
+                a.color,
+                barcode,
+                s.id_item,
+                mi.itemdesc,
+                        CASE
+                            WHEN s.unit = 'YRD' THEN b.qty_pakai * 0.9144
+                            ELSE b.qty_pakai
+                        END
+                    AS qty_pakai,
+                CASE
+                        WHEN s.unit = 'YRD' THEN 'METER'
+                        WHEN s.unit = 'KGM' THEN 'KGM'
+                        ELSE s.unit
+                        END as satuan
+                from form_cut_reject a
+                inner join form_cut_reject_barcode b on a.id = b.form_id
+                left join scanned_item s on b.barcode = s.id_roll
+                left join signalbit_erp.masteritem mi on s.id_item = mi.id_item
+                where b.created_at >= '$start_date 00:00:00' and b.created_at <= '$end_date 23:59:59'
+                order by tanggal asc, no_form asc
             ");
 
                 return response()->json([
@@ -5416,7 +6188,7 @@ order by tanggal asc, no_form asc
             $rows = [
                 $row->tanggal_fix ?: '',
                 $row->no_form ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
                 $row->act_costing_ws ?: '',
                 $row->style ?: '',
                 $row->color ?: '',
@@ -5614,7 +6386,7 @@ order by tanggal asc, no_form asc
                 $row->ws ?: '',
                 $row->styleno ?: '',
                 $row->color ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
                 $row->barcode ?: '',
                 $row->id_item ?: '',
                 $row->itemdesc ?: '',
@@ -7083,1274 +7855,6 @@ order by tanggal asc, no_form asc
             ]
         );
     }
-
-    // Deprecated
-        // public function report_mutasi_wip_cutting_detail(Request $request)
-        // {
-
-        //     $start_date = $request->input('start_date'); // example: 9 (September)
-        //     $end_date = $request->input('end_date'); // example: 2025
-        //     $tgl_saldo = '2026-03-01';
-
-        //     if ($request->ajax()) {
-        //         // ✅ If bulan or tahun is missing, return no data
-        //         if ($start_date === null || $end_date === null) {
-        //             return response()->json(['data' => []]);
-        //         } else {
-        //             $rawData = DB::select("WITH
-        //                 cutt_awal as (
-        //                                 SELECT
-        //                                         COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
-        //                                         UPPER( meja.`name` ) meja,
-        //                                         marker_input.act_costing_ws worksheet,
-        //                                         marker_input.buyer,
-        //                                         marker_input.style,
-        //                                         marker_input.color,
-        //                                         master_sb_ws.id_so_det,
-        //                                         (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE marker_input_detail.size END ) size,
-        //                                         form_cut_input_detail.group_roll,
-        //                                         form_cut_input_detail.lot,
-        //                                         form_cut_input.no_cut,
-        //                                         form_cut_input.no_form,
-        //                                         marker_input.kode no_marker,
-        //                                         marker_input.panel,
-        //                                         similar.max_group,
-        //                                         form_cut_input_detail.group_stocker,
-        //                                         COALESCE ( modify_size_qty.difference_qty, 0 ),
-        //                                         COALESCE ( modify_size_qty.modified_qty, 0 ),
-        //                                         ((COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 )) + (COALESCE ( modify_size_qty.difference_qty, 0 ))) qty,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                                         part.id as part_id,
-        //                                         part.panel_status panel_status,
-        //                                         part.panel part_panel,
-        //                                         part_detail.id part_detail_id,
-        //                                         part_detail.part_status part_status,
-        //                                         master_part.id master_part_id,
-        //                                         master_part.nama_part
-        //                                 FROM
-        //                                         form_cut_input
-        //                                         LEFT JOIN (
-        //                                                 SELECT
-        //                                                         form_cut_id,
-        //                                                         no_form_cut_input,
-        //                                                         group_roll,
-        //                                                         group_stocker,
-        //                                                         lot,
-        //                                                         SUM( lembar_gelaran ) total_lembar
-        //                                                 FROM
-        //                                                         form_cut_input_detail
-        //                                                 WHERE
-        //                                                         ( STATUS != 'not complete' AND STATUS != 'extension' )
-        //                                                 GROUP BY
-        //                                                         form_cut_id,
-        //                                                         group_stocker
-        //                                         ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-        //                                         LEFT JOIN ( SELECT form_cut_id, MAX( group_stocker ) max_group FROM form_cut_input_detail WHERE ( STATUS != 'not complete' AND STATUS != 'extension' ) GROUP BY form_cut_id ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
-        //                                         LEFT JOIN users AS meja ON meja.id = form_cut_input.no_meja
-        //                                         LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
-        //                                         LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-        //                                         LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id AND form_cut_input_detail.group_stocker = COALESCE ( modify_size_qty.group_stocker, similar.max_group )
-        //                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
-        //                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
-        //                                         LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-        //                                         LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                                 WHERE
-        //                                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
-        //                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$tgl_saldo."'
-        //                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
-        //                                         AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
-        //                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                                 GROUP BY
-        //                                         form_cut_input.id,
-        //                                         form_cut_input_detail.group_stocker,
-        //                                         marker_input_detail.id,
-        //                                         part_detail_id
-        //                         UNION ALL
-        //                                 SELECT
-        //                                         COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
-        //                                         '-' meja,
-        //                                         form_cut_piece.act_costing_ws worksheet,
-        //                                         form_cut_piece.buyer,
-        //                                         form_cut_piece.style,
-        //                                         form_cut_piece.color,
-        //                                         master_sb_ws.id_so_det,
-        //                                         (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_piece_detail_size.size  END ) size,
-        //                                         form_cut_piece_detail.`group_roll`,
-        //                                         form_cut_piece_detail.lot,
-        //                                         form_cut_piece.no_cut,
-        //                                         form_cut_piece.no_form,
-        //                                         '-' no_marker,
-        //                                         form_cut_piece.panel,
-        //                                         '-' max_group,
-        //                                         form_cut_piece_detail.group_stocker,
-        //                                         NULL,
-        //                                         NULL,
-        //                                         SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                                         part.id as part_id,
-        //                                         part.panel_status panel_status,
-        //                                         part.panel part_panel,
-        //                                         part_detail.id part_detail_id,
-        //                                         part_detail.part_status part_status,
-        //                                         master_part.id master_part_id,
-        //                                         master_part.nama_part
-        //                                 FROM
-        //                                         form_cut_piece
-        //                                         LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-        //                                         LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
-        //                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
-        //                                         LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
-        //                                         LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-        //                                         LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                                 WHERE
-        //                                         COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$tgl_saldo."'
-        //                                         AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '".$start_date."'
-        //                                         AND form_cut_piece_detail.STATUS = 'complete'
-        //                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                                 GROUP BY
-        //                                         form_cut_piece.id,
-        //                                         form_cut_piece_detail.group_stocker,
-        //                                         form_cut_piece_detail_size.id,
-        //                                         part_detail.id
-        //                         UNION ALL
-        //                                 SELECT
-        //                                         COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
-        //                                         UPPER( meja.`name` ) meja,
-        //                                         stocker_ws_additional.act_costing_ws worksheet,
-        //                                         stocker_ws_additional.buyer,
-        //                                         stocker_ws_additional.style,
-        //                                         stocker_ws_additional.color,
-        //                                         master_sb_ws.id_so_det,
-        //                                         ( CASE WHEN master_sb_ws.dest IS NOT NULL  AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE stocker_ws_additional_detail.size  END  ) size,
-        //                                         form_cut_input_detail.group_roll,
-        //                                         form_cut_input_detail.lot,
-        //                                         form_cut_input.no_cut,
-        //                                         form_cut_input.no_form,
-        //                                         '-' no_marker,
-        //                                         stocker_ws_additional.panel,
-        //                                         similar.max_group,
-        //                                         form_cut_input_detail.group_stocker,
-        //                                         COALESCE ( modify_size_qty.difference_qty, 0 ),
-        //                                         COALESCE ( modify_size_qty.modified_qty, 0 ),
-        //                                         (( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 )) + ( COALESCE ( modify_size_qty.difference_qty, 0 ))) qty,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                                         part.id as part_id,
-        //                                         part.panel_status panel_status,
-        //                                         part.panel part_panel,
-        //                                         part_detail.id part_detail_id,
-        //                                         part_detail.part_status part_status,
-        //                                         master_part.id master_part_id,
-        //                                         master_part.nama_part
-        //                                 FROM
-        //                                         laravel_nds.form_cut_input
-        //                                         LEFT JOIN (
-        //                                                 SELECT
-        //                                                         form_cut_id,
-        //                                                         no_form_cut_input,
-        //                                                         group_roll,
-        //                                                         group_stocker,
-        //                                                         lot,
-        //                                                         SUM( lembar_gelaran ) total_lembar
-        //                                                 FROM
-        //                                                         form_cut_input_detail
-        //                                                 WHERE
-        //                                                         ( STATUS != 'not complete' AND STATUS != 'extension' )
-        //                                                 GROUP BY
-        //                                                         form_cut_id,
-        //                                                         group_stocker
-        //                                         ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-        //                                         LEFT JOIN ( SELECT form_cut_id, MAX( group_stocker ) max_group FROM form_cut_input_detail WHERE ( STATUS != 'not complete' AND STATUS != 'extension' ) GROUP BY form_cut_id ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
-        //                                         LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
-        //                                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-        //                                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
-        //                                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-        //                                         LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
-        //                                         AND modify_size_qty.form_cut_id = form_cut_input.id
-        //                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
-        //                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-        //                                         LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                                 WHERE
-        //                                         form_cut_input.STATUS = 'SELESAI PENGERJAAN'
-        //                                         AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
-        //                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$tgl_saldo."'
-        //                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
-        //                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                                 GROUP BY
-        //                                         form_cut_input.id,
-        //                                         form_cut_input_detail.group_stocker,
-        //                                         stocker_ws_additional_detail.id,
-        //                                         part_detail.id
-        //                         UNION ALL
-        //                                 SELECT
-        //                                     form_cut_reject.tanggal,
-        //                                     '-' meja,
-        //                                     form_cut_reject.act_costing_ws worksheet,
-        //                                     form_cut_reject.buyer,
-        //                                     form_cut_reject.style,
-        //                                     form_cut_reject.color,
-        //                                     master_sb_ws.id_so_det,
-        //                                     (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_reject_detail.size  END ) size,
-        //                                     null as `group_roll`,
-        //                                     null as lot,
-        //                                     null as no_cut,
-        //                                     form_cut_reject.no_form,
-        //                                     '-' no_marker,
-        //                                     form_cut_reject.panel,
-        //                                     '-' max_group,
-        //                                     null as group_stocker,
-        //                                     NULL,
-        //                                     NULL,
-        //                                     SUM( form_cut_reject_detail.qty ) AS qty,
-        //                                     ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                                     ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                                     ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                                     part.id as part_id,
-        //                                     part.panel_status panel_status,
-        //                                     part.panel part_panel,
-        //                                     part_detail.id part_detail_id,
-        //                                     part_detail.part_status part_status,
-        //                                     master_part.id master_part_id,
-        //                                     master_part.nama_part
-        //                                 FROM
-        //                                     form_cut_reject
-        //                                     LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
-        //                                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
-        //                                     LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-        //                                     LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                                     LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                                     LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                                     LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                                 WHERE
-        //                                     form_cut_reject.tanggal >= '".$tgl_saldo."'
-        //                                     AND form_cut_reject.tanggal < '".$start_date."'
-        //                                     AND form_cut_reject.tanggal > '2026-04-30'
-        //                                     AND form_cut_reject_detail.qty > 0
-        //                                     AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                                 GROUP BY
-        //                                     form_cut_reject.id,
-        //                                     form_cut_reject_detail.id,
-        //                                     part_detail.id
-        //                                 ORDER BY
-        //                                         tanggal DESC,
-        //                                         meja,
-        //                                         worksheet,
-        //                                         style,
-        //                                         color,
-        //                                         panel,
-        //                                         part_detail_id,
-        //                                         id_so_det,
-        //                                         group_stocker
-        //                 ),
-        //                 cutt_in as (
-        //                                 SELECT
-        //                                         COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
-        //                                         UPPER( meja.`name` ) meja,
-        //                                         marker_input.act_costing_ws worksheet,
-        //                                         marker_input.buyer,
-        //                                         marker_input.style,
-        //                                         marker_input.color,
-        //                                         master_sb_ws.id_so_det,
-        //                                         (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE marker_input_detail.size END ) size,
-        //                                         form_cut_input_detail.group_roll,
-        //                                         form_cut_input_detail.lot,
-        //                                         form_cut_input.no_cut,
-        //                                         form_cut_input.no_form,
-        //                                         marker_input.kode no_marker,
-        //                                         marker_input.panel,
-        //                                         similar.max_group,
-        //                                         form_cut_input_detail.group_stocker,
-        //                                         COALESCE ( modify_size_qty.difference_qty, 0 ),
-        //                                         COALESCE ( modify_size_qty.modified_qty, 0 ),
-        //                                         ((COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 )) + (COALESCE ( modify_size_qty.difference_qty, 0 ))) qty,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                                         part.id as part_id,
-        //                                         part.panel_status panel_status,
-        //                                         part.panel part_panel,
-        //                                         part_detail.id part_detail_id,
-        //                                         part_detail.part_status part_status,
-        //                                         master_part.id master_part_id,
-        //                                         master_part.nama_part
-        //                                 FROM
-        //                                         form_cut_input
-        //                                         LEFT JOIN (
-        //                                                 SELECT
-        //                                                         form_cut_id,
-        //                                                         no_form_cut_input,
-        //                                                         group_roll,
-        //                                                         group_stocker,
-        //                                                         lot,
-        //                                                         SUM( lembar_gelaran ) total_lembar
-        //                                                 FROM
-        //                                                         form_cut_input_detail
-        //                                                 WHERE
-        //                                                         ( STATUS != 'not complete' AND STATUS != 'extension' )
-        //                                                 GROUP BY
-        //                                                         form_cut_id,
-        //                                                         group_stocker
-        //                                         ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-        //                                         LEFT JOIN ( SELECT form_cut_id, MAX( group_stocker ) max_group FROM form_cut_input_detail WHERE ( STATUS != 'not complete' AND STATUS != 'extension' ) GROUP BY form_cut_id ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
-        //                                         LEFT JOIN users AS meja ON meja.id = form_cut_input.no_meja
-        //                                         LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
-        //                                         LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-        //                                         LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id AND form_cut_input_detail.group_stocker = COALESCE ( modify_size_qty.group_stocker, similar.max_group )
-        //                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
-        //                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
-        //                                         LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-        //                                         LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                                 WHERE
-        //                                         form_cut_input.`status` = 'SELESAI PENGERJAAN'
-        //                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$start_date."'
-        //                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
-        //                                         AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
-        //                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                                 GROUP BY
-        //                                         form_cut_input.id,
-        //                                         form_cut_input_detail.group_stocker,
-        //                                         marker_input_detail.id,
-        //                                         part_detail_id
-        //                         UNION ALL
-        //                                 SELECT
-        //                                         COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
-        //                                         '-' meja,
-        //                                         form_cut_piece.act_costing_ws worksheet,
-        //                                         form_cut_piece.buyer,
-        //                                         form_cut_piece.style,
-        //                                         form_cut_piece.color,
-        //                                         master_sb_ws.id_so_det,
-        //                                         (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_piece_detail_size.size  END ) size,
-        //                                         form_cut_piece_detail.`group_roll`,
-        //                                         form_cut_piece_detail.lot,
-        //                                         form_cut_piece.no_cut,
-        //                                         form_cut_piece.no_form,
-        //                                         '-' no_marker,
-        //                                         form_cut_piece.panel,
-        //                                         '-' max_group,
-        //                                         form_cut_piece_detail.group_stocker,
-        //                                         NULL,
-        //                                         NULL,
-        //                                         SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                                         part.id as part_id,
-        //                                         part.panel_status panel_status,
-        //                                         part.panel part_panel,
-        //                                         part_detail.id part_detail_id,
-        //                                         part_detail.part_status part_status,
-        //                                         master_part.id master_part_id,
-        //                                         master_part.nama_part
-        //                                 FROM
-        //                                         form_cut_piece
-        //                                         LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-        //                                         LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
-        //                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
-        //                                         LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
-        //                                         LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-        //                                         LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail
-        //                                         AND part_detail.part_status = 'complement'
-        //                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                                 WHERE
-        //                                         COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '".$start_date."'
-        //                                         AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '".$end_date."'
-        //                                         AND form_cut_piece_detail.STATUS = 'complete'
-        //                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                                 GROUP BY
-        //                                         form_cut_piece.id,
-        //                                         form_cut_piece_detail.group_stocker,
-        //                                         form_cut_piece_detail_size.id,
-        //                                         part_detail.id
-        //                         UNION ALL
-        //                                 SELECT
-        //                                         COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
-        //                                         UPPER( meja.`name` ) meja,
-        //                                         stocker_ws_additional.act_costing_ws worksheet,
-        //                                         stocker_ws_additional.buyer,
-        //                                         stocker_ws_additional.style,
-        //                                         stocker_ws_additional.color,
-        //                                         master_sb_ws.id_so_det,
-        //                                         ( CASE WHEN master_sb_ws.dest IS NOT NULL  AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE stocker_ws_additional_detail.size  END  ) size,
-        //                                         form_cut_input_detail.group_roll,
-        //                                         form_cut_input_detail.lot,
-        //                                         form_cut_input.no_cut,
-        //                                         form_cut_input.no_form,
-        //                                         '-' no_marker,
-        //                                         stocker_ws_additional.panel,
-        //                                         similar.max_group,
-        //                                         form_cut_input_detail.group_stocker,
-        //                                         COALESCE ( modify_size_qty.difference_qty, 0 ),
-        //                                         COALESCE ( modify_size_qty.modified_qty, 0 ),
-        //                                         (( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 )) + ( COALESCE ( modify_size_qty.difference_qty, 0 ))) qty,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                                         ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                                         part.id as part_id,
-        //                                         part.panel_status panel_status,
-        //                                         part.panel part_panel,
-        //                                         part_detail.id part_detail_id,
-        //                                         part_detail.part_status part_status,
-        //                                         master_part.id master_part_id,
-        //                                         master_part.nama_part
-        //                                 FROM
-        //                                         laravel_nds.form_cut_input
-        //                                         LEFT JOIN (
-        //                                                 SELECT
-        //                                                         form_cut_id,
-        //                                                         no_form_cut_input,
-        //                                                         group_roll,
-        //                                                         group_stocker,
-        //                                                         lot,
-        //                                                         SUM( lembar_gelaran ) total_lembar
-        //                                                 FROM
-        //                                                         form_cut_input_detail
-        //                                                 WHERE
-        //                                                         ( STATUS != 'not complete' AND STATUS != 'extension' )
-        //                                                 GROUP BY
-        //                                                         form_cut_id,
-        //                                                         group_stocker
-        //                                         ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-        //                                         LEFT JOIN ( SELECT form_cut_id, MAX( group_stocker ) max_group FROM form_cut_input_detail WHERE ( STATUS != 'not complete' AND STATUS != 'extension' ) GROUP BY form_cut_id ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
-        //                                         LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
-        //                                         LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-        //                                         LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
-        //                                         LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-        //                                         LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
-        //                                         AND modify_size_qty.form_cut_id = form_cut_input.id
-        //                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
-        //                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-        //                                         LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail
-        //                                         AND part_detail.part_status = 'complement'
-        //                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                                 WHERE
-        //                                         form_cut_input.STATUS = 'SELESAI PENGERJAAN'
-        //                                         AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
-        //                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$start_date."'
-        //                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
-        //                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                                 GROUP BY
-        //                                         form_cut_input.id,
-        //                                         form_cut_input_detail.group_stocker,
-        //                                         stocker_ws_additional_detail.id,
-        //                                         part_detail.id
-        //                         UNION ALL
-        //                                 SELECT
-        //                                     form_cut_reject.tanggal,
-        //                                     '-' meja,
-        //                                     form_cut_reject.act_costing_ws worksheet,
-        //                                     form_cut_reject.buyer,
-        //                                     form_cut_reject.style,
-        //                                     form_cut_reject.color,
-        //                                     master_sb_ws.id_so_det,
-        //                                     (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_reject_detail.size  END ) size,
-        //                                     null as `group_roll`,
-        //                                     null as lot,
-        //                                     null as no_cut,
-        //                                     form_cut_reject.no_form,
-        //                                     '-' no_marker,
-        //                                     form_cut_reject.panel,
-        //                                     '-' max_group,
-        //                                     null as group_stocker,
-        //                                     NULL,
-        //                                     NULL,
-        //                                     SUM( form_cut_reject_detail.qty ) AS qty,
-        //                                     ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                                     ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                                     ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                                     part.id as part_id,
-        //                                     part.panel_status panel_status,
-        //                                     part.panel part_panel,
-        //                                     part_detail.id part_detail_id,
-        //                                     part_detail.part_status part_status,
-        //                                     master_part.id master_part_id,
-        //                                     master_part.nama_part
-        //                                 FROM
-        //                                     form_cut_reject
-        //                                     LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
-        //                                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
-        //                                     LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-        //                                     LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                                     LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                                     LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                                     LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                                 WHERE
-        //                                     form_cut_reject.tanggal >= '".$start_date."'
-        //                                     AND form_cut_reject.tanggal <= '".$end_date."'
-        //                                     AND form_cut_reject.tanggal > '2026-04-30'
-        //                                     AND form_cut_reject_detail.qty > 0
-        //                                     AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                                 GROUP BY
-        //                                     form_cut_reject.id,
-        //                                     form_cut_reject_detail.id,
-        //                                     part_detail.id
-        //                                 ORDER BY
-        //                                         tanggal DESC,
-        //                                         meja,
-        //                                         worksheet,
-        //                                         style,
-        //                                         color,
-        //                                         panel,
-        //                                         part_detail_id,
-        //                                         id_so_det,
-        //                                         group_stocker
-        //                 ),
-        //                 dc_awal as (
-        //                         WITH stocker as (
-        //                                 select
-        //                                         id_so_det,
-        //                                         form_cut_id,
-        //                                         form_reject_id,
-        //                                         form_piece_id,
-        //                                         no_form,
-        //                                         no_cut,
-        //                                         created_at,
-        //                                         buyer,
-        //                                         ws,
-        //                                         styleno,
-        //                                         color,
-        //                                         size,
-        //                                         dest,
-        //                                         panel,
-        //                                         panel_status,
-        //                                         part_detail_id,
-        //                                         master_part_id,
-        //                                         nama_part,
-        //                                         part_status,
-        //                                         SUM(qty_out) qty_dc,
-        //                                         cancel,
-        //                                         cancel_h,
-        //                                         status,
-        //                                         part_id
-        //                                 from (
-        //                                         select
-        //                                                 s.id_qr_stocker,
-        //                                                 msb.id_so_det,
-        //                                                 f.id form_cut_id,
-        //                                                 fr.id form_reject_id,
-        //                                                 fp.id form_piece_id,
-        //                                                 COALESCE(f.no_form, fr.no_form, fp.no_form) no_form,
-        //                                                 COALESCE(f.no_cut, fp.no_cut) no_cut,
-        //                                                 DATE_FORMAT(s.created_at, '%d-%m-%Y') AS created_at,
-        //                                                 msb.buyer,
-        //                                                 msb.ws,
-        //                                                 msb.styleno,
-        //                                                 msb.color,
-        //                                                 s.so_det_id,
-        //                                                 k.size,
-        //                                                 msb.dest,
-        //                                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.panel ELSE p.panel END) panel,
-        //                                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
-        //                                                 pd.id part_detail_id,
-        //                                                 mp.id master_part_id,
-        //                                                 mp.nama_part,
-        //                                                 pd.part_status,
-        //                                                 (CASE WHEN s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) qty_out,
-        //                                                 k.cancel,
-        //                                                 k.cancel_h,
-        //                                                 k.status,
-        //                                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.id ELSE p.id END) part_id
-        //                                         FROM
-        //                                                 stocker_input s
-        //                                                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-        //                                                 left join form_cut_input f on f.id = s.form_cut_id
-        //                                                 left join form_cut_reject fr on fr.id = s.form_reject_id
-        //                                                 left join form_cut_piece fp on fp.id = s.form_piece_id
-        //                                                 left join part_detail pd on s.part_detail_id = pd.id
-        //                                                 left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-        //                                                 left join part p on p.id = pd.part_id
-        //                                                 left join part p_com on p_com.id = pd_com.part_id
-        //                                                 left join master_part mp on mp.id = pd.master_part_id
-        //                                                 LEFT JOIN (
-        //                                                         SELECT sd.id as id_so_det, ac.kpno ws, ac.styleno, sd.color, sd.size, sd.dest, ms.supplier as buyer, sd.cancel, so.cancel_h, ac.status FROM signalbit_erp.so_det sd
-        //                                                         INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-        //                                                         INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-        //                                                         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-        //                                                 ) k on msb.id_so_det = k.id_so_det
-        //                                                 where
-        //                                                 (s.cancel IS NULL OR s.cancel != 'Y') and
-        //                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-        //                                                 s.created_at >= '".$tgl_saldo." 00:00:00' and s.created_at < '".$start_date." 00:00:00'
-        //                                         ) cutting
-        //                                         group by
-        //                                                 no_form,
-        //                                                 id_so_det,
-        //                                                 part_id,
-        //                                                 part_detail_id
-        //                         ),
-
-        //                         form_list as (
-        //                                 select
-        //                                         id_so_det,
-        //                                         stocker.form_cut_id,
-        //                                         stocker.form_reject_id,
-        //                                         stocker.form_piece_id,
-        //                                         no_form,
-        //                                         no_cut,
-        //                                         stocker.created_at,
-        //                                         stocker.buyer,
-        //                                         ws,
-        //                                         styleno,
-        //                                         stocker.color,
-        //                                         stocker.size,
-        //                                         dest,
-        //                                         part.panel,
-        //                                         part.panel_status,
-        //                                         part_detail.id part_detail_id,
-        //                                         mp.id master_part_id,
-        //                                         mp.nama_part,
-        //                                         part_detail.part_status,
-        //                                         0 qty_dc,
-        //                                         '-' cancel,
-        //                                         '-' cancel_h,
-        //                                         '-' status,
-        //                                         part.id part_id
-        //                                 from
-        //                                         stocker
-        //                                         left join part on part.act_costing_ws = stocker.ws and part.id = stocker.part_id
-        //                                         left join part_detail on part_detail.part_id = part.id
-        //                                         left join master_part mp on mp.id = part_detail.master_part_id
-        //                                 where
-        //                                 part.panel_status != 'COMPLEMENT' AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                                 group by
-        //                                         no_form,
-        //                                         id_so_det,
-        //                                         part.id,
-        //                                         part_detail.id
-        //                         )
-
-        //                         select
-        //                                 MAX(id_so_det) id_so_det ,
-        //                                 MAX(no_form) no_form ,
-        //                                 MAX(no_cut) no_cut ,
-        //                                 MAX(created_at) created_at ,
-        //                                 MAX(buyer) buyer ,
-        //                                 MAX(ws) ws ,
-        //                                 MAX(styleno) styleno ,
-        //                                 MAX(color) color ,
-        //                                 MAX(size) size ,
-        //                                 MAX(dest) dest ,
-        //                                 MAX(panel) panel ,
-        //                                 MAX(panel_status) panel_status ,
-        //                                 MAX(part_detail_id ) part_detail_id,
-        //                                 MAX(master_part_id) master_part_id,
-        //                                 MAX(nama_part) nama_part ,
-        //                                 MAX(part_status) part_status ,
-        //                                 SUM(qty_dc) qty_dc,
-        //                                 '-' cancel,
-        //                                 '-' cancel_h,
-        //                                 '-' status,
-        //                                 MAX(part_id) part_id
-        //                         from (
-        //                                 select * from stocker
-        //                                 union all
-        //                                 select * from form_list
-        //                         ) stocker
-        //                         group by
-        //                                 no_form,
-        //                                 id_so_det,
-        //                                 part_id,
-        //                                 part_detail_id
-        //                         order by
-        //                                 no_form,
-        //                                 id_so_det,
-        //                                 part_id,
-        //                                 part_detail_id
-        //                 ),
-        //                 dc_in as (
-
-        //                         WITH stocker as (
-        //                                 select
-        //                                         id_so_det,
-        //                                         form_cut_id,
-        //                                         form_reject_id,
-        //                                         form_piece_id,
-        //                                         no_form,
-        //                                         no_cut,
-        //                                         created_at,
-        //                                         buyer,
-        //                                         ws,
-        //                                         styleno,
-        //                                         color,
-        //                                         size,
-        //                                         dest,
-        //                                         panel,
-        //                                         panel_status,
-        //                                         part_detail_id,
-        //                                         master_part_id,
-        //                                         nama_part,
-        //                                         part_status,
-        //                                         SUM(qty_out) qty_dc,
-        //                                         cancel,
-        //                                         cancel_h,
-        //                                         status,
-        //                                         part_id
-        //                                 from (
-        //                                         select
-        //                                                 s.id_qr_stocker,
-        //                                                 msb.id_so_det,
-        //                                                 f.id form_cut_id,
-        //                                                 fr.id form_reject_id,
-        //                                                 fp.id form_piece_id,
-        //                                                 COALESCE(f.no_form, fr.no_form, fp.no_form) no_form,
-        //                                                 COALESCE(f.no_cut, fp.no_cut) no_cut,
-        //                                                 DATE_FORMAT(s.created_at, '%d-%m-%Y') AS created_at,
-        //                                                 msb.buyer,
-        //                                                 msb.ws,
-        //                                                 msb.styleno,
-        //                                                 msb.color,
-        //                                                 s.so_det_id,
-        //                                                 k.size,
-        //                                                 msb.dest,
-        //                                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.panel ELSE p.panel END) panel,
-        //                                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
-        //                                                 pd.id part_detail_id,
-        //                                                 mp.id master_part_id,
-        //                                                 mp.nama_part,
-        //                                                 pd.part_status,
-        //                                                 (CASE WHEN s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) qty_out,
-        //                                                 k.cancel,
-        //                                                 k.cancel_h,
-        //                                                 k.status,
-        //                                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.id ELSE p.id END) part_id
-        //                                         FROM
-        //                                                 stocker_input s
-        //                                                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-        //                                                 left join form_cut_input f on f.id = s.form_cut_id
-        //                                                 left join form_cut_reject fr on fr.id = s.form_reject_id
-        //                                                 left join form_cut_piece fp on fp.id = s.form_piece_id
-        //                                                 left join part_detail pd on s.part_detail_id = pd.id
-        //                                                 left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-        //                                                 left join part p on p.id = pd.part_id
-        //                                                 left join part p_com on p_com.id = pd_com.part_id
-        //                                                 left join master_part mp on mp.id = pd.master_part_id
-        //                                                 LEFT JOIN (
-        //                                                         SELECT sd.id as id_so_det, ac.kpno ws, ac.styleno, sd.color, sd.size, sd.dest, ms.supplier as buyer, sd.cancel, so.cancel_h, ac.status FROM signalbit_erp.so_det sd
-        //                                                         INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-        //                                                         INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-        //                                                         INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-        //                                                 ) k on msb.id_so_det = k.id_so_det
-        //                                                 where
-        //                                                 (s.cancel IS NULL OR s.cancel != 'Y') and
-        //                                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-        //                                                 s.created_at between '".$start_date." 00:00:00' and '".$end_date." 23:59:59'
-        //                                         ) cutting
-        //                                         group by
-        //                                                 no_form,
-        //                                                 id_so_det,
-        //                                                 part_id,
-        //                                                 part_detail_id
-        //                         ),
-
-        //                         form_list as (
-        //                                 select
-        //                                         id_so_det,
-        //                                         stocker.form_cut_id,
-        //                                         stocker.form_reject_id,
-        //                                         stocker.form_piece_id,
-        //                                         no_form,
-        //                                         no_cut,
-        //                                         stocker.created_at,
-        //                                         stocker.buyer,
-        //                                         ws,
-        //                                         styleno,
-        //                                         stocker.color,
-        //                                         stocker.size,
-        //                                         dest,
-        //                                         part.panel,
-        //                                         part.panel_status,
-        //                                         part_detail.id part_detail_id,
-        //                                         mp.id master_part_id,
-        //                                         mp.nama_part,
-        //                                         part_detail.part_status,
-        //                                         0 qty_dc,
-        //                                         '-' cancel,
-        //                                         '-' cancel_h,
-        //                                         '-' status,
-        //                                         part.id part_id
-        //                                 from
-        //                                         stocker
-        //                                         left join part on part.act_costing_ws = stocker.ws and part.id = stocker.part_id
-        //                                         left join part_detail on part_detail.part_id = part.id
-        //                                         left join master_part mp on mp.id = part_detail.master_part_id
-        //                                 where
-        //                                 part.panel_status != 'COMPLEMENT' AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                                 group by
-        //                                         no_form,
-        //                                         id_so_det,
-        //                                         part.id,
-        //                                         part_detail.id
-        //                         )
-
-        //                         select
-        //                                 MAX(id_so_det) id_so_det ,
-        //                                 MAX(no_form) no_form ,
-        //                                 MAX(no_cut) no_cut ,
-        //                                 MAX(created_at) created_at ,
-        //                                 MAX(buyer) buyer ,
-        //                                 MAX(ws) ws ,
-        //                                 MAX(styleno) styleno ,
-        //                                 MAX(color) color ,
-        //                                 MAX(size) size ,
-        //                                 MAX(dest) dest ,
-        //                                 MAX(panel) panel ,
-        //                                 MAX(panel_status) panel_status ,
-        //                                 MAX(part_detail_id ) part_detail_id,
-        //                                 MAX(master_part_id ) master_part_id,
-        //                                 MAX(nama_part) nama_part ,
-        //                                 MAX(part_status) part_status ,
-        //                                 SUM(qty_dc) qty_dc,
-        //                                 '-' cancel,
-        //                                 '-' cancel_h,
-        //                                 '-' status,
-        //                                 MAX(part_id) part_id
-        //                         from (
-        //                                 select * from stocker
-        //                                 union all
-        //                                 select * from form_list
-        //                         ) stocker
-        //                         group by
-        //                                 no_form,
-        //                                 id_so_det,
-        //                                 part_id,
-        //                                 part_detail_id
-        //                         order by
-        //                                 no_form,
-        //                                 id_so_det,
-        //                                 part_id,
-        //                                 part_detail_id
-        //                 ),
-        //                 saldo_awal_cutting as (
-        //                         SELECT
-        //                                 master_sb_ws.id_so_det,
-        //                                 part.id part_id,
-        //                                 part.panel as panel,
-        //                                 part.panel_status,
-        //                                 part_detail.id part_detail_id,
-        //                                 master_part.id master_part_id,
-        //                                 master_part.nama_part,
-        //                                 part_detail.part_status,
-        //                                 sum(mut_cut_pcs_tmp_detail.saldo) qty_cut_awal,
-        //                                 0 as qty_dc_awal,
-        //                                 0 AS qty_cut,
-        //                                 0 AS qty_dc,
-        //                                 0 as qty_replace
-        //                         FROM mut_cut_pcs_tmp_detail
-        //                         left join master_sb_ws on master_sb_ws.id_so_det = mut_cut_pcs_tmp_detail.id_so_det
-        //                         left join part on part.act_costing_ws = master_sb_ws.ws and part.panel = mut_cut_pcs_tmp_detail.panel
-        //                         left join part_detail on part_detail.id = mut_cut_pcs_tmp_detail.part_detail_id
-        //                         left join master_part on master_part.id = part_detail.master_part_id
-        //                         where mut_cut_pcs_tmp_detail.tgl_trans = '".$tgl_saldo."'
-        //                         group by
-        //                                 master_sb_ws.id_so_det,
-        //                                 part.id,
-        //                                 part.panel,
-        //                                 part.panel_status,
-        //                                 part_detail.id
-        //                 ),
-        //                 saldo as (
-        //                     SELECT
-        //                             a.id_so_det,
-        //                             buyer,
-        //                             ws,
-        //                             styleno,
-        //                             color,
-        //                             k.size,
-        //                             dest,
-        //                             part_id,
-        //                             panel,
-        //                             panel_status,
-        //                             part_detail_id,
-        //                             nama_part,
-        //                             part_status,
-        //                             sum(qty_cut_awal) - sum(qty_dc_awal) as saldo_awal,
-        //                             sum(qty_cut) as qty_cut,
-        //                             sum(qty_dc) - sum(qty_replace) as qty_dc_1,
-        //                             sum(qty_dc) as qty_dc,
-        //                             sum(qty_replace) as qty_replace,
-        //                             (sum(qty_cut_awal) - sum(qty_dc_awal)) + sum(qty_cut) - sum(qty_dc) as saldo_akhir,
-        //                             k.cancel,
-        //                             k.cancel_h,
-        //                             k.status
-        //                     FROM
-        //                     (
-        //                             SELECT id_so_det, part_id, panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM saldo_awal_cutting
-        //                             UNION ALL
-        //                             SELECT id_so_det, part_id, COALESCE(part_panel, panel) as panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, sum(qty) qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_awal WHERE (part_status != 'complement' OR part_status IS NULL) group by id_so_det, part_id, COALESCE(part_panel, panel), panel_status, part_detail_id
-        //                             UNION ALL
-        //                             SELECT id_so_det, part_id, COALESCE(part_panel, panel) as panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, 0 AS qty_cut_awal, 0 AS qty_dc_awal, sum(qty) qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_in WHERE (part_status != 'complement' OR part_status IS NULL) group by id_so_det, part_id, COALESCE(part_panel, panel), panel_status, part_detail_id
-        //                             UNION ALL
-        //                             SELECT id_so_det, part_id, panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, 0 AS qty_cut_awal, sum(qty_dc) AS qty_dc_awal, 0 as qty_cutt, 0 as qty_dc, 0 as qty_replace FROM dc_awal group by id_so_det, part_id, panel, panel_status, part_detail_id
-        //                             UNION ALL
-        //                             SELECT id_so_det, part_id, panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, 0 AS qty_cut_awal, 0 AS qty_dc_awal, 0 as qty_cutt, sum(qty_dc) as qty_dc, 0 as qty_replace  FROM dc_in group by id_so_det, part_id, panel, panel_status, part_detail_id
-        //                     ) a
-        //                     LEFT JOIN (
-        //                             SELECT sd.id as id_so_det, ac.kpno ws, ac.styleno, sd.color, sd.size, sd.dest, ms.supplier as buyer, sd.cancel, so.cancel_h, ac.status FROM signalbit_erp.so_det sd
-        //                             INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-        //                             INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-        //                             INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-        //                     ) k on a.id_so_det = k.id_so_det
-        //                     LEFT JOIN signalbit_erp.master_size_new msn on k.size = msn.size
-        //                     group by
-        //                             ws, color, size, a.panel, nama_part
-        //                     HAVING
-        //                             (SUM(qty_cut_awal) - SUM(qty_dc_awal)) <> 0
-        //                             OR SUM(qty_cut) <> 0
-        //                             OR SUM(qty_dc) <> 0
-        //                             OR ( (SUM(qty_cut_awal) - SUM(qty_dc_awal) ) + SUM(qty_cut) - SUM(qty_dc) ) <> 0
-        //                 ),
-        //                 inject_awal as (
-        //                     SELECT
-        //                         null id_so_det,
-        //                         buyer,
-        //                         ws,
-        //                         style,
-        //                         color,
-        //                         size,
-        //                         null dest,
-        //                         null part_id,
-        //                         panel,
-        //                         null panel_status,
-        //                         null part_detail_id,
-        //                         part nama_part,
-        //                         0 part_status,
-        //                         SUM(`in` - `out`) saldo_awal,
-        //                         0 qty_cut,
-        //                         0 as qty_dc_1,
-        //                         0 as qty_dc,
-        //                         0 as qty_replace,
-        //                         0 as saldo_akhir,
-        //                         null cancel,
-        //                         null cancel_h,
-        //                         null status
-        //                     from
-        //                         inject_mutasi_cutting
-        //                     WHERE
-        //                         tanggal < '$start_date'
-        //                     GROUP BY
-        //                         ws, color, size, panel, part
-        //                 ),
-
-        //                 inject_in as (
-        //                     SELECT
-        //                         null id_so_det,
-        //                         buyer,
-        //                         ws,
-        //                         style,
-        //                         color,
-        //                         size,
-        //                         null dest,
-        //                         null part_id,
-        //                         panel,
-        //                         null panel_status,
-        //                         null part_detail_id,
-        //                         part nama_part,
-        //                         null part_status,
-        //                         0 saldo_awal,
-        //                         SUM(`in`) qty_cut,
-        //                         SUM(`out`) as qty_dc_1,
-        //                         SUM(`out`) as qty_dc,
-        //                         SUM(replacement) as qty_replace,
-        //                         SUM(`in` - `out`) as saldo_akhir,
-        //                         null cancel,
-        //                         null cancel_h,
-        //                         null status
-        //                     from
-        //                         inject_mutasi_cutting
-        //                     WHERE
-        //                         tanggal between '$start_date' and '$end_date'
-        //                     GROUP BY
-        //                         ws, color, size, panel, part
-        //                 )
-
-        //                 SELECT
-        //                     buyer,
-        //                     ws,
-        //                     styleno,
-        //                     color,
-        //                     size,
-        //                     dest,
-        //                     part_id,
-        //                     panel,
-        //                     panel_status,
-        //                     part_detail_id,
-        //                     nama_part,
-        //                     part_status,
-        //                     SUM(saldo_awal) saldo_awal,
-        //                     SUM(qty_adjustment_before) adjustment_before,
-        //                     SUM(switching_in_before) switching_in_before,
-        //                     SUM(switching_out_before) switching_out_before,
-        //                     SUM(saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) saldo_awal_adjustment,
-        //                     SUM(qty_cut) qty_cut,
-        //                     SUM(qty_dc_1) qty_dc_1,
-        //                     SUM(qty_dc) qty_dc,
-        //                     SUM(qty_replace) qty_replace,
-        //                     SUM(saldo_akhir) saldo_akhir,
-        //                     SUM(qty_adjustment) qty_adjustment,
-        //                     SUM(switching_in) switching_in,
-        //                     SUM(switching_out) switching_out,
-        //                     (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before)) + SUM(saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out)) saldo_akhir_adjustment,
-        //                     cancel,
-        //                     cancel_h,
-        //                     status
-        //                 FROM (
-        //                     SELECT
-        //                             buyer,
-        //                             ws,
-        //                             styleno,
-        //                             color,
-        //                             size,
-        //                             dest,
-        //                             part_id,
-        //                             panel,
-        //                             panel_status,
-        //                             part_detail_id,
-        //                             nama_part,
-        //                             part_status,
-        //                             saldo_awal,
-        //                             qty_cut,
-        //                             qty_dc_1,
-        //                             qty_dc,
-        //                             qty_replace,
-        //                             saldo_akhir,
-        //                             0 as qty_adjustment_before,
-        //                             0 qty_adjustment,
-        //                             0 as switching_in_before,
-        //                             0 switching_in,
-        //                             0 as switching_out_before,
-        //                             0 switching_out,
-        //                             cancel,
-        //                             cancel_h,
-        //                             status
-        //                     FROM
-        //                             saldo
-        //                     UNION ALL
-        //                     SELECT
-        //                         buyer,
-        //                         ws,
-        //                         style,
-        //                         color,
-        //                         size,
-        //                         dest,
-        //                         part_id,
-        //                         panel,
-        //                         panel_status,
-        //                         part_detail_id,
-        //                         nama_part,
-        //                         part_status,
-        //                         saldo_awal,
-        //                         qty_cut,
-        //                         qty_dc_1,
-        //                         qty_dc,
-        //                         qty_replace,
-        //                         saldo_akhir,
-        //                         0 as qty_adjustment_before,
-        //                         0 qty_adjustment,
-        //                         0 as switching_in_before,
-        //                         0 switching_in,
-        //                         0 as switching_out_before,
-        //                         0 switching_out,
-        //                         cancel,
-        //                         cancel_h,
-        //                         status
-        //                     FROM inject_awal
-        //                     UNION ALL
-        //                     SELECT
-        //                         buyer,
-        //                         ws,
-        //                         style,
-        //                         color,
-        //                         size,
-        //                         dest,
-        //                         part_id,
-        //                         panel,
-        //                         panel_status,
-        //                         part_detail_id,
-        //                         nama_part,
-        //                         part_status,
-        //                         saldo_awal,
-        //                         qty_cut,
-        //                         qty_dc_1,
-        //                         qty_dc,
-        //                         qty_replace,
-        //                         saldo_akhir,
-        //                         0 as qty_adjustment_before,
-        //                         0 qty_adjustment,
-        //                         0 as switching_in_before,
-        //                         0 switching_in,
-        //                         0 as switching_out_before,
-        //                         0 switching_out,
-        //                         cancel,
-        //                         cancel_h,
-        //                         status
-        //                     FROM inject_in
-        //                     UNION ALL
-        //                     SELECT
-        //                         buyer,
-        //                         no_ws ws,
-        //                         style styleno,
-        //                         color,
-        //                         size,
-        //                         null dest,
-        //                         null part_id,
-        //                         panel,
-        //                         null panel_status,
-        //                         null part_detail_id,
-        //                         part,
-        //                         null part_status,
-        //                         0 as saldo_awal,
-        //                         0 as qty_cut,
-        //                         0 as qty_dc_1,
-        //                         0 as qty_dc,
-        //                         0 as qty_replace,
-        //                         0 as saldo_akhir,
-        //                         SUM(IF(tgl_saldo < '".$start_date."',qty,0)) qty_adjustment_before,
-        //                         SUM(IF(tgl_saldo >= '".$start_date."',qty,0)) as qty_adjustment,
-        //                         0 switching_in_before,
-        //                         0 as switching_in,
-        //                         0 as switching_out_before,
-        //                         0 as switching_out,
-        //                         null cancel,
-        //                         null cancel_h,
-        //                         null status
-        //                     FROM
-        //                         wip_adjustment
-        //                     WHERE
-        //                         tgl_saldo <= '".$end_date."' and
-        //                         type_report = 'CUTTING' and
-        //                         status = 'Y'
-        //                     GROUP BY
-        //                         no_ws, style, color, size, panel, part
-        //                     UNION ALL
-        //                     SELECT
-        //                         from_buyer buyer,
-        //                         from_no_ws ws,
-        //                         from_style styleno,
-        //                         from_color color,
-        //                         from_size size,
-        //                         null dest,
-        //                         null part_id,
-        //                         from_panel panel,
-        //                         null panel_status,
-        //                         null part_detail_id,
-        //                         from_part part,
-        //                         null part_status,
-        //                         0 as saldo_awal,
-        //                         0 as qty_cut,
-        //                         0 as qty_dc_1,
-        //                         0 as qty_dc,
-        //                         0 as qty_replace,
-        //                         0 as saldo_akhir,
-        //                         0 as qty_adjustment_before,
-        //                         0 as qty_adjustment,
-        //                         0 as switching_in_before,
-        //                         0 as switching_in,
-        //                         SUM(IF(from_tgl_saldo < '".$start_date."',qty,0)) switching_out_before,
-        //                         SUM(IF(from_tgl_saldo >= '".$start_date."',qty,0)) as switching_out,
-        //                         null cancel,
-        //                         null cancel_h,
-        //                         null status
-        //                     FROM
-        //                         wip_switching_adj
-        //                     WHERE
-        //                         from_tgl_saldo <= '".$end_date."' and
-        //                         type_report = 'CUTTING' and
-        //                         status = 'Y'
-        //                     GROUP BY
-        //                         no_ws, style, color, size, panel, part,
-        //                         from_no_ws, from_style, from_color, from_size, from_panel, from_part
-        //                     UNION ALL
-        //                     SELECT
-        //                         buyer buyer,
-        //                         no_ws ws,
-        //                         style styleno,
-        //                         color color,
-        //                         size size,
-        //                         null dest,
-        //                         null part_id,
-        //                         panel panel,
-        //                         null panel_status,
-        //                         null part_detail_id,
-        //                         part part,
-        //                         null part_status,
-        //                         0 as saldo_awal,
-        //                         0 as qty_cut,
-        //                         0 as qty_dc_1,
-        //                         0 as qty_dc,
-        //                         0 as qty_replace,
-        //                         0 as saldo_akhir,
-        //                         0 as qty_adjustment_before,
-        //                         0 as qty_adjustment,
-        //                         SUM(IF(tgl_saldo < '".$start_date."',qty,0)) switching_in_before,
-        //                         SUM(IF(tgl_saldo >= '".$start_date."',qty,0)) as switching_in,
-        //                         0 as switching_out_before,
-        //                         0 as switching_out,
-        //                         null cancel,
-        //                         null cancel_h,
-        //                         null status
-        //                     FROM
-        //                         wip_switching_adj
-        //                     WHERE
-        //                         tgl_saldo <= '".$end_date."' and
-        //                         type_report = 'CUTTING' and
-        //                         status = 'Y'
-        //                     GROUP BY
-        //                         no_ws, style, color, size, panel, part,
-        //                         from_no_ws, from_style, from_color, from_size, from_panel, from_part
-        //                 ) cutting
-        //                 group by
-        //                     ws, styleno, color, size, panel, nama_part
-        //                 having
-        //                     (
-        //                         saldo_awal_adjustment != 0 OR
-        //                         qty_cut != 0 OR
-        //                         qty_dc_1 != 0 OR
-        //                         qty_dc != 0 OR
-        //                         qty_replace != 0 OR
-        //                         qty_adjustment != 0 OR
-        //                         switching_in != 0 OR
-        //                         switching_out != 0 OR
-        //                         saldo_akhir_adjustment != 0
-        //                     )
-        //             ");
-
-        //             return DataTables::of($rawData)->toJson();
-        //         }
-        //     }
-
-
-        //     // For non-AJAX (initial page load)
-        //     return view(
-        //         'cutting.report.report_mutasi_wip_cutting_detail',
-        //         [
-        //             'page' => 'dashboard-cutting',
-        //             "subPageGroup" => "cutting-report",
-        //             "subPage" => "report_mutasi_wip_cutting_detail",
-        //             'containerFluid' => true
-        //         ]
-        //     );
-        // }
 
     public function buildReportMutasiWipCuttingDetailQuery($start_date, $end_date, $tgl_saldo)
     {
@@ -11270,11 +10774,6 @@ order by tanggal asc, no_form asc
         );
     }
 
-    // public function export_excel_report_mut_wip_cutting(Request $request)
-    // {
-    //     return Excel::download(new export_excel_report_mut_wip_cutting($request->start_date, $request->end_date), 'Laporan Mutasi WIP Cutting.xlsx');
-    // }
-
     public function export_excel_report_mut_wip_cutting(Request $request)
     {
         $start_date = $request->start_date;
@@ -12186,7 +11685,7 @@ order by tanggal asc, no_form asc
                 $row->styleno ?: '',
                 $row->color ?: '',
                 $row->size ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel),
                 (float) $row->saldo_awal,
                 (float) $row->qty_cut,
                 (float) $row->qty_replace,
@@ -12208,983 +11707,6 @@ order by tanggal asc, no_form asc
 
         return $excel->download();
     }
-
-    // Deprecated :
-        // public function export_excel_report_mut_wip_cutting_detail(Request $request)
-        // {
-        //     return Excel::download(new export_excel_report_mut_wip_cutting_detail($request->start_date, $request->end_date), 'Laporan Mutasi WIP Cutting Detail.xlsx');
-        // }
-
-        // public function export_excel_report_mut_wip_cutting_detail1(Request $request)
-        // {
-        //     $start_date = $request->start_date;
-        //     $end_date = $request->end_date;
-        //     $tgl_saldo = '2026-03-01';
-
-        //     $data = DB::select("WITH
-        //                 cutt_awal as (
-        //                         SELECT
-        //                             COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
-        //                             UPPER( meja.`name` ) meja,
-        //                             marker_input.act_costing_ws worksheet,
-        //                             marker_input.buyer,
-        //                             marker_input.style,
-        //                             marker_input.color,
-        //                             master_sb_ws.id_so_det,
-        //                             (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE marker_input_detail.size END ) size,
-        //                             form_cut_input_detail.group_roll,
-        //                             form_cut_input_detail.lot,
-        //                             form_cut_input.no_cut,
-        //                             form_cut_input.no_form,
-        //                             marker_input.kode no_marker,
-        //                             marker_input.panel,
-        //                             similar.max_group,
-        //                             form_cut_input_detail.group_stocker,
-        //                             COALESCE ( modify_size_qty.difference_qty, 0 ),
-        //                             COALESCE ( modify_size_qty.modified_qty, 0 ),
-        //                             ((COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 )) + (COALESCE ( modify_size_qty.difference_qty, 0 ))) qty,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                             part.id as part_id,
-        //                             part.panel_status panel_status,
-        //                             part.panel part_panel,
-        //                             part_detail.id part_detail_id,
-        //                             part_detail.part_status part_status,
-        //                             master_part.id master_part_id,
-        //                             master_part.nama_part
-        //                         FROM
-        //                             form_cut_input
-        //                             LEFT JOIN (
-        //                                 SELECT
-        //                                     form_cut_id,
-        //                                     no_form_cut_input,
-        //                                     group_roll,
-        //                                     group_stocker,
-        //                                     lot,
-        //                                     SUM( lembar_gelaran ) total_lembar
-        //                                 FROM
-        //                                     form_cut_input_detail
-        //                                 WHERE
-        //                                     ( STATUS != 'not complete' AND STATUS != 'extension' )
-        //                                 GROUP BY
-        //                                     form_cut_id,
-        //                                     group_stocker
-        //                             ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-        //                             LEFT JOIN ( SELECT form_cut_id, MAX( group_stocker ) max_group FROM form_cut_input_detail WHERE ( STATUS != 'not complete' AND STATUS != 'extension' ) GROUP BY form_cut_id ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
-        //                             LEFT JOIN users AS meja ON meja.id = form_cut_input.no_meja
-        //                             LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
-        //                             LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-        //                             LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id AND form_cut_input_detail.group_stocker = COALESCE ( modify_size_qty.group_stocker, similar.max_group )
-        //                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
-        //                             LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
-        //                             LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-        //                             LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                             LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                             LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                             LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                         WHERE
-        //                             form_cut_input.`status` = 'SELESAI PENGERJAAN'
-        //                             AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$tgl_saldo'
-        //                             AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '$start_date'
-        //                             AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
-        //                             AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                         GROUP BY
-        //                             form_cut_input.id,
-        //                             form_cut_input_detail.group_stocker,
-        //                             marker_input_detail.id,
-        //                             part_detail_id
-        //                     UNION ALL
-        //                         SELECT
-        //                             COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
-        //                             '-' meja,
-        //                             form_cut_piece.act_costing_ws worksheet,
-        //                             form_cut_piece.buyer,
-        //                             form_cut_piece.style,
-        //                             form_cut_piece.color,
-        //                             master_sb_ws.id_so_det,
-        //                             (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_piece_detail_size.size  END ) size,
-        //                             form_cut_piece_detail.`group_roll`,
-        //                             form_cut_piece_detail.lot,
-        //                             form_cut_piece.no_cut,
-        //                             form_cut_piece.no_form,
-        //                             '-' no_marker,
-        //                             form_cut_piece.panel,
-        //                             '-' max_group,
-        //                             form_cut_piece_detail.group_stocker,
-        //                             NULL,
-        //                             NULL,
-        //                             SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                             part.id as part_id,
-        //                             part.panel_status panel_status,
-        //                             part.panel part_panel,
-        //                             part_detail.id part_detail_id,
-        //                             part_detail.part_status part_status,
-        //                             master_part.id master_part_id,
-        //                             master_part.nama_part
-        //                         FROM
-        //                             form_cut_piece
-        //                             LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-        //                             LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
-        //                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
-        //                             LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
-        //                             LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-        //                             LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                             LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                             LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                             LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                         WHERE
-        //                             COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$tgl_saldo'
-        //                             AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) < '$start_date'
-        //                             AND form_cut_piece_detail.STATUS = 'complete'
-        //                             AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                         GROUP BY
-        //                             form_cut_piece.id,
-        //                             form_cut_piece_detail.group_stocker,
-        //                             form_cut_piece_detail_size.id,
-        //                             part_detail.id
-        //                     UNION ALL
-        //                         SELECT
-        //                             COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
-        //                             UPPER( meja.`name` ) meja,
-        //                             stocker_ws_additional.act_costing_ws worksheet,
-        //                             stocker_ws_additional.buyer,
-        //                             stocker_ws_additional.style,
-        //                             stocker_ws_additional.color,
-        //                             master_sb_ws.id_so_det,
-        //                             ( CASE WHEN master_sb_ws.dest IS NOT NULL  AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE stocker_ws_additional_detail.size  END  ) size,
-        //                             form_cut_input_detail.group_roll,
-        //                             form_cut_input_detail.lot,
-        //                             form_cut_input.no_cut,
-        //                             form_cut_input.no_form,
-        //                             '-' no_marker,
-        //                             stocker_ws_additional.panel,
-        //                             similar.max_group,
-        //                             form_cut_input_detail.group_stocker,
-        //                             COALESCE ( modify_size_qty.difference_qty, 0 ),
-        //                             COALESCE ( modify_size_qty.modified_qty, 0 ),
-        //                             (( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 )) + ( COALESCE ( modify_size_qty.difference_qty, 0 ))) qty,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                             part.id as part_id,
-        //                             part.panel_status panel_status,
-        //                             part.panel part_panel,
-        //                             part_detail.id part_detail_id,
-        //                             part_detail.part_status part_status,
-        //                             master_part.id master_part_id,
-        //                             master_part.nama_part
-        //                         FROM
-        //                             laravel_nds.form_cut_input
-        //                             LEFT JOIN (
-        //                                 SELECT
-        //                                     form_cut_id,
-        //                                     no_form_cut_input,
-        //                                     group_roll,
-        //                                     group_stocker,
-        //                                     lot,
-        //                                     SUM( lembar_gelaran ) total_lembar
-        //                                 FROM
-        //                                     form_cut_input_detail
-        //                                 WHERE
-        //                                     ( STATUS != 'not complete' AND STATUS != 'extension' )
-        //                                 GROUP BY
-        //                                     form_cut_id,
-        //                                     group_stocker
-        //                             ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-        //                             LEFT JOIN ( SELECT form_cut_id, MAX( group_stocker ) max_group FROM form_cut_input_detail WHERE ( STATUS != 'not complete' AND STATUS != 'extension' ) GROUP BY form_cut_id ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
-        //                             LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
-        //                             LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-        //                             LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
-        //                             LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-        //                             LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
-        //                             AND modify_size_qty.form_cut_id = form_cut_input.id
-        //                             LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
-        //                             LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-        //                             LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                             LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                             LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                             LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                         WHERE
-        //                             form_cut_input.STATUS = 'SELESAI PENGERJAAN'
-        //                             AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
-        //                             AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$tgl_saldo'
-        //                             AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '$start_date'
-        //                             AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                         GROUP BY
-        //                             form_cut_input.id,
-        //                             form_cut_input_detail.group_stocker,
-        //                             stocker_ws_additional_detail.id,
-        //                             part_detail.id
-        //                         ORDER BY
-        //                             tanggal DESC,
-        //                             meja,
-        //                             worksheet,
-        //                             style,
-        //                             color,
-        //                             panel,
-        //                             part_detail_id,
-        //                             id_so_det,
-        //                             group_stocker
-        //                 ),
-        //                 cutt_in as (
-        //                         SELECT
-        //                             COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
-        //                             UPPER( meja.`name` ) meja,
-        //                             marker_input.act_costing_ws worksheet,
-        //                             marker_input.buyer,
-        //                             marker_input.style,
-        //                             marker_input.color,
-        //                             master_sb_ws.id_so_det,
-        //                             (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE marker_input_detail.size END ) size,
-        //                             form_cut_input_detail.group_roll,
-        //                             form_cut_input_detail.lot,
-        //                             form_cut_input.no_cut,
-        //                             form_cut_input.no_form,
-        //                             marker_input.kode no_marker,
-        //                             marker_input.panel,
-        //                             similar.max_group,
-        //                             form_cut_input_detail.group_stocker,
-        //                             COALESCE ( modify_size_qty.difference_qty, 0 ),
-        //                             COALESCE ( modify_size_qty.modified_qty, 0 ),
-        //                             ((COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 )) + (COALESCE ( modify_size_qty.difference_qty, 0 ))) qty,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                             part.id as part_id,
-        //                             part.panel_status panel_status,
-        //                             part.panel part_panel,
-        //                             part_detail.id part_detail_id,
-        //                             part_detail.part_status part_status,
-        //                             master_part.id master_part_id,
-        //                             master_part.nama_part
-        //                         FROM
-        //                             form_cut_input
-        //                             LEFT JOIN (
-        //                                 SELECT
-        //                                     form_cut_id,
-        //                                     no_form_cut_input,
-        //                                     group_roll,
-        //                                     group_stocker,
-        //                                     lot,
-        //                                     SUM( lembar_gelaran ) total_lembar
-        //                                 FROM
-        //                                     form_cut_input_detail
-        //                                 WHERE
-        //                                     ( STATUS != 'not complete' AND STATUS != 'extension' )
-        //                                 GROUP BY
-        //                                     form_cut_id,
-        //                                     group_stocker
-        //                             ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-        //                             LEFT JOIN ( SELECT form_cut_id, MAX( group_stocker ) max_group FROM form_cut_input_detail WHERE ( STATUS != 'not complete' AND STATUS != 'extension' ) GROUP BY form_cut_id ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
-        //                             LEFT JOIN users AS meja ON meja.id = form_cut_input.no_meja
-        //                             LEFT JOIN marker_input ON marker_input.kode = form_cut_input.id_marker
-        //                             LEFT JOIN marker_input_detail ON marker_input_detail.marker_id = marker_input.id
-        //                             LEFT JOIN modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id AND modify_size_qty.so_det_id = marker_input_detail.so_det_id AND form_cut_input_detail.group_stocker = COALESCE ( modify_size_qty.group_stocker, similar.max_group )
-        //                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
-        //                             LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
-        //                             LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-        //                             LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                             LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                             LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                             LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                         WHERE
-        //                             form_cut_input.`status` = 'SELESAI PENGERJAAN'
-        //                             AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$start_date'
-        //                             AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '$end_date'
-        //                             AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
-        //                             AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                         GROUP BY
-        //                             form_cut_input.id,
-        //                             form_cut_input_detail.group_stocker,
-        //                             marker_input_detail.id,
-        //                             part_detail_id
-        //                     UNION ALL
-        //                         SELECT
-        //                             COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) tanggal,
-        //                             '-' meja,
-        //                             form_cut_piece.act_costing_ws worksheet,
-        //                             form_cut_piece.buyer,
-        //                             form_cut_piece.style,
-        //                             form_cut_piece.color,
-        //                             master_sb_ws.id_so_det,
-        //                             (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_piece_detail_size.size  END ) size,
-        //                             form_cut_piece_detail.`group_roll`,
-        //                             form_cut_piece_detail.lot,
-        //                             form_cut_piece.no_cut,
-        //                             form_cut_piece.no_form,
-        //                             '-' no_marker,
-        //                             form_cut_piece.panel,
-        //                             '-' max_group,
-        //                             form_cut_piece_detail.group_stocker,
-        //                             NULL,
-        //                             NULL,
-        //                             SUM( CASE WHEN form_cut_piece.waktu_selesai < '2026-05-01 00:00:00' THEN form_cut_piece_detail_size.qty ELSE form_cut_piece_detail_size.qty_aktual END ) AS qty,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                             part.id as part_id,
-        //                             part.panel_status panel_status,
-        //                             part.panel part_panel,
-        //                             part_detail.id part_detail_id,
-        //                             part_detail.part_status part_status,
-        //                             master_part.id master_part_id,
-        //                             master_part.nama_part
-        //                         FROM
-        //                             form_cut_piece
-        //                             LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-        //                             LEFT JOIN form_cut_piece_detail_size ON form_cut_piece_detail_size.form_detail_id = form_cut_piece_detail.id
-        //                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
-        //                             LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
-        //                             LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-        //                             LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                             LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail
-        //                             AND part_detail.part_status = 'complement'
-        //                             LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                             LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                         WHERE
-        //                             COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) >= '$start_date'
-        //                             AND COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) <= '$end_date'
-        //                             AND form_cut_piece_detail.STATUS = 'complete'
-        //                             AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                         GROUP BY
-        //                             form_cut_piece.id,
-        //                             form_cut_piece_detail.group_stocker,
-        //                             form_cut_piece_detail_size.id,
-        //                             part_detail.id
-        //                     UNION ALL
-        //                         SELECT
-        //                             COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
-        //                             UPPER( meja.`name` ) meja,
-        //                             stocker_ws_additional.act_costing_ws worksheet,
-        //                             stocker_ws_additional.buyer,
-        //                             stocker_ws_additional.style,
-        //                             stocker_ws_additional.color,
-        //                             master_sb_ws.id_so_det,
-        //                             ( CASE WHEN master_sb_ws.dest IS NOT NULL  AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE stocker_ws_additional_detail.size  END  ) size,
-        //                             form_cut_input_detail.group_roll,
-        //                             form_cut_input_detail.lot,
-        //                             form_cut_input.no_cut,
-        //                             form_cut_input.no_form,
-        //                             '-' no_marker,
-        //                             stocker_ws_additional.panel,
-        //                             similar.max_group,
-        //                             form_cut_input_detail.group_stocker,
-        //                             COALESCE ( modify_size_qty.difference_qty, 0 ),
-        //                             COALESCE ( modify_size_qty.modified_qty, 0 ),
-        //                             (( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 )) + ( COALESCE ( modify_size_qty.difference_qty, 0 ))) qty,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                             part.id as part_id,
-        //                             part.panel_status panel_status,
-        //                             part.panel part_panel,
-        //                             part_detail.id part_detail_id,
-        //                             part_detail.part_status part_status,
-        //                             master_part.id master_part_id,
-        //                             master_part.nama_part
-        //                         FROM
-        //                             laravel_nds.form_cut_input
-        //                             LEFT JOIN (
-        //                                 SELECT
-        //                                     form_cut_id,
-        //                                     no_form_cut_input,
-        //                                     group_roll,
-        //                                     group_stocker,
-        //                                     lot,
-        //                                     SUM( lembar_gelaran ) total_lembar
-        //                                 FROM
-        //                                     form_cut_input_detail
-        //                                 WHERE
-        //                                     ( STATUS != 'not complete' AND STATUS != 'extension' )
-        //                                 GROUP BY
-        //                                     form_cut_id,
-        //                                     group_stocker
-        //                             ) form_cut_input_detail ON form_cut_input_detail.form_cut_id = form_cut_input.id
-        //                             LEFT JOIN ( SELECT form_cut_id, MAX( group_stocker ) max_group FROM form_cut_input_detail WHERE ( STATUS != 'not complete' AND STATUS != 'extension' ) GROUP BY form_cut_id ) similar ON similar.form_cut_id = form_cut_input_detail.form_cut_id
-        //                             LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
-        //                             LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
-        //                             LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = stocker_ws_additional_detail.so_det_id
-        //                             LEFT JOIN laravel_nds.users AS meja ON meja.id = form_cut_input.no_meja
-        //                             LEFT JOIN (select modify_size_qty.*, msb_modify.size from laravel_nds.modify_size_qty left join laravel_nds.master_sb_ws msb_modify on msb_modify.id_so_det = modify_size_qty.so_det_id ) modify_size_qty ON modify_size_qty.form_cut_id = form_cut_input.id and modify_size_qty.size = stocker_ws_additional_detail.size
-        //                             AND modify_size_qty.form_cut_id = form_cut_input.id
-        //                             LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
-        //                             LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-        //                             LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                             LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail
-        //                             AND part_detail.part_status = 'complement'
-        //                             LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                             LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                         WHERE
-        //                             form_cut_input.STATUS = 'SELESAI PENGERJAAN'
-        //                             AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
-        //                             AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '$start_date'
-        //                             AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '$end_date'
-        //                             AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                         GROUP BY
-        //                             form_cut_input.id,
-        //                             form_cut_input_detail.group_stocker,
-        //                             stocker_ws_additional_detail.id,
-        //                             part_detail.id
-        //                     UNION ALL
-        //                         SELECT
-        //                             form_cut_reject.tanggal,
-        //                             '-' meja,
-        //                             form_cut_reject.act_costing_ws worksheet,
-        //                             form_cut_reject.buyer,
-        //                             form_cut_reject.style,
-        //                             form_cut_reject.color,
-        //                             master_sb_ws.id_so_det,
-        //                             (CASE WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT( master_sb_ws.size, ' - ', master_sb_ws.dest ) ELSE form_cut_reject_detail.size  END ) size,
-        //                             null as `group_roll`,
-        //                             null as lot,
-        //                             null as no_cut,
-        //                             form_cut_reject.no_form,
-        //                             '-' no_marker,
-        //                             form_cut_reject.panel,
-        //                             '-' max_group,
-        //                             null as group_stocker,
-        //                             NULL,
-        //                             NULL,
-        //                             SUM( form_cut_reject_detail.qty ) AS qty,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
-        //                             ( CASE WHEN part_detail.part_status = 'complement' THEN COALESCE ( p_com.panel, part.panel ) ELSE part.panel END ) part_panel1,
-        //                             part.id as part_id,
-        //                             part.panel_status panel_status,
-        //                             part.panel part_panel,
-        //                             part_detail.id part_detail_id,
-        //                             part_detail.part_status part_status,
-        //                             master_part.id master_part_id,
-        //                             master_part.nama_part
-        //                         FROM
-        //                             form_cut_reject
-        //                             LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
-        //                             LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
-        //                             LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-        //                             LEFT JOIN part_detail ON part_detail.part_id = part.id
-        //                             LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
-        //                             LEFT JOIN part p_com ON p_com.id = pd_com.part_id
-        //                             LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
-        //                         WHERE
-        //                             form_cut_reject.tanggal >= '".$start_date."'
-        //                             AND form_cut_reject.tanggal <= '".$end_date."'
-        //                             AND form_cut_reject.tanggal > '2026-04-30'
-        //                             AND form_cut_reject_detail.qty > 0
-        //                             AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                         GROUP BY
-        //                             form_cut_reject.id,
-        //                             form_cut_reject_detail.id,
-        //                             part_detail.id
-        //                         ORDER BY
-        //                                 tanggal DESC,
-        //                                 meja,
-        //                                 worksheet,
-        //                                 style,
-        //                                 color,
-        //                                 panel,
-        //                                 part_detail_id,
-        //                                 id_so_det,
-        //                                 group_stocker
-        //                         ORDER BY
-        //                             tanggal DESC,
-        //                             meja,
-        //                             worksheet,
-        //                             style,
-        //                             color,
-        //                             panel,
-        //                             part_detail_id,
-        //                             id_so_det,
-        //                             group_stocker
-        //                 ),
-        //                 dc_awal as (
-        //                     WITH stocker as (
-        //                         select
-        //                             id_so_det,
-        //                             form_cut_id,
-        //                             form_reject_id,
-        //                             form_piece_id,
-        //                             no_form,
-        //                             no_cut,
-        //                             created_at,
-        //                             buyer,
-        //                             ws,
-        //                             styleno,
-        //                             color,
-        //                             size,
-        //                             dest,
-        //                             panel,
-        //                             panel_status,
-        //                             part_detail_id,
-        //                             master_part_id,
-        //                             nama_part,
-        //                             part_status,
-        //                             SUM(qty_out) qty_dc,
-        //                             cancel,
-        //                             cancel_h,
-        //                             status,
-        //                             part_id
-        //                         from (
-        //                             select
-        //                                 s.id_qr_stocker,
-        //                                 msb.id_so_det,
-        //                                 f.id form_cut_id,
-        //                                 fr.id form_reject_id,
-        //                                 fp.id form_piece_id,
-        //                                 COALESCE(f.no_form, fr.no_form, fp.no_form) no_form,
-        //                                 COALESCE(f.no_cut, fp.no_cut) no_cut,
-        //                                 DATE_FORMAT(s.created_at, '%d-%m-%Y') AS created_at,
-        //                                 msb.buyer,
-        //                                 msb.ws,
-        //                                 msb.styleno,
-        //                                 msb.color,
-        //                                 s.so_det_id,
-        //                                 k.size,
-        //                                 msb.dest,
-        //                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.panel ELSE p.panel END) panel,
-        //                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
-        //                                 pd.id part_detail_id,
-        //                                 mp.id master_part_id,
-        //                                 mp.nama_part,
-        //                                 pd.part_status,
-        //                                 (CASE WHEN s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) qty_out,
-        //                                 k.cancel,
-        //                                 k.cancel_h,
-        //                                 k.status,
-        //                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.id ELSE p.id END) part_id
-        //                             FROM
-        //                                 stocker_input s
-        //                                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-        //                                 left join form_cut_input f on f.id = s.form_cut_id
-        //                                 left join form_cut_reject fr on fr.id = s.form_reject_id
-        //                                 left join form_cut_piece fp on fp.id = s.form_piece_id
-        //                                 left join part_detail pd on s.part_detail_id = pd.id
-        //                                 left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-        //                                 left join part p on p.id = pd.part_id
-        //                                 left join part p_com on p_com.id = pd_com.part_id
-        //                                 left join master_part mp on mp.id = pd.master_part_id
-        //                                 LEFT JOIN (
-        //                                     SELECT sd.id as id_so_det, ac.kpno ws, ac.styleno, sd.color, sd.size, sd.dest, ms.supplier as buyer, sd.cancel, so.cancel_h, ac.status FROM signalbit_erp.so_det sd
-        //                                     INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-        //                                     INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-        //                                     INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-        //                                 ) k on msb.id_so_det = k.id_so_det
-        //                                 where
-        //                                 (s.cancel IS NULL OR s.cancel != 'Y') and
-        //                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-        //                                 s.created_at >= '$tgl_saldo 00:00:00' and s.created_at < '$start_date 00:00:00'
-        //                             ) cutting
-        //                             group by
-        //                                 no_form,
-        //                                 id_so_det,
-        //                                 part_id,
-        //                                 part_detail_id
-        //                     ),
-
-        //                     form_list as (
-        //                         select
-        //                             id_so_det,
-        //                             stocker.form_cut_id,
-        //                             stocker.form_reject_id,
-        //                             stocker.form_piece_id,
-        //                             no_form,
-        //                             no_cut,
-        //                             stocker.created_at,
-        //                             stocker.buyer,
-        //                             ws,
-        //                             styleno,
-        //                             stocker.color,
-        //                             stocker.size,
-        //                             dest,
-        //                             part.panel,
-        //                             part.panel_status,
-        //                             part_detail.id part_detail_id,
-        //                             mp.id master_part_id,
-        //                             mp.nama_part,
-        //                             part_detail.part_status,
-        //                             0 qty_dc,
-        //                             '-' cancel,
-        //                             '-' cancel_h,
-        //                             '-' status,
-        //                             part.id part_id
-        //                         from
-        //                             stocker
-        //                             left join part on part.act_costing_ws = stocker.ws and part.id = stocker.part_id
-        //                             left join part_detail on part_detail.part_id = part.id
-        //                             left join master_part mp on mp.id = part_detail.master_part_id
-        //                         where
-        //                         part.panel_status != 'COMPLEMENT' AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                         group by
-        //                             no_form,
-        //                             id_so_det,
-        //                             part.id,
-        //                             part_detail.id
-        //                     )
-
-        //                     select
-        //                         MAX(id_so_det) id_so_det ,
-        //                         MAX(no_form) no_form ,
-        //                         MAX(no_cut) no_cut ,
-        //                         MAX(created_at) created_at ,
-        //                         MAX(buyer) buyer ,
-        //                         MAX(ws) ws ,
-        //                         MAX(styleno) styleno ,
-        //                         MAX(color) color ,
-        //                         MAX(size) size ,
-        //                         MAX(dest) dest ,
-        //                         MAX(panel) panel ,
-        //                         MAX(panel_status) panel_status ,
-        //                         MAX(part_detail_id ) part_detail_id,
-        //                         MAX(master_part_id) master_part_id,
-        //                         MAX(nama_part) nama_part ,
-        //                         MAX(part_status) part_status ,
-        //                         SUM(qty_dc) qty_dc,
-        //                         '-' cancel,
-        //                         '-' cancel_h,
-        //                         '-' status,
-        //                         MAX(part_id) part_id
-        //                     from (
-        //                         select * from stocker
-        //                         union all
-        //                         select * from form_list
-        //                     ) stocker
-        //                     group by
-        //                         no_form,
-        //                         id_so_det,
-        //                         part_id,
-        //                         part_detail_id
-        //                     order by
-        //                         no_form,
-        //                         id_so_det,
-        //                         part_id,
-        //                         part_detail_id
-        //                 ),
-        //                 dc_in as (
-
-        //                     WITH stocker as (
-        //                         select
-        //                             id_so_det,
-        //                             form_cut_id,
-        //                             form_reject_id,
-        //                             form_piece_id,
-        //                             no_form,
-        //                             no_cut,
-        //                             created_at,
-        //                             buyer,
-        //                             ws,
-        //                             styleno,
-        //                             color,
-        //                             size,
-        //                             dest,
-        //                             panel,
-        //                             panel_status,
-        //                             part_detail_id,
-        //                             master_part_id,
-        //                             nama_part,
-        //                             part_status,
-        //                             SUM(qty_out) qty_dc,
-        //                             cancel,
-        //                             cancel_h,
-        //                             status,
-        //                             part_id
-        //                         from (
-        //                             select
-        //                                 s.id_qr_stocker,
-        //                                 msb.id_so_det,
-        //                                 f.id form_cut_id,
-        //                                 fr.id form_reject_id,
-        //                                 fp.id form_piece_id,
-        //                                 COALESCE(f.no_form, fr.no_form, fp.no_form) no_form,
-        //                                 COALESCE(f.no_cut, fp.no_cut) no_cut,
-        //                                 DATE_FORMAT(s.created_at, '%d-%m-%Y') AS created_at,
-        //                                 msb.buyer,
-        //                                 msb.ws,
-        //                                 msb.styleno,
-        //                                 msb.color,
-        //                                 s.so_det_id,
-        //                                 k.size,
-        //                                 msb.dest,
-        //                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.panel ELSE p.panel END) panel,
-        //                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.panel_status ELSE p.panel_status END) panel_status,
-        //                                 pd.id part_detail_id,
-        //                                 mp.id master_part_id,
-        //                                 mp.nama_part,
-        //                                 pd.part_status,
-        //                                 (CASE WHEN s.qty_ply_mod > 0 THEN s.qty_ply_mod ELSE s.qty_ply END) qty_out,
-        //                                 k.cancel,
-        //                                 k.cancel_h,
-        //                                 k.status,
-        //                                 (CASE WHEN pd.part_status = 'complement' THEN p_com.id ELSE p.id END) part_id
-        //                             FROM
-        //                                 stocker_input s
-        //                                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-        //                                 left join form_cut_input f on f.id = s.form_cut_id
-        //                                 left join form_cut_reject fr on fr.id = s.form_reject_id
-        //                                 left join form_cut_piece fp on fp.id = s.form_piece_id
-        //                                 left join part_detail pd on s.part_detail_id = pd.id
-        //                                 left join part_detail pd_com on pd_com.id = pd.from_part_detail and pd.part_status = 'complement'
-        //                                 left join part p on p.id = pd.part_id
-        //                                 left join part p_com on p_com.id = pd_com.part_id
-        //                                 left join master_part mp on mp.id = pd.master_part_id
-        //                                 LEFT JOIN (
-        //                                     SELECT sd.id as id_so_det, ac.kpno ws, ac.styleno, sd.color, sd.size, sd.dest, ms.supplier as buyer, sd.cancel, so.cancel_h, ac.status FROM signalbit_erp.so_det sd
-        //                                     INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-        //                                     INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-        //                                     INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-        //                                 ) k on msb.id_so_det = k.id_so_det
-        //                                 where
-        //                                 (s.cancel IS NULL OR s.cancel != 'Y') and
-        //                                 (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
-        //                                 s.created_at between '$start_date 00:00:00' and '$end_date 23:59:59'
-        //                             ) cutting
-        //                             group by
-        //                                 no_form,
-        //                                 id_so_det,
-        //                                 part_id,
-        //                                 part_detail_id
-        //                     ),
-
-        //                     form_list as (
-        //                         select
-        //                             id_so_det,
-        //                             stocker.form_cut_id,
-        //                             stocker.form_reject_id,
-        //                             stocker.form_piece_id,
-        //                             no_form,
-        //                             no_cut,
-        //                             stocker.created_at,
-        //                             stocker.buyer,
-        //                             ws,
-        //                             styleno,
-        //                             stocker.color,
-        //                             stocker.size,
-        //                             dest,
-        //                             part.panel,
-        //                             part.panel_status,
-        //                             part_detail.id part_detail_id,
-        //                             mp.id master_part_id,
-        //                             mp.nama_part,
-        //                             part_detail.part_status,
-        //                             0 qty_dc,
-        //                             '-' cancel,
-        //                             '-' cancel_h,
-        //                             '-' status,
-        //                             part.id part_id
-        //                         from
-        //                             stocker
-        //                             left join part on part.act_costing_ws = stocker.ws and part.id = stocker.part_id
-        //                             left join part_detail on part_detail.part_id = part.id
-        //                             left join master_part mp on mp.id = part_detail.master_part_id
-        //                         where
-        //                         part.panel_status != 'COMPLEMENT' AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
-        //                         group by
-        //                             no_form,
-        //                             id_so_det,
-        //                             part.id,
-        //                             part_detail.id
-        //                     )
-
-        //                     select
-        //                         MAX(id_so_det) id_so_det ,
-        //                         MAX(no_form) no_form ,
-        //                         MAX(no_cut) no_cut ,
-        //                         MAX(created_at) created_at ,
-        //                         MAX(buyer) buyer ,
-        //                         MAX(ws) ws ,
-        //                         MAX(styleno) styleno ,
-        //                         MAX(color) color ,
-        //                         MAX(size) size ,
-        //                         MAX(dest) dest ,
-        //                         MAX(panel) panel ,
-        //                         MAX(panel_status) panel_status ,
-        //                         MAX(part_detail_id ) part_detail_id,
-        //                         MAX(master_part_id ) master_part_id,
-        //                         MAX(nama_part) nama_part ,
-        //                         MAX(part_status) part_status ,
-        //                         SUM(qty_dc) qty_dc,
-        //                         '-' cancel,
-        //                         '-' cancel_h,
-        //                         '-' status,
-        //                         MAX(part_id) part_id
-        //                     from (
-        //                         select * from stocker
-        //                         union all
-        //                         select * from form_list
-        //                     ) stocker
-        //                     group by
-        //                         no_form,
-        //                         id_so_det,
-        //                         part_id,
-        //                         part_detail_id
-        //                     order by
-        //                         no_form,
-        //                         id_so_det,
-        //                         part_id,
-        //                         part_detail_id
-        //                 ),
-
-        //                 saldo_awal_cutting as (
-        //                     SELECT
-        //                         master_sb_ws.id_so_det,
-        //                         part.id part_id,
-        //                         part.panel as panel,
-        //                         part.panel_status,
-        //                         part_detail.id part_detail_id,
-        //                         master_part.id master_part_id,
-        //                         master_part.nama_part,
-        //                         part_detail.part_status,
-        //                         sum(mut_cut_pcs_tmp_detail.saldo) qty_cut_awal,
-        //                         0 as qty_dc_awal,
-        //                         0 AS qty_cut,
-        //                         0 AS qty_dc,
-        //                         0 as qty_replace
-        //                     FROM mut_cut_pcs_tmp_detail
-        //                     left join master_sb_ws on master_sb_ws.id_so_det = mut_cut_pcs_tmp_detail.id_so_det
-        //                     left join part on part.act_costing_ws = master_sb_ws.ws and part.panel = mut_cut_pcs_tmp_detail.panel
-        //                     left join part_detail on part_detail.id = mut_cut_pcs_tmp_detail.part_detail_id
-        //                     left join master_part on master_part.id = part_detail.master_part_id
-        //                     where mut_cut_pcs_tmp_detail.tgl_trans = '$tgl_saldo'
-        //                     group by
-        //                         master_sb_ws.id_so_det,
-        //                         part.id,
-        //                         part.panel,
-        //                         part.panel_status,
-        //                         part_detail.id
-        //                 )
-
-        //                 SELECT
-        //                     a.id_so_det,
-        //                     buyer,
-        //                     ws,
-        //                     styleno,
-        //                     color,
-        //                     k.size,
-        //                     dest,
-        //                     part_id,
-        //                     panel,
-        //                     panel_status,
-        //                     part_detail_id,
-        //                     nama_part,
-        //                     part_status,
-        //                     sum(qty_cut_awal) - sum(qty_dc_awal) as saldo_awal,
-        //                     sum(qty_cut) as qty_cut,
-        //                     sum(qty_dc) - sum(qty_replace) as qty_dc_1,
-        //                     sum(qty_dc) as qty_dc,
-        //                     sum(qty_replace) as qty_replace,
-        //                     (sum(qty_cut_awal) - sum(qty_dc_awal)) + sum(qty_cut) - sum(qty_dc) as saldo_akhir,
-        //                     k.cancel,
-        //                     k.cancel_h,
-        //                     k.status
-        //                 FROM
-        //                 (
-        //                     SELECT id_so_det, part_id, panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM saldo_awal_cutting
-        //                     UNION ALL
-        //                     SELECT id_so_det, part_id, COALESCE(part_panel, panel) as panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, sum(qty) qty_cut_awal, 0 as qty_dc_awal, 0 AS qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_awal WHERE (part_status != 'complement' OR part_status IS NULL) group by id_so_det, part_id, COALESCE(part_panel, panel), panel_status, part_detail_id
-        //                     UNION ALL
-        //                     SELECT id_so_det, part_id, COALESCE(part_panel, panel) as panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, 0 AS qty_cut_awal, 0 AS qty_dc_awal, sum(qty) qty_cut, 0 AS qty_dc, 0 as qty_replace FROM cutt_in WHERE (part_status != 'complement' OR part_status IS NULL) group by id_so_det, part_id, COALESCE(part_panel, panel), panel_status, part_detail_id
-        //                     UNION ALL
-        //                     SELECT id_so_det, part_id, panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, 0 AS qty_cut_awal, sum(qty_dc) AS qty_dc_awal, 0 as qty_cutt, 0 as qty_dc, 0 as qty_replace FROM dc_awal group by id_so_det, part_id, panel, panel_status, part_detail_id
-        //                     UNION ALL
-        //                     SELECT id_so_det, part_id, panel, panel_status, part_detail_id, master_part_id, nama_part, part_status, 0 AS qty_cut_awal, 0 AS qty_dc_awal, 0 as qty_cutt, sum(qty_dc) as qty_dc, 0 as qty_replace  FROM dc_in group by id_so_det, part_id, panel, panel_status, part_detail_id
-        //                 ) a
-        //                 LEFT JOIN (
-        //                     SELECT sd.id as id_so_det, ac.kpno ws, ac.styleno, sd.color, sd.size, sd.dest, ms.supplier as buyer, sd.cancel, so.cancel_h, ac.status FROM signalbit_erp.so_det sd
-        //                     INNER JOIN signalbit_erp.so ON sd.id_so = so.id
-        //                     INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-        //                     INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-        //                 ) k on a.id_so_det = k.id_so_det
-        //                 LEFT JOIN signalbit_erp.master_size_new msn on k.size = msn.size
-        //                 group by
-        //                     ws, color, size, a.panel, nama_part
-        //                 HAVING
-        //                     (SUM(qty_cut_awal) - SUM(qty_dc_awal)) <> 0
-        //                     OR SUM(qty_cut) <> 0
-        //                     OR SUM(qty_dc) <> 0
-        //                     OR ( (SUM(qty_cut_awal) - SUM(qty_dc_awal) ) + SUM(qty_cut) - SUM(qty_dc) ) <> 0
-        //                 ORDER BY
-        //                     ws asc, color asc, size asc, panel, nama_part, urutan asc
-        //     ");
-
-        //     $fileName = 'report-mutasi-wip-cutting-detail';
-
-        //     $excel = FastExcel::create($fileName);
-
-        //     $sheet = $excel->sheet();
-
-        //     $sheet->writeRow(
-        //         ['Report Mutasi WIP Cutting Detail'],
-        //         [
-        //             'font-style' => 'bold',
-        //             'font-size'  => 14,
-        //         ]
-        //     );
-
-        //     $sheet->writeRow(
-        //         ['Periode ' . $start_date . ' s/d ' . $end_date],
-        //         [
-        //             'font-size' => 12,
-        //         ]
-        //     );
-
-        //     $sheet->writeRow(['']);
-
-        //     $header = [
-        //         'Worksheet',
-        //         'Buyer',
-        //         'Style',
-        //         'Color',
-        //         'Size',
-        //         'Panel',
-        //         'Part',
-        //         'Saldo Awal',
-        //         'In',
-        //         'Replacement',
-        //         'Out',
-        //         'Saldo Akhir',
-        //     ];
-
-        //     $sheet->writeRow(
-        //         $header,
-        //         [
-        //             'font-style' => 'bold',
-        //             'border'     => 'thin',
-        //         ]
-        //     );
-
-        //     foreach ($data as $row) {
-
-        //         $rows = [
-        //             $row->ws ?: '',
-        //             $row->buyer ?: '',
-        //             $row->styleno ?: '',
-        //             $row->color ?: '',
-        //             $row->size ?: '',
-        //             $row->panel ?: '',
-        //             $row->nama_part ?: '',
-        //             (float) $row->saldo_awal,
-        //             (float) $row->qty_cut,
-        //             (float) $row->qty_replace,
-        //             (float) $row->qty_dc,
-        //             (float) $row->saldo_akhir,
-        //         ];
-
-        //         $sheet->writeRow(
-        //             $rows,
-        //             [
-        //                 'border' => 'thin',
-        //             ]
-        //         );
-        //     }
-
-        //     foreach (range('A', 'Z') as $col) {
-        //         $sheet->setColWidth($col, 20);
-        //     }
-
-        //     return $excel->download();
-        // }
 
     public function export_excel_report_mut_wip_cutting_detail(Request $request)
     {
@@ -13250,13 +11772,13 @@ order by tanggal asc, no_form asc
         foreach ($data as $row) {
 
             $rows = [
-                $row->ws ?: '',
-                $row->buyer ?: '',
-                $row->styleno ?: '',
-                $row->color ?: '',
-                $row->size ?: '',
-                $row->panel ?: '',
-                $row->nama_part ?: '',
+                $row->ws ?: '-',
+                $row->buyer ?: '-',
+                $row->styleno ?: '-',
+                $row->color ?: '-',
+                $row->size ?: '-',
+                preg_replace('/\s+/', ' ', (string) $row->panel) ?: '-',
+                preg_replace('/\s+/', ' ', (string) $row->nama_part) ?: '-',
                 (float) $row->saldo_awal_adjustment,
                 (float) $row->qty_cut,
                 (float) ($row->switching_out_cutt ?? 0),
@@ -14142,9 +12664,9 @@ order by tanggal asc, no_form asc
                 $row->styleno ?: '',
                 $row->color ?: '',
                 $row->size ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel) ?: '',
                 $row->panel_status ?: '',
-                $row->nama_part ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->nama_part) ?: '',
                 $row->part_status ?: '',
                 (float) $row->qty_dc,
             ];
@@ -14381,7 +12903,7 @@ order by tanggal asc, no_form asc
                 $row->styleno ?: '',
                 $row->color ?: '',
                 $row->size ?: '',
-                $row->panel ?: '',
+                preg_replace('/\s+/', ' ', (string) $row->panel) ?: '',
                 $row->panel_status ?: '',
                 (float) $row->qty_dc,
             ];

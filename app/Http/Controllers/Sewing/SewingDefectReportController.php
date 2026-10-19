@@ -11,6 +11,11 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class SewingDefectReportController extends Controller
 {
@@ -95,7 +100,7 @@ class SewingDefectReportController extends Controller
         $fileName = 'Report_Defect_Sewing_' . date('Ymd_His') . '.xlsx';
 
 
-        return Excel::download(new class($data, $start_date, $end_date) implements FromCollection, WithHeadings, WithStyles {
+        return Excel::download(new class($data, $start_date, $end_date) extends DefaultValueBinder implements FromCollection, WithHeadings, WithStyles, WithCustomValueBinder {
             protected $data;
             protected $startDate;
             protected $endDate;
@@ -104,6 +109,15 @@ class SewingDefectReportController extends Controller
                 $this->data = $data;
                 $this->startDate = $startDate;
                 $this->endDate = $endDate;
+            }
+
+            public function bindValue(Cell $cell, $value) {
+                // WS (B), Color (D), Size (E) selalu sebagai teks
+                if ($value !== null && in_array($cell->getColumn(), ['B', 'D', 'E'], true) && $cell->getRow() > 5) {
+                    $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+                    return true;
+                }
+                return parent::bindValue($cell, $value);
             }
 
             public function collection() {
@@ -150,6 +164,10 @@ class SewingDefectReportController extends Controller
                         'horizontal' => Alignment::HORIZONTAL_CENTER,
                     ],
                 ]);
+
+                foreach (['B', 'D', 'E'] as $col) {
+                    $sheet->getStyle($col . '6:' . $col . $sheet->getHighestRow())->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                }
             }
         }, $fileName);
     }

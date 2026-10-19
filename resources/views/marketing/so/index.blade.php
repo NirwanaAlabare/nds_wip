@@ -736,6 +736,11 @@
                                         <input type="number" id="add_qty" class="form-control" value="0" min="0">
                                     </div>
 
+                                    <div class="form-group mb-3">
+                                        <label>FOB</label>
+                                        <input type="number" id="add_fob" class="form-control" step="any" min="0">
+                                    </div>
+
                                     <button type="button" class="btn btn-primary w-100" onclick="addSoDetailRow()">
                                         <i class="fas fa-plus"></i> Tambah Data
                                     </button>
@@ -765,6 +770,7 @@
                                         <th class="sticky-col">PO</th>
                                         <th class="sticky-col">Market</th>
                                         <th class="sticky-col">Ex Fty</th>
+                                        <th class="sticky-col">FOB</th>
                                         <th class="sticky-col">Color</th>
                                         <th class="col-total">Total Qty</th>
                                     </tr>
@@ -1102,6 +1108,7 @@
                         po    : so_no || '-',
                         market: item.dest || '-',
                         ex_fty: item.deldate || '-',
+                        fob   : (item.fob !== null && item.fob !== '') ? parseFloat(item.fob) : null,
                         color : item.color || '-',
                         size  : item.size || '-',
                         qty   : item.qty || 0,
@@ -1162,6 +1169,7 @@
             let id_color = $('#add_id_color').val();
             let id_size = $('#add_id_size').val();
             let qty = $('#add_qty').val();
+            let fob = $('#add_fob').val();
 
             if (!id_color || id_color.length === 0 || !id_size || id_size.length === 0 || !qty || qty <= 0) {
                 Swal.fire('Peringatan!', 'Harap pilih minimal 1 Warna, 1 Size, dan isi Qty dengan benar.', 'warning');
@@ -1178,7 +1186,8 @@
                     id_so: current_so_id,
                     id_color: id_color,
                     id_size: id_size,
-                    qty: qty
+                    qty: qty,
+                    fob: fob
                 },
                 success: function(res) {
                     if (res.status == 200) {
@@ -1187,6 +1196,7 @@
                         $('#add_id_color').val('').trigger('change');
                         $('#add_id_size').val('').trigger('change');
                         $('#add_qty').val(0);
+                        $('#add_fob').val('');
 
                         showDetail(current_so_id);
 
@@ -1545,7 +1555,7 @@
             $('#preview-upload-thead-row th.col-size').remove();
 
             if (!rows || rows.length === 0) {
-                $('#preview-upload-tbody').html('<tr><td colspan="7" class="text-center text-muted py-3">Tidak ada data</td></tr>');
+                $('#preview-upload-tbody').html('<tr><td colspan="8" class="text-center text-muted py-3">Tidak ada data</td></tr>');
                 return;
             }
 
@@ -1569,9 +1579,10 @@
                 if (!grouped[key]) {
                     grouped[key] = {
                         style: r.style, desc: r.desc, po: r.po, market: r.market,
-                        ex_fty: r.ex_fty, color: r.color, sizes: {}
+                        ex_fty: r.ex_fty, color: r.color, fobs: new Set(), sizes: {}
                     };
                 }
+                if (r.fob !== null && !isNaN(r.fob)) grouped[key].fobs.add(r.fob);
                 grouped[key].sizes[r.size] = (grouped[key].sizes[r.size] || 0) + (parseInt(r.qty) || 0);
             });
 
@@ -1599,6 +1610,7 @@
                         <td class="sticky-col">${g.po}</td>
                         <td class="sticky-col">${g.market}</td>
                         <td class="sticky-col">${g.ex_fty}</td>
+                        <td class="sticky-col">${g.fobs.size ? Array.from(g.fobs).join(' / ') : '-'}</td>
                         <td class="sticky-col">${g.color}</td>
                         ${sizeCells}
                         <td class="col-total">${total}</td>
@@ -1613,7 +1625,7 @@
 
             let footerHtml = `
                 <tr class="fw-bold table-dark">
-                    <td class="col-size fw-bold" colspan="6">Grand Total</td>
+                    <td class="col-size fw-bold" colspan="7">Grand Total</td>
                     ${footerSizeCells}
                     <td class="col-total">${grandTotal}</td>
                 </tr>`;

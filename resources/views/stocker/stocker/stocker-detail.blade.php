@@ -969,29 +969,36 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-12 mt-2">
+                                <div id="additional-size-alert" class="alert alert-warning d-none py-2 px-3 mb-2 small">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    <span id="additional-size-alert-text"></span>
+                                </div>
+                            </div>
                             <div class="table-responsive">
-                                <table id="orderQtyDatatable" class="table table-bordered table-striped table w-100">
-                                    <thead>
+                                <table id="orderQtyDatatable" class="table table-sm table-bordered table-hover align-middle w-100">
+                                    <thead class="table-light">
                                         <tr>
-                                            <th>WS</th>
-                                            <th>Color</th>
-                                            <th>Size</th>
+                                            <th class="text-center">WS</th>
+                                            <th class="text-center">Color</th>
+                                            <th class="text-center">Size</th>
                                             <th>Size Input</th>
                                             <th>So Det Id</th>
-                                            <th>Ratio</th>
-                                            <th>Cut Qty</th>
+                                            <th class="text-center" style="width: 120px;">Ratio</th>
+                                            <th class="text-center" style="width: 140px;">Cut Qty</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                     </tbody>
-                                    <tfoot>
+                                    <tfoot class="table-light">
                                         <tr>
                                             <th></th>
                                             <th></th>
-                                            <th></th>
-                                            <th></th>
-                                            <th id="total_ratio"></th>
-                                            <th id="total_cut_qty"></th>
+                                            <th class="text-end">Total</th>
+                                            <th class="d-none"></th>
+                                            <th class="d-none"></th>
+                                            <th id="total_ratio" class="text-center fw-bold"></th>
+                                            <th id="total_cut_qty" class="text-center fw-bold"></th>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -2108,14 +2115,17 @@
                 updateColorList();
                 updateOrderInfo();
             }
+
+            updateSizeList();
         });
 
         // Step Two (Color) on change event
         $('#add_color').on('change', function(e) {
             if (this.value) {
                 updatePanelList();
-                updateSizeList();
             }
+
+            updateSizeList();
         });
 
         // Step Three (Panel) on change event
@@ -2199,18 +2209,182 @@
             });
         }
 
+        // Size yang ada di ratio form (dataRatio), additional hanya boleh untuk size ini
+        // Ratio additional mengikuti ratio form (per so det & size)
+        const dataRatioList = {!! json_encode($dataRatio->where('ratio', '>', 0)->map(fn ($ratio) => ['so_det_id' => (string) $ratio->so_det_id, 'size' => strtoupper(trim($ratio->size)), 'ratio' => $ratio->ratio])->values()) !!};
+        const dataRatioSizes = [...new Set(dataRatioList.map(ratio => ratio.size))];
+
+        function normalizeSize(size) {
+            return String(size ?? '').trim().toUpperCase();
+        }
+
+        function isSizeInDataRatio(size) {
+            return dataRatioSizes.includes(normalizeSize(size));
+        }
+
+        // Size yang sama (beda dest) hanya diambil satu baris :
+        // prioritas so det yang sama dengan ratio form, jika tidak ada ambil baris pertama
+        function assignFormRatio(rows) {
+            rows.forEach(row => {
+                row.form_ratio = 0;
+                row.form_ratio_status = isSizeInDataRatio(row.size) ? 'duplicate' : 'not_in_ratio';
+            });
+
+            dataRatioSizes.forEach(size => {
+                let sizeRatios = dataRatioList.filter(ratio => ratio.size == size);
+                let sizeRows = rows.filter(row => normalizeSize(row.size) == size);
+
+                let selectedRatio = null;
+                let selectedRow = sizeRows.find(row => {
+                    selectedRatio = sizeRatios.find(ratio => ratio.so_det_id == String(row.so_det_id));
+
+                    return selectedRatio;
+                });
+
+                if (!selectedRow) {
+                    selectedRow = sizeRows[0];
+                    selectedRatio = sizeRatios[0];
+                }
+
+                if (selectedRow && selectedRatio) {
+                    selectedRow.form_ratio = Number(selectedRatio.ratio);
+                    selectedRow.form_ratio_status = 'selected';
+                }
+            });
+
+            return rows;
+        }
+
+        // Ratio form untuk baris tertentu (so det sama, jika tidak ada ratio size tersebut)
+        function getFormRatioForRow(row) {
+            let size = normalizeSize(row.size);
+            let sizeRatio = dataRatioList.find(ratio => ratio.size == size && ratio.so_det_id == String(row.so_det_id)) ?? dataRatioList.find(ratio => ratio.size == size);
+
+            return sizeRatio ? Number(sizeRatio.ratio) : 0;
+        }
+
+        function sizeCellHtml(row, rowIndex) {
+            if (row.form_ratio_status == 'not_in_ratio') {
+                return row.size_dest + ' <span class="badge bg-secondary ms-1">Tidak ada di ratio</span>';
+            }
+
+            let isSelected = row.form_ratio_status == 'selected';
+            let radio = '<input type="radio" class="form-check-input me-1" name="pick-size-' + dataRatioSizes.indexOf(normalizeSize(row.size)) + '" onchange="selectSizeRow(' + rowIndex + ')" ' + (isSelected ? 'checked' : '') + ' title="Pilih baris yang dipakai untuk size ini" />';
+
+            if (isSelected) {
+                return '<label class="mb-0 fw-bold" style="cursor: pointer;">' + radio + row.size_dest + '</label>';
+            }
+
+            return '<label class="mb-0" style="cursor: pointer;">' + radio + row.size_dest + ' <span class="badge bg-warning text-dark ms-1">Tidak dipakai</span></label>';
+        }
+
+        function ratioInputHtml(row, rowIndex) {
+            // Size tidak ada di ratio form / tidak dipakai, ratio dikunci 0
+            if (row.form_ratio_status != 'selected') {
+                return '<input type="number" class="form-control form-control-sm text-center text-muted" id="add-ratio-' + rowIndex + '" name="add_ratio[' + rowIndex + ']" value="0" title="' + (row.form_ratio_status == 'duplicate' ? 'Size ini memakai baris lain' : 'Size tidak ada di ratio form') + '" readonly />';
+            }
+
+            // Ratio Input (mengikuti ratio form)
+            return '<input type="number" class="form-control form-control-sm text-center fw-bold" id="add-ratio-' + rowIndex + '" name="add_ratio[' + rowIndex + ']" value="' + row.form_ratio + '" title="Ratio mengikuti ratio form" readonly />';
+        }
+
+        function cutQtyInputHtml(row, rowIndex) {
+            return '<input type="number" class="form-control form-control-sm text-center' + (row.form_ratio_status == 'selected' ? ' fw-bold' : ' text-muted') + '" id="add-cut-qty-' + rowIndex + '" name="add_cut_qty[' + rowIndex + ']" readonly />';
+        }
+
+        // Pilih baris yang dipakai untuk size tersebut (size sama beda dest)
+        function selectSizeRow(rowIndex) {
+            let selectedData = orderQtyDatatable.row(rowIndex).data();
+            let size = normalizeSize(selectedData.size);
+
+            orderQtyDatatable.rows().every(function (index) {
+                let row = this.data();
+
+                if (normalizeSize(row.size) != size) {
+                    return;
+                }
+
+                row.form_ratio = index == rowIndex ? getFormRatioForRow(row) : 0;
+                row.form_ratio_status = index == rowIndex ? 'selected' : 'duplicate';
+
+                // Update tampilan tanpa reload (serverSide)
+                $(this.node()).toggleClass('table-secondary text-muted', row.form_ratio_status != 'selected');
+                $(orderQtyDatatable.cell(index, 2).node()).html(sizeCellHtml(row, index));
+                $(orderQtyDatatable.cell(index, 5).node()).html(ratioInputHtml(row, index));
+                $(orderQtyDatatable.cell(index, 6).node()).html(cutQtyInputHtml(row, index));
+            });
+
+            calculateAllRatio(document.getElementById('qty_ply_total'));
+        }
+
+        // Size ratio form yang tidak ada di size list additional
+        function getMissingDataRatioSizes() {
+            let additionalSizes = orderQtyDatatable.data().toArray().map(row => normalizeSize(row.size));
+
+            return dataRatioSizes.filter(size => !additionalSizes.includes(size));
+        }
+
+        function updateAdditionalSizeAlert() {
+            let alertElement = document.getElementById('additional-size-alert');
+            let missingSizes = orderQtyDatatable.data().count() > 0 ? getMissingDataRatioSizes() : [];
+
+            if (missingSizes.length > 0) {
+                document.getElementById('additional-size-alert-text').innerText = "Size tidak lengkap. Size " + missingSizes.join(", ") + " dari ratio form tidak ada di WS/Color ini.";
+                alertElement.classList.remove('d-none');
+            } else {
+                alertElement.classList.add('d-none');
+            }
+        }
+
         // Order Qty Datatable (Size|Ratio|Cut Qty)
         let orderQtyDatatable = $("#orderQtyDatatable").DataTable({
+            createdRow: function (row, data) {
+                // Size di luar ratio form / size duplikat ditampilkan redup
+                if (data.form_ratio_status != 'selected') {
+                    $(row).addClass('table-secondary text-muted');
+                }
+            },
             ordering: false,
             processing: true,
             serverSide: true,
             paging: false,
-            ajax: {
-                url: '{{ route("get-general-sizes") }}',
-                data: function (d) {
-                    d.act_costing_id = $('#add_ws').val();
-                    d.color = $('#add_color').val();
-                },
+            ajax: function (data, callback, settings) {
+                // WS / Color belum lengkap, size list dikosongkan
+                if (!$('#add_ws').val() || !$('#add_color').val()) {
+                    callback({
+                        draw: data.draw,
+                        recordsTotal: 0,
+                        recordsFiltered: 0,
+                        data: [],
+                    });
+
+                    return;
+                }
+
+                data.act_costing_id = $('#add_ws').val();
+                data.color = $('#add_color').val();
+
+                $.ajax({
+                    url: '{{ route("get-general-sizes") }}',
+                    type: 'get',
+                    dataType: 'json',
+                    data: data,
+                    success: function (res) {
+                        res.data = assignFormRatio(res.data ?? []);
+
+                        callback(res);
+                    },
+                    error: function (jqXHR) {
+                        console.log(jqXHR);
+
+                        callback({
+                            draw: data.draw,
+                            recordsTotal: 0,
+                            recordsFiltered: 0,
+                            data: [],
+                        });
+                    },
+                });
             },
             columns: [
                 {
@@ -2220,7 +2394,11 @@
                     data: 'color'
                 },
                 {
-                    data: 'size_dest'
+                    data: 'size_dest',
+                    className: "text-center",
+                    render: (data, type, row, meta) => {
+                        return sizeCellHtml(row, meta.row);
+                    }
                 },
                 {
                     data: 'size' // size input
@@ -2258,16 +2436,15 @@
                     // Ratio Input
                     targets: [5],
                     render: (data, type, row, meta) => {
-                        // Hidden Ratio Input
-                        return '<input type="number" id="add-ratio-' + meta.row + '" name="add_ratio[' + meta.row + ']" onchange="calculateRatio(' + meta.row + ');" onkeyup="calculateRatio(' + meta.row + ');" />';
+                        return ratioInputHtml(row, meta.row);
                     }
                 },
                 {
                     // Cut Qty Input
                     targets: [6],
                     render: (data, type, row, meta) => {
-                        // Hidden Cut Qty Input
-                        return '<input type="number" id="add-cut-qty-' + meta.row + '" name="add_cut_qty['+meta.row+']" readonly />'
+                        // Cut Qty Input
+                        return cutQtyInputHtml(row, meta.row);
                     }
                 }
             ],
@@ -2278,6 +2455,12 @@
             await orderQtyDatatable.ajax.reload(() => {
                 // Get Sizes Count ( for looping over sizes input )
                 document.getElementById('jumlah_so_det').value = orderQtyDatatable.data().count();
+
+                // Hitung cut qty dari ratio form
+                calculateAllRatio(document.getElementById('qty_ply_total'));
+
+                // Notif size tidak lengkap
+                updateAdditionalSizeAlert();
             });
         }
 
@@ -2309,8 +2492,8 @@
             }
 
             // Set Ratio and Cut Qty ( order qty datatable summary )
-            document.querySelector("table#orderQtyDatatable tfoot tr th:nth-child(4)").innerText = totalRatio;
-            document.querySelector("table#orderQtyDatatable tfoot tr th:nth-child(5)").innerText = totalCutQty;
+            document.getElementById("total_ratio").innerText = totalRatio;
+            document.getElementById("total_cut_qty").innerText = totalCutQty;
         }
 
         // Calculate All Cut Qty at Once Based on Spread Qty
@@ -2341,8 +2524,53 @@
             generating = 'false';
         });
 
+        // Validasi size additional harus ada di ratio form (dataRatio)
+        function validateAdditionalStockerSizes() {
+            let totalSize = document.getElementById('jumlah_so_det').value;
+            let invalidSizes = [];
+            let totalRatio = 0;
+
+            for (let i = 0; i < totalSize; i++) {
+                let ratio = Number(document.getElementById('add-ratio-'+i).value);
+                let size = document.getElementById('add-size-'+i).value;
+                let rowData = orderQtyDatatable.row(i).data();
+
+                if (!rowData || ratio != Number(rowData.form_ratio)) {
+                    invalidSizes.push(size);
+                }
+
+                totalRatio += ratio;
+            }
+
+            let missingSizes = getMissingDataRatioSizes();
+            if (missingSizes.length > 0) {
+                return "Size tidak lengkap. Size " + missingSizes.join(", ") + " dari ratio form tidak ada di WS/Color ini.";
+            }
+
+            if (invalidSizes.length > 0) {
+                return "Ratio size " + invalidSizes.join(", ") + " tidak sama dengan ratio form";
+            }
+
+            if (totalRatio < 1) {
+                return "Ratio belum diisi";
+            }
+
+            return null;
+        }
+
         function submitAdditionalStocker() {
             let e = document.getElementById("add-additional-stocker-form");
+
+            let invalidMessage = validateAdditionalStockerSizes();
+            if (invalidMessage) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan',
+                    text: invalidMessage,
+                });
+
+                return;
+            }
 
             document.getElementById("loading").classList.remove("d-none");
 
@@ -2711,6 +2939,23 @@
             }
         }
 
+        // Baca pesan error dari response blob (request print memakai responseType blob)
+        async function readBlobErrorMessage(jqXHR) {
+            try {
+                if (jqXHR.response instanceof Blob) {
+                    let json = JSON.parse(await jqXHR.response.text());
+
+                    if (json && json.message) {
+                        return json.message;
+                    }
+                }
+            } catch (e) {
+                console.log(e);
+            }
+
+            return 'Terjadi kesalahan';
+        }
+
         function generateCheckedStockerAdd() {
             let generateStockerCheck = document.getElementsByClassName('generate-stocker-check-add');
 
@@ -2776,15 +3021,17 @@
 
                         generating = false;
                     },
-                    error: function(jqXHR) {
+                    error: async function(jqXHR) {
                         console.log(jqXHR);
 
                         generating = false;
 
+                        let message = await readBlobErrorMessage(jqXHR);
+
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: 'Terjadi kesalahan',
+                            text: message,
                             confirmButtonText: 'Coba Lagi',
                             showCancelButton: true,
                             cancelButtonText: 'Batalkan',
@@ -3138,21 +3385,23 @@
 
                         generating = false;
                     },
-                    error: function(jqXHR) {
+                    error: async function(jqXHR) {
                         console.log(jqXHR);
 
                         generating = false;
 
+                        let message = await readBlobErrorMessage(jqXHR);
+
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: 'Terjadi kesalahan',
+                            text: message,
                             confirmButtonText: 'Coba Lagi',
                             showCancelButton: true,
                             cancelButtonText: 'Batalkan',
                         }).then(result => {
                             if (result.isConfirmed) {
-                                generateCheckedStockerAdd(idx); // Retry the request
+                                generateCheckedStockerAddCom(idx); // Retry the request
                             }
                         });
                     }

@@ -1173,7 +1173,7 @@ class RollController extends Controller
                 (string) $item->style,
                 (string) $item->color,
                 (string) $item->color_act,
-                (string) $item->panel,
+                preg_replace('/\s+/', ' ', (string) $item->panel),
                 (int) $item->qty,
                 (float) $item->cons_ws,
                 (float) $item->cons_marker,

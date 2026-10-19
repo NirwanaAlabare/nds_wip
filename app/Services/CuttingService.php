@@ -48,7 +48,7 @@ class CuttingService
         return $data;
     }
 
-    public function undoStep($id) 
+    public function undoStep($id)
     {
         $user = Auth::user();
 
@@ -1283,11 +1283,10 @@ class CuttingService
                             $scannedItem
                         ]);
 
-                        if ($qty && $scannedItem->qty != $rollQty) {
+                        $currentRoll = $roll->where("id_roll", $rollId)->first();
+                        if (($qty && $scannedItem->qty != $rollQty) || empty($currentRoll)) {
                             $scannedItem->qty = $rollQty;
                         } else {
-                            $currentRoll = $roll->where("id_roll", $rollId)->first();
-
                             if ($currentRoll) {
                                 // Set Qty IN
                                 $currentPenerimaan = PenerimaanCutting::where("id_roll", $rollId)->
@@ -1335,7 +1334,7 @@ class CuttingService
                             }
                         }
 
-                        if ($rollUse > 0 && $scannedItem->qty_pakai != $rollUse) {
+                        if (($rollUse > 0 && $scannedItem->qty_pakai != $rollUse) || empty($currentRoll)) {
                             $scannedItem->qty_pakai = $rollUse;
                         }
 
@@ -1710,7 +1709,7 @@ class CuttingService
                     $currentDetail->sisa_kain = round($sisaKain, 2);
                     $currentDetail->short_roll = round($shortRoll, 2);
                     Log::channel("fixChainedQty")->info("Detail Value = pemakaian : $pemakaianLembar, totalpemakaian : $totalPemakaian, sisakain : $sisaKain, shortroll : $shortRoll, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
-                    
+
                     // Don't save when closed
                     $checkClosing = checkClosingDate($formCut->waktu_selesai);
                     if (!$checkClosing) {
@@ -1728,7 +1727,7 @@ class CuttingService
                         $currentQty = $currentDetail->qty_sisa;
                         $currentIdRoll = $currentDetail->id_roll;
                         Log::channel("fixChainedQty")->info("Detail Value = piping : {$currentDetail->piping}, sisakain : {$currentDetail->qty_sisa}, shortroll : {$currentDetail->short_roll}, currentIdRoll : $currentIdRoll, currentQty : $currentQty");
-                        
+
                         // Don't save when closed
                         $checkClosing = checkClosingDate($currentDetail->created_at);
                         if (!$checkClosing) {

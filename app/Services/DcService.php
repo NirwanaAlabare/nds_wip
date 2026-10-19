@@ -3455,7 +3455,8 @@ class DcService
                         inject_mutasi_dc
                     WHERE
                         tanggal <= '$dateTo' and
-                        type_report = 'SECONDARY_LUAR'
+                        type_report = 'SECONDARY_LUAR' and
+                        cancelled_at IS NULL
                     GROUP BY
                         ws, color, size, panel, part
                     UNION ALL

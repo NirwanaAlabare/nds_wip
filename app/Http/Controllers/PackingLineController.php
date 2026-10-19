@@ -66,7 +66,7 @@ class PackingLineController extends Controller
 
     public function wip_packing_line_detail(Request $request)
     {
-        $po          = $request->po;
+        $po          = preg_replace('/\s+/', ' ', trim((string) $request->po));
         $line        = $request->line;
         $today       = date('Y-m-d');
         $todayEnd    = $today . ' 23:59:59';
@@ -83,7 +83,7 @@ class PackingLineController extends Controller
             WITH m AS (
                 SELECT
                     a.po_id,
-                    p.po,
+                    TRIM(REGEXP_REPLACE(p.po, '[[:space:]]+', ' ')) AS po,
                     a.created_by_line   AS line,
                     a.so_det_id         AS so_det_id,
                     COUNT(*)            AS qty_packing_line
@@ -91,7 +91,7 @@ class PackingLineController extends Controller
                 INNER JOIN laravel_nds.ppic_master_so p ON a.po_id = p.id
                 WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
                   AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                  AND p.po = '$po_esc'
+                  AND TRIM(REGEXP_REPLACE(p.po, '[[:space:]]+', ' ')) = '$po_esc'
                   AND a.created_by_line = '$line_esc'
                 GROUP BY a.po_id, a.created_by_line, a.so_det_id
 
@@ -111,7 +111,7 @@ class PackingLineController extends Controller
             g AS (
                 SELECT
                     a.id_ppic_master_so,
-                    a.po,
+                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
                     a.line,
                     a.id_so_det         AS so_det_id,
                     SUM(a.qty)          AS qty_trf_gmt
@@ -119,7 +119,7 @@ class PackingLineController extends Controller
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE a.tgl_trans = '$today'
                   AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                  AND a.po = '$po_esc'
+                  AND TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) = '$po_esc'
                   AND a.line = '$line_esc'
                 GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
 
@@ -127,28 +127,28 @@ class PackingLineController extends Controller
                 
                 SELECT
                     a.id_ppic_master_so,
-                    UPPER(a.po) AS po,
+                    UPPER(TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' '))) AS po,
                     a.line,
                     a.id_so_det         AS so_det_id,
                     SUM(a.qty)          AS qty_trf_gmt
                 FROM laravel_nds.packing_trf_garment a
                 WHERE a.tgl_trans = '$today'
-                    AND a.po = '$po_esc'
+                    AND TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) = '$po_esc'
                     AND a.line = '$line_esc'
                     AND a.tujuan = 'Temporary Packing'
                 GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
             ),
             mut AS (
                 SELECT
-                    a.po, a.line, a.so_det_id,
+                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po, a.line, a.so_det_id,
                     a.selisih AS sa, 0 AS qty_packing_line, 0 AS qty_trf_gmt
                 FROM mut_packing_line_to_trf_gmt a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
                 WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                  AND a.po = '$po_esc' AND a.line = '$line_esc' AND a.po != 'TEMPORARY PACKING'
+                  AND TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) = '$po_esc' AND a.line = '$line_esc' AND a.po != 'TEMPORARY PACKING'
                 UNION ALL
                 SELECT
-                    a.po,
+                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
                     a.line,
                     a.so_det_id,
                     a.selisih           AS sa,
@@ -198,7 +198,7 @@ class PackingLineController extends Controller
             WITH m AS (
                 SELECT
                     a.po_id,
-                    p.po,
+                    TRIM(REGEXP_REPLACE(p.po, '[[:space:]]+', ' ')) AS po,
                     a.created_by_line   AS line,
                     a.so_det_id         AS so_det_id,
                     COUNT(*)            AS qty_packing_line
@@ -223,7 +223,7 @@ class PackingLineController extends Controller
             g AS (
                 SELECT
                     a.id_ppic_master_so,
-                    a.po,
+                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
                     a.line,
                     a.id_so_det         AS so_det_id,
                     SUM(a.qty)          AS qty_trf_gmt
@@ -237,7 +237,7 @@ class PackingLineController extends Controller
                 
                 SELECT
                     a.id_ppic_master_so,
-                    UPPER(a.po) AS po,
+                    UPPER(TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' '))) AS po,
                     a.line,
                     a.id_so_det         AS so_det_id,
                     SUM(a.qty)          AS qty_trf_gmt
@@ -248,7 +248,7 @@ class PackingLineController extends Controller
             mut AS (
                 SELECT
                     a.id_ppic_master_so,
-                    a.po,
+                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
                     a.line,
                     a.so_det_id,
                     a.selisih           AS sa,
@@ -260,7 +260,7 @@ class PackingLineController extends Controller
                 UNION ALL
                 SELECT
                     a.id_ppic_master_so,
-                    a.po,
+                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
                     a.line,
                     a.so_det_id,
                     a.selisih           AS sa,
@@ -335,7 +335,7 @@ class PackingLineController extends Controller
             WITH m AS (
                 SELECT
                     a.po_id,
-                    p.po,
+                    TRIM(REGEXP_REPLACE(p.po, '[[:space:]]+', ' ')) AS po,
                     tgl_shipment,
                     a.created_by_line   AS line,
                     a.so_det_id         AS so_det_id,
@@ -362,7 +362,7 @@ class PackingLineController extends Controller
             g AS (
                 SELECT
                     a.id_ppic_master_so,
-                    a.po,
+                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
                     tgl_shipment,
                     a.line,
                     a.id_so_det         AS so_det_id,
@@ -377,7 +377,7 @@ class PackingLineController extends Controller
                 
                 SELECT
                     a.id_ppic_master_so,
-                    UPPER(a.po) AS po,
+                    UPPER(TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' '))) AS po,
                     a.tgl_trans AS tgl_shipment,
                     a.line,
                     a.id_so_det         AS so_det_id,
@@ -389,7 +389,7 @@ class PackingLineController extends Controller
             mut AS (
                 SELECT
                     a.id_ppic_master_so,
-                    a.po, a.line, a.so_det_id, tgl_shipment,
+                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po, a.line, a.so_det_id, tgl_shipment,
                     a.selisih AS sa, 0 AS qty_packing_line, 0 AS qty_trf_gmt
                 FROM mut_packing_line_to_trf_gmt a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
@@ -397,7 +397,7 @@ class PackingLineController extends Controller
                 UNION ALL
                 SELECT
                     a.id_ppic_master_so,
-                    a.po,
+                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
                     a.line,
                     a.so_det_id,
                     (
