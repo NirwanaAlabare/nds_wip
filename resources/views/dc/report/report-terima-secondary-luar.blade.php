@@ -15,6 +15,14 @@
             top: 15%;
         }
 
+        .cancel-checkbox {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+
         .border-dashed {
             border-style: dashed !important;
         }
@@ -42,6 +50,7 @@
                     </div>
                 </div>
                 <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-sm btn-danger mb-3" id="btn-mass-cancel" onclick="massCancelTerimaSecLuar()" disabled><i class="fa fa-times"></i> Cancel Terpilih (<span id="selected-count">0</span>)</button>
                     <button type="button" class="btn btn-sm btn-sb-secondary mb-3" data-bs-toggle="modal" data-bs-target="#importSecondaryLuarModal" onclick="resetImportPreview()"><i class="fa fa-file-upload"></i> Import</button>
                     <button class="btn btn-sm btn-success mb-3" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export</button>
                 </div>
@@ -50,6 +59,8 @@
                 <table id="datatable-dc-report" class="table table-bordered table w-100">
                     <thead>
                         <tr>
+                            <th class="text-center"><input type="checkbox" class="cancel-checkbox" id="check-all-cancel"></th>
+                            <th class="text-center">Action</th>
                             <th class="text-center">Tanggal</th>
                             <th class="text-center">No. WS</th>
                             <th class="text-center">Buyer</th>
@@ -74,7 +85,7 @@
             <div class="modal-content border-0 shadow-lg rounded-3 overflow-hidden">
                 <form id="importSecondaryLuarForm" enctype="multipart/form-data" class="d-flex flex-column h-100 mb-0">
                     @csrf
-                    
+
                     <!-- Header (Navy / Dark Blue) -->
                     <div class="modal-header text-white py-3" style="background-color: #0d2342;">
                         <h5 class="modal-title fw-bold fs-5" id="importSecondaryLuarModalLabel">Import Terima Secondary Luar</h5>
@@ -100,9 +111,9 @@
 
                         <!-- Action Buttons -->
                         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
-                            <a href="{{ asset('example/contoh-import-terima-secondary-luar.xlsx') }}" 
-                                id="btn-download-template" 
-                                class="btn btn-outline-success btn-sm px-3 flex-shrink-0" 
+                            <a href="{{ asset('example/contoh-import-terima-secondary-luar.xlsx') }}"
+                                id="btn-download-template"
+                                class="btn btn-outline-success btn-sm px-3 flex-shrink-0"
                                 download="Contoh_Import_Secondary_Luar.xlsx">
                                     <i class="fa fa-file-excel me-1"></i> Contoh Excel
                             </a>
@@ -172,6 +183,7 @@
 
     <script>
         let datatableDcReport;
+        let selectedCancelIds = new Set();
 
         // 1. Fungsi Upload & Preview (Global Scope)
         function uploadAndPreviewFile(file) {
@@ -214,7 +226,7 @@
                     } else {
                         html = `<tr><td colspan="9" class="text-center text-muted py-4">Data kosong.</td></tr>`;
                     }
-                    
+
                     $('#import-secondary-luar-preview').html(html);
                     $('#import-secondary-luar-summary').html(res.summary || '');
                     $('#import-secondary-luar-error').addClass('d-none').html('');
@@ -292,14 +304,14 @@
             const today = new Date();
             const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
             const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-            
+
             const formatDate = (date) => {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
                 const day = String(date.getDate()).padStart(2, '0');
                 return `${year}-${month}-${day}`;
             };
-            
+
             $('#tgl-awal').val(formatDate(firstDay));
             $('#tgl-akhir').val(formatDate(lastDay));
 
@@ -324,6 +336,8 @@
                     }
                 },
                 columns: [
+                    { data: 'id' },
+                    { data: 'id' },
                     { data: 'tanggal' },
                     { data: 'no_ws' },
                     { data: 'buyer' },
@@ -338,10 +352,59 @@
                 ],
                 columnDefs: [
                     {
+                        targets: [0],
+                        className: 'align-middle text-center text-nowrap',
+                        render: (data, type, row) => {
+                            return `<input type="checkbox" class="cancel-checkbox check-cancel" value="${data}" ${selectedCancelIds.has(String(data)) ? 'checked' : ''}>`;
+                        }
+                    },
+                    {
+                        targets: [1],
+                        className: 'align-middle text-center text-nowrap',
+                        render: (data, type, row) => {
+                            return `<button type="button" class="btn btn-sm btn-danger" onclick="cancelTerimaSecLuar([${data}])"><i class="fa fa-times"></i> Cancel</button>`;
+                        }
+                    },
+                    {
                         targets: "_all",
                         className: 'align-middle text-nowrap'
                     },
                 ],
+            });
+
+            // Reset pilihan setiap kali data di-reload
+            datatableDcReport.on('xhr', function () {
+                selectedCancelIds.clear();
+                updateSelectedCancel();
+            });
+
+            // Sinkronkan status check all saat pindah halaman / search
+            datatableDcReport.on('draw', function () {
+                updateSelectedCancel();
+            });
+
+            // Check per baris
+            $(document).on('change', '.check-cancel', function () {
+                if (this.checked) {
+                    selectedCancelIds.add(this.value);
+                } else {
+                    selectedCancelIds.delete(this.value);
+                }
+                updateSelectedCancel();
+            });
+
+            // Check all (semua data hasil filter/search, lintas halaman)
+            $(document).on('change', '#check-all-cancel', function () {
+                const checked = this.checked;
+                datatableDcReport.rows({ search: 'applied' }).data().each(function (row) {
+                    if (checked) {
+                        selectedCancelIds.add(String(row.id));
+                    } else {
+                        selectedCancelIds.delete(String(row.id));
+                    }
+                });
+                $('.check-cancel').prop('checked', checked);
+                updateSelectedCancel();
             });
 
             // Event Browse File
@@ -446,6 +509,64 @@
 
             datatableDcReport.ajax.reload(function () {
                 Swal.close();
+            });
+        }
+
+        // Update tombol mass cancel & status check all
+        function updateSelectedCancel() {
+            $('#selected-count').text(selectedCancelIds.size);
+            $('#btn-mass-cancel').prop('disabled', selectedCancelIds.size === 0);
+
+            const filteredIds = datatableDcReport.rows({ search: 'applied' }).data().toArray().map(row => String(row.id));
+            const allChecked = filteredIds.length > 0 && filteredIds.every(id => selectedCancelIds.has(id));
+            $('#check-all-cancel').prop('checked', allChecked);
+        }
+
+        // Mass Cancel
+        function massCancelTerimaSecLuar() {
+            if (selectedCancelIds.size === 0) return;
+            cancelTerimaSecLuar(Array.from(selectedCancelIds));
+        }
+
+        // Cancel Data
+        function cancelTerimaSecLuar(ids) {
+            Swal.fire({
+                title: 'Cancel Data?',
+                text: ids.length + ' data terima secondary luar akan dicancel.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fa fa-times me-1"></i> Ya, Cancel!',
+                cancelButtonText: 'Tidak',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    $.ajax({
+                        url: "{{ route('terima.secondary.luar.cancel') }}",
+                        type: "POST",
+                        data: { _token: '{{ csrf_token() }}', ids: ids },
+                        success: function (res) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: res.message || 'Data berhasil dicancel.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            datatableDcReport.ajax.reload(null, false);
+                        },
+                        error: function (xhr) {
+                            Swal.fire('Gagal!', xhr.responseJSON?.message || 'Terjadi kesalahan.', 'error');
+                        }
+                    });
+                }
             });
         }
 
