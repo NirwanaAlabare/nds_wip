@@ -238,8 +238,9 @@ group by id_bpb, id_item, a.bpbno_int
         ?string $id_supplier = null,
         ?string $ids = null,
         ?string $bgColorHex = null,
-        ?string $serial_number = null,
-        bool $serial_only = false
+        ?array $serial_numbers = null,
+        bool $serial_only = false,
+        bool $with_qr = true
     ) {
         $query = DB::table('asset_penerimaan_mesin as a')
             ->select('a.id', 'a.serial_number', 'a.kode_qr', 'd.nm_jenis', 'e.nm_merk', 'c.tipe')
@@ -248,8 +249,8 @@ group by id_bpb, id_item, a.bpbno_int
             ->leftJoin('asset_master_kd_jenis as d', 'c.kd_jenis', '=', 'd.kd_jenis')
             ->leftJoin('asset_master_kd_merk as e', 'c.kd_merk', '=', 'e.kd_merk');
 
-        // Serial Number bisa lebih dari satu, dipisah koma / titik koma / spasi / enter
-        $serials = array_values(array_filter(preg_split('/[\s,;]+/', (string) $serial_number)));
+        // Serial Number bisa lebih dari satu (list dari modal, tiap item dicari pakai LIKE)
+        $serials = array_values(array_filter(array_map('trim', array_map('strval', $serial_numbers ?? [])), 'strlen'));
 
         if ($ids) {
             $query->whereIn('a.id', array_filter(explode(',', $ids)));
@@ -286,6 +287,11 @@ group by id_bpb, id_item, a.bpbno_int
             ->orderBy('a.id', 'ASC')
             ->get();
 
+        // Generate gambar QR cukup berat (~3-4ms per unit), jadi hanya dibuat kalau memang dibutuhkan (halaman cetak)
+        if (!$with_qr) {
+            return $units;
+        }
+
         foreach ($units as $unit) {
             $qr = QrCode::format('svg')->size(80);
             if ($bgColorHex && preg_match('/^[0-9a-fA-F]{6}$/', $bgColorHex)) {
@@ -307,8 +313,9 @@ group by id_bpb, id_item, a.bpbno_int
             $request->id_supplier,
             null,
             null,
-            $request->serial_number,
-            $request->search_by === 'serial'
+            (array) $request->input('serial_numbers', []),
+            $request->search_by === 'serial',
+            false
         );
 
         return response()->json($units);
