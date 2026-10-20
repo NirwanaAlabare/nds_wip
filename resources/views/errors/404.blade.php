@@ -128,6 +128,7 @@
             padding: 0 20px;
             border-radius: 10px;
             font: inherit;
+            line-height: 1;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
@@ -141,7 +142,7 @@
         .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
         .btn-primary { background: var(--accent-bg); border-color: var(--accent-bg); color: #fff; }
         .btn-primary:hover { background: var(--accent-bg-hover); border-color: var(--accent-bg-hover); }
-        .btn svg { width: 16px; height: 16px; }
+        .btn svg { width: 16px; height: 16px; flex-shrink: 0; display: block; }
         .btn.loading svg { animation: spin .8s linear infinite; }
 
 
@@ -205,12 +206,12 @@
                 </svg>
                 Coba Lagi
             </button>
-            <button type="button" class="btn" onclick="history.length > 1 ? history.back() : location.href='/'">
+            <a href="{{ route('home') }}" class="btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>
                 </svg>
-                Kembali
-            </button>
+                Ke Beranda
+            </a>
         </div>
 
         <div class="footer">

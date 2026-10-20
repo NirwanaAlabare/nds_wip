@@ -128,6 +128,7 @@
             padding: 0 20px;
             border-radius: 10px;
             font: inherit;
+            line-height: 1;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
@@ -141,7 +142,7 @@
         .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
         .btn-primary { background: var(--accent-bg); border-color: var(--accent-bg); color: #fff; }
         .btn-primary:hover { background: var(--accent-bg-hover); border-color: var(--accent-bg-hover); }
-        .btn svg { width: 16px; height: 16px; }
+        .btn svg { width: 16px; height: 16px; flex-shrink: 0; display: block; }
         .btn.loading svg { animation: spin .8s linear infinite; }
 
 
