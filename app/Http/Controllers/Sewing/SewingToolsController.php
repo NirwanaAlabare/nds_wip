@@ -33,6 +33,7 @@ use App\Models\SignalBit\SoDet;
 use App\Models\SignalBit\Undo;
 use App\Models\SignalBit\UndoPacking;
 use App\Models\SignalBit\UndoPackingPo;
+use App\Models\SignalBit\UndoGudangStok;
 use App\Models\SignalBit\UserLine;
 use App\Models\SignalBit\UserSbWip;
 use App\Models\Stocker\YearSequence;
@@ -6692,13 +6693,24 @@ class SewingToolsController extends Controller
         return Datatables::of($packingPo)->toJson();
     }
 
-    public function modifyPackingPoUpdate(Request $request) {
-        $kodeNumbering = addQuotesAround($request->kode_numbering);
+    public function modifyPackingPoUpdate(Request $request) 
+    {
+        // Ensure kode_numbering is handled as an array
+        $kodeNumbering = is_array($request->kode_numbering) 
+            ? $request->kode_numbering 
+            : array_filter(explode(',', str_replace(["'", '"'], '', $request->kode_numbering)));
 
-        // Check Closing
+        if (empty($kodeNumbering) || !$request->edit_packing_po) {
+            return [
+                "status" => 400,
+                "message" => "Packing PO gagal diubah: Parameter input tidak lengkap."
+            ];
+        }
+
+        // 1. Check Closing Date (Sebelum memulai transaksi DB)
         $dataCheckClosing = DB::connection('mysql_sb')->table("output_rfts_packing_po")
             ->selectRaw("DATE_FORMAT(updated_at, '%Y-%m-%d') as tanggal")
-            ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+            ->whereIn("kode_numbering", $kodeNumbering)
             ->get();
 
         foreach ($dataCheckClosing as $data) {
@@ -6711,57 +6723,90 @@ class SewingToolsController extends Controller
             }
         }
 
-        if ($kodeNumbering && $request->edit_packing_po) {
+        // 2. Mulai Database Transaction
+        DB::beginTransaction();
 
+        try {
             // PPIC Master SO
-            $poList = DB::table("ppic_master_so")->where("po", $request->edit_packing_po)->get();
+            $poList = DB::table("ppic_master_so")
+                ->where("po", $request->edit_packing_po)
+                ->get();
 
             // RFT Packing PO
+            $packingPos = RftPackingPo::whereIn("kode_numbering", $kodeNumbering)->get();
+
+            if ($packingPos->isEmpty()) {
+                DB::rollBack();
+                return [
+                    "status" => 404,
+                    "message" => "Data Packing PO tidak ditemukan."
+                ];
+            }
+
             $message = "";
-            $packingPos = RftPackingPo::whereRaw("kode_numbering in (".$kodeNumbering.")")->get();
-            if ($packingPos && $packingPos->count() > 0) {
-                foreach ($packingPos as $packingPo) {
-                    // Get current PO with matching so_det_id
-                    $currentPo = $poList->filter(function($item) use ($packingPo) {
-                        return $item->id_so_det == $packingPo->so_det_id;
-                    })->first();
+            foreach ($packingPos as $packingPo) {
+                // Get current PO with matching so_det_id
+                $currentPo = $poList->filter(function($item) use ($packingPo) {
+                    return $item->id_so_det == $packingPo->so_det_id;
+                })->first();
 
-                    if ($currentPo) {
-                        Log::channel('modifyPackingPo')->info(["update packing po", "by ".(Auth::user()->id." - ".Auth::user()->username), $packingPo]);
+                if ($currentPo) {
+                    Log::channel('modifyPackingPo')->info([
+                        "update packing po", 
+                        "by " . Auth::user()->id . " - " . Auth::user()->username, 
+                        $packingPo
+                    ]);
 
-                        // Update PO ID
-                        $packingPo->po_id = $currentPo->id;
-                        $packingPo->timestamps = false;
-                        $packingPo->save();
+                    // Update PO ID
+                    $packingPo->po_id = $currentPo->id;
+                    $packingPo->timestamps = false;
+                    $packingPo->save();
 
-                        $message .= $packingPo->kode_numbering." berhasil diubah <br>";
-                    } else {
-                        $message .= $packingPo->kode_numbering." tidak ditemukan PO yang sesuai <br>";
-                    }
+                    $message .= $packingPo->kode_numbering . " berhasil diubah <br>";
+                } else {
+                    $message .= $packingPo->kode_numbering . " tidak ditemukan PO yang sesuai <br>";
                 }
             }
 
-            if ($packingPos) {
-                return array(
-                    "status" => 200,
-                    "message" => $message
-                );
-            }
-        }
+            // Commit perubahan jika semua iterasi berjalan lancar
+            DB::commit();
 
-        return array(
-            "status" => 400,
-            "message" => "Packing PO gagal diubah"
-        );
+            return [
+                "status" => 200,
+                "message" => $message
+            ];
+
+        } catch (\Exception $e) {
+            // Rollback semua query jika terjadi error
+            DB::rollBack();
+
+            Log::channel('modifyPackingPo')->error("Error pada modifyPackingPoUpdate: " . $e->getMessage());
+
+            return [
+                "status" => 500,
+                "message" => "Terjadi kesalahan saat mengubah Packing PO: " . $e->getMessage()
+            ];
+        }
     }
 
-    public function modifyPackingPoDelete(Request $request) {
-        $kodeNumbering = addQuotesAround($request->kode_numbering);
+    public function modifyPackingPoDelete(Request $request) 
+    {
+        // Pastikan kode_numbering dalam bentuk array
+        $kodeNumbering = is_array($request->kode_numbering) 
+            ? $request->kode_numbering 
+            : explode(',', $request->kode_numbering);
 
-        // Check Closing
+        if (empty($kodeNumbering)) {
+            return [
+                "status" => 400,
+                "message" => "Data kode numbering tidak ditemukan."
+            ];
+        }
+
+        // 1. Check Closing Date (Di luar transaksi DB agar tidak me-lock database jika gagal)
         $dataCheckClosing = DB::connection('mysql_sb')->table("output_rfts_packing_po")
             ->selectRaw("DATE_FORMAT(updated_at, '%Y-%m-%d') as tanggal")
-            ->whereRaw("kode_numbering in (" . $kodeNumbering . ")")
+            ->whereIn("kode_numbering", $kodeNumbering)
             ->get();
 
         foreach ($dataCheckClosing as $data) {
@@ -6774,29 +6819,97 @@ class SewingToolsController extends Controller
             }
         }
 
-        if ($kodeNumbering) {
-            $deletePackingPo = RftPackingPo::whereRaw("kode_numbering in (".$kodeNumbering.")")->get();
+        // 2. Mulai Database Transaction
+        DB::beginTransaction();
 
-            if ($deletePackingPo) {
-                // Delete Packing Po
-                foreach ($deletePackingPo as $packingPo) {
-                    $packingPo->delete();
-                }
+        try {
+            $deletePackingPo = RftPackingPo::whereIn("kode_numbering", $kodeNumbering)->get();
 
-                // Delete Gudang Stok
-                OutputGudangStok::whereRaw("kode_numbering in (".$kodeNumbering.")")->delete();
-
-                return array(
-                    "status" => 200,
-                    "message" => "Packing PO berhasil dihapus"
-                );
+            if ($deletePackingPo->isEmpty()) {
+                DB::rollBack();
+                return [
+                    "status" => 404,
+                    "message" => "Data Packing PO tidak ditemukan."
+                ];
             }
-        }
 
-        return array(
-            "status" => 400,
-            "message" => "Packing PO gagal dihapus"
-        );
+            $undoPackingPoArray = [];
+            foreach ($deletePackingPo as $packingPo) {
+                $undoPackingPoArray[] = [
+                    "so_det_id"           => $packingPo->so_det_id,
+                    "po_id"               => $packingPo->po_id,
+                    "master_plan_id"      => $packingPo->master_plan_id,
+                    "output_rft_id"       => $packingPo->id,
+                    "kode_numbering"      => $packingPo->kode_numbering,
+                    "keterangan"          => $packingPo->status,
+                    "rft_id"              => $packingPo->rft_id,
+                    "reject_id"           => $packingPo->reject_id,
+                    "alokasi"             => $packingPo->po,
+                    "created_by"          => $packingPo->created_by,
+                    "created_by_username" => $packingPo->created_by_username,
+                    "created_by_line"     => $packingPo->created_by_line,
+                    "created_at"          => $packingPo->created_at,
+                    "updated_at"          => $packingPo->updated_at,
+                    "undo_by_nds"         => Auth::user()->id,
+                    "undo_at"             => Carbon::now(),
+                ];
+
+                $packingPo->delete();
+            }
+
+            // Proses Gudang Stok (Menggunakan Model GudangStok)
+            $deleteGudangStok = GudangStok::whereIn("kode_numbering", $kodeNumbering)->get();
+            $undoGudangStokArray = [];
+
+            foreach ($deleteGudangStok as $gudangStok) {
+                $undoGudangStokArray[] = [
+                    'kode_numbering'      => $gudangStok->kode_numbering,
+                    'output_id'           => $gudangStok->output_id,
+                    'so_det_id'           => $gudangStok->so_det_id,
+                    'reject_out_id'       => $gudangStok->reject_out_id,
+                    'packing_po_id'       => $gudangStok->packing_po_id,
+                    'type'                => $gudangStok->type,
+                    'created_by'          => $gudangStok->created_by,
+                    'created_by_username' => $gudangStok->created_by_username,
+                    'created_by_line'     => $gudangStok->created_by_line,
+                    'created_at'          => $gudangStok->created_at,
+                    'updated_at'          => $gudangStok->updated_at,
+                    'undo_by_nds'         => Auth::user()->id,
+                    'undo_at'             => Carbon::now()
+                ];
+
+                $gudangStok->delete();
+            }
+
+            // Insert log undo jika array tidak kosong
+            if (!empty($undoPackingPoArray)) {
+                UndoPackingPo::insert($undoPackingPoArray);
+            }
+
+            if (!empty($undoGudangStokArray)) {
+                UndoGudangStok::insert($undoGudangStokArray);
+            }
+
+            // Commit seluruh perubahan jika semua proses sukses
+            DB::commit();
+
+            return [
+                "status" => 200,
+                "message" => "Packing PO berhasil dihapus"
+            ];
+
+        } catch (\Exception $e) {
+            // Rollback semua query jika terjadi kesalahan/error
+            DB::rollBack();
+
+            // Optional: Log pesan error untuk pemeliharaan
+            Log::error("Error pada modifyPackingPoDelete: " . $e->getMessage());
+
+            return [
+                "status" => 500,
+                "message" => "Terjadi kesalahan saat menghapus Packing PO: " . $e->getMessage()
+            ];
+        }
     }
 
     // Check Output vs Master Plan

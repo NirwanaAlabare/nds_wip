@@ -475,7 +475,8 @@
                         panel_filter: $("#panel_filter").val(),
                         part_filter: $("#part_filter").val(),
                         qty_filter: $("#qty_filter").val(),
-                        created_by_filter: $("#created_by_filter").val()
+                        created_by_filter: $("#created_by_filter").val(),
+                        created_at_filter: $("#created_at_filter").val()
                     },
                     success: function (res) {
                         if (Array.isArray(res)) {

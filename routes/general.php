@@ -3,6 +3,7 @@
 use App\Http\Controllers\General\GeneralController;
 use App\Http\Controllers\General\InjectAdjustmentController;
 use App\Http\Controllers\General\LockController;
+use App\Http\Controllers\General\LockTransactionController;
 use App\Http\Controllers\General\SwitchingController;
 use App\Http\Controllers\General\TrackController;
 use App\Http\Controllers\General\WorksheetController;
@@ -140,6 +141,19 @@ Route::middleware('auth')->group(function () {
         Route::post('/get-data', 'getData')->name('get-data-lock');
         Route::post('/locked', 'locked')->name('locked-lock');
         Route::post('/unlocked', 'unlocked')->name('unlocked-lock');
+    });
+
+    Route::controller(LockTransactionController::class)->prefix("lock-transaction")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name("lock-transaction");
+        Route::post('/get-data', 'getData')->name('get-data-lock-transaction');
+        Route::post('/store', 'store')->name('store-lock-transaction');
+        Route::post('/delete', 'delete')->name('delete-lock-transaction');
+        Route::post('/locked', 'locked')->name('locked-lock-transaction');
+        Route::post('/unlocked', 'unlocked')->name('unlocked-lock-transaction');
+
+        Route::post('/detail/get-data', 'getDetail')->name('get-detail-lock-transaction');
+        Route::post('/detail/store', 'storeDetail')->name('store-detail-lock-transaction');
+        Route::post('/detail/delete', 'deleteDetail')->name('delete-detail-lock-transaction');
     });
 
     Route::controller(SwitchingController::class)->prefix("switching")->middleware("admin")->group(function () {
