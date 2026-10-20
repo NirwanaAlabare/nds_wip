@@ -2338,9 +2338,10 @@ class DcReportController extends Controller
                                 *,
                                 DATE_FORMAT(tanggal, '%d-%m-%Y') AS tanggal
                         FROM inject_mutasi_dc
-                        WHERE tanggal BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                        WHERE tanggal BETWEEN ? AND ?
+                        AND type_report = 'SECONDARY_LUAR'
                         AND cancelled_at IS NULL
-                ");
+                ", [$dateFrom, $dateTo]);
             }
 
             return DataTables::of($dataReport)->toJson();
@@ -2353,74 +2354,44 @@ class DcReportController extends Controller
         ]);
     }
 
+    // Semua id hasil filter tabel (lintas halaman) untuk check all
     public function checkAllTerimaSecondaryLuar(Request $request) {
-        $dateFrom = $request->dateFrom;
-        $dateTo = $request->dateTo;
+        $request->validate([
+            'dateFrom' => 'required|date',
+            'dateTo'   => 'required|date',
+        ]);
 
-        $tanggal_filter = $request->tanggal_filter;
-        $no_ws_filter = $request->no_ws_filter;
-        $buyer_filter = $request->buyer_filter;
-        $style_filter = $request->style_filter;
-        $color_filter = $request->color_filter;
-        $size_filter = $request->size_filter;
-        $panel_filter = $request->panel_filter;
-        $part_filter = $request->part_filter;
-        $qty_filter = $request->qty_filter;
-        $created_by_filter = $request->created_by_filter;
+        // Parameter filter kolom => kolom/ekspresi SQL (format sama dengan yang tampil di tabel)
+        $filters = [
+            'tanggal_filter'    => "DATE_FORMAT(tanggal, '%d-%m-%Y')",
+            'no_ws_filter'      => 'no_ws',
+            'buyer_filter'      => 'buyer',
+            'style_filter'      => 'style',
+            'color_filter'      => 'color',
+            'size_filter'       => 'size',
+            'panel_filter'      => 'panel',
+            'part_filter'       => 'part',
+            'qty_filter'        => 'qty',
+            'created_by_filter' => 'created_by_username',
+            'created_at_filter' => 'created_at',
+        ];
 
-        $additionalQuery = "";
-        if ($tanggal_filter) {
-            $additionalQuery = " AND tanggal LIKE '%".$tanggal_filter."%'";
+        $query = DB::table('inject_mutasi_dc')
+            ->select('id')
+            ->whereBetween('tanggal', [$request->dateFrom, $request->dateTo])
+            ->where('type_report', 'SECONDARY_LUAR')
+            ->whereNull('cancelled_at');
+
+        // Semua filter yang terisi dipakai bersamaan
+        foreach ($filters as $param => $expression) {
+            $value = trim((string) $request->input($param));
+
+            if ($value !== '') {
+                $query->whereRaw("CAST($expression AS CHAR) LIKE ?", ['%' . $value . '%']);
+            }
         }
 
-        if ($no_ws_filter) {
-            $additionalQuery = " AND no_ws LIKE '%".$no_ws_filter."%'";
-        }
-
-        if ($buyer_filter) {
-            $additionalQuery = " AND buyer LIKE '%".$buyer_filter."%'";
-        }
-
-        if ($style_filter) {
-            $additionalQuery = " AND style LIKE '%".$style_filter."%'";
-        }
-
-        if ($color_filter) {
-            $additionalQuery = " AND color LIKE '%".$color_filter."%'";
-        }
-
-        if ($size_filter) {
-            $additionalQuery = " AND size LIKE '%".$size_filter."%'";
-        }
-
-        if ($panel_filter) {
-            $additionalQuery = " AND panel LIKE '%".$panel_filter."%'";
-        }
-
-        if ($part_filter) {
-            $additionalQuery = " AND part LIKE '%".$part_filter."%'";
-        }
-
-        if ($qty_filter) {
-            $additionalQuery = " AND qty LIKE '%".$qty_filter."%'";
-        }
-
-        if ($created_by_filter) {
-            $additionalQuery = " AND created_by_username LIKE '%".$created_by_filter."%'";
-        }
-
-
-        $dataInject = DB::select("
-                SELECT
-                        *,
-                        DATE_FORMAT(tanggal, '%d-%m-%Y') AS tanggal
-                FROM inject_mutasi_dc
-                WHERE tanggal BETWEEN '".$dateFrom."' AND '".$dateTo."'
-                ".$additionalQuery."
-                AND cancelled_at IS NULL
-            ");
-
-        return $dataInject;
+        return $query->get();
     }
 
     public function previewImportTerimaSecLuar(Request $request)
@@ -2507,6 +2478,17 @@ class DcReportController extends Controller
             ], 422);
         }
 
+        // Check Closing Date (per tanggal unik, sebelum transaksi dimulai)
+        foreach (array_unique(array_column($data, 'tanggal')) as $tanggal) {
+            if (checkClosingDate($tanggal)) {
+                return response()->json([
+                    'success'    => false,
+                    'message'    => 'Data tidak dapat disimpan karena periode ' . date('d-m-Y', strtotime($tanggal)) . ' sudah ditutup.',
+                    'additional' => 'Closing'
+                ], 422);
+            }
+        }
+
         try {
             DB::beginTransaction();
 
@@ -2570,6 +2552,20 @@ class DcReportController extends Controller
 
         $user = Auth::user();
 
+        // Check Closing Date (cukup tanggal paling awal dari data yang akan dicancel)
+        $minTanggal = DB::table('inject_mutasi_dc')
+            ->whereIn('id', $request->ids)
+            ->where('type_report', 'SECONDARY_LUAR')
+            ->whereNull('cancelled_at')
+            ->min('tanggal');
+
+        if ($minTanggal && checkClosingDate($minTanggal)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data periode ' . date('d-m-Y', strtotime($minTanggal)) . ' sudah closing, tidak dapat dicancel.'
+            ], 422);
+        }
+
         $cancelled = DB::table('inject_mutasi_dc')
             ->whereIn('id', $request->ids)
             ->where('type_report', 'SECONDARY_LUAR')
@@ -2606,9 +2602,10 @@ class DcReportController extends Controller
                         *,
                         DATE_FORMAT(tanggal, '%d-%m-%Y') AS tanggal
                 FROM inject_mutasi_dc
-                WHERE tanggal BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                WHERE tanggal BETWEEN ? AND ?
+                AND type_report = 'SECONDARY_LUAR'
                 AND cancelled_at IS NULL
-        ");
+        ", [$dateFrom, $dateTo]);
 
         $fileName = 'report-mutasi-wip-set-dc';
 
