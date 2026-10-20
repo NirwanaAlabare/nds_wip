@@ -17,10 +17,25 @@ use Yajra\DataTables\Facades\DataTables;
 
 class WipAdjustmentController extends Controller
 {
+    // User yang boleh import & cancel adjustment
+    private $managers = ['nirwana_it', 'admin_01', 'gina_ppic'];
+
+    private function canManage()
+    {
+        return in_array(optional(Auth::user())->username, $this->managers, true);
+    }
+
+    private function forbiddenResponse()
+    {
+        return response()->json([
+            'status'  => 403,
+            'message' => 'User tidak memiliki akses untuk melakukan aksi ini'
+        ], 403);
+    }
 
     public function index() {
         return view("wip-adjustment.index", [
-            'containerFluid' => true, 
+            'containerFluid' => true,
             'page' => 'dashboard-ppic',
             "subPageGroup" => "ppic_tools",
             "subPage" => "wip-adjustment",
@@ -28,6 +43,7 @@ class WipAdjustmentController extends Controller
                 ->where('is_locked', true)
                 ->orderBy('end_date', 'desc')
                 ->value('end_date'),
+            'canManage' => $this->canManage(),
         ]);
     }
 
@@ -195,6 +211,10 @@ class WipAdjustmentController extends Controller
     // Baca & validasi file import (belum menyimpan ke database)
     public function importData(Request $request)
     {
+        if (!$this->canManage()) {
+            return $this->forbiddenResponse();
+        }
+
         $request->validate([
             'file'        => 'required|file|mimes:xlsx,xls,csv',
             'type_report' => 'required',
@@ -799,6 +819,10 @@ class WipAdjustmentController extends Controller
     // Cancel 1 baris gabungan: semua type_report di grup itu jadi status N
     public function cancel(Request $request)
     {
+        if (!$this->canManage()) {
+            return $this->forbiddenResponse();
+        }
+
         $request->validate([
             'type_report'    => 'required',
             'select_all'     => 'nullable|boolean',
