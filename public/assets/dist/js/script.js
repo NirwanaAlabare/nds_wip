@@ -1064,9 +1064,42 @@ function exportExcelGlobal(elm, data) {
     });
 }
 
+// Select2 auto focus
 $(document).on('select2:open', () => {
     let searchField = document.querySelector('.select2-container--open .select2-search__field');
     if (searchField) {
         searchField.focus();
     }
 });
+
+// Pesan error dari server (message / error validasi pertama), fallback jika tidak ada
+function ajaxErrorMessage(jqXHR, fallback = 'Terjadi kesalahan.') {
+    const res = jqXHR?.responseJSON;
+
+    if (res?.message) {
+        return res.message;
+    }
+
+    if (res?.errors) {
+        const firstError = Object.values(res.errors)[0];
+
+        return Array.isArray(firstError) ? firstError[0] : firstError;
+    }
+
+    return fallback;
+}
+
+function showAjaxError(jqXHR, fallback = 'Terjadi kesalahan.') {
+    console.error(jqXHR);
+
+    document.getElementById("loading").classList.add("d-none");
+
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: ajaxErrorMessage(jqXHR, fallback),
+        showCancelButton: false,
+        showConfirmButton: true,
+        confirmButtonText: 'Oke',
+    });
+}
