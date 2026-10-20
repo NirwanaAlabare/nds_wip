@@ -19,8 +19,8 @@
             <div class="unlock-request-error" id="unlock-request-error" hidden></div>
 
             <div class="unlock-request-actions">
-                <button type="button" class="unlock-request-cancel" data-bs-dismiss="modal" data-dismiss="modal">Cancel</button>
-                <button type="button" class="unlock-request-save" id="unlock-request-save">Save</button>
+                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" data-bs-dismiss="modal" data-dismiss="modal">Cancel</button>
+                <button type="button" class="mkt-btn mkt-btn--green" id="unlock-request-save">Save</button>
             </div>
         </div>
     </div>
@@ -46,11 +46,6 @@
     .unlock-request-reason:focus { border-color: #94a3b8; box-shadow: 0 0 0 2px rgba(148, 163, 184, .2); }
     .unlock-request-error { margin-top: 4px; color: #dc2626; font-size: 10px; }
     .unlock-request-actions { display: flex; justify-content: flex-end; gap: 14px; margin-top: 6px; }
-    .unlock-request-cancel, .unlock-request-save { min-width: 104px; height: 40px; padding: 0 22px; border: 0; border-radius: 22px; color: #fff; font-size: 14px; font-weight: 600; }
-    .unlock-request-cancel { background: #ff0000; box-shadow: 0 4px 10px rgba(255, 0, 0, .3); }
-    .unlock-request-save { background: #198038; box-shadow: 0 4px 10px rgba(25, 128, 56, .3); }
-    .unlock-request-cancel:hover, .unlock-request-save:hover { filter: brightness(.95); }
-    .unlock-request-save:disabled { opacity: .7; }
 </style>
 <script>
     (function() {

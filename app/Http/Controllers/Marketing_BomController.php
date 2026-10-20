@@ -155,6 +155,10 @@ class Marketing_BomController extends Controller
             'selectedCostingNo' => $selectedCostingNo,
             'bomId' => $bom->id,
             'bomNo' => $bom->no_katalog_bom,
+            'isEditBom' => $mysql_sb->table('bom_marketing_detail')
+                ->where('id_bom_marketing', $bom->id)
+                ->where('cancel', 'N')
+                ->exists(),
             'selectedSoId' => $request->query('id_so'),
             'shells' => $shells,
             'unitOptions' => $unitOptions,

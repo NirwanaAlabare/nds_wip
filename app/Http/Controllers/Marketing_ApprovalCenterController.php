@@ -28,6 +28,13 @@ class Marketing_ApprovalCenterController extends Controller
             'brand' => 'a.brand',
             'style' => 'a.styleno',
         ],
+        'so' => [
+            'number' => 'so.so_no',
+            'worksheet' => 'a.kpno',
+            'buyer' => 'b.Supplier',
+            'brand' => 'a.brand',
+            'style' => 'a.styleno',
+        ],
     ];
 
     public function __construct(private MarketingApprovalService $approvals)
@@ -46,6 +53,7 @@ class Marketing_ApprovalCenterController extends Controller
                 'bom' => $this->documentQuery('bom')->whereRaw(MarketingApprovalService::statusSql('bom', 'bm') . " = 'awaiting'")->count(),
                 'unlock_costing' => $this->unlockRequestQuery('costing')->count(),
                 'unlock_bom' => $this->unlockRequestQuery('bom')->count(),
+                'unlock_so' => $this->unlockRequestQuery('so')->count(),
             ],
         ]);
     }
@@ -95,12 +103,12 @@ class Marketing_ApprovalCenterController extends Controller
             ->make(true);
     }
 
-    /** Tabel Unlock Costing / Unlock BOM: dokumen yang punya request unlock (status W) di unlock_cost / unlock_jo. */
+    /** Tabel Unlock Costing / BOM / SO: dokumen yang punya request unlock (status W) di unlock_cost / unlock_jo / unlock_so. */
     public function unlockRequests(Request $request, string $type)
     {
         $data = $this->unlockRequestQuery($type);
         if (! $request->filled('order')) {
-            $data->orderBy($type === 'costing' ? 'a.id' : 'bm.id');
+            $data->orderBy(match ($type) { 'costing' => 'a.id', 'so' => 'so.id', default => 'bm.id' });
         }
         $this->applyFilters($data, $request, $type, DB::raw($this->requestColumnSql($type, 'dateinput')));
 
@@ -117,6 +125,12 @@ class Marketing_ApprovalCenterController extends Controller
                 ->whereRaw(MarketingApprovalService::pendingUnlockSql('costing', 'a.id'))
                 ->select('a.id', 'a.id as ref_id', 'a.id as id_costing', 'a.cost_no as doc_no')
                 ->selectRaw(MarketingApprovalService::statusSql('costing', 'a') . ' as doc_status');
+        } elseif ($type === 'so') {
+            $query = $db->table('so')
+                ->join('act_costing as a', 'a.id', '=', 'so.id_cost')
+                ->whereRaw(MarketingApprovalService::pendingUnlockSql('so', 'so.id'))
+                ->select('so.id', 'so.id as ref_id', 'a.id as id_costing', 'so.so_no as doc_no')
+                ->selectRaw(MarketingApprovalService::statusSql('so', 'so') . ' as doc_status');
         } else {
             $query = $db->table('bom_marketing as bm')
                 ->join('act_costing as a', 'a.id', '=', 'bm.id_costing')
@@ -127,7 +141,8 @@ class Marketing_ApprovalCenterController extends Controller
 
         return $query->leftJoin('mastersupplier as b', 'a.id_buyer', '=', 'b.Id_Supplier')
             ->leftJoin('masterproduct as p', 'a.id_product', '=', 'p.id')
-            ->addSelect('b.Supplier as buyer', 'a.brand', 'a.styleno', 'a.kpno', 'p.product_item')
+            // Kolom sama dengan tabel Approval (documents) supaya listing Unlock seragam.
+            ->addSelect('a.deldate', 'a.kpno', 'b.Supplier as buyer', 'a.brand', 'a.styleno', 'a.market', 'a.qty', 'a.cfm_price', 'p.product_group', 'p.product_item')
             ->selectRaw($this->requestColumnSql($type, 'reason') . ' as reason')
             ->selectRaw($this->requestColumnSql($type, 'username') . ' as requested_by')
             ->selectRaw($this->requestColumnSql($type, 'dateinput') . ' as requested_at');
@@ -139,6 +154,9 @@ class Marketing_ApprovalCenterController extends Controller
         $waiting = "u.status = '" . MarketingApprovalService::UNLOCK_WAITING . "'";
         if ($type === 'costing') {
             return "(SELECT u.{$column} FROM unlock_cost u WHERE u.id_cost = a.id AND {$waiting} ORDER BY u.dateinput DESC LIMIT 1)";
+        }
+        if ($type === 'so') {
+            return "(SELECT u.{$column} FROM unlock_so u WHERE u.id_so = so.id AND {$waiting} ORDER BY u.dateinput DESC LIMIT 1)";
         }
 
         return "(SELECT u.{$column} FROM unlock_jo u
@@ -170,7 +188,7 @@ class Marketing_ApprovalCenterController extends Controller
     public function unlock(Request $request)
     {
         $validated = $request->validate([
-            'type' => ['required', 'in:' . implode(',', MarketingApprovalService::TYPES)],
+            'type' => ['required', 'in:' . implode(',', MarketingApprovalService::UNLOCK_TYPES)],
             'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['integer'],
         ]);
@@ -181,7 +199,7 @@ class Marketing_ApprovalCenterController extends Controller
     public function requestUnlock(Request $request)
     {
         $validated = $request->validate([
-            'type' => ['required', 'in:' . implode(',', MarketingApprovalService::TYPES)],
+            'type' => ['required', 'in:' . implode(',', MarketingApprovalService::UNLOCK_TYPES)],
             'id' => ['required', 'integer'],
             'reason' => ['required', 'string', 'max:1000'],
         ]);

@@ -630,6 +630,17 @@ class Marketing_CostingController extends Controller
 
     public function edit($id)
     {
+        return $this->costingPage($id, false);
+    }
+
+    // Detail Costing = halaman Edit dalam mode baca saja (semua kategori tampil, tanpa form simpan).
+    public function show($id)
+    {
+        return $this->costingPage($id, true);
+    }
+
+    private function costingPage($id, bool $viewOnly)
+    {
         $db = DB::connection('mysql_sb');
         $costing = $db->table('act_costing as a')
             ->leftJoin('masterproduct as p', 'a.id_product', '=', 'p.id')
@@ -737,6 +748,7 @@ class Marketing_CostingController extends Controller
             'destinations'        => $destinations,
             'seasons'             => $seasons,
             'unlock'              => app(MarketingApprovalService::class)->costingUnlockState((int) $id),
+            'viewOnly'            => $viewOnly,
             'buyerName'           => $db->table('mastersupplier')->where('Id_Supplier', $costing->id_buyer)->value('Supplier'),
             'page' => 'dashboard-marketing',
             "subPageGroup" => "marketing-master",
@@ -888,7 +900,7 @@ class Marketing_CostingController extends Controller
     public function getItemContents(Request $request)
     {
         $kategori = $request->kategori;
-        $html = "<option value=''>Pilih Item...</option>";
+        $html = "<option value=''>Choose Contents...</option>";
 
         if (empty($kategori)) {
             return response()->json($html);

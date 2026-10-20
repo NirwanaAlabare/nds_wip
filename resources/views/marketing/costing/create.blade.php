@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
@@ -68,9 +69,9 @@
         .costing-picture-dropzone i { font-size: 24px; }
         .costing-picture-dropzone b { color: #0056b3; }
         .costing-picture-dropzone.dragging { background: #eff7ff; }
-        .costing-upload-now { width: 100%; margin-top: 8px; padding: 6px; border: 0; border-radius: 6px; background: #c4c4c4; color: #fff; font-size: 10px; font-weight: 600; }
+        .costing-upload-now { width: 100%; margin-top: 8px; }
         .costing-picture-thumbnails { display: flex; flex-wrap: wrap; gap: 8px; min-height: 70px; margin-top: 10px; padding: 8px; border: 1px dashed #8b5cf6; border-radius: 6px; }
-        .costing-picture-clear { margin-top: 6px; padding: 2px 8px; font-size: 10px; }
+        .costing-picture-clear { margin-top: 6px; }
         .costing-picture-carousel { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; margin-top: 14px; }
         .costing-picture-main { max-width: 100%; max-height: 200px; object-fit: contain; }
         .costing-picture-nav { flex: 0 0 auto; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: #f1f3f5; color: #53687a; box-shadow: 0 2px 4px rgba(0, 0, 0, .1); }
@@ -78,8 +79,6 @@
         .costing-picture-nav:disabled { opacity: .4; }
 
         .costing-form-actions { text-align: right; }
-        .btn-success-custom { padding: 7px 34px; border: 0; border-radius: 20px; background: #198754; color: #fff; font-size: 12px; font-weight: 600; }
-        .btn-success-custom:hover { background: #157347; color: #fff; }
 
         @media (max-width: 1199.98px) {
             .costing-top, .costing-layout { grid-template-columns: minmax(0, 1fr); }
@@ -97,6 +96,78 @@
             transform: translateY(-50%) !important;
             height: auto !important;
         }
+
+        /* Tipografi sesuai mockup: judul Poppins Bold 32, subjudul SemiBold 12, judul section Medium 25,
+           label Medium 16, isian dropdown/input Medium 14 #ABABAB, tinggi isian 60. */
+        .costing-page-title { color: #284a63; font-size: 32px; font-weight: 700; }
+        .costing-page-subtitle { color: #284a63; font-size: 12px; font-weight: 600; }
+        .costing-section-title { color: #284a63; font-size: 25px; font-weight: 500; }
+        .costing-field label { font-size: 16px; font-weight: 500 !important; }
+        /* Dropdown & input sesuai mockup: tinggi 59, radius 12, border 1px, padding 16, gap teks–panah 16,
+           teks Poppins Medium 14 (placeholder #ABABAB, terisi hitam), focus border #284A63. */
+        .costing-field .form-control,
+        .costing-field .select2-container--bootstrap4 .select2-selection { height: 59px; min-height: 59px; border: 1px solid #e1e5e9; border-radius: 12px; background: #fff; box-shadow: none; font-size: 14px; font-weight: 500; line-height: 1; color: #000; }
+        .costing-field .form-control { padding: 0 16px; }
+        .costing-field textarea.form-control { padding: 10px 16px; line-height: 1.4; }
+        .costing-field .form-control::placeholder { color: #ababab; }
+        .costing-field .form-control:focus,
+        .costing-field .select2-container--bootstrap4.select2-container--focus .select2-selection,
+        .costing-field .select2-container--bootstrap4.select2-container--open .select2-selection { border-color: #284a63; box-shadow: none; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--single { display: flex; align-items: center; padding: 0 44px 0 16px; }
+        .costing-field .select2-container--bootstrap4 .select2-selection__rendered { padding: 0; line-height: 1; font-size: 14px; font-weight: 500; color: #000; }
+        .costing-field .select2-container--bootstrap4 .select2-selection__placeholder { color: #ababab; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { right: 16px; width: 12px; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b { top: 50%; left: 50%; width: 8px; height: 8px; margin: -6px 0 0 -4px; border: solid #284a63; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+        .costing-field .select2-container--bootstrap4.select2-container--open .select2-selection--single .select2-selection__arrow b { margin-top: -2px; transform: rotate(-135deg); }
+        /* State 2: ada isi + hover/fokus = border navy dan tanda X untuk menghapus pilihan (allowClear), menggantikan chevron.
+           State 3: sudah terpilih & diam = border abu + chevron. */
+        .costing-field .select2-container--bootstrap4 .select2-selection { position: relative; }
+        .costing-field .select2-container--bootstrap4 .select2-selection__clear { display: none; position: absolute; top: 50%; right: 14px; z-index: 2; float: none; width: 18px; height: 18px; margin: 0; padding: 0; transform: translateY(-50%); color: #284a63; font-size: 20px; font-weight: 400; line-height: 18px; text-align: center; cursor: pointer; }
+        .costing-field .select2-container--bootstrap4:not(.select2-container--disabled):is(:hover, .select2-container--focus, .select2-container--open) .select2-selection__clear { display: block; }
+        .costing-field .select2-container--bootstrap4:not(.select2-container--disabled):is(:hover, .select2-container--focus, .select2-container--open) .select2-selection--single:has(.select2-selection__clear) .select2-selection__arrow { display: none; }
+        .costing-field .select2-container--bootstrap4:not(.select2-container--disabled):hover .select2-selection:has(.select2-selection__clear) { border-color: #284a63; }
+        /* State 4: disabled / readonly / view only = label ikut pudar. */
+        .costing-field:has(.select2-container--disabled) label, .costing-field:has(.form-control:disabled) label, .costing-field:has(.form-control[readonly]) label { color: #c4c4c4; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple { display: flex; align-items: center; height: auto; min-height: 59px !important; padding: 4px 16px; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__rendered { padding: 0; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-search__field { margin-top: 0; font-size: 14px; font-weight: 500; color: #000; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-search__field::placeholder { color: #ababab; }
+
+        /* Disabled: latar abu muda, teks & panah pudar. */
+        .costing-field .form-control[readonly],
+        .costing-field .form-control:disabled,
+        .costing-field .select2-container--bootstrap4.select2-container--disabled .select2-selection { background: #f8f8f8; border-color: #e9ecef; color: #ababab; }
+        .costing-field .select2-container--bootstrap4.select2-container--disabled .select2-selection__rendered { color: #ababab; }
+        .costing-field .select2-container--bootstrap4.select2-container--disabled .select2-selection__arrow b { border-color: #c4c4c4; }
+
+        /* Banner "N fields are empty" di atas form, muncul saat Save dengan field wajib kosong. */
+        .costing-error-alert { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 12px; border-radius: 4px; background: #ff5f5f; color: #fff; font-family: Inter, sans-serif; font-size: 13px; }
+        .costing-error-alert[hidden] { display: none; }
+        .costing-error-alert > span { flex: 1; }
+        .costing-error-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #fff; font-size: 16px; line-height: 1; }
+        .costing-field.is-invalid label { color: #c8161d; }
+        .costing-field.is-invalid .form-control,
+        .costing-field.is-invalid .select2-container--bootstrap4 .select2-selection { border-color: #c8161d; color: #c8161d; }
+        .costing-field.is-invalid .select2-container--bootstrap4 .select2-selection__rendered,
+        .costing-field.is-invalid .select2-container--bootstrap4 .select2-selection__placeholder,
+        .costing-field.is-invalid .form-control::placeholder { color: #c8161d; }
+        .costing-field.is-invalid .select2-container--bootstrap4 .select2-selection__arrow b { border-color: #c8161d; }
+        .costing-field.is-invalid::after { content: 'Required'; display: block; margin-top: 4px; color: #c8161d; font-size: 13px; font-weight: 500; }
+
+        /* Dropdown list ikut ukuran teks 14. */
+        .select2-container--bootstrap4 .select2-results__option { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; }
+        /* Carousel gambar (coverflow): semua gambar dirender sekali di satu panggung. Pindah gambar hanya mengubah posisi &
+           skala dengan transition CSS (gambar benar-benar bergeser, tanpa ganti src), jadi gerakannya halus.
+           Aktif = besar di tengah, sebelum/sesudah = kecil di samping (klik untuk pindah), titik aktif memanjang. */
+        .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 210px; overflow: hidden; }
+        .mkt-cf-stage > .mkt-cf-main, .mkt-cf-stage > .mkt-cf-side { display: none !important; }
+        .mkt-cf-stage > img.mkt-cf-item { position: absolute; top: 50%; left: 50%; max-width: 46%; max-height: 100%; object-fit: contain; cursor: pointer; will-change: transform, opacity; transition: transform .55s cubic-bezier(.22, .61, .36, 1), opacity .55s ease; }
+        .mkt-cf-stage > img.mkt-cf-item.is-active { cursor: default; }
+        .mkt-cf-stage > img.mkt-cf-item.is-far { opacity: 0 !important; pointer-events: none; }
+        .mkt-cf-dots { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 10px; min-height: 4px; }
+        .mkt-cf-dot { width: 6px; height: 4px; padding: 0; border: 0; border-radius: 2px; background: #d9dee5; cursor: pointer; transition: width .3s ease, background-color .3s ease; }
+        .mkt-cf-dot.is-active { width: 16px; background: #1d6fd8; }
+        @media (prefers-reduced-motion: reduce) { .mkt-cf-stage > img.mkt-cf-item { transition: none; } }
     </style>
 @endsection
 
@@ -109,6 +180,10 @@
                 <div class="costing-crumb"><a href="{{ route('master-costing') }}">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing</a> &nbsp;›&nbsp; <b>Create Costing</b></div>
                 <h1 class="costing-page-title">Create Costing <i class="fas fa-info-circle"></i></h1>
                 <p class="costing-page-subtitle"><i class="fas fa-database"></i> Untuk Menambah Data Costing</p>
+                <div class="costing-error-alert" id="costing-error-alert" role="alert" hidden>
+                    <i class="fas fa-exclamation-circle"></i><span id="costing-error-text"></span>
+                    <button type="button" class="costing-error-alert-close" aria-label="Tutup" onclick="this.parentElement.hidden = true"><i class="far fa-times-circle"></i></button>
+                </div>
 
                 @if ($errors->any())
                     <div class="alert alert-danger py-2" role="alert">
@@ -230,24 +305,26 @@
                                         <i class="fas fa-file-alt"></i>
                                         <span>Drag n Drop here Or <b>Browse</b></span>
                                     </div>
-                                    <button type="button" id="btn-upload-now" class="costing-upload-now">Upload Now</button>
+                                    <button type="button" id="btn-upload-now" class="mkt-btn mkt-btn--navy mkt-btn--sm costing-upload-now">Upload Now</button>
                                 </div>
 
                                 <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Selected image previews"></div>
-                                <button type="button" id="clear-pictures" class="btn btn-outline-danger btn-sm costing-picture-clear" disabled>
+                                <button type="button" id="clear-pictures" class="mkt-btn mkt-btn--red mkt-btn--sm costing-picture-clear" disabled>
                                     <i class="fas fa-trash-alt"></i> Clear All
                                 </button>
 
                                 <div class="costing-picture-carousel">
                                     <div class="d-flex align-items-center justify-content-between w-100">
                                         <button type="button" id="picture-prev" class="costing-picture-nav" aria-label="Previous image"><i class="fas fa-chevron-left"></i></button>
-                                        <div class="d-flex align-items-center justify-content-center flex-grow-1" style="min-height: 200px;">
-                                            <img id="img_preview" class="costing-picture-main" alt="Costing image preview" hidden>
-                                            <span id="no_img_text" class="text-muted" style="font-size: 11px;">Belum ada gambar yang dipilih</span>
+                                        <div class="mkt-cf-stage flex-grow-1">
+                                            <img class="mkt-cf-side is-prev is-empty" alt="Gambar sebelumnya">
+                                            <img id="img_preview" class="costing-picture-main mkt-cf-main" alt="Costing image preview" hidden>
+                                            <span id="no_img_text" class="text-muted" style="font-size: 11px;">No image selected</span>
+                                            <img class="mkt-cf-side is-next is-empty" alt="Gambar berikutnya">
                                         </div>
                                         <button type="button" id="picture-next" class="costing-picture-nav" aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
                                     </div>
-                                    <div id="carousel-dots" class="mt-3 d-flex justify-content-center" style="gap: 5px;"></div>
+                                    <div id="carousel-dots" class="mkt-cf-dots"></div>
                                 </div>
                             </div>
                         </section>
@@ -306,7 +383,7 @@
                                 </div>
                                 <div class="costing-field">
                                     <label for="market">Market</label>
-                                    <input type="text" name="market" id="market" class="form-control" placeholder="Market">
+                                    <input type="text" name="market" id="market" class="form-control" required placeholder="Market">
                                 </div>
                                 <div class="costing-field">
                                     <label for="notes">Notes</label>
@@ -355,7 +432,7 @@
                                 </div>
                                 <div class="costing-field">
                                     <label for="confirm_price">Confirm Price</label>
-                                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal" placeholder="Confirm Price">
+                                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal" required placeholder="Confirm Price">
                                 </div>
                                 <div class="costing-field">
                                     <label>Rate to IDR</label>
@@ -371,7 +448,7 @@
                 </div>
 
                 <div class="costing-form-actions">
-                    <button type="submit" class="btn btn-success-custom shadow-sm">Save</button>
+                    <button type="submit" class="mkt-btn mkt-btn--green">Save</button>
                 </div>
             </div>
         </form>
@@ -383,7 +460,41 @@
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script>
     $(document).ready(function() {
-        $('.select2bs4').select2({ theme: 'bootstrap4' });
+        // allowClear = tanda X untuk menghapus pilihan (state 2); hanya untuk select yang punya opsi kosong / multiple.
+        $('.select2bs4').each(function () {
+            const clearable = $(this).prop('multiple') || $(this).find('option[value=""]').length > 0;
+            $(this).select2(Object.assign({ theme: 'bootstrap4' }, clearable ? {
+                allowClear: true,
+                placeholder: $(this).data('placeholder') || $(this).find('option[value=""]').first().text() || 'Choose'
+            } : {}));
+        });
+
+        // State 5 (error): field wajib yang kosong saat Save diberi .is-invalid (label, border, teks merah + "Required")
+        // dan banner "N fields are empty" di atas; tooltip bawaan browser dimatikan. Hilang lagi begitu diisi.
+        let firstInvalid = null;
+        function refreshCostingErrorAlert() {
+            const count = $('.costing-field.is-invalid').length;
+            $('#costing-error-text').text(count + (count === 1 ? ' field is' : ' fields are') + ' empty. Fill them in, then save again.');
+            $('#costing-error-alert').prop('hidden', count === 0);
+        }
+        document.getElementById('form-costing').addEventListener('invalid', function (event) {
+            event.preventDefault();
+            const $field = $(event.target).closest('.costing-field').addClass('is-invalid');
+            if (!firstInvalid) {
+                firstInvalid = $field[0];
+                setTimeout(() => {
+                    refreshCostingErrorAlert();
+                    document.getElementById('costing-error-alert').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid = null;
+                }, 0);
+            }
+        }, true);
+        $(document).on('change input', '.costing-field.is-invalid :input', function () {
+            if (this.checkValidity()) {
+                $(this).closest('.costing-field').removeClass('is-invalid');
+                if (!$('#costing-error-alert').prop('hidden')) refreshCostingErrorAlert();
+            }
+        });
 
         $('.costing-section-title')
             .attr({ role: 'button', tabindex: 0 })
@@ -398,6 +509,56 @@
         let costingImageUrls = [];
         let activeCostingImage = 0;
 
+        // Carousel coverflow: semua gambar dirender sekali; pindah gambar hanya menggeser & menskala (transition CSS).
+        // Sebelum/sesudah tidak berputar: di gambar pertama sisi kiri kosong, di gambar terakhir sisi kanan kosong.
+        function paintCoverflow($stage, urls, active, goTo) {
+            const stage = $stage[0];
+            if (!stage) return;
+            let $items = $stage.children('img.mkt-cf-item');
+            const key = urls.join('\n');
+            let fresh = false;
+            if ($stage.data('cfKey') !== key) {
+                $items.remove();
+                $items = $(urls.map((url, index) => $('<img class="mkt-cf-item" alt="">').attr('src', url)
+                    .on('click', () => $stage.data('cfGoTo')(index))[0]));
+                $stage.append($items).data('cfKey', key);
+                fresh = true;
+            }
+            $stage.data({ cfGoTo: goTo, cfActive: active, cfUrls: urls });
+            const gap = stage.clientWidth * 0.36;
+            $items.each(function (index) {
+                const offset = index - active, far = Math.abs(offset) > 1;
+                const x = Math.max(-2, Math.min(2, offset)) * gap;
+                const scale = offset === 0 ? 1 : (far ? 0.4 : 0.55);
+                if (fresh) this.style.transition = 'none'; // posisi awal tanpa animasi
+                this.style.transform = `translate(-50%, -50%) translateX(${x}px) scale(${scale})`;
+                this.style.zIndex = String(10 - Math.min(Math.abs(offset), 9));
+                this.style.opacity = offset === 0 ? '1' : '0.85';
+                $(this).toggleClass('is-active', offset === 0).toggleClass('is-far', far);
+            });
+            if (fresh) { void stage.offsetWidth; $items.css('transition', ''); }
+            // Hitung ulang posisi saat ukuran panggung berubah (resize, atau bagian yang tadinya tersembunyi dibuka).
+            if (!$stage.data('cfObserver') && window.ResizeObserver) {
+                const observer = new ResizeObserver(() => {
+                    const urlsNow = $stage.data('cfUrls');
+                    if (urlsNow) paintCoverflow($stage, urlsNow, $stage.data('cfActive'), $stage.data('cfGoTo'));
+                });
+                observer.observe(stage);
+                $stage.data('cfObserver', observer);
+            }
+        }
+        function paintCoverflowDots($dots, count, active, goTo) {
+            $dots.empty();
+            if (count < 2) return;
+            for (let i = 0; i < count; i++) {
+                $('<button type="button" class="mkt-cf-dot"></button>')
+                    .toggleClass('is-active', i === active)
+                    .attr('aria-label', `Gambar ${i + 1}`)
+                    .on('click', () => goTo(i))
+                    .appendTo($dots);
+            }
+        }
+
         function renderCostingImages() {
             const $mainImage = $('#img_preview');
             const $thumbnails = $('#picture-thumbnails').empty();
@@ -411,11 +572,15 @@
 
             if (!hasImages) {
                 $mainImage.attr('src', '');
+                paintCoverflow($mainImage.closest('.mkt-cf-stage'), [], 0, $.noop);
                 return;
             }
 
             activeCostingImage = (activeCostingImage + costingImageUrls.length) % costingImageUrls.length;
             $mainImage.attr('src', costingImageUrls[activeCostingImage].url);
+            const goTo = index => { activeCostingImage = index; renderCostingImages(); };
+            paintCoverflow($mainImage.closest('.mkt-cf-stage'), costingImageUrls.map(image => image.url), activeCostingImage, goTo);
+            paintCoverflowDots($dots, costingImageUrls.length, activeCostingImage, goTo);
 
             costingImageUrls.forEach((image, index) => {
                 // Buat Thumbnail HTML
@@ -451,14 +616,6 @@
                 });
 
                 $thumbnails.append(thumb);
-
-                // Buat dots untuk karosel
-                $dots.append($('<span>', {
-                    style: `display: block; width: 20px; height: 4px; border-radius: 2px; cursor: pointer; transition: background 0.3s; background: ${index === activeCostingImage ? '#0d6efd' : '#e0e0e0'};`
-                }).on('click', function() {
-                    activeCostingImage = index;
-                    renderCostingImages();
-                }));
             });
         }
 

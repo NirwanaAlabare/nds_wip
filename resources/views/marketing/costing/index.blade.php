@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
@@ -48,14 +49,11 @@
         .toolbar-search { width: 220px; height: 32px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0 12px; font-size: 12px; }
         .toolbar-search:focus { outline: 0; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); }
 
-        .btn-print { background: #0ea5e9; color: white; border: none; border-radius: 20px; padding: 6px 20px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25); transition: 0.2s; }
-        .btn-print:hover { background: #0284c7; color: white; }
-
         /* Search Menu Dropdown */
         .search-menu { display: none; position: absolute; z-index: 1035; top: 36px; left: 45px; width: 160px; background: #fff; border-radius: 6px; box-shadow: 0 10px 25px rgba(15, 23, 42, .1); overflow: visible; border: 1px solid #e2e8f0; }
         .search-menu.show { display: block; }
-        .search-menu button { width: 100%; border: 0; background: #fff; text-align: left; padding: 8px 12px; font-size: 12px; color: #475569; border-bottom: 1px solid #f1f5f9; }
-        .search-menu button:hover, .search-menu button.active { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        .search-menu > button { width: 100%; border: 0; background: #fff; text-align: left; padding: 8px 12px; font-size: 12px; color: #475569; border-bottom: 1px solid #f1f5f9; }
+        .search-menu > button:hover, .search-menu > button.active { background: #f8fafc; color: #0f172a; font-weight: 600; }
         .search-submenu { display: none; position: absolute; top: 0; left: 100%; width: 400px; max-height: 250px; overflow: auto; padding: 12px; background: #fff; border-radius: 6px; box-shadow: 4px 10px 25px rgba(15, 23, 42, .1); border: 1px solid #e2e8f0; }
         .search-submenu.show { display: block; }
         .search-submenu label { display: block; font-size: 11px; font-weight: 500; margin: 6px 0; color: #475569; }
@@ -66,8 +64,6 @@
         .filter-chip { display: inline-flex; align-items: center; padding: 4px 10px; background: #e0f2fe; color: #0369a1; border-radius: 6px; font-weight: 500; font-size: 11px; }
         .filter-chip-remove { border: 0; background: transparent; color: inherit; font-size: 14px; line-height: 1; padding: 0 0 0 6px; cursor: pointer; }
         .filter-chip-remove:hover { color: #b91c1c; }
-        .clear-filters { font-size: 11px; font-weight: 500; color: #64748b; text-decoration: underline; padding: 0; cursor: pointer; border: none; background: transparent; }
-        .clear-filters:hover { color: #0f172a; }
 
         .selected-wrapper { font-size: 12px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; margin-top: 5px; }
         .selected-badge { background: #e2e8f0; color: #475569; padding: 2px 10px; border-radius: 12px; font-size: 11px; }
@@ -79,6 +75,32 @@
         .costing-table thead th { color: #475569 !important; font-family: Inter, sans-serif; font-size: 12px !important; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: none !important; }
         .costing-table tbody td { font-family: Inter, sans-serif; font-size: 14px !important; color: #334155; }
         .costing-table tbody tr:hover { background-color: #f8fafc; }
+        /* Tabel selalu muat lebar layar: teks boleh turun baris, kolom kurang penting disembunyikan otomatis (fitCostingColumns). */
+        .costing-table-wrap, #table-costing_wrapper { width: 100%; }
+        #table-costing_wrapper .dataTables_scrollBody { overflow-x: hidden !important; }
+        #table-costing_wrapper .dataTables_scrollHeadInner, #table-costing_wrapper .dataTables_scrollHeadInner > table, #table-costing { width: 100% !important; }
+        .costing-table td { white-space: normal; overflow-wrap: break-word; }
+        .costing-table td.costing-nowrap { white-space: nowrap; }
+        .costing-table thead th { white-space: normal; }
+        .search-by { white-space: nowrap; }
+        @media (max-width: 767.98px) {
+            .list-shell > .d-flex:first-child { flex-wrap: wrap; gap: 8px; }
+            .list-toolbar { flex-wrap: wrap; }
+            .list-toolbar .input-group { flex: 1 1 160px; width: auto !important; }
+            .costing-table .costing-actions { min-width: 0; flex-wrap: wrap; justify-content: flex-start; gap: 4px; }
+        }
+        @media (max-width: 575.98px) {
+            .costing-page { padding-left: 4px !important; padding-right: 4px !important; }
+            .costing-page .card-body { padding: 14px 8px !important; }
+            .costing-table th, .costing-table td { padding: 8px 4px; }
+        }
+        @media (max-width: 400px) {
+            .costing-page .costing-table tbody td { font-size: 12px !important; }
+            .costing-page .costing-table th, .costing-page .costing-table td { padding: 6px 2px; }
+        }
+        @media (max-width: 340px) {
+            .costing-page .costing-table tbody td { font-size: 11px !important; }
+        }
         /* Neon vertikal status approval, menempel di kiri tombol timeline. */
         .costing-timeline-cell { position: relative; }
         .costing-status-neon {
@@ -90,15 +112,15 @@
             border-radius: 3px;
         }
         .costing-status-neon.is-awaiting,
-        .costing-status-tab[data-status="awaiting"] .costing-status-swatch { background: #f59e0b; box-shadow: 0 0 4px #f59e0b, 0 0 9px rgba(245, 158, 11, .6); }
+        .costing-status-tab[data-status="awaiting"] .costing-status-swatch { background: #f59e0b; }
         .costing-status-neon.is-return,
-        .costing-status-tab[data-status="return"] .costing-status-swatch { background: #a855f7; box-shadow: 0 0 4px #a855f7, 0 0 9px rgba(168, 85, 247, .6); }
+        .costing-status-tab[data-status="return"] .costing-status-swatch { background: #a855f7; }
         .costing-status-neon.is-cancel,
-        .costing-status-tab[data-status="cancel"] .costing-status-swatch { background: #ef4444; box-shadow: 0 0 4px #ef4444, 0 0 9px rgba(239, 68, 68, .6); }
+        .costing-status-tab[data-status="cancel"] .costing-status-swatch { background: #ef4444; }
         .costing-status-neon.is-approved,
-        .costing-status-tab[data-status="approved"] .costing-status-swatch { background: #22c55e; box-shadow: 0 0 4px #22c55e, 0 0 9px rgba(34, 197, 94, .6); }
+        .costing-status-tab[data-status="approved"] .costing-status-swatch { background: #22c55e; }
         .costing-status-neon.is-unlocked,
-        .costing-status-tab[data-status="unlocked"] .costing-status-swatch { background: #3b82f6; box-shadow: 0 0 4px #3b82f6, 0 0 9px rgba(59, 130, 246, .6); }
+        .costing-status-tab[data-status="unlocked"] .costing-status-swatch { background: #3b82f6; }
 
         /* Status tab = legend + filter (klik lagi untuk mematikan filter). */
         .costing-status-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin: 4px 0 4px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
@@ -118,19 +140,44 @@
         .date-badge { background-color: #e2e8f0; color: #475569; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 10px; display: inline-block; }
 
         /* ============ ACTION BUTTONS & BOTTOM BAR ============ */
-        .action-round { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; color: #fff !important; font-size: 13px; text-decoration: none; border: none; transition: 0.2s; cursor: pointer; }
-        .action-round.action-so-outline { background: #fff; border: 1.5px solid #f59e0b; color: #f59e0b !important; }
-        .action-round.action-bom-outline { background: #fff; border: 1.5px solid #a855f7; color: #a855f7 !important; }
-        .action-round.action-status-disabled { opacity: .55; }
-        .action-round:hover:not(:disabled) { transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-        .action-round:disabled { cursor: not-allowed; box-shadow: none; }
+        /* Bulat 28x28: penuh = sudah dibuat, cincin = langkah berikutnya (Create ...), abu = belum bisa. */
+        .action-round { --ar-c: #0ea5e9; --ar-ring: #7dd3fc; position: relative; width: 28px; height: 28px; padding: 0; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; background: var(--ar-c); color: #fff !important; font-size: 12px; text-decoration: none !important; border: 0; box-shadow: 0 3px 6px rgba(15, 23, 42, .18); transition: transform .15s ease, box-shadow .15s ease; cursor: pointer; }
+        .action-round i { font-size: 12px !important; }
+        .action-round svg { width: 14px; height: 14px; }
+        .action-round.is-costing { --ar-c: #0a8bd8; --ar-ring: #7dd3fc; background: linear-gradient(180deg, #1ec8f3, #0a8bd8); }
+        .action-round.is-so { --ar-c: #ff9800; --ar-ring: #fdc77a; background: linear-gradient(180deg, #ffc61a, #ff9800); }
+        .action-round.is-bom { --ar-c: #6b00d6; --ar-ring: #c4a8fb; background: linear-gradient(180deg, #a024ec, #6b00d6); }
+        .action-round.is-ws { --ar-c: #1f2b9e; --ar-ring: #a5a8f0; background: linear-gradient(180deg, #4357e6, #1f2b9e); }
+        .action-round.is-next { background: #fff; box-shadow: inset 0 0 0 2px var(--ar-c), 0 3px 6px rgba(15, 23, 42, .12); color: var(--ar-c) !important; }
+        .action-round.is-off { background: #eef0f5; box-shadow: none; color: #d3d7e0 !important; cursor: not-allowed; }
+        .action-round:hover:not(:disabled):not(.is-off) { transform: scale(1.08); }
+        .action-round[data-tip]:hover::after { content: attr(data-tip); position: absolute; top: calc(100% + 4px); left: 50%; z-index: 30; padding: 3px 7px; border-radius: 3px; background: #5b6b78; color: #fff; font: 500 11px/1.3 Inter, sans-serif; white-space: nowrap; pointer-events: none; }
         .action-round.dropdown-toggle::after { display: none !important; } /* Sembunyikan panah dropdown bawaan */
         .timeline-toggle { width: 22px; height: 22px; padding: 0; border: 1px solid #cbd5e1; border-radius: 50%; background: #fff; color: #64748b; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; cursor: pointer; transition: .15s ease; }
         .timeline-toggle:hover, .timeline-toggle[aria-expanded="true"] { background: #e0f2fe; border-color: #7dd3fc; color: #0284c7; }
         .costing-actions { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 140px; }
-        .costing-actions-menu { position: fixed !important; z-index: 2000 !important; min-width: 150px; max-height: calc(100vh - 16px); overflow-y: auto; }
+        /* Floating menu: daftar ke bawah, tiap baris = ikon bulat 28x28 bergradien (sesuai mockup) + teks di sampingnya.
+           Warna ikon: is-edit biru muda, is-delete merah, is-copy kuning, is-pdf merah, is-excel hijau, is-download ungu, is-detail biru tua.
+           Hover/klik baris = gradien ikon lebih terang. */
+        .costing-actions-menu { position: fixed !important; z-index: 2000 !important; min-width: 170px; max-height: calc(100vh - 16px); overflow-y: auto; padding: 6px 0; border: 0; border-radius: 10px; background: #fff; box-shadow: 0 6px 18px rgba(15, 23, 42, .18); }
         .costing-actions-menu.show { display: block; }
-        .costing-actions-menu .dropdown-item { font-size: 11px !important; }
+        .costing-actions-menu .mkt-fab { --fab-from: #1ec8f3; --fab-to: #0a8bd8; --fab-border: #1ec8f3; --fab-hover-from: #7fe3ff; --fab-hover-to: #2db8f6; display: flex; align-items: center; gap: 10px; width: 100%; padding: 5px 14px; color: #334155; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500; line-height: 1.2; text-decoration: none !important; cursor: pointer; }
+        .costing-actions-menu .mkt-fab:hover,
+        .costing-actions-menu .mkt-fab:focus-visible { background: #f4f6fa; color: #0f172a; outline: 0; }
+        .costing-actions-menu .mkt-fab-icon { display: inline-flex; flex: 0 0 28px; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--fab-border); border-radius: 38px; background: linear-gradient(180deg, var(--fab-from), var(--fab-to)); color: #fff; transition: background .15s ease; }
+        .costing-actions-menu .mkt-fab-icon i { font-size: 13px; }
+        .costing-actions-menu .mkt-fab:hover .mkt-fab-icon,
+        .costing-actions-menu .mkt-fab:focus-visible .mkt-fab-icon,
+        .costing-actions-menu .mkt-fab:active .mkt-fab-icon { background: linear-gradient(180deg, var(--fab-hover-from), var(--fab-hover-to)); }
+        .costing-actions-menu .mkt-fab.is-edit { --fab-from: #1ec8f3; --fab-to: #0a8bd8; --fab-border: #1ec8f3; --fab-hover-from: #7fe3ff; --fab-hover-to: #2db8f6; }
+        .costing-actions-menu .mkt-fab.is-delete { --fab-from: #ff3b4d; --fab-to: #e0001b; --fab-border: #ff3b4d; --fab-hover-from: #ff8a96; --fab-hover-to: #f2405a; }
+        .costing-actions-menu .mkt-fab.is-copy { --fab-from: #ffc700; --fab-to: #ff9900; --fab-border: #ffc701; --fab-hover-from: #ffe45c; --fab-hover-to: #ffc61f; }
+        .costing-actions-menu .mkt-fab.is-pdf { --fab-from: #ff3b4d; --fab-to: #e0001b; --fab-border: #ff3b4d; --fab-hover-from: #ff8a96; --fab-hover-to: #f2405a; }
+        .costing-actions-menu .mkt-fab.is-excel { --fab-from: #34c55e; --fab-to: #198038; --fab-border: #34c55e; --fab-hover-from: #7ee29b; --fab-hover-to: #2fa556; }
+        .costing-actions-menu .mkt-fab.is-download { --fab-from: #a024ec; --fab-to: #6b00d6; --fab-border: #a024ec; --fab-hover-from: #bb5cf4; --fab-hover-to: #8a2be8; }
+        .costing-actions-menu .mkt-fab.is-detail { --fab-from: #4357e6; --fab-to: #1f2b9e; --fab-border: #4357e6; --fab-hover-from: #8d9cff; --fab-hover-to: #4a5ef0; }
+        .costing-actions-menu .mkt-fab:disabled { background: transparent; color: #a0a7b4; cursor: not-allowed; }
+        .costing-actions-menu .mkt-fab:disabled .mkt-fab-icon { background: #eef0f5; border-color: #eef0f5; color: #c4c9d4; }
 
         .costing-timeline { display: block; padding: 16px 24px; border: 0; border-radius: 0; background: #f6f8fb; }
         .timeline-vertical { display: flex; flex-direction: column; gap: 18px; text-align: left; }
@@ -151,9 +198,6 @@
         .badge-approved i { color: #2ca66a; }
         .timeline-v-note { display: flex; align-items: flex-start; gap: 8px; margin-top: 6px; padding-left: 16px; color: #536174; font-size: 13px; font-style: italic; }
         .timeline-v-note i { padding-top: 3px; color: #8793a5; font-size: 12px; }
-
-        .btn-add-new { background-color: #1e293b; color: white; border-radius: 20px; padding: 8px 24px; font-size: 12px; font-weight: 600; border: none; box-shadow: 0 4px 10px rgba(30, 41, 59, 0.2); transition: 0.2s; }
-        .btn-add-new:hover { background-color: #0f172a; color: white; transform: translateY(-1px); }
 
         /* DataTables DOM Overrides */
         #table-costing_wrapper .dataTables_filter { display: none; }
@@ -203,37 +247,9 @@
         .settings-choice.active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
         .settings-choice + .settings-choice { margin-left: 4px; }
         .settings-popover-footer { border-top: 1px solid #f1f5f9; padding: 12px 20px; text-align: right; background: #f8fafc; border-radius: 0 0 8px 8px; }
-        .settings-popover-footer .btn { font-size: 11px; padding: 6px 16px; margin-left: 8px; font-weight: 600; }
+        .settings-popover-footer .mkt-btn { margin-left: 8px; }
 
         /* Costing item details modal */
-        .swal2-popup.costing-info-modal { width: min(1200px, 94vw) !important; max-height: 90vh; padding: 0; overflow: hidden; border-radius: 6px; background: #fff; box-shadow: 0 10px 40px rgba(15, 23, 42, .15); border: 1px solid #cbd5e1; }
-        .costing-info-modal .swal2-html-container { margin: 0; padding: 0 24px 24px; overflow: hidden; text-align: left; }
-        .costing-info-modal .swal2-close { position: absolute; top: 12px; right: 14px; z-index: 2; width: 32px; height: 32px; border-radius: 4px; background: rgba(255,255,255,.1); color: #fff; font-size: 20px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .costing-info-modal .swal2-close:hover { background: rgba(255,255,255,.25); color: #fff; }
-        .costing-info-modal .swal2-actions { margin: 0; padding: 0 24px 24px; }
-        .costing-info-modal .swal2-confirm { min-width: 100px; border-radius: 4px; background: #1e293b !important; font-size: 12px; font-weight: 600; padding: 8px 24px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .costing-info-header { display: flex; align-items: center; gap: 16px; margin: 0 -24px 20px; padding: 20px 24px; background: var(--sb-color, #1e293b) !important; color: #fff; border-bottom: 3px solid rgba(0,0,0,0.1); }
-        .costing-info-icon { display: flex; flex: 0 0 40px; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 4px; background: rgba(255,255,255,.15); font-size: 16px; border: 1px solid rgba(255,255,255,.2); }
-        .costing-info-heading { min-width: 0; }
-        .costing-info-eyebrow { margin-bottom: 4px; color: #cbd5e1; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-        .costing-info-costno { overflow: hidden; color: #fff; font-size: 18px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.5px; }
-        .costing-info-summary { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 8px; margin-left: auto; padding: 6px 12px; border: 1px solid rgba(255,255,255,.2); border-radius: 4px; background: rgba(255,255,255,.1); color: #fff; font-size: 11px; font-weight: 600; white-space: nowrap; }
-        .costing-info-summary i { color: #bfdbfe; }
-        .costing-info-table-scroll { max-height: min(60vh, 500px); overflow: auto; border: 1px solid #000; border-radius: 4px; background: #fff; }
-        .costing-info-table { min-width: 1060px; width: 100%; margin: 0; border-collapse: collapse; font-size: 11px; border: 1px solid #000; }
-        .costing-info-table th, .costing-info-table td { border: 1px solid #000; }
-        .costing-info-table thead th { position: sticky; top: 0; z-index: 1; padding: 10px 12px; border-bottom: 2px solid #000; background: #e2e8f0; color: #0f172a; font-size: 10px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap; }
-        .costing-info-table tbody td { padding: 8px 12px; color: #1e293b; vertical-align: middle; }
-        .costing-info-table tbody tr:last-child td { border-bottom: 1px solid #000; }
-        .costing-info-table tbody tr.costing-info-item:hover td { background: #f1f5f9; }
-        .costing-info-table .costing-info-category td { padding: 8px 12px; background: #cbd5e1; color: #0f172a; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid #000; }
-        .costing-info-category-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 18px; margin-left: 8px; padding: 0 6px; border-radius: 3px; background: #0f172a; color: #fff; font-size: 9px; font-weight: 600; }
-        .costing-info-row-number { color: #64748b !important; font-variant-numeric: tabular-nums; font-weight: 500; text-align: center; }
-        .costing-info-item-name { color: #0f172a !important; font-weight: 600; }
-        .costing-info-item-desc { min-width: 150px; max-width: 250px; color: #0f172a !important; white-space: normal; line-height: 1.4; }
-        .costing-info-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 190px; padding: 24px; border: 1px dashed #cbd5e1; border-radius: 4px; background: #f8fafc; color: #64748b; text-align: center; }
-        .costing-info-empty i { margin-bottom: 10px; color: #94a3b8; font-size: 28px; }
-        .costing-info-empty strong { margin-bottom: 4px; color: #334155; font-size: 14px; }
         .swal2-popup.batch-print-modal { width: min(480px, calc(100vw - 32px)) !important; padding: 24px; border-radius: 12px; }
         .batch-print-modal .swal2-title { margin: 0 0 8px; color: #284a63; font-size: 22px; }
         .batch-print-modal .swal2-html-container { margin: 0 0 18px; color: #64748b; font-size: 14px; line-height: 1.5; }
@@ -244,14 +260,17 @@
         .batch-print-modal .swal2-actions { gap: 8px; margin-top: 20px; }
         .batch-print-modal .swal2-styled { min-width: 88px; border-radius: 20px; font-size: 13px; }
         @media (max-width: 575px) {
-            .swal2-popup.costing-info-modal { width: 96vw !important; border-radius: 6px; }
-            .costing-info-modal .swal2-html-container, .costing-info-modal .swal2-actions { padding: 0 16px 16px; }
-            .costing-info-header { gap: 12px; margin: 0 -16px 16px; padding: 16px; }
-            .costing-info-icon { flex-basis: 36px; width: 36px; height: 36px; }
-            .costing-info-costno { font-size: 15px; }
-            .costing-info-summary { gap: 6px; padding: 6px 8px; font-size: 10px; }
-            .costing-info-modal .swal2-close { top: 8px; right: 8px; width: 28px; height: 28px; font-size: 18px; }
         }
+        /* Checkbox sesuai mockup: 16x16, radius 4. Kosong = putih border abu (hover: centang samar),
+           checked/indeterminate = #284A63 + ikon putih, focus = cincin biru muda. */
+        input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
+        input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):indeterminate { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' d='M3 6h6'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):focus { outline: 0; }
+        input[type="checkbox"]:not(.custom-control-input):focus-visible { box-shadow: 0 0 0 4px #b3daf7; }
+        input[type="checkbox"]:not(.custom-control-input):disabled { opacity: .5; cursor: not-allowed; }
+
     </style>
 @endsection
 
@@ -306,13 +325,13 @@
                             </div>
                         </div>
 
-                        <button type="button" class="btn-print" id="btn-batch-print"><i class="fas fa-print mr-1"></i> Print</button>
+                        <button type="button" class="mkt-btn mkt-btn--navy mkt-btn--sm" id="btn-batch-print"><i class="fas fa-print mr-1"></i> Print</button>
                     </div>
 
                     <div class="filter-summary">
                         <span>Filter:</span>
                         <span id="filter-label">None</span>
-                        <button type="button" id="clear-filters" class="clear-filters" disabled>Clear all</button>
+                        <button type="button" id="clear-filters" class="mkt-btn mkt-btn--red mkt-btn--sm" disabled>Clear all</button>
                     </div>
 
                     {{-- <div class="selected-wrapper">
@@ -339,7 +358,7 @@
                         </button>
                     </div>
 
-                    <div class="table-responsive">
+                    <div class="costing-table-wrap" id="table-costing-wrap">
                         <table class="table w-100 costing-table" id="table-costing">
                             <thead>
                                 <tr class="text-center">
@@ -364,9 +383,8 @@
                             </tbody>
                         </table>
                     </div>
-
                     <div class="d-flex justify-content-end mt-4">
-                        <a href="{{ route('create-costing') }}" class="btn btn-add-new">Add New</a>
+                        <a href="{{ route('create-costing') }}" class="mkt-btn mkt-btn--navy">Add New</a>
                     </div>
                 </div>
             </div>
@@ -395,8 +413,8 @@
             <label class="d-block mt-3 mb-0 font-weight-bold text-dark"><input type="checkbox" id="sticky-header" class="mr-1"> Sticky header</label>
         </div>
         <div class="settings-popover-footer">
-            <button type="button" class="btn btn-outline-secondary" id="reset-settings">Reset</button>
-            <button type="button" class="btn btn-primary" id="apply-settings">Apply</button>
+            <button type="button" class="mkt-btn mkt-btn--gray mkt-btn--sm" id="reset-settings">Reset</button>
+            <button type="button" class="mkt-btn mkt-btn--green mkt-btn--sm" id="apply-settings">Apply</button>
         </div>
     </div>
 
@@ -439,7 +457,8 @@
                 processing: true,
                 serverSide: true,
                 responsive: false,
-                scrollX: true,
+                scrollX: false,
+                autoWidth: false,
                 scrollY: '55vh',
                 scrollCollapse: true,
                 pageLength: 10,
@@ -486,11 +505,11 @@
                         searchable: false,
                         className: 'text-center align-middle'
                     },
-                    { data: 'cost_no', name: 'a.cost_no', className: 'text-center align-middle font-weight-bold text-dark' },
+                    { data: 'cost_no', name: 'a.cost_no', className: 'text-center align-middle font-weight-bold text-dark costing-nowrap' },
                     {
                         data: 'due_date',
                         name: 'a.deldate',
-                        className: 'text-center align-middle',
+                        className: 'text-center align-middle costing-nowrap',
                         render: function (data, type) {
                             if (type !== 'display' || !data || data === '-') return data || '-';
                             const match = String(data).match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);
@@ -511,15 +530,15 @@
                             return `<span class="date-badge">${formattedDate}</span>`;
                         }
                     },
-                    { data: 'kpno', name: 'a.kpno', className: 'text-center align-middle', render: data => data || '-' },
-                    { data: 'nama_buyer', name: 'b.Supplier', className: 'align-middle text-nowrap' },
+                    { data: 'kpno', name: 'a.kpno', className: 'text-center align-middle costing-nowrap', render: data => data || '-' },
+                    { data: 'nama_buyer', name: 'b.Supplier', className: 'align-middle' },
                     { data: 'brand', name: 'a.brand', className: 'align-middle' },
                     { data: 'styleno', name: 'a.styleno', className: 'align-middle' },
                     { data: 'market', orderable: false, searchable: false, className: 'align-middle' },
                     {
                         data: 'qty',
                         name: 'a.qty',
-                        className: 'text-center align-middle',
+                        className: 'text-center align-middle costing-nowrap',
                         render: function (data, type) {
                             if (type !== 'display' || data === null || data === '') return data;
                             const value = Number(data);
@@ -532,7 +551,7 @@
                     {
                         data: 'cfm_price',
                         name: 'a.cfm_price',
-                        className: 'text-center align-middle',
+                        className: 'text-center align-middle costing-nowrap',
                         render: function (data, type, row) {
                             if (data !== null && data !== '') {
                                 return parseFloat(data).toFixed(6);
@@ -550,10 +569,12 @@
                         className: 'text-center align-middle',
                         render: function (data, type, row) {
                             let editUrl = "{{ route('edit-costing', ':id') }}".replace(':id', data);
+                            let detailUrl = "{{ route('detail-costing', ':id') }}".replace(':id', data);
                             let pdfUrl = "{{ route('print-costing-pdf', ':id') }}".replace(':id', data);
                             let excelUrl = "{{ route('print-excel-costing', ':id') }}".replace(':id', data);
                             let copyUrl = "{{ route('copy-costing', ':id') }}".replace(':id', data);
 
+                            const AR_SO_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg>';
                             const approvedStatus = String(row.app1 || '').trim().toUpperCase();
                             const approved = ['A', 'Y'].includes(approvedStatus);
                             const hasSo = Boolean(row.so_id);
@@ -562,6 +583,7 @@
                             const soCreateUrl = "{{ route('create-so') }}?id_costing=" + encodeURIComponent(data);
                             const bomCreateUrl = "{{ route('create-bom') }}?id_costing=" + encodeURIComponent(data) + "&id_so=" + encodeURIComponent(row.so_id);
 
+                            const soDetailUrl = hasSo ? "{{ route('so-detail-page', ':id') }}".replace(':id', row.so_id) : '';
                             const soPdfUrl = hasSo ? "{{ route('print-pdf-so', ':id') }}".replace(':id', row.so_id) : '';
                             const soExcelUrl = hasSo ? "{{ route('export-excel-so', ':id') }}".replace(':id', row.so_id) : '';
                             const bomPdfUrl = hasBom ? "{{ route('print-bom-pdf', ':id') }}".replace(':id', row.bom_id) : '';
@@ -569,17 +591,17 @@
 
                             let costingBtn = `
                                 <div class="dropdown d-inline-block">
-                                    <button class="action-round costing-menu-toggle" data-menu-id="costing-menu-${data}" aria-expanded="false" style="background:#0ea5e9;" type="button" title="Costing Menu">
-                                        <i class="fas fa-calculator" style="font-size:10px;"></i>
+                                    <button class="action-round is-costing costing-menu-toggle" data-menu-id="costing-menu-${data}" aria-expanded="false" type="button" title="Costing Menu">
+                                        <i class="fas fa-calculator"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right costing-actions-menu" id="costing-menu-${data}">
-                                        <button type="button" class="dropdown-item costing-info" data-id="${data}"><i class="fas fa-info-circle"></i> Info item</button>
+                                        <a class="dropdown-item mkt-fab is-detail" href="${detailUrl}"><span class="mkt-fab-icon"><i class="fas fa-info-circle"></i></span>Detail</a>
                                         ${row.approval_status === 'approved'
-                                            ? `<a class="dropdown-item" href="${editUrl}"><i class="fas fa-eye"></i> View</a>` + unlockMenuItem('costing', data, row.cost_no, row.nama_buyer, row.costing_unlock_pending)
-                                            : `<a class="dropdown-item" href="${editUrl}"><i class="fas fa-pen"></i> Edit</a>`}
-                                        <button type="button" class="dropdown-item" onclick="confirmCopy('${copyUrl}')"><i class="far fa-copy"></i> Copy</button>
-                                        <a class="dropdown-item" href="${pdfUrl}" target="_blank"><i class="fas fa-file-pdf"></i> PDF</a>
-                                        <a class="dropdown-item" href="${excelUrl}"><i class="fas fa-file-excel"></i> Excel</a>
+                                            ? unlockMenuItem('costing', data, row.cost_no, row.nama_buyer, row.costing_unlock_pending)
+                                            : `<a class="dropdown-item mkt-fab is-edit" href="${editUrl}"><span class="mkt-fab-icon"><i class="fas fa-edit"></i></span>Edit</a>`}
+                                        <button type="button" class="dropdown-item mkt-fab is-copy" onclick="confirmCopy('${copyUrl}')"><span class="mkt-fab-icon"><i class="far fa-copy"></i></span>Copy</button>
+                                        <a class="dropdown-item mkt-fab is-pdf" href="${pdfUrl}" target="_blank"><span class="mkt-fab-icon"><i class="fas fa-file-pdf"></i></span>PDF</a>
+                                        <a class="dropdown-item mkt-fab is-excel" href="${excelUrl}"><span class="mkt-fab-icon"><i class="fas fa-file-excel"></i></span>Excel</a>
                                     </div>
                                 </div>`;
 
@@ -587,19 +609,20 @@
                             if (hasSo) {
                                 soMenu = `
                                 <div class="dropdown d-inline-block">
-                                    <button class="action-round costing-menu-toggle" data-menu-id="so-menu-${row.so_id}" aria-expanded="false" style="background:#f59e0b;" type="button" title="SO Menu">
-                                        <i class="fas fa-clipboard-list" style="font-size:10px;"></i>
+                                    <button class="action-round is-so costing-menu-toggle" data-menu-id="so-menu-${row.so_id}" aria-expanded="false" type="button" title="SO Menu">
+                                        ${AR_SO_ICON}
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right costing-actions-menu" id="so-menu-${row.so_id}">
-                                        <button type="button" class="dropdown-item" onclick="showCostingSoDetail(${row.so_id})"><i class="fas fa-eye"></i> Detail</button>
-                                        <button type="button" class="dropdown-item" onclick="showCostingSoMaterial(${row.so_id})"><i class="fas fa-boxes"></i> Detail Material</button>                                        <a class="dropdown-item" href="${soPdfUrl}" target="_blank"><i class="fas fa-file-pdf"></i> PDF</a>
-                                        <a class="dropdown-item" href="${soExcelUrl}"><i class="fas fa-file-excel"></i> Excel</a>
+                                        <a class="dropdown-item mkt-fab is-detail" href="${soDetailUrl}"><span class="mkt-fab-icon"><i class="fas fa-info-circle"></i></span>Detail</a>
+                                        <button type="button" class="dropdown-item mkt-fab is-detail" onclick="showCostingSoMaterial(${row.so_id})"><span class="mkt-fab-icon"><i class="fas fa-boxes"></i></span>Detail Material</button>
+                                        <a class="dropdown-item mkt-fab is-pdf" href="${soPdfUrl}" target="_blank"><span class="mkt-fab-icon"><i class="fas fa-file-pdf"></i></span>PDF</a>
+                                        <a class="dropdown-item mkt-fab is-excel" href="${soExcelUrl}"><span class="mkt-fab-icon"><i class="fas fa-file-excel"></i></span>Excel</a>
                                     </div>
                                 </div>`;
                             } else if (approved) {
-                                soMenu = `<a href="${soCreateUrl}" class="action-round action-so-outline" title="Create SO"><i class="fas fa-clipboard-list" style="font-size:10px;"></i></a>`;
+                                soMenu = `<a href="${soCreateUrl}" class="action-round is-so is-next" data-tip="Create SO" aria-label="Create SO">${AR_SO_ICON}</a>`;
                             } else {
-                                soMenu = `<button class="action-round action-so-outline action-status-disabled" disabled title="Belum bisa membuat SO"><i class="fas fa-clipboard-list" style="font-size:10px;"></i></button>`;
+                                soMenu = `<button class="action-round is-so is-off" disabled title="Belum bisa membuat SO">${AR_SO_ICON}</button>`;
                             }
 
                             let bomMenu = '';
@@ -607,25 +630,25 @@
                             if (hasBom && approved) {
                                 bomMenu = `
                                 <div class="dropdown d-inline-block">
-                                    <button class="action-round costing-menu-toggle" data-menu-id="bom-menu-${row.bom_id}" aria-expanded="false" style="background:#a855f7;" type="button" title="BOM Menu">
-                                        <i class="fas fa-layer-group" style="font-size:10px;"></i>
+                                    <button class="action-round is-bom costing-menu-toggle" data-menu-id="bom-menu-${row.bom_id}" aria-expanded="false" type="button" title="BOM Menu">
+                                        <i class="fas fa-layer-group"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right costing-actions-menu" id="bom-menu-${row.bom_id}">
-                                        <button type="button" class="dropdown-item" onclick="showCostingBomDetail(${row.bom_id})"><i class="fas fa-eye"></i> Detail</button>
+                                        <button type="button" class="dropdown-item mkt-fab is-detail" onclick="showCostingBomDetail(${row.bom_id})"><span class="mkt-fab-icon"><i class="fas fa-info-circle"></i></span>Detail</button>
                                         ${row.bom_approval_status === 'approved'
                                             ? unlockMenuItem('bom', row.bom_id, row.bom_no, row.nama_buyer, row.bom_unlock_pending)
-                                            : (hasSo ? `<a class="dropdown-item" href="${bomCreateUrl}"><i class="fas fa-pen"></i> Edit Item</a>` : '')}
-                                        <a class="dropdown-item" href="${bomPdfUrl}" target="_blank"><i class="fas fa-file-pdf"></i> PDF</a>
-                                        <a class="dropdown-item" href="${bomExcelUrl}"><i class="fas fa-file-excel"></i> Excel</a>
+                                            : (hasSo ? `<a class="dropdown-item mkt-fab is-edit" href="${bomCreateUrl}"><span class="mkt-fab-icon"><i class="fas fa-edit"></i></span>Edit Item</a>` : '')}
+                                        <a class="dropdown-item mkt-fab is-pdf" href="${bomPdfUrl}" target="_blank"><span class="mkt-fab-icon"><i class="fas fa-file-pdf"></i></span>PDF</a>
+                                        <a class="dropdown-item mkt-fab is-excel" href="${bomExcelUrl}"><span class="mkt-fab-icon"><i class="fas fa-file-excel"></i></span>Excel</a>
                                     </div>
                                 </div>`;
                             } else if (canCreateBom) {
-                                bomMenu = `<a href="${bomCreateUrl}" class="action-round action-bom-outline" title="Create BOM"><i class="fas fa-layer-group" style="font-size:10px;"></i></a>`;
+                                bomMenu = `<a href="${bomCreateUrl}" class="action-round is-bom is-next" data-tip="Create BOM" aria-label="Create BOM"><i class="fas fa-layer-group"></i></a>`;
                             } else {
-                                bomMenu = `<button class="action-round action-bom-outline action-status-disabled" disabled title="Belum bisa membuat BOM"><i class="fas fa-layer-group" style="font-size:10px;"></i></button>`;
+                                bomMenu = `<button class="action-round is-bom is-off" disabled title="Belum bisa membuat BOM"><i class="fas fa-layer-group"></i></button>`;
                             }
 
-                            let extraBtn = `<button class="action-round" style="background:#f8fafc; color:#cbd5e1 !important; border: 1px dashed #cbd5e1;" disabled><i class="fas fa-table" style="font-size:10px;"></i></button>`;
+                            let extraBtn = `<button type="button" class="action-round is-ws is-off" disabled><i class="fa-solid fa-rectangle-list"></i></button>`;
 
                             return `<div class="costing-actions">${costingBtn}${soMenu}${bomMenu}${extraBtn}</div>`;
                         }
@@ -650,9 +673,16 @@
 
                     renderColumnOrder();
                     applyColumnOrder();
+                    fitCostingColumns();
                 }
             });
             table.on('draw.dt', applyColumnOrder);
+
+            let costingFitTimer = null;
+            $(window).on('resize', function () {
+                clearTimeout(costingFitTimer);
+                costingFitTimer = setTimeout(fitCostingColumns, 150);
+            });
 
             $(document).on('click', '.costing-menu-toggle', function (event) {
                 event.preventDefault();
@@ -737,99 +767,6 @@
                     });
             });
 
-            $(document).on('click', '.costing-info', function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                const costingId = $(this).data('id');
-                Swal.fire({
-                    title: 'Memuat item Costing...',
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
-                });
-
-                $.ajax({
-                    url: "{{ route('costing-items', ':id') }}".replace(':id', costingId),
-                    type: 'GET',
-                    success: function (response) {
-                        const escapeHtml = value => $('<div>').text(value == null ? '' : value).html();
-                        const categories = Object.entries(response.items || {});
-                        const totalItems = categories.reduce((total, [, items]) => total + items.length, 0);
-                        let rows = '';
-
-                        categories.forEach(([category, items]) => {
-                            if (!items.length) return;
-                            rows += `<tr class="costing-info-category"><td colspan="8">${escapeHtml(category)}</td></tr>`;
-                            items.forEach((item, index) => {
-                                rows += `<tr class="costing-info-item">
-                                    <td class="costing-info-item-name">${escapeHtml(item.item || '-')}</td>
-                                    <td class="costing-info-item-desc">${escapeHtml(item.desc || '-')}</td>
-                                    <td class="text-center">${escapeHtml(item.set || '-')}</td>
-                                    <td class="text-center">${escapeHtml(item.supplier || '-')}</td>
-                                    <td class="text-right">${escapeHtml(item.cons ?? '-')}</td>
-                                    <td class="text-center">${escapeHtml(item.curr || '-')}</td>
-                                    <td class="text-right">${escapeHtml(item.price ?? '-')}</td>
-                                    <td class="text-center">${escapeHtml(item.unit || '-')}</td>
-                                </tr>`;
-                            });
-                        });
-
-                        Swal.fire({
-                            title: '',
-                            html: totalItems
-                                ? `<div class="costing-info-header">
-                                        <div class="costing-info-icon"><i class="fas fa-layer-group"></i></div>
-                                        <div class="costing-info-heading">
-                                            <div class="costing-info-eyebrow">Costing detail</div>
-                                            <div class="costing-info-costno">${escapeHtml(response.cost_no)}</div>
-                                        </div>
-                                        <div class="costing-info-summary"><i class="fas fa-cubes"></i>${totalItems} item${totalItems === 1 ? '' : 's'}</div>
-                                   </div>
-                                   <div class="costing-info-table-scroll">
-                                        <table class="costing-info-table text-left">
-                                            <thead>
-                                                <tr>
-                                                    <th class="text-center">Item</th>
-                                                    <th class="text-center">Desc</th>
-                                                    <th class="text-center">Set</th>
-                                                    <th class="text-center">Supplier</th>
-                                                    <th class="text-center">Cons</th>
-                                                    <th class="text-center">Curr</th>
-                                                    <th class="text-center">Price</th>
-                                                    <th class="text-center">Unit/Satuan</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>${rows}</tbody>
-                                        </table>
-                                    </div>`
-                                : `<div class="costing-info-header">
-                                        <div class="costing-info-icon"><i class="fas fa-layer-group"></i></div>
-                                        <div class="costing-info-heading">
-                                            <div class="costing-info-eyebrow">Costing details</div>
-                                            <div class="costing-info-costno">${escapeHtml(response.cost_no)}</div>
-                                        </div>
-                                   </div>
-                                   <div class="costing-info-empty">
-                                        <i class="far fa-folder-open"></i>
-                                        <strong>Belum ada item</strong>
-                                        <span>Item yang ditambahkan ke Costing akan tampil di sini.</span>
-                                   </div>`,
-                            width: 1200,
-                            showCloseButton: true,
-                            buttonsStyling: false,
-                            customClass: {
-                                popup: 'costing-info-modal',
-                                htmlContainer: 'costing-info-content',
-                                confirmButton: 'btn btn-primary'
-                            },
-                            confirmButtonText: 'Tutup'
-                        });
-                    },
-                    error: function (xhr) {
-                        const message = xhr.responseJSON && xhr.responseJSON.message;
-                        Swal.fire('Gagal memuat item', message || 'Terjadi kesalahan saat mengambil data item Costing.', 'error');
-                    }
-                });
-            });
 
             // Drag Drop Column Order
             $('#column-order')
@@ -1107,9 +1044,8 @@
             });
 
             $('#apply-settings').on('click', function () {
-                $('#column-toggles input').each(function () { table.column($(this).data('column')).visible(this.checked, false); });
                 appliedColumnOrder = pendingColumnOrder.slice();
-                applyColumnOrder();
+                fitCostingColumns();
                 $('#table-costing_wrapper .dataTables_scrollHead').toggleClass('sticky-top', $('#sticky-header').is(':checked'));
                 table.draw(false);
                 closeTableSettings();
@@ -1257,31 +1193,6 @@
             });
         }
 
-        function showCostingSoDetail(id) {
-            const url = "{{ route('get-detail-so', ':id') }}".replace(':id', id);
-            $.getJSON(url).done(function (response) {
-                const header = response.header || {};
-                const summary = `<div class="text-left small mb-3">
-                    <strong>${escapeCostingHtml(header.so_no)}</strong>
-                    &nbsp; | &nbsp; Worksheet: ${escapeCostingHtml(header.kpno)}
-                    &nbsp; | &nbsp; Buyer: ${escapeCostingHtml(header.buyer)}
-                    &nbsp; | &nbsp; Style: ${escapeCostingHtml(header.style)}
-                    &nbsp; | &nbsp; Market: ${escapeCostingHtml(header.market)}
-                </div>`;
-                showCostingDetailTable('Detail Sales Order', [
-                    { key: 'color', label: 'Color' },
-                    { key: 'dest', label: 'Destination' },
-                    { key: 'size', label: 'Size' },
-                    { key: 'product_set', label: 'Product Set' },
-                    { key: 'qty', label: 'Qty' },
-                    { key: 'deldate_det', label: 'Ex FTY' }
-                ], response.details || [], summary);
-            }).fail(function (xhr) {
-                const message = xhr.responseJSON && xhr.responseJSON.message;
-                Swal.fire('Gagal memuat detail SO', message || 'Terjadi kesalahan saat mengambil detail SO.', 'error');
-            });
-        }
-
         function showCostingSoMaterial(id) {
             const url = "{{ route('get-detail-material-so', ':id') }}".replace(':id', id);
             $.getJSON(url).done(function (response) {
@@ -1328,6 +1239,33 @@
             $('#column-order').html(items.join(''));
         }
 
+        // Lebar tabel (px) di bawah batas ini -> kolom disembunyikan otomatis, supaya tidak perlu scroll ke samping.
+        // Index kolom: 1 Timeline, 2 No, 4 Due Date, 5 No Worksheet, 7 Brand, 8 Style, 9 Market, 10 Qty,
+        // 11 Confirm Price, 12 Product Group, 13 Product Item.
+        const COSTING_AUTO_HIDE = [
+            { below: 1600, columns: [9, 12] },
+            { below: 1450, columns: [7, 13] },
+            { below: 1100, columns: [4, 11] },
+            { below: 860, columns: [2, 5, 10] },
+            { below: 576, columns: [8] },
+            { below: 360, columns: [1] },
+            { below: 260, columns: [0] }
+        ];
+
+        // Kolom tampil = dicentang di Table Settings dan tidak kena sembunyi otomatis.
+        function fitCostingColumns() {
+            if (!table) return;
+            const width = $('#table-costing-wrap').width();
+            const autoHidden = new Set(COSTING_AUTO_HIDE.filter(rule => width < rule.below).flatMap(rule => rule.columns));
+            table.columns().every(function (index) {
+                const checked = $(`#column-toggles input[data-column="${index}"]`).prop('checked') !== false;
+                const show = checked && !autoHidden.has(index);
+                if (this.visible() !== show) this.visible(show, false);
+            });
+            table.columns.adjust();
+            applyColumnOrder();
+        }
+
         function applyColumnOrder() {
             if (!table || !appliedColumnOrder.length) return;
 
@@ -1370,9 +1308,9 @@
         function unlockMenuItem(type, id, number, buyer, pending) {
             const attr = value => $('<div>').text(value || '').html().replace(/"/g, '&quot;');
             if (Number(pending)) {
-                return '<button type="button" class="dropdown-item" disabled><i class="fas fa-hourglass-half"></i> Menunggu Unlock</button>';
+                return '<button type="button" class="dropdown-item mkt-fab is-edit" disabled><span class="mkt-fab-icon"><i class="fas fa-hourglass-half"></i></span>Menunggu Unlock</button>';
             }
-            return `<button type="button" class="dropdown-item marketing-request-unlock" data-type="${type}" data-id="${id}" data-number="${attr(number)}" data-buyer="${attr(buyer)}"><i class="fas fa-lock-open"></i> Request Unlock</button>`;
+            return `<button type="button" class="dropdown-item mkt-fab is-edit marketing-request-unlock" data-type="${type}" data-id="${id}" data-number="${attr(number)}" data-buyer="${attr(buyer)}"><span class="mkt-fab-icon"><i class="fas fa-lock-open"></i></span>Request Unlock</button>`;
         }
 
 

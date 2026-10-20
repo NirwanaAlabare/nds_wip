@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 
@@ -84,8 +85,6 @@
         .costing-picture-nav:hover { background: #e2e6ea; }
 
         .costing-form-actions { padding-top: 20px; text-align: right; }
-        .btn-success-custom { background-color: #198754; border-color: #198754; border-radius: 20px; padding: 6px 30px; font-weight: 600; color: #fff;}
-        .btn-success-custom:hover { background-color: #157347; }
 
         @media (max-width: 991px) {
             .costing-fields, .costing-fields.five-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -112,25 +111,20 @@
         .costing-picture-remove { position: absolute; top: 2px; right: 2px; z-index: 1; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%; background: rgba(220, 53, 69, .92); color: #fff; font-size: 10px; line-height: 18px; }
 
         /* ---- tab kategori ---- */
-        .costing-category-tabs { display: flex; margin: 30px 0 20px; border-bottom: 1px solid #e3e8ee; overflow-x: auto; }
-        .costing-category-tab { flex: 0 0 auto; min-width: max-content; padding: 11px 20px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #d3d3d3; font-family: 'Poppins', sans-serif; font-size: 25px; font-weight: 600; text-align: center; white-space: nowrap; transition: color .15s ease; }
+        /* Tab dibagi rata selebar baris (tanpa scroll); font maks 25px dan mengecil di layar sempit supaya tetap muat. */
+        .costing-category-tabs { display: flex; margin: 30px 0 20px; border-bottom: 1px solid #e3e8ee; overflow: hidden; }
+        .costing-category-tab { flex: 1 1 auto; min-width: max-content; padding: 11px 6px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #d3d3d3; font-family: 'Poppins', sans-serif; font-size: clamp(12px, calc((100vw - 190px) / 50), 25px); font-weight: 600; text-align: center; white-space: nowrap; transition: color .15s ease; }
         .costing-category-tab:hover { color: #6f8799; }
         .costing-category-tab:focus { outline: 0; }
         .costing-category-tab.active { color: #284a63; border-bottom-color: #284a63; }
+        @media (max-width: 767.98px) { .costing-category-tabs { overflow-x: auto; } .costing-category-tab { padding: 10px 14px; font-size: 16px; } }
         .costing-next-wrap { display: flex; justify-content: flex-end; padding: 0 0 24px; }
-        .costing-next-tab { min-width: 88px; padding: 8px 20px; border: 0; border-radius: 20px; background: #ff6b00; color: #fff; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; box-shadow: 0 3px 8px rgba(30, 41, 59, .16); }
-        .costing-next-tab:hover:not(:disabled) { background: #e85f00; }
-        .costing-next-tab:disabled { cursor: not-allowed; opacity: .55; }
 
         /* ---- toolbar Add Item ---- */
         .costing-detail-toolbar { display: flex; align-items: flex-end; gap: 12px; margin: 0 0 14px; flex-wrap: wrap; }
         .costing-detail-toolbar .costing-field { width: 300px; max-width: 100%; margin: 0; }
-        .btn-add-item { height: 36px; padding: 0 24px; border: 0; border-radius: 20px; background: #198754; color: #fff; font-size: 12px; font-weight: 700; }
-        .btn-add-item:hover:not(:disabled) { background: #157347; }
-        .btn-add-item:disabled { opacity: .5; }
         .costing-detail-body:has(.costing-category-content.is-all-items) .costing-detail-toolbar { display: none; }
         .xl-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px; min-height: 26px; }
-        .xl-bar .btn { font-size: 11px; padding: 3px 12px; border-radius: 14px; }
 
         /* ---- panel per kategori ---- */
         .costing-category-content { margin-top: 4px; }
@@ -157,9 +151,6 @@
         .costing-tab-panel table tfoot tr.bg-warning { background: #ffd9dc !important; }
         .costing-tab-panel[data-panel-category="Other Cost"] table tfoot tr + tr { background: #ffb3b3 !important; }
         #ga_percent { width: 70px !important; height: 24px; padding: 0 6px; font-size: 11px; display: inline-block; }
-        .costing-tab-panel .btn-sm { display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; padding: 0 !important; border: 0; border-radius: 50%; font-size: 10px; }
-        .costing-tab-panel .btn-info { background: #17b3d4; color: #fff; }
-        .costing-tab-panel .btn-danger { background: #e5173f; color: #fff; }
 
         /* ---- sel inline (Excel-like): teks biasa, editor dibuat saat sel diedit ---- */
         .costing-tab-panel table tbody td.xl-cell { min-width: 54px; height: 29px; padding: 4px 6px; cursor: cell; white-space: nowrap; outline: none; }
@@ -311,12 +302,43 @@
         .unlock-alert.is-warning { margin-top: 10px; background: #fcd9a0; color: #78350f; }
         .unlock-alert.is-info { margin-bottom: 12px; background: #dbeafe; color: #1e3a8a; }
         .unlock-alert i { margin-right: 6px; }
-        .unlock-btn-outline { padding: 4px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #1e293b; font-size: 12px; }
-        .unlock-btn-outline:hover { background: #f1f5f9; }
+
+        /* Detail Costing (mode baca saja): semua kategori tampil, tanpa kontrol edit */
+        .costing-back { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 12px; color: #1e293b; font-size: 15px; font-weight: 700; text-decoration: none !important; }
+        .costing-back i { padding: 4px 6px; border-radius: 4px; background: #a3b2c7; color: #fff; font-size: 10px; }
+        .costing-view-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+        .costing-lock-alert { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding: 8px 12px; border-radius: 4px; background: #ff5f5f; color: #fff; font-size: 12px; }
+        .costing-lock-alert > span { flex: 1; }
+        .costing-lock-alert > span i { margin-right: 6px; }
+        .costing-lock-alert-btn { flex: 0 0 auto; }
+        .costing-lock-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #fff; font-size: 18px; line-height: 1; }
+        .costing-create-page.is-view .costing-category-tabs,
+        .costing-create-page.is-view .costing-detail-toolbar,
+        .costing-create-page.is-view .costing-next-wrap,
+        .costing-create-page.is-view .costing-upload-box,
+        .costing-create-page.is-view #clear-pictures,
+        .costing-create-page.is-view .unlock-actions,
+        .costing-create-page.is-view .costing-picture-remove,
+        .costing-create-page.is-view .xl-th-pen,
+        .costing-create-page.is-view .costing-tab-panel table tr > :last-child:not([colspan]) { display: none; }
+        .costing-create-page.is-view #form-header .costing-head-body,
+        .costing-create-page.is-view #section-detail { opacity: 1; }
+        /* Mode lihat: tidak ada kolom input, semua titik header abu. */
+        .costing-create-page.is-view .costing-tab-panel .xl-dot { background: #94a3b8; }
+        .costing-create-page.is-view .xl-legend { display: none; }
 
         /* Read-only saat Costing terkunci / unlocked untuk user lain */
         .costing-create-page.is-readonly #form-header .costing-head-body,
-        .costing-create-page.is-readonly #section-detail { pointer-events: none; opacity: .75; }
+        /* Tabel item tetap bisa di-scroll & paging; edit sel diblok di JS (xlReadonly), aksi ubah data disembunyikan. */
+        .costing-create-page.is-readonly #section-detail .xl-cell { cursor: default; }
+        .costing-create-page.is-readonly #section-detail .costing-detail-toolbar,
+        .costing-create-page.is-readonly #section-detail .mkt-icon-btn.mkt-btn--red,
+        .costing-create-page.is-readonly #xl-bulk-delete,
+        .costing-create-page.is-readonly .xl-fill-handle { display: none !important; }
+        /* Gambar tetap bisa dilihat (prev/next, klik thumbnail), tapi tidak bisa dihapus. */
+        .costing-create-page.is-readonly #form-header .costing-picture-carousel,
+        .costing-create-page.is-readonly #form-header .costing-picture-thumbnails { pointer-events: auto; }
+        .costing-create-page.is-readonly .costing-picture-remove { display: none; }
         .costing-create-page.is-readonly .costing-form-actions,
         .costing-create-page.is-unlocked .costing-form-actions { display: none; }
 
@@ -331,14 +353,68 @@
         #form-header .costing-field .select2-container--bootstrap4 .select2-selection--single { padding: 4px 10px; }
         #form-header .costing-field .select2-container--bootstrap4 .select2-selection__rendered { line-height: 24px; font-weight: 400; }
         #form-header .costing-field .select2-container--bootstrap4 .select2-selection--multiple { height: auto; }
+        /* Tipografi sesuai mockup: judul Poppins Bold 32, subjudul SemiBold 12, judul section Medium 25,
+           label Medium 16, isian dropdown/input Medium 14 #ABABAB, tinggi isian 60. */
+        .costing-page-title { color: #284a63; font-size: 32px; font-weight: 700; }
+        .costing-page-subtitle { color: #284a63; font-size: 12px; font-weight: 600; }
+        #form-header .costing-head-title { color: #284a63; font-size: 25px; font-weight: 500; }
+        #form-header .costing-field label { font-size: 16px; font-weight: 500 !important; }
+        /* Dropdown & input sesuai mockup: tinggi 59, radius 12, border 1px, padding 16, gap teks–panah 16,
+           teks Poppins Medium 14 (placeholder #ABABAB, terisi hitam), focus border #284A63. */
+        #form-header .costing-field .form-control,
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection { height: 59px; min-height: 59px; border: 1px solid #e1e5e9; border-radius: 12px; background: #fff; box-shadow: none; font-size: 14px; font-weight: 500; line-height: 1; color: #000; }
+        #form-header .costing-field .form-control { padding: 0 16px; }
+        #form-header .costing-field textarea.form-control { padding: 10px 16px; line-height: 1.4; }
+        #form-header .costing-field .form-control::placeholder { color: #ababab; }
+        #form-header .costing-field .form-control:focus,
+        #form-header .costing-field .select2-container--bootstrap4.select2-container--focus .select2-selection,
+        #form-header .costing-field .select2-container--bootstrap4.select2-container--open .select2-selection { border-color: #284a63; box-shadow: none; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection--single { display: flex; align-items: center; padding: 0 44px 0 16px; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection__rendered { padding: 0; line-height: 1; font-size: 14px; font-weight: 500; color: #000; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection__placeholder { color: #ababab; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { top: 50%; right: 16px; width: 12px; transform: translateY(-50%); }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b { top: 50%; left: 50%; width: 8px; height: 8px; margin: -6px 0 0 -4px; border: solid #284a63; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+        #form-header .costing-field .select2-container--bootstrap4.select2-container--open .select2-selection--single .select2-selection__arrow b { margin-top: -2px; transform: rotate(-135deg); }
+        /* State 2: ada isi + hover/fokus = border navy dan tanda X untuk menghapus pilihan (allowClear), menggantikan chevron.
+           State 3: sudah terpilih & diam = border abu + chevron. */
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection { position: relative; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection__clear { display: none; position: absolute; top: 50%; right: 14px; z-index: 2; float: none; width: 18px; height: 18px; margin: 0; padding: 0; transform: translateY(-50%); color: #284a63; font-size: 20px; font-weight: 400; line-height: 18px; text-align: center; cursor: pointer; }
+        #form-header .costing-field .select2-container--bootstrap4:not(.select2-container--disabled):is(:hover, .select2-container--focus, .select2-container--open) .select2-selection__clear { display: block; }
+        #form-header .costing-field .select2-container--bootstrap4:not(.select2-container--disabled):is(:hover, .select2-container--focus, .select2-container--open) .select2-selection--single:has(.select2-selection__clear) .select2-selection__arrow { display: none; }
+        #form-header .costing-field .select2-container--bootstrap4:not(.select2-container--disabled):hover .select2-selection:has(.select2-selection__clear) { border-color: #284a63; }
+        /* State 4: disabled / readonly / view only = label ikut pudar. */
+        #form-header .costing-field:has(.select2-container--disabled) label, #form-header .costing-field:has(.form-control:disabled) label, #form-header .costing-field:has(.form-control[readonly]) label { color: #c4c4c4; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection--multiple { display: flex; align-items: center; height: auto; min-height: 59px !important; padding: 4px 16px; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__rendered { padding: 0; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-search__field { margin-top: 0; font-size: 14px; font-weight: 500; color: #000; }
+        #form-header .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-search__field::placeholder { color: #ababab; }
+        /* Disabled/readonly: latar abu muda, teks & panah pudar. */
+        #form-header .costing-field .form-control[readonly],
+        #form-header .costing-field .form-control:disabled,
+        #form-header .costing-field .select2-container--bootstrap4.select2-container--disabled .select2-selection { background: #f8f8f8; border-color: #e9ecef; color: #ababab; }
+        #form-header .costing-field .select2-container--bootstrap4.select2-container--disabled .select2-selection__rendered { color: #ababab; }
+        #form-header .costing-field .select2-container--bootstrap4.select2-container--disabled .select2-selection__arrow b { border-color: #c4c4c4; }
+        /* Banner "N fields are empty" di atas form, muncul saat Save dengan field wajib kosong. */
+        .costing-error-alert { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 12px; border-radius: 4px; background: #ff5f5f; color: #fff; font-family: Inter, sans-serif; font-size: 13px; }
+        .costing-error-alert[hidden] { display: none; }
+        .costing-error-alert > span { flex: 1; }
+        .costing-error-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #fff; font-size: 16px; line-height: 1; }
+        #form-header .costing-field.is-invalid label { color: #c8161d; }
+        #form-header .costing-field.is-invalid .form-control,
+        #form-header .costing-field.is-invalid .select2-container--bootstrap4 .select2-selection { border-color: #c8161d; color: #c8161d; }
+        #form-header .costing-field.is-invalid .select2-container--bootstrap4 .select2-selection__rendered,
+        #form-header .costing-field.is-invalid .select2-container--bootstrap4 .select2-selection__placeholder,
+        #form-header .costing-field.is-invalid .form-control::placeholder { color: #c8161d; }
+        #form-header .costing-field.is-invalid .select2-container--bootstrap4 .select2-selection__arrow b { border-color: #c8161d; }
+        #form-header .costing-field.is-invalid::after { content: 'Required'; display: block; margin-top: 4px; color: #c8161d; font-size: 13px; font-weight: 500; }
 
         #form-header .costing-upload-box { padding: 10px; border: 1px solid var(--costing-border); border-radius: 6px; }
         #form-header .costing-picture-dropzone { flex-direction: row; gap: 10px; min-height: 64px; padding: 10px; color: var(--costing-navy); font-size: 10px; font-weight: 600; }
         #form-header .costing-picture-dropzone i { font-size: 24px; }
         #form-header .costing-picture-dropzone b { color: #0056b3; }
-        #form-header .costing-upload-now { width: 100%; margin-top: 8px; padding: 6px; border: 0; border-radius: 6px; background: #c4c4c4; color: #fff; font-size: 10px; font-weight: 600; }
+        #form-header .costing-upload-now { width: 100%; margin-top: 8px; }
         #form-header .costing-picture-thumbnails { gap: 8px; margin-top: 10px; padding: 8px; border-color: #8b5cf6; border-radius: 6px; }
-        #form-header .costing-picture-clear { margin-top: 6px; padding: 2px 8px; font-size: 10px; }
+        #form-header .costing-picture-clear { margin-top: 6px; }
         #form-header .costing-picture-carousel { min-height: 200px; height: auto; margin-top: 14px; }
         #form-header .costing-picture-main { max-height: 200px; }
         #form-header .costing-picture-nav { flex: 0 0 auto; width: 26px; height: 26px; }
@@ -355,18 +431,55 @@
         @media (max-width: 480px) {
             #form-header .costing-fields, #form-header .costing-fields.four-columns, #form-header .costing-fields.price-columns { grid-template-columns: minmax(0, 1fr); }
         }
+        /* Checkbox sesuai mockup: 16x16, radius 4. Kosong = putih border abu (hover: centang samar),
+           checked/indeterminate = #284A63 + ikon putih, focus = cincin biru muda. */
+        input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
+        input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):indeterminate { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' d='M3 6h6'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):focus { outline: 0; }
+        input[type="checkbox"]:not(.custom-control-input):focus-visible { box-shadow: 0 0 0 4px #b3daf7; }
+        input[type="checkbox"]:not(.custom-control-input):disabled { opacity: .5; cursor: not-allowed; }
+
+        /* Carousel gambar (coverflow): semua gambar dirender sekali di satu panggung. Pindah gambar hanya mengubah posisi &
+           skala dengan transition CSS (gambar benar-benar bergeser, tanpa ganti src), jadi gerakannya halus.
+           Aktif = besar di tengah, sebelum/sesudah = kecil di samping (klik untuk pindah), titik aktif memanjang. */
+        .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 210px; overflow: hidden; }
+        .mkt-cf-stage > .mkt-cf-main, .mkt-cf-stage > .mkt-cf-side { display: none !important; }
+        .mkt-cf-stage > img.mkt-cf-item { position: absolute; top: 50%; left: 50%; max-width: 46%; max-height: 100%; object-fit: contain; cursor: pointer; will-change: transform, opacity; transition: transform .55s cubic-bezier(.22, .61, .36, 1), opacity .55s ease; }
+        .mkt-cf-stage > img.mkt-cf-item.is-active { cursor: default; }
+        .mkt-cf-stage > img.mkt-cf-item.is-far { opacity: 0 !important; pointer-events: none; }
+        .mkt-cf-dots { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 10px; min-height: 4px; }
+        .mkt-cf-dot { width: 6px; height: 4px; padding: 0; border: 0; border-radius: 2px; background: #d9dee5; cursor: pointer; transition: width .3s ease, background-color .3s ease; }
+        .mkt-cf-dot.is-active { width: 16px; background: #1d6fd8; }
+        @media (prefers-reduced-motion: reduce) { .mkt-cf-stage > img.mkt-cf-item { transition: none; } }
     </style>
 @endsection
 
 @section('content')
-<div class="costing-create-page{{ $unlock['can_edit'] ? '' : ' is-readonly' }}{{ $unlock['state'] === 'unlocked' ? ' is-unlocked' : '' }}">
-    {{-- <a href="{{ route('master-costing') }}" class="costing-back"><i class="fas fa-chevron-left" style="background:#a3b2c7; color:white; border-radius:4px; padding:3px 5px; font-size:10px;"></i> Back</a> --}}
-
+@php $viewOnly = $viewOnly ?? false; @endphp
+<div class="costing-create-page{{ $unlock['can_edit'] && !$viewOnly ? '' : ' is-readonly' }}{{ $unlock['state'] === 'unlocked' ? ' is-unlocked' : '' }}{{ $viewOnly ? ' is-view' : '' }}">
     <div class="card costing-create-card">
         <div class="card-body">
-            <div class="costing-crumb"><a href="{{ route('master-costing') }}">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing</a> &nbsp;›&nbsp; <b>Edit Costing</b></div>
+            <div class="costing-crumb"><a href="{{ route('master-costing') }}">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing</a> &nbsp;›&nbsp; <b>{{ $viewOnly ? 'Detail Costing' : 'Edit Costing' }}</b></div>
+            @if ($viewOnly)
+            <div class="costing-view-head">
+                <div>
+                    <h1 class="costing-page-title">Detail Costing <i class="fas fa-info-circle info-icon"></i> <span class="costing-no">{{ $costing->no_costing }}</span></h1>
+                    <p class="costing-page-subtitle"><i class="fas fa-database"></i> Untuk Melihat Detail Costing</p>
+                </div>
+                @if ($unlock['can_edit'])
+                <a href="{{ route('edit-costing', $costing->id) }}" class="mkt-btn mkt-btn--navy"><i class="fas fa-pen"></i> Edit Costing</a>
+                @endif
+            </div>
+            @else
             <h1 class="costing-page-title">Edit Costing <i class="fas fa-info-circle info-icon"></i> <span class="costing-no">{{ $costing->no_costing }}</span></h1>
             <p class="costing-page-subtitle"><i class="fas fa-database"></i> Untuk Mengubah Data Costing</p>
+            <div class="costing-error-alert" id="costing-error-alert" role="alert" hidden>
+                <i class="fas fa-exclamation-circle"></i><span id="costing-error-text"></span>
+                <button type="button" class="costing-error-alert-close" aria-label="Tutup" onclick="this.parentElement.hidden = true"><i class="far fa-times-circle"></i></button>
+            </div>
+            @endif
 
             @if ($errors->any())
             <div class="alert alert-danger py-2" role="alert">
@@ -383,7 +496,13 @@
                 $requestedAt = $unlock['request'] ? \Carbon\Carbon::parse($unlock['request']->dateinput) : null;
                 $unlockedAt = $unlock['unlock'] ? \Carbon\Carbon::parse($unlock['unlock']->approved_at ?? $unlock['unlock']->dateinput) : null;
             @endphp
-            @if ($unlockState === 'locked')
+            @if ($unlockState === 'locked' && $viewOnly)
+            <div class="costing-lock-alert" id="costing-lock-alert" role="alert">
+                <span><i class="fas fa-lock"></i> This document is approved and can't be edited. Request an unlock from the marketing manager if you need to change it.</span>
+                <button type="button" class="mkt-btn mkt-btn--navy mkt-btn--sm costing-lock-alert-btn" id="btn-open-unlock">Request Unlock</button>
+                <button type="button" class="costing-lock-alert-close" aria-label="Tutup" onclick="document.getElementById('costing-lock-alert').remove()"><i class="far fa-times-circle"></i></button>
+            </div>
+            @elseif ($unlockState === 'locked')
             <div class="unlock-card">
                 <div class="unlock-card-head">
                     <span class="unlock-doc-no">{{ $costing->cost_no }}</span>
@@ -395,7 +514,7 @@
                 </div>
                 <div class="unlock-card-foot">
                     <p class="unlock-note mb-0">This document is approved and can't be edited. Request an unlock from the <b>marketing manager</b> if you need to change it.</p>
-                    <button type="button" class="btn unlock-btn-outline" id="btn-open-unlock"><i class="fas fa-lock-open"></i> Request unlock</button>
+                    <button type="button" class="mkt-btn mkt-btn--navy mkt-btn--sm" id="btn-open-unlock"><i class="fas fa-lock-open"></i> Request unlock</button>
                 </div>
             </div>
             @elseif ($unlockState === 'requested')
@@ -411,7 +530,7 @@
                     <span><i class="far fa-clock"></i> Request sent on {{ $requestedAt->format('d M Y, H:i') }}. You'll be notified when the manager responds.</span>
                     <form method="POST" action="{{ route('costing-cancel-unlock-request', $costing->id) }}" class="m-0">
                         @csrf
-                        <button type="submit" class="btn unlock-btn-outline">Cancel request</button>
+                        <button type="submit" class="mkt-btn mkt-btn--red mkt-btn--sm">Cancel request</button>
                     </form>
                 </div>
             </div>
@@ -435,9 +554,9 @@
                     <span class="unlock-actions">
                         <form method="POST" action="{{ route('costing-cancel-editing', $costing->id) }}" class="m-0" id="form-cancel-editing">
                             @csrf
-                            <button type="submit" class="btn unlock-btn-outline">Cancel editing</button>
+                            <button type="submit" class="mkt-btn mkt-btn--gray mkt-btn--sm">Cancel editing</button>
                         </form>
-                        <button type="button" class="btn unlock-btn-outline" id="btn-save-and-lock">Save and lock</button>
+                        <button type="button" class="mkt-btn mkt-btn--green mkt-btn--sm" id="btn-save-and-lock">Save and lock</button>
                     </span>
                     @endif
                 </div>
@@ -564,24 +683,26 @@
                                         <i class="fas fa-file-alt"></i>
                                         <span>Drag n Drop here Or <b>Browse</b></span>
                                     </div>
-                                    <button type="button" id="btn-upload-now" class="costing-upload-now">Upload Now</button>
+                                    <button type="button" id="btn-upload-now" class="mkt-btn mkt-btn--navy mkt-btn--sm costing-upload-now">Upload Now</button>
                                 </div>
 
                                 <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Costing image previews"></div>
-                                <button type="button" id="clear-pictures" class="btn btn-outline-danger btn-sm costing-picture-clear" disabled>
+                                <button type="button" id="clear-pictures" class="mkt-btn mkt-btn--red mkt-btn--sm costing-picture-clear" disabled>
                                     <i class="fas fa-trash-alt"></i> Clear All
                                 </button>
 
                                 <div class="costing-picture-carousel">
                                     <div class="d-flex align-items-center justify-content-between w-100">
                                         <button type="button" id="picture-prev" class="costing-picture-nav" aria-label="Previous image"><i class="fas fa-chevron-left"></i></button>
-                                        <div class="d-flex align-items-center justify-content-center flex-grow-1" style="min-height: 200px;">
-                                            <img id="img_preview" class="costing-picture-main" alt="Costing image preview" hidden>
-                                            <span id="no_img_text" class="text-muted" style="font-size: 11px;" hidden>Belum ada gambar</span>
+                                        <div class="mkt-cf-stage flex-grow-1">
+                                            <img class="mkt-cf-side is-prev is-empty" alt="Gambar sebelumnya">
+                                            <img id="img_preview" class="costing-picture-main mkt-cf-main" alt="Costing image preview" hidden>
+                                            <span id="no_img_text" class="text-muted" style="font-size: 11px;" hidden>No image selected</span>
+                                            <img class="mkt-cf-side is-next is-empty" alt="Gambar berikutnya">
                                         </div>
                                         <button type="button" id="picture-next" class="costing-picture-nav" aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
                                     </div>
-                                    <div id="carousel-dots" class="mt-3 d-flex justify-content-center" style="gap: 5px;"></div>
+                                    <div id="carousel-dots" class="mkt-cf-dots"></div>
                                 </div>
 
                                 <div id="saved-costing-pictures" class="d-none">
@@ -649,7 +770,7 @@
                                 </div>
                                 <div class="costing-field">
                                     <label for="market">Market</label>
-                                    <input type="text" name="market" id="market" class="form-control" value="{{ $costing->market }}" placeholder="Market">
+                                    <input type="text" name="market" id="market" class="form-control" required value="{{ $costing->market }}" placeholder="Market">
                                 </div>
                                 <div class="costing-field">
                                     <label for="notes">Notes</label>
@@ -699,7 +820,7 @@
                                 </div>
                                 <div class="costing-field">
                                     <label for="confirm_price">Confirm Price</label>
-                                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal" placeholder="Confirm Price" value="{{ isset($costing->confirm_price) ? number_format($costing->confirm_price, 7, '.', '') : '' }}">
+                                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal" required placeholder="Confirm Price" value="{{ isset($costing->confirm_price) ? number_format($costing->confirm_price, 7, '.', '') : '' }}">
                                 </div>
                                 <div class="costing-field">
                                     <label for="rate_to_idr">Rate to IDR</label>
@@ -715,7 +836,7 @@
                 </div>
 
                 <div class="costing-form-actions">
-                    <button type="submit" class="btn btn-success-custom shadow-sm">Save</button>
+                    <button type="submit" class="mkt-btn mkt-btn--green">Save</button>
                 </div>
             </form>
 
@@ -739,15 +860,15 @@
                     <div class="costing-section-body costing-detail-body">
                         <div class="costing-detail-toolbar">
                             <div class="costing-field" id="costing-item-select-host">
-                                <label>Items</label>
+                                <label>Choose Contents</label>
                                 <select id="txt_item" class="form-control select2bs4">
-                                    <option value="">Choose Items</option>
+                                    <option value="">Choose Contents</option>
                                 </select>
                             </div>
-                            <button type="button" id="toggle-add-costing-item" class="btn-add-item"><i class="fas fa-plus"></i> Add Item</button>
+                            <button type="button" id="toggle-add-costing-item" class="mkt-btn mkt-btn--navy mkt-btn--sm"><i class="fas fa-plus"></i> Add Content</button>
                         </div>
                         <div class="xl-bar">
-                            <button type="button" id="xl-bulk-delete" class="btn btn-danger btn-sm" hidden><i class="fas fa-trash"></i> Hapus (0)</button>
+                            <button type="button" id="xl-bulk-delete" class="mkt-btn mkt-btn--red mkt-btn--sm" hidden><i class="fas fa-trash"></i> Hapus (0)</button>
                         </div>
 
                         <select id="category" class="d-none" aria-hidden="true">
@@ -917,7 +1038,7 @@
                                                 <td class="text-right tot-val-td fw-bold" data-val="{{ $tot_val }}">{{ number_format($tot_val, 2, '.', ',') }}</td>
                                                 <td class="text-center align-middle">
                                                     {{-- <button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-edit"></i></button> --}}
-                                                    <button type="button" class="btn btn-sm btn-danger py-0 px-2" title="Hapus" onclick="removeRow(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-trash"></i></button>
+                                                    <button type="button" class="mkt-icon-btn mkt-btn--red" title="Hapus" onclick="removeRow(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-trash"></i></button>
                                                 </td>
                                             </tr>
                                             @endforeach @endif
@@ -963,7 +1084,7 @@
                                                 <td class="text-center pct-td fw-bold">0%</td>
                                                 <td class="text-center align-middle">
                                                     {{-- <button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-edit"></i></button> --}}
-                                                    <button type="button" class="btn btn-sm btn-danger py-0 px-2" title="Hapus" onclick="removeRow(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-trash"></i></button>
+                                                    <button type="button" class="mkt-icon-btn mkt-btn--red" title="Hapus" onclick="removeRow(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-trash"></i></button>
                                                 </td>
                                             </tr>
                                             @endforeach @endif
@@ -991,7 +1112,7 @@
                             </div>
 
 
-                            <div class="costing-combined-summary">
+                            <div class="costing-combined-summary mb-5">
                                 <div class="costing-summary-wrap">
                                     <div class="costing-summary-card">
                                         <table class="table table-sm" id="table-grand-total"></table>
@@ -1034,7 +1155,7 @@
                 </div>
             </div>
             <div class="costing-next-wrap">
-                <button type="button" id="costing-next-tab" class="costing-next-tab">Next</button>
+                <button type="button" id="costing-next-tab" class="mkt-btn mkt-btn--orange">Next</button>
             </div>
         </div>
     </div>
@@ -1126,8 +1247,8 @@
                 </div>
             </div>
             <div class="modal-footer py-1">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
-                <button type="button" class="btn btn-success fw-bold" onclick="updateDetailModal()"><i class="fas fa-save"></i> Update</button>
+                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                <button type="button" class="mkt-btn mkt-btn--green" onclick="updateDetailModal()"><i class="fas fa-save"></i> Update</button>
             </div>
         </div>
     </div>
@@ -1258,7 +1379,42 @@
     });
 
     $(document).ready(function() {
-        $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
+        // Header: allowClear = tanda X untuk menghapus pilihan (state 2); hanya select header yang punya opsi kosong / multiple.
+        $('.select2bs4').each(function () {
+            const clearable = $(this).closest('#form-header').length > 0
+                && ($(this).prop('multiple') || $(this).find('option[value=""]').length > 0);
+            $(this).select2(Object.assign({ theme: 'bootstrap4', width: '100%' }, clearable ? {
+                allowClear: true,
+                placeholder: $(this).data('placeholder') || $(this).find('option[value=""]').first().text() || 'Choose'
+            } : {}));
+        });
+
+        // State 5 (error): field wajib yang kosong saat Save diberi .is-invalid (label, border, teks merah + "Required")
+        // dan banner "N fields are empty" di atas; tooltip bawaan browser dimatikan. Hilang lagi begitu diisi.
+        let firstInvalid = null;
+        function refreshCostingErrorAlert() {
+            const count = $('#form-header .costing-field.is-invalid').length;
+            $('#costing-error-text').text(count + (count === 1 ? ' field is' : ' fields are') + ' empty. Fill them in, then save again.');
+            $('#costing-error-alert').prop('hidden', count === 0);
+        }
+        document.getElementById('form-header').addEventListener('invalid', function (event) {
+            event.preventDefault();
+            const $field = $(event.target).closest('.costing-field').addClass('is-invalid');
+            if (!firstInvalid) {
+                firstInvalid = $field[0];
+                setTimeout(() => {
+                    refreshCostingErrorAlert();
+                    document.getElementById('costing-error-alert').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid = null;
+                }, 0);
+            }
+        }, true);
+        $(document).on('change input', '#form-header .costing-field.is-invalid :input', function () {
+            if (this.checkValidity()) {
+                $(this).closest('.costing-field').removeClass('is-invalid');
+                if (!$('#costing-error-alert').prop('hidden')) refreshCostingErrorAlert();
+            }
+        });
 
         $('.costing-section-toggle').on('click', function() {
             const $toggle = $(this);
@@ -1280,7 +1436,7 @@
             });
 
         if ($('.costing-create-page').hasClass('is-readonly')) {
-            $('#form-header .costing-head-body :input, #section-detail :input').prop('disabled', true);
+            $('#form-header .costing-head-body :input, #section-detail :input').not('.costing-picture-nav, .xl-pager :input').prop('disabled', true);
         }
 
         $('#btn-open-unlock').on('click', function() {
@@ -1481,7 +1637,7 @@
                 select_item.select2('destroy');
             }
 
-            select_item.html('<option value="" disabled selected>Sedang Menarik Data Item...</option>');
+            select_item.html('<option value="" disabled selected>Sedang Menarik Data Contents...</option>');
             select_item.select2({ theme: 'bootstrap4', width: '100%' });
 
             if (cat) {
@@ -1530,6 +1686,9 @@
         });
         calculate_summary();
         xlInit();
+        @if ($viewOnly ?? false)
+        $('#view-all-items').trigger('click');
+        @endif
 
         let prev_dest_count = $('#main_dest').val() ? $('#main_dest').val().length : 0;
         $('#main_dest').on('change', function() {
@@ -1744,7 +1903,7 @@
 
     function costingActionButtons(id, cat) {
         // return `<button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, ${id}, '${cat}')"><i class="fas fa-edit"></i></button>` +
-         return `<button type="button" class="btn btn-sm btn-danger py-0 px-2" title="Hapus" onclick="removeRow(this, ${id}, '${cat}')"><i class="fas fa-trash"></i></button>`;
+         return `<button type="button" class="mkt-icon-btn mkt-btn--red" title="Hapus" onclick="removeRow(this, ${id}, '${cat}')"><i class="fas fa-trash"></i></button>`;
     }
 
     function costingRowHtml(cat, rowId, idDetail, d, no) {
@@ -1950,7 +2109,7 @@
                                 <td class="text-right val-usd-td- fw-bold" data-val="${val_usd_raw}">${val_usd_text}</td>
                                 <td class="text-center pct-td fw-bold">0%</td>
                                 <td class="text-center align-middle">
-                                    <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
+                                    <button type="button" class="mkt-icon-btn mkt-btn--red" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -1972,7 +2131,7 @@
                                 <td class="text-right qty-bom-td fw-bold" data-val="${qty_bom_js}">${qty_bom_text}</td>
                                 <td class="text-right tot-val-td fw-bold" data-val="${tot_val_js}">${tot_val_text}</td>
                                 <td class="text-center align-middle">
-                                    <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
+                                    <button type="button" class="mkt-icon-btn mkt-btn--red" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -2227,6 +2386,56 @@
     let pendingCostingImages = [];
     let selectedCostingImage = 0;
 
+    // Carousel coverflow: semua gambar dirender sekali; pindah gambar hanya menggeser & menskala (transition CSS).
+    // Sebelum/sesudah tidak berputar: di gambar pertama sisi kiri kosong, di gambar terakhir sisi kanan kosong.
+    function paintCoverflow($stage, urls, active, goTo) {
+        const stage = $stage[0];
+        if (!stage) return;
+        let $items = $stage.children('img.mkt-cf-item');
+        const key = urls.join('\n');
+        let fresh = false;
+        if ($stage.data('cfKey') !== key) {
+            $items.remove();
+            $items = $(urls.map((url, index) => $('<img class="mkt-cf-item" alt="">').attr('src', url)
+                .on('click', () => $stage.data('cfGoTo')(index))[0]));
+            $stage.append($items).data('cfKey', key);
+            fresh = true;
+        }
+        $stage.data({ cfGoTo: goTo, cfActive: active, cfUrls: urls });
+        const gap = stage.clientWidth * 0.36;
+        $items.each(function (index) {
+            const offset = index - active, far = Math.abs(offset) > 1;
+            const x = Math.max(-2, Math.min(2, offset)) * gap;
+            const scale = offset === 0 ? 1 : (far ? 0.4 : 0.55);
+            if (fresh) this.style.transition = 'none'; // posisi awal tanpa animasi
+            this.style.transform = `translate(-50%, -50%) translateX(${x}px) scale(${scale})`;
+            this.style.zIndex = String(10 - Math.min(Math.abs(offset), 9));
+            this.style.opacity = offset === 0 ? '1' : '0.85';
+            $(this).toggleClass('is-active', offset === 0).toggleClass('is-far', far);
+        });
+        if (fresh) { void stage.offsetWidth; $items.css('transition', ''); }
+        // Hitung ulang posisi saat ukuran panggung berubah (resize, atau bagian yang tadinya tersembunyi dibuka).
+        if (!$stage.data('cfObserver') && window.ResizeObserver) {
+            const observer = new ResizeObserver(() => {
+                const urlsNow = $stage.data('cfUrls');
+                if (urlsNow) paintCoverflow($stage, urlsNow, $stage.data('cfActive'), $stage.data('cfGoTo'));
+            });
+            observer.observe(stage);
+            $stage.data('cfObserver', observer);
+        }
+    }
+    function paintCoverflowDots($dots, count, active, goTo) {
+        $dots.empty();
+        if (count < 2) return;
+        for (let i = 0; i < count; i++) {
+            $('<button type="button" class="mkt-cf-dot"></button>')
+                .toggleClass('is-active', i === active)
+                .attr('aria-label', `Gambar ${i + 1}`)
+                .on('click', () => goTo(i))
+                .appendTo($dots);
+        }
+    }
+
     function renderCostingImageCarousel() {
         const images = savedCostingImages.concat(pendingCostingImages);
         const $preview = $('#img_preview');
@@ -2241,11 +2450,15 @@
 
         if (!images.length) {
             $preview.attr('src', '');
+            paintCoverflow($preview.closest('.mkt-cf-stage'), [], 0, $.noop);
             return;
         }
 
         selectedCostingImage = (selectedCostingImage + images.length) % images.length;
         $preview.attr('src', images[selectedCostingImage].url);
+        const goTo = index => { selectedCostingImage = index; renderCostingImageCarousel(); };
+        paintCoverflow($preview.closest('.mkt-cf-stage'), images.map(image => image.url), selectedCostingImage, goTo);
+        paintCoverflowDots($dots, images.length, selectedCostingImage, goTo);
         images.forEach((image, index) => {
             const $thumbnail = $('<div>', {
                 class: `costing-picture-thumb${index === selectedCostingImage ? ' active' : ''}`,
@@ -2265,12 +2478,6 @@
                 removeCostingImage(index);
             }).appendTo($thumbnail);
             $thumbnail.appendTo($thumbnails);
-            $('<span>', {
-                style: `display: block; width: 20px; height: 4px; border-radius: 2px; cursor: pointer; background: ${index === selectedCostingImage ? '#0d6efd' : '#e0e0e0'};`
-            }).on('click', function() {
-                selectedCostingImage = index;
-                renderCostingImageCarousel();
-            }).appendTo($dots);
         });
     }
 
@@ -2739,6 +2946,7 @@
 
     /* ---------- set nilai sel (auto hitung + save) ---------- */
     function xlSetCell($td, val) {
+        if (xlReadonly()) return false;
         const field = xlField($td);
         const value = xlNormalize(field, val);
         if (value === null) { $td.addClass('xl-invalid'); return false; }
@@ -2762,8 +2970,11 @@
     /* ---------- editor: hanya 1 sel yang punya input / select2 ---------- */
     const XL_EDIT = { $td: null, $input: null };
 
+    // Halaman baca saja (terkunci / Detail Costing): sel tidak bisa diedit.
+    const xlReadonly = () => $('.costing-create-page').hasClass('is-readonly');
+
     function xlOpenEditor($td, initial) {
-        if (!xlHasCtrl($td)) return;
+        if (!xlHasCtrl($td) || xlReadonly()) return;
         xlCloseEditor(true);
         const field = xlField($td);
         XL_EDIT.$td = $td;

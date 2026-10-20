@@ -1,0 +1,92 @@
+/* ===== Tombol Marketing =====
+   Dimuat langsung di @section('custom-link') halaman yang memakai, dengan ?v=filemtime supaya tidak kena cache browser.
+   Pakai : <button class="mkt-btn mkt-btn--green">Save</button>
+   Warna : --navy (Add New), --green (Save), --orange (Next), --blue (Edit), --gray (Return to Staff), --red (Cancel/Hapus), --purple (Export)
+   Ukuran: default 140x50, --return 185x40, --cancel 130x50, --sm 110x36
+   Ikon  : <button class="mkt-icon-btn mkt-btn--red"><i class="fas fa-trash"></i></button> (28x28) */
+
+/* SF Pro Rounded hanya ada di perangkat Apple (lisensinya tidak boleh dijadikan web font);
+   di Windows/Android jatuh ke Nunito lokal yang juga rounded. */
+@font-face {
+    font-family: "MKT Rounded";
+    src: url(../../fonts/Nunito/Nunito-VariableFont_wght.ttf) format("truetype");
+    font-weight: 200 1000;
+    font-display: swap;
+}
+
+.mkt-btn, .mkt-icon-btn {
+    --mkt-c: #284a63;
+    --mkt-shadow: rgba(40, 74, 99, .35);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 0;
+    border: 0;
+    background-color: var(--mkt-c);
+    color: #fff;
+    font-family: "SF Pro Rounded", ui-rounded, "MKT Rounded", sans-serif;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none !important;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    box-shadow: 0 4px 10px var(--mkt-shadow);
+    transition: background-color .15s ease, color .15s ease, box-shadow .15s ease, transform .1s ease;
+}
+.mkt-btn {
+    min-width: 140px;
+    height: 50px;
+    padding: 0 24px;
+    border-radius: 25px;
+    font-size: 18px;
+}
+.mkt-btn--return { min-width: 185px; height: 40px; border-radius: 20px; font-size: 16px; }
+.mkt-btn--cancel { min-width: 130px; height: 50px; }
+.mkt-btn--sm { min-width: 110px; height: 36px; padding: 0 18px; border-radius: 18px; font-size: 14px; }
+.mkt-icon-btn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 12px;
+}
+
+.mkt-btn--navy { --mkt-c: #284a63; --mkt-shadow: rgba(40, 74, 99, .35); }
+.mkt-btn--green { --mkt-c: #198038; --mkt-shadow: rgba(25, 128, 56, .35); }
+.mkt-btn--orange { --mkt-c: #ff6b00; --mkt-shadow: rgba(255, 107, 0, .35); }
+.mkt-btn--blue { --mkt-c: #0e8fd8; --mkt-shadow: rgba(14, 143, 216, .35); }
+.mkt-btn--gray { --mkt-c: #6b6b6b; --mkt-shadow: rgba(107, 107, 107, .35); }
+.mkt-btn--red { --mkt-c: #ff0000; --mkt-shadow: rgba(255, 0, 0, .3); }
+.mkt-btn--purple { --mkt-c: #5b3fd6; --mkt-shadow: rgba(91, 63, 214, .35); }
+
+.mkt-btn:hover, .mkt-icon-btn:hover {
+    background-color: #d9dbe3;
+    color: var(--mkt-c);
+}
+.mkt-btn:focus, .mkt-icon-btn:focus { outline: 0; }
+.mkt-btn:focus-visible, .mkt-icon-btn:focus-visible { box-shadow: 0 0 0 3px var(--mkt-shadow); }
+.mkt-btn:active, .mkt-btn.is-active,
+.mkt-icon-btn:active, .mkt-icon-btn.is-active {
+    background-color: #e8e9f1;
+    color: #1e293b;
+    box-shadow: inset 0 2px 5px rgba(15, 23, 42, .18);
+    transform: translateY(1px);
+}
+.mkt-btn:disabled, .mkt-btn.is-disabled,
+.mkt-icon-btn:disabled, .mkt-icon-btn.is-disabled {
+    background-color: #f4f5f9;
+    color: #d6d8e0;
+    box-shadow: none;
+    transform: none;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+/* display:inline-flex mengalahkan atribut hidden bawaan browser. */
+.mkt-btn[hidden], .mkt-icon-btn[hidden] { display: none !important; }
+
+@media (max-width: 575.98px) {
+    .mkt-btn { max-width: 100%; height: auto; min-height: 40px; padding-top: 8px; padding-bottom: 8px; white-space: normal; line-height: 1.2; text-align: center; }
+}

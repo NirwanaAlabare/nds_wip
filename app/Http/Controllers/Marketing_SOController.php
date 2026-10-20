@@ -11,6 +11,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\File;
 use App\Services\MarketingBomService;
 use App\Services\MarketingHistoryService;
+use App\Services\MarketingApprovalService;
 
 class Marketing_SOController extends Controller
 {
@@ -121,9 +122,68 @@ class Marketing_SOController extends Controller
 
     public function create(Request $request)
     {
+        return $this->soPage($request->id_costing);
+    }
+
+    /**
+     * Detail SO: halaman Create SO dalam mode baca-saja.
+     */
+    public function show($id)
+    {
+        $mysql_sb = DB::connection('mysql_sb');
+        $so = $mysql_sb->table('so')->where('id', $id)->first();
+        abort_if(!$so, 404);
+
+        $details = $mysql_sb->table('so_det as sd')
+            ->leftJoin('master_size_new as s', 'sd.id_size', '=', 's.id')
+            ->where('sd.id_so', $id)
+            ->where('sd.cancel', '!=', 'Y')
+            ->select('sd.dest', 'sd.color', 'sd.size', 'sd.qty', 'sd.deldate_det', 'sd.notes', 's.urutan')
+            ->orderBy('sd.color')
+            ->orderByRaw('COALESCE(s.urutan, 9999)')
+            ->get();
+
+        // Satu baris per warna x ukuran, seperti tabel Summary Detail di Costing.
+        $rows = $details->map(fn ($d) => [
+            'style' => $so->style,
+            'description' => $d->notes,
+            'po' => $so->no_po,
+            'market' => $d->dest,
+            'ex_fty' => $d->deldate_det ? date('d/m/Y', strtotime($d->deldate_det)) : null,
+            'color' => $d->color,
+            'size' => $d->size,
+            'qty' => (float) $d->qty,
+        ])->values()->all();
+
+        $currency = $mysql_sb->table('masterpilihan')->where('kode_pilihan', 'Curr')
+            ->where(fn ($q) => $q->where('nama_pilihan', $so->curr)->orWhere('id', $so->curr))->value('id');
+        $poCount = $mysql_sb->table('so')->where('id_cost', $so->id_cost)->where('cancel_h', '!=', 'Y')->count();
+
+        return $this->soPage($so->id_cost, [
+            'viewOnly' => true,
+            'so' => $so,
+            'soUnlock' => app(MarketingApprovalService::class)->soUnlockState((int) $so->id),
+            'soBuyer' => $mysql_sb->table('act_costing as a')
+                ->leftJoin('mastersupplier as b', 'a.id_buyer', '=', 'b.Id_Supplier')
+                ->where('a.id', $so->id_cost)->value('b.Supplier'),
+            'soView' => [
+                'id_currency' => $currency,
+                'jns_so' => $so->jns_so,
+                'fob' => $so->fob,
+                'notes' => $so->notes,
+                'total_qty' => $details->sum('qty'),
+                'jumlah_po' => $poCount,
+                'po_type' => $poCount > 1 ? 'multiple' : 'single',
+                'ex_fty' => $details->min('deldate_det'),
+            ],
+            'soRows' => $rows,
+        ]);
+    }
+
+    private function soPage($id_costing, array $extra = [])
+    {
         $mysql_sb = DB::connection('mysql_sb');
 
-        $id_costing = $request->id_costing;
         $costingNo  = '-';
         if ($id_costing) {
             $costing = $mysql_sb->table('act_costing')->where('id', $id_costing)->first();
@@ -192,7 +252,7 @@ class Marketing_SOController extends Controller
             'costingNo'      => $costingNo,
             'costingId'      => $id_costing,
             'containerFluid' => true
-        ]);
+        ] + $extra);
     }
 
     public function getBomMasterData(Request $request)

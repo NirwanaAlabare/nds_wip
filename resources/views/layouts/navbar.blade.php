@@ -1100,10 +1100,10 @@
                             <li>
                                 <a href="{{ route('master-costing') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-costing' ? 'active' : '' }}">
-                                    Costing <i class="fa-solid fa-dollar-sign fa-sm"></i>
+                                    Marketing <i class="fa-solid fa-dollar-sign fa-sm"></i>
                                 </a>
                             </li>
-                            <li>
+                            {{-- <li>
                                 <a href="{{ route('master-bom') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-bom' ? 'active' : '' }}">
                                     Bill of Material (BOM) <i class="fa-solid fa-receipt fa-sm"></i>
@@ -1114,7 +1114,7 @@
                                     class="dropdown-item {{ $subPage == 'marketing-master-so' ? 'active' : '' }}">
                                     Sales Order <i class="fa-solid fa-file-invoice-dollar fa-sm"></i>
                                 </a>
-                            </li>
+                            </li> --}}
                             <li>
                                 <a href="{{ route('master-marketing-catalog') }}"
                                     class="dropdown-item {{ $subPage == 'marketing-master-catalog' ? 'active' : '' }}">

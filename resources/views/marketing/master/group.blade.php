@@ -20,7 +20,7 @@
         .mg-table thead th { padding: 7px 10px; border: 0; background: #cfe0ff; color: #26394c; font-size: 12px; font-weight: 500; text-transform: uppercase; white-space: nowrap; }
         .mg-table tbody td { padding: 7px 10px; border-top: 0; border-bottom: 1px solid #eef2f7; vertical-align: middle; }
         .mg-table input[type="checkbox"] { width: 14px; height: 14px; accent-color: #334155; }
-        .mg-action { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-right: 4px; padding: 0; border: 0; border-radius: 50%; color: #fff; font-size: 9px; }
+        .mg-action { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-right: 4px; padding: 0; border: 0; border-radius: 50%; color: #fff; font-size: 12px; }
         .mg-action.is-edit { background: #0ea5e9; }
         .mg-action.is-delete { background: #e11d48; }
         .mg-empty { color: #94a3b8; }
@@ -66,7 +66,6 @@
                             <th style="width: 50px;">No</th>
                             <th>Kode Group</th>
                             <th>Nama Group</th>
-                            <th>Material Type</th>
                             <th style="width: 80px;">Action</th>
                         </tr>
                     </thead>
@@ -96,15 +95,6 @@
                     <div class="form-group">
                         <label for="mg-nama">Group Name</label>
                         <input type="text" id="mg-nama" class="form-control text-uppercase" maxlength="255" placeholder="Group Name" required>
-                    </div>
-                    <div class="form-group mb-0">
-                        <label for="mg-mattype">Matt Type</label>
-                        <select id="mg-mattype" class="form-control" required>
-                            <option value="">Matt Type</option>
-                            @foreach ($mattypes as $code => $label)
-                                <option value="{{ $code }}">{{ $code }} - {{ $label }}</option>
-                            @endforeach
-                        </select>
                     </div>
                 </div>
             </div>
@@ -155,7 +145,6 @@
                     { data: 'DT_RowIndex' },
                     { data: 'kode_group', render: mgEscape },
                     { data: 'nama_group', render: mgEscape },
-                    { data: 'mattype', render: (value, type, row) => value ? mgEscape(`${String(value).trim()} - ${row.mattype_label || ''}`) : '<span class="mg-empty">--</span>' },
                     {
                         data: null,
                         render: () => '<button type="button" class="mg-action is-edit" title="Edit"><i class="fas fa-pen"></i></button>'
@@ -164,7 +153,6 @@
                 ]
             }).on('draw.dt', () => $('#mg-check-all').prop('checked', false));
 
-            $('#mg-mattype').select2({ theme: 'bootstrap4', width: '100%', placeholder: 'Matt Type', minimumResultsForSearch: 0, dropdownParent: $('#mg-modal') });
             $(document).on('select2:open', () => document.querySelector('.select2-container--open .select2-search__field')?.focus());
 
             $('#mg-check-all').on('change', function () { $('#mg-table .mg-row-check').prop('checked', this.checked); });
@@ -174,7 +162,6 @@
                 $('#mg-id').val(row ? row.id : '');
                 $('#mg-kode').val(row ? row.kode_group : '');
                 $('#mg-nama').val(row ? row.nama_group : '');
-                $('#mg-mattype').val(row && row.mattype ? String(row.mattype).trim() : '').trigger('change.select2');
                 $('#mg-modal').modal('show');
             };
             $('#mg-modal').on('shown.bs.modal', () => $('#mg-kode').trigger('focus'));
@@ -188,11 +175,10 @@
                 const payload = {
                     _token: MG_CSRF,
                     kode_group: $('#mg-kode').val().trim(),
-                    nama_group: $('#mg-nama').val().trim(),
-                    mattype: $('#mg-mattype').val()
+                    nama_group: $('#mg-nama').val().trim()
                 };
-                if (!payload.kode_group || !payload.nama_group || !payload.mattype) {
-                    Swal.fire('Perhatian', 'Group Code, Group Name, dan Matt Type wajib diisi.', 'warning');
+                if (!payload.kode_group || !payload.nama_group) {
+                    Swal.fire('Perhatian', 'Group Code and Group Name wajib diisi.', 'warning');
                     return;
                 }
                 if (id) payload._method = 'PUT';

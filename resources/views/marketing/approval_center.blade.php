@@ -9,21 +9,26 @@
     $unlockSections = [
         ['key' => 'costing', 'title' => 'Unlock Costing', 'number' => 'No Costing', 'enabled' => true],
         ['key' => 'bom', 'title' => 'Unlock BOM', 'number' => 'No BOM', 'enabled' => true],
+        ['key' => 'so', 'title' => 'Unlock SO', 'number' => 'No SO', 'enabled' => true],
     ];
     $searchColumns = ['number' => null, 'worksheet' => 'No Worksheet', 'buyer' => 'Buyer', 'brand' => 'Brand', 'style' => 'Style'];
 @endphp
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
     <style>
         .ac-page { color: #1e293b; }
         .ac-title { margin: 0; font-size: 26px; font-weight: 700; color: #475569; }
+        /* Breadcrumb sama dengan SO/BOM create. */
+        .ac-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #294d68; color: #b4b4b4; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 500; }
+        .ac-breadcrumb strong { color: #fff; font-weight: 500; }
         .ac-subtitle { margin: 2px 0 18px; color: #64748b; font-size: 12px; }
 
         /* Kartu ringkasan */
-        .ac-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; }
+        .ac-summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; }
         .ac-summary-card { display: block; min-height: 108px; padding: 14px 16px; border: 1px solid transparent; border-radius: 10px; color: inherit; text-decoration: none !important; transition: transform .15s; }
         .ac-summary-card:hover { transform: translateY(-2px); }
         .ac-summary-card span { display: block; font-size: 13px; font-weight: 600; color: #475569; }
@@ -37,10 +42,20 @@
         .ac-summary-card.is-unlock-bom span { color: #6d28d9; }
         .ac-summary-card.is-unlock-costing { background: #ffe4e6; border-color: #fecdd3; }
         .ac-summary-card.is-unlock-bom { background: #ede9fe; border-color: #ddd6fe; }
+        .ac-summary-card.is-unlock-so span { color: #c2410c; }
+        .ac-summary-card.is-unlock-so { background: #ffedd5; border-color: #fed7aa; }
 
         .ac-section-title { margin: 0 0 10px; font-size: 17px; font-weight: 700; color: #334155; }
         .ac-card { margin-bottom: 26px; padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; box-shadow: 0 4px 16px rgba(15, 23, 42, .05); }
-        .ac-unlock-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+        /* Satu tabel: card ringkasan = tab; card aktif diberi border tebal sesuai warnanya. */
+        .ac-summary-card { --ac-accent: #475569; cursor: pointer; }
+        .ac-summary-card.is-costing { --ac-accent: #0369a1; }
+        .ac-summary-card.is-bom { --ac-accent: #a16207; }
+        .ac-summary-card.is-unlock-costing { --ac-accent: #be123c; }
+        .ac-summary-card.is-unlock-bom { --ac-accent: #6d28d9; }
+        .ac-summary-card.is-unlock-so { --ac-accent: #c2410c; }
+        .ac-summary-card.is-active { border-color: var(--ac-accent); box-shadow: 0 0 0 1px var(--ac-accent), 0 6px 16px rgba(15, 23, 42, .12); }
+        .ac-panel[hidden] { display: none !important; }
 
         /* Toolbar: tanggal, search by, kata kunci, tombol aksi */
         .ac-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -49,13 +64,8 @@
         .ac-toolbar .ac-keyword { height: 32px; padding-left: 28px; font-size: 12px; }
         .ac-input-icon { position: absolute; top: 16px; left: 10px; z-index: 2; transform: translateY(-50%); color: #64748b; font-size: 11px; pointer-events: none; }
         .ac-search-by-wrap .select2-selection__rendered { padding-left: 22px !important; }
-        .ac-actions { display: flex; gap: 8px; margin-left: auto; }
-        .ac-btn { min-width: 110px; height: 32px; border: 0; border-radius: 16px; color: #fff; font-size: 12px; font-weight: 600; }
-        .ac-btn:disabled { opacity: .45; cursor: not-allowed; }
-        .ac-btn.is-approve { background: #15803d; }
-        .ac-btn.is-return { background: #8a8a8a; }
-        .ac-btn.is-cancel { background: #e11d48; }
-        .ac-btn.is-unlock { background: #0ea5e9; }
+        .ac-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-left: auto; }
+        .ac-actions .mkt-btn--return { height: 50px; border-radius: 25px; font-size: 18px; }
         .ac-date-wrap { position: relative; }
         .ac-date-toggle { width: 32px; height: 32px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #475569; }
         .ac-date-panel { position: absolute; top: 36px; left: 0; z-index: 20; display: none; width: 250px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(15, 23, 42, .12); font-size: 11px; }
@@ -72,8 +82,8 @@
 
         /* Tab status = legend + filter */
         .ac-status-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin: 4px 0 6px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
-        .ac-status-selected { padding: 6px 0; font-size: 14px; font-weight: 700; }
-        .ac-status-tab { display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; border: 0; border-bottom: 2px solid transparent; background: none; color: #334155; font-size: 14px; font-weight: 500; }
+        .ac-status-selected { padding: 6px 0; font-size: 14px; font-weight: 700; font-family: 'inter', sans-serif; }
+        .ac-status-tab { display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; border: 0; border-bottom: 2px solid transparent; background: none; color: #334155; font-size: 14px; font-weight: 500; font-family: 'inter', sans-serif; cursor: pointer; }
         .ac-status-tab.active { border-bottom-color: currentColor; }
         .ac-status-tab[data-status="return"] { color: #ea580c; }
         .ac-status-tab[data-status="cancel"] { color: #dc2626; }
@@ -83,9 +93,15 @@
         .ac-count { min-width: 18px; padding: 0 6px; border-radius: 9px; background: #e2e8f0; color: #475569; font-size: 10px; font-weight: 600; text-align: center; }
 
         /* Tabel */
-        .ac-table { margin-bottom: 0; font-size: 15px; font-weight: 500; }
-        .ac-table thead th { padding: 6px 8px; border-color: #c9d9f2; background: #cfe0ff; color: #26394c; font-size: 12px; font-weight: 500; text-transform: uppercase; white-space: nowrap; }
-        .ac-table tbody td { padding: 6px 8px; border-color: #eef2f7; vertical-align: middle; white-space: nowrap; }
+        /* Tabel selalu muat selebar kartu (tanpa scroll ke kanan): teks boleh turun baris, kolom kecil tetap satu baris. */
+        .ac-table-wrap { width: 100%; }
+        .ac-table { width: 100% !important; margin-bottom: 0; font-size: 12px; font-weight: 500; }
+        .ac-table thead th { padding: 6px 8px; border-color: #c9d9f2; background: #cfe0ff; color: #26394c; font-size: 12px; font-weight: 500; text-transform: uppercase; white-space: normal; overflow-wrap: break-word; font-family: 'inter', sans-serif; }
+        .ac-table tbody td { padding: 6px 8px; border-color: #eef2f7; vertical-align: middle; white-space: normal; overflow-wrap: anywhere; font-family: 'inter', sans-serif; font-size: 15px; font-weight: 400; }
+        .ac-table th:nth-child(-n+3), .ac-table td:nth-child(-n+3), .ac-table td:last-child { width: 1%; white-space: nowrap; }
+        .ac-table .ac-date-badge, .ac-table .ac-badge { white-space: nowrap; }
+        /* Baris kosong & baris timeline (colspan) tetap melebar normal. */
+        .ac-table td[colspan] { width: auto; white-space: normal; }
         .ac-table tbody tr:hover { background: #f8fafc; }
         .ac-table input[type="checkbox"] { width: 14px; height: 14px; accent-color: #334155; }
         .ac-date-badge { display: inline-block; padding: 2px 10px; border-radius: 10px; background: #e2e8f0; color: #475569; font-weight: 500; }
@@ -98,6 +114,8 @@
         .ac-badge.is-unlocked,
         .ac-badge.is-request { border-color: #bfdbfe; background: #eff6ff; color: #2563eb; }
         .ac-timeline-toggle { width: 20px; height: 20px; padding: 0; border: 1px solid #cbd5e1; border-radius: 50%; background: #fff; color: #64748b; font-size: 8px; }
+        .ac-detail-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid #4357e6; border-radius: 50%; background: linear-gradient(180deg, #4357e6, #1f2b9e); color: #fff !important; font-size: 10px; text-decoration: none !important; }
+        .ac-detail-btn:hover { background: linear-gradient(180deg, #8d9cff, #4a5ef0); }
         .ac-timeline-toggle[aria-expanded="true"] { border-color: #7dd3fc; background: #e0f2fe; color: #0284c7; }
         .ac-timeline { padding: 10px 18px; background: #f6f8fb; font-size: 11px; white-space: normal; }
         .ac-timeline-item { display: flex; gap: 10px; padding: 3px 0; }
@@ -114,14 +132,24 @@
 
         @media (max-width: 991.98px) {
             .ac-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .ac-unlock-grid { grid-template-columns: 1fr; }
             .ac-actions { margin-left: 0; }
         }
+        /* Checkbox sesuai mockup: 16x16, radius 4. Kosong = putih border abu (hover: centang samar),
+           checked/indeterminate = #284A63 + ikon putih, focus = cincin biru muda. */
+        input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
+        input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):indeterminate { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' d='M3 6h6'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):focus { outline: 0; }
+        input[type="checkbox"]:not(.custom-control-input):focus-visible { box-shadow: 0 0 0 4px #b3daf7; }
+        input[type="checkbox"]:not(.custom-control-input):disabled { opacity: .5; cursor: not-allowed; }
+
     </style>
 @endsection
 
 @section('content')
 <div class="ac-page font-inter">
+    <div class="ac-breadcrumb">Marketing &nbsp;›&nbsp; <strong>Approval</strong></div>
     <h1 class="ac-title mb-3">Approval Center</h1>
 
     <div class="ac-summary">
@@ -129,18 +157,19 @@
         <a href="#ac-doc-bom" class="ac-summary-card is-bom"><span>Approval BOM</span><strong data-summary="bom">{{ $summary['bom'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
         <a href="#ac-unlock-costing" class="ac-summary-card is-unlock-costing"><span>Unlock Costing</span><strong data-summary="unlock-costing">{{ $summary['unlock_costing'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
         <a href="#ac-unlock-bom" class="ac-summary-card is-unlock-bom"><span>Unlock BOM</span><strong data-summary="unlock-bom">{{ $summary['unlock_bom'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
+        <a href="#ac-unlock-so" class="ac-summary-card is-unlock-so"><span>Unlock SO</span><strong data-summary="unlock-so">{{ $summary['unlock_so'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
     </div>
 
     @foreach ($docSections as $section)
-        <section id="ac-doc-{{ $section['key'] }}">
-            <h2 class="ac-section-title">{{ $section['title'] }}</h2>
+        <section id="ac-doc-{{ $section['key'] }}" class="ac-panel" hidden>
             <div class="ac-card" data-ac-kind="doc" data-ac-type="{{ $section['key'] }}" data-ac-number="{{ $section['number'] }}">
+                <h2 class="ac-section-title">{{ $section['title'] }}</h2>
                 <div class="ac-toolbar">
                     @include('marketing.approval_center_filters', ['numberLabel' => $section['number'], 'searchColumns' => $searchColumns])
                     <div class="ac-actions">
-                        <button type="button" class="ac-btn is-approve" data-ac-action="approve" disabled>Approve</button>
-                        <button type="button" class="ac-btn is-return" data-ac-action="return" disabled>Return to Staff</button>
-                        <button type="button" class="ac-btn is-cancel" data-ac-action="cancel" disabled>Cancel</button>
+                        <button type="button" class="mkt-btn mkt-btn--green" data-ac-action="approve" disabled>Approve</button>
+                        <button type="button" class="mkt-btn mkt-btn--gray mkt-btn--return" data-ac-action="return" disabled>Return to Staff</button>
+                        <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" data-ac-action="cancel" disabled>Cancel</button>
                     </div>
                 </div>
                 <div class="ac-filter-summary"></div>
@@ -152,25 +181,26 @@
                     <button type="button" class="ac-status-tab" data-status="approved">Approved <span class="ac-count" data-count="approved">0</span></button>
                     <button type="button" class="ac-status-tab" data-status="unlocked">Unlocked <span class="ac-count" data-count="unlocked">0</span></button>
                 </div>
-                <div class="table-responsive">
+                <div class="ac-table-wrap">
                     <table class="table table-bordered ac-table w-100">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" class="ac-check-all" aria-label="Pilih semua"></th>
                                 <th></th>
-                                <th>No</th>
-                                <th>Due Date</th>
-                                <th>{{ $section['number'] }}</th>
-                                <th>Status</th>
-                                <th>No Worksheet</th>
-                                <th>Buyer</th>
-                                <th>Brand</th>
-                                <th>Style</th>
-                                <th>Market</th>
-                                <th>Qty</th>
-                                <th>Confirm Price</th>
-                                <th>Product Group</th>
-                                <th>Product Items</th>
+                                <th class="text-center">No</th>
+                                <th class="text-center">Due Date</th>
+                                <th class="text-center">{{ $section['number'] }}</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">No Worksheet</th>
+                                <th class="text-center">Buyer</th>
+                                <th class="text-center">Brand</th>
+                                <th class="text-center">Style</th>
+                                <th class="text-center">Market</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-center">Confirm Price</th>
+                                <th class="text-center">Product Group</th>
+                                <th class="text-center">Product Items</th>
+                                <th class="text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -180,15 +210,14 @@
         </section>
     @endforeach
 
-    <div class="ac-unlock-grid">
         @foreach ($unlockSections as $section)
-            <section id="ac-unlock-{{ $section['key'] }}">
-                <h2 class="ac-section-title">{{ $section['title'] }} <i class="fas fa-lock text-muted" style="font-size: 13px;"></i></h2>
+            <section id="ac-unlock-{{ $section['key'] }}" class="ac-panel" hidden>
                 <div class="ac-card" data-ac-kind="unlock" data-ac-type="{{ $section['key'] }}" data-ac-enabled="{{ $section['enabled'] ? '1' : '0' }}">
+                    <h2 class="ac-section-title">{{ $section['title'] }} <i class="fas fa-lock text-muted" style="font-size: 13px;"></i></h2>
                     <div class="ac-toolbar">
                         @include('marketing.approval_center_filters', ['numberLabel' => $section['number'], 'searchColumns' => $searchColumns])
                         <div class="ac-actions">
-                            <button type="button" class="ac-btn is-unlock" data-ac-action="unlock" disabled>Unlock</button>
+                            <button type="button" class="mkt-btn mkt-btn--blue" data-ac-action="unlock" disabled>Unlock</button>
                         </div>
                     </div>
                     <div class="ac-filter-summary"></div>
@@ -196,23 +225,31 @@
                         <span class="ac-status-selected">Selected <span class="ac-count" data-selected>0</span></span>
                         <span class="ac-status-tab active" data-status="request">Request Unlock <span class="ac-count" data-count="request">0</span></span>
                     </div>
-                    <div class="table-responsive">
+                    <div class="ac-table-wrap">
                         <table class="table table-bordered ac-table w-100">
                             <thead>
                                 <tr>
                                     <th><input type="checkbox" class="ac-check-all" aria-label="Pilih semua" {{ $section['enabled'] ? '' : 'disabled' }}></th>
                                     <th></th>
                                     <th>No</th>
+                                    <th>Due Date</th>
                                     <th>{{ $section['number'] }}</th>
                                     <th>Status</th>
+                                    <th>No Worksheet</th>
                                     <th>Buyer</th>
                                     <th>Brand</th>
+                                    <th>Style</th>
+                                    <th>Market</th>
+                                    <th>Qty</th>
+                                    <th>Confirm Price</th>
+                                    <th>Product Group</th>
                                     <th>Product Items</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @unless ($section['enabled'])
-                                    <tr><td colspan="8" class="ac-empty"><i class="fas fa-hourglass-half"></i> Unlock BOM belum aktif.</td></tr>
+                                    <tr><td colspan="16" class="ac-empty"><i class="fas fa-hourglass-half"></i> Unlock BOM belum aktif.</td></tr>
                                 @endunless
                             </tbody>
                         </table>
@@ -220,7 +257,6 @@
                 </div>
             </section>
         @endforeach
-    </div>
 </div>
 @endsection
 
@@ -234,6 +270,8 @@
             unlockRequests: "{{ route('marketing-approval-unlock-requests', ':type') }}",
             decide: "{{ route('marketing-approval-decide', ':type') }}",
             unlock: "{{ route('marketing-approval-unlock') }}",
+            costingDetail: "{{ route('detail-costing', ':id') }}",
+            soDetail: "{{ route('so-detail-page', ':id') }}",
             timeline: "{{ route('costing-timeline', ':id') }}"
         };
         const AC_CSRF = "{{ csrf_token() }}";
@@ -242,7 +280,7 @@
             approved: 'Approved', unlocked: 'Unlocked', request: 'Request Unlock'
         };
         const AC_ACTION_LABEL = { approve: 'Approve', return: 'Return to Staff', cancel: 'Cancel' };
-        const AC_SUMMARY_KEY = { 'doc-costing': 'costing', 'doc-bom': 'bom', 'unlock-costing': 'unlock-costing', 'unlock-bom': 'unlock-bom' };
+        const AC_SUMMARY_KEY = { 'doc-costing': 'costing', 'doc-bom': 'bom', 'unlock-costing': 'unlock-costing', 'unlock-bom': 'unlock-bom', 'unlock-so': 'unlock-so' };
 
         const escapeHtml = value => $('<div>').text(value ?? '').html();
         const acFormatNumber = value => value === null || value === undefined || value === '' ? '-' : Number(value).toLocaleString('id-ID', { maximumFractionDigits: 4 });
@@ -255,11 +293,32 @@
 
         $(function () {
             $('.ac-card').each(function () { initApprovalCard($(this)); });
+
+            // Card ringkasan = tab: hanya tabel milik card yang dipilih yang tampil.
+            // Semua tabel tetap dimuat sejak awal supaya angka di setiap card terisi.
+            $('.ac-summary').on('click', '.ac-summary-card', function (event) {
+                event.preventDefault();
+                showApprovalPanel($(this).attr('href'));
+            });
+            const initialPanel = $(`.ac-summary-card[href="${window.location.hash}"]`).length ? window.location.hash : $('.ac-summary-card').first().attr('href');
+            showApprovalPanel(initialPanel);
             $(document).on('select2:open', () => document.querySelector('.select2-container--open .select2-search__field')?.focus());
             $(document).on('click', function (event) {
                 if (!$(event.target).closest('.ac-date-wrap').length) $('.ac-date-panel').removeClass('show');
             });
         });
+
+        function showApprovalPanel(target) {
+            $('.ac-summary-card').removeClass('is-active').filter(`[href="${target}"]`).addClass('is-active');
+            $('.ac-panel').attr('hidden', true);
+            const $panel = $(target).removeAttr('hidden');
+            $('.ac-date-panel').removeClass('show');
+            if (window.history.replaceState) window.history.replaceState(null, '', target);
+            // Lebar kolom dihitung ulang karena tabel dibuat saat panel masih tersembunyi.
+            $panel.find('table').each(function () {
+                if ($.fn.DataTable.isDataTable(this)) $(this).DataTable().columns.adjust();
+            });
+        }
 
         function initApprovalCard($card) {
             const kind = $card.data('ac-kind');
@@ -268,16 +327,15 @@
             $card.find('.ac-search-by').select2({ theme: 'bootstrap4', width: '100%', placeholder: 'Search By', closeOnSelect: false });
             if (kind === 'unlock' && String($card.data('ac-enabled')) !== '1') return;
 
-            const columns = kind === 'doc' ? docColumns() : unlockColumns();
+            const columns = kind === 'doc' ? docColumns() : unlockColumns(type);
             const table = $card.find('table').DataTable({
                 processing: true,
                 serverSide: true,
                 ordering: true,
                 order: [],
                 searching: false,
-                scrollX: true,
-                pageLength: 4,
-                lengthMenu: [[4, 10, 25, 50], [4, 10, 25, 50]],
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                 dom: 'rt<"d-flex justify-content-between align-items-center flex-wrap"<"d-flex align-items-center"li>p>',
                 language: {
                     lengthMenu: 'Item Per Page _MENU_',
@@ -399,7 +457,7 @@
         // Kolom pilih, timeline & nomor urut tidak bisa di-sort; kolom lain di-sort server-side lewat `name`.
         const fixedColumns = () => [
             { data: 'id', className: 'text-center', orderable: false, render: id => `<input type="checkbox" class="ac-row-check" value="${id}">` },
-            { data: null, className: 'text-center', orderable: false, render: () => '<button type="button" class="ac-timeline-toggle" aria-expanded="false" title="Lihat timeline"><i class="far fa-clock"></i></button>' },
+            { data: null, className: 'text-center', orderable: false, render: () => '<button type="button" class="ac-timeline-toggle" aria-expanded="false" title="Lihat timeline"><i class="fas fa-chevron-right"></i></button>' },
             { data: 'DT_RowIndex', className: 'text-center', orderable: false }
         ];
         const textColumn = (data, name) => ({ data: data, name: name, render: value => escapeHtml(value || '-') });
@@ -417,21 +475,39 @@
                 { data: 'qty', name: 'a.qty', className: 'text-right', render: acFormatNumber },
                 { data: 'cfm_price', name: 'a.cfm_price', className: 'text-right', render: acFormatNumber },
                 textColumn('product_group', 'p.product_group'),
-                textColumn('product_item', 'p.product_item')
+                textColumn('product_item', 'p.product_item'),
+                detailColumn(row => AC_ROUTES.costingDetail.replace(':id', row.id_costing))
             ]);
         }
 
-        function unlockColumns() {
+        // Kolom Action: ikon detail bulat, membuka halaman detail di tab baru.
+        const detailColumn = urlOf => ({
+            data: null, className: 'text-center', orderable: false,
+            render: (value, displayType, row) => `<a href="${urlOf(row)}" target="_blank" class="ac-detail-btn" title="Detail" aria-label="Detail"><i class="fas fa-info"></i></a>`
+        });
+
+        // Kolom sama dengan tabel Approval, hanya nomor dokumen (Costing/BOM/SO) yang berbeda, plus kolom Action (detail).
+        function unlockColumns(type) {
+            const detailUrl = row => type === 'so'
+                ? AC_ROUTES.soDetail.replace(':id', row.ref_id)
+                : AC_ROUTES.costingDetail.replace(':id', row.id_costing);
             return fixedColumns().concat([
+                { data: 'deldate', name: 'a.deldate', className: 'text-center', render: value => value ? `<span class="ac-date-badge">${acFormatDate(value)}</span>` : '-' },
                 textColumn('doc_no', 'doc_no'),
                 {
-                    data: 'doc_status', name: 'doc_status', render: (status, type, row) => `<span class="ac-badges">`
-                        + statusBadge('request', `Alasan: ${row.reason || '-'} · Diajukan ${row.requested_by || '-'} ${acFormatDate(row.requested_at)}`)
-                        + (status ? statusBadge(status) : '') + '</span>'
+                    data: 'doc_status', name: 'doc_status', render: (status, type, row) =>
+                        statusBadge('request', `Alasan: ${row.reason || '-'} · Diajukan ${row.requested_by || '-'} ${acFormatDate(row.requested_at)}`)
                 },
+                textColumn('kpno', 'a.kpno'),
                 textColumn('buyer', 'b.Supplier'),
                 textColumn('brand', 'a.brand'),
-                textColumn('product_item', 'p.product_item')
+                textColumn('styleno', 'a.styleno'),
+                textColumn('market', 'a.market'),
+                { data: 'qty', name: 'a.qty', className: 'text-right', render: acFormatNumber },
+                { data: 'cfm_price', name: 'a.cfm_price', className: 'text-right', render: acFormatNumber },
+                textColumn('product_group', 'p.product_group'),
+                textColumn('product_item', 'p.product_item'),
+                detailColumn(detailUrl)
             ]);
         }
 
@@ -482,7 +558,7 @@
         }
 
         function submitUnlock(type, ids, reload) {
-            const label = type === 'bom' ? 'BOM' : 'Costing';
+            const label = { bom: 'BOM', so: 'SO' }[type] || 'Costing';
             Swal.fire({
                 icon: 'question',
                 title: `Unlock ${ids.length} ${label}?`,

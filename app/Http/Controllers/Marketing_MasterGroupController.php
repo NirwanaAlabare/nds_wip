@@ -10,19 +10,17 @@ use Yajra\DataTables\Facades\DataTables;
 
 class Marketing_MasterGroupController extends Controller
 {
-    public const MATTYPES = ['A' => 'Accessories', 'F' => 'Fabric'];
 
     public function index(Request $request)
     {
         if ($request->ajax()) {
             $data = $this->db()->table('mastergroup')
                 ->where('cancel', 'N')
-                ->select('id', 'kode_group', 'nama_group', 'mattype')
+                ->select('id', 'kode_group', 'nama_group')
                 ->orderBy('id');
 
             return DataTables::of($data)
                 ->addIndexColumn()
-                ->addColumn('mattype_label', fn ($row) => self::MATTYPES[trim((string) $row->mattype)] ?? null)
                 ->make(true);
         }
 
@@ -31,7 +29,6 @@ class Marketing_MasterGroupController extends Controller
             'subPageGroup' => 'marketing-master-data',
             'subPage' => 'marketing-master-group',
             'containerFluid' => true,
-            'mattypes' => self::MATTYPES,
         ]);
     }
 
@@ -81,13 +78,11 @@ class Marketing_MasterGroupController extends Controller
         return $request->validate([
             'kode_group' => ['required', 'string', 'max:10', Rule::unique('mysql_sb.mastergroup', 'kode_group')->ignore($id)],
             'nama_group' => ['required', 'string', 'max:255'],
-            'mattype' => ['required', Rule::in(array_keys(self::MATTYPES))],
         ], [
             'kode_group.unique' => 'Group Code sudah dipakai.',
         ], [
             'kode_group' => 'Group Code',
             'nama_group' => 'Group Name',
-            'mattype' => 'Matt Type',
         ]);
     }
 

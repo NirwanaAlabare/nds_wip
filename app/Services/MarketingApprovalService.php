@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\DB;
  * Approval + lock/unlock Costing & BOM (Approval Center).
  * - Status approval : act_costing.app1 / bom_marketing.approval
  *                     (W/NULL = Awaiting, A/Y = Approved, R = Return to Staff, C = Cancel/ditolak)
- * - Unlock          : tabel unlock ERP (Costing -> unlock_cost, BOM -> unlock_jo per JO dari SO yang memakai BOM)
+ * - Unlock          : tabel unlock ERP (Costing -> unlock_cost, BOM -> unlock_jo per JO dari SO yang memakai BOM,
+ *                     SO -> unlock_so; SO tidak punya approval, jadi selalu terkunci kecuali di-unlock)
  *                     dengan kolom tambahan status (costing_legacy_columns.sql):
  *                     W = request (unlock_date masih NULL, jadi tidak dianggap unlock oleh native),
  *                     A = di-unlock manager (default, termasuk baris lama/native). Berlaku selama
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\DB;
 class MarketingApprovalService
 {
     public const TYPES = ['costing', 'bom'];
+    public const UNLOCK_TYPES = ['costing', 'bom', 'so'];
     public const ACTIONS = ['approve', 'return', 'cancel'];
     public const UNLOCK_WAITING = 'W';
     public const UNLOCK_APPROVED = 'A';
@@ -48,6 +50,12 @@ class MarketingApprovalService
             'awaiting_value' => null,
             'approve_columns' => ['approved_by', 'approved_at'],
         ],
+        'so' => [
+            'label' => 'SO',
+            'table' => 'so',
+            'number_column' => 'so_no',
+            'costing_column' => 'id_cost',
+        ],
     ];
 
     private const ACTION_VALUES = ['approve' => 'Y', 'return' => 'R', 'cancel' => 'C'];
@@ -63,6 +71,14 @@ class MarketingApprovalService
                 WHEN {$alias}.app1 = 'R' THEN 'return'
                 WHEN UPPER(TRIM(COALESCE({$alias}.app1, ''))) IN ('A', 'Y') THEN IF(" . self::costingUnlockedSql($alias) . ", 'unlocked', 'approved')
                 ELSE 'awaiting'
+            END)";
+        }
+
+        if ($type === 'so') {
+            return "(CASE
+                WHEN {$alias}.cancel_h = 'Y' THEN 'cancel'
+                WHEN {$alias}.id IN (SELECT id_so FROM unlock_so WHERE " . self::activeUnlockWhere() . ") THEN 'unlocked'
+                ELSE 'approved'
             END)";
         }
 
@@ -120,6 +136,9 @@ class MarketingApprovalService
         if ($type === 'costing') {
             return "({$idExpression} IN (SELECT id_cost FROM unlock_cost WHERE {$waiting}))";
         }
+        if ($type === 'so') {
+            return "({$idExpression} IN (SELECT id_so FROM unlock_so WHERE {$waiting}))";
+        }
 
         return "EXISTS(SELECT 1 FROM unlock_jo u
             WHERE u.{$waiting} AND u.id_jo IN (" . self::bomJoIdsSql($idExpression) . "))";
@@ -135,7 +154,7 @@ class MarketingApprovalService
 
     public function status(string $type, int $id): ?string
     {
-        $this->assertType($type);
+        $this->assertUnlockType($type);
 
         return $this->db()->table(self::CONFIG[$type]['table'] . ' as x')
             ->where('x.id', $id)
@@ -236,7 +255,7 @@ class MarketingApprovalService
      */
     public function requestUnlock(string $type, int $id, string $reason): void
     {
-        $this->assertType($type);
+        $this->assertUnlockType($type);
         $reason = mb_substr(trim($reason), 0, 100);
         $db = $this->db();
         $db->transaction(function () use ($db, $type, $id, $reason) {
@@ -261,6 +280,11 @@ class MarketingApprovalService
                     'id_cost' => $id,
                     'cost_no' => $this->number('costing', $id),
                 ]);
+            } elseif ($type === 'so') {
+                $db->table('unlock_so')->insert($request + [
+                    'id_so' => $id,
+                    'so_no' => $this->number('so', $id),
+                ]);
             } else {
                 $jos = $this->bomJobOrders($id);
                 if ($jos->isEmpty()) {
@@ -282,7 +306,7 @@ class MarketingApprovalService
      */
     public function unlock(string $type, array $ids): int
     {
-        $this->assertType($type);
+        $this->assertUnlockType($type);
         $db = $this->db();
 
         return $db->transaction(function () use ($db, $type, $ids) {
@@ -294,9 +318,11 @@ class MarketingApprovalService
             ];
             $processed = 0;
             foreach (array_unique(array_map('intval', $ids)) as $id) {
-                $query = $type === 'costing'
-                    ? $db->table('unlock_cost')->where('id_cost', $id)
-                    : $db->table('unlock_jo')->whereIn('id_jo', $this->bomJobOrders($id)->pluck('id'));
+                $query = match ($type) {
+                    'costing' => $db->table('unlock_cost')->where('id_cost', $id),
+                    'so' => $db->table('unlock_so')->where('id_so', $id),
+                    default => $db->table('unlock_jo')->whereIn('id_jo', $this->bomJobOrders($id)->pluck('id')),
+                };
                 if ($query->where('status', self::UNLOCK_WAITING)->update($approved) === 0) {
                     continue;
                 }
@@ -455,6 +481,24 @@ class MarketingApprovalService
         if (!in_array($type, self::TYPES, true)) {
             throw new \InvalidArgumentException('Tipe dokumen tidak valid.');
         }
+    }
+
+    private function assertUnlockType(string $type): void
+    {
+        if (!in_array($type, self::UNLOCK_TYPES, true)) {
+            throw new \InvalidArgumentException('Tipe dokumen tidak valid.');
+        }
+    }
+
+    /** Kondisi lock SO untuk halaman detail: locked | requested (W menunggu) | unlocked (A aktif) | cancel. */
+    public function soUnlockState(int $id): string
+    {
+        $status = $this->status('so', $id);
+        if ($status === 'approved' && $this->db()->selectOne('SELECT ' . self::pendingUnlockSql('so', '?') . ' as pending', [$id])->pending) {
+            return 'requested';
+        }
+
+        return $status === 'approved' ? 'locked' : (string) $status;
     }
 
     private function userName(): ?string

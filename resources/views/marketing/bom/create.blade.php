@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
@@ -103,6 +104,31 @@
             border-color: var(--sb-blue) !important;
             box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12) !important;
         }
+
+        /* Dropdown & input modal (Shell/Unit/Notes) sesuai mockup: tinggi 59, radius 12, border 1px, padding 16,
+           gap teks–panah 16, teks Poppins Medium 14 (placeholder #ABABAB, terisi hitam), focus border #284A63. */
+        .bom-modal-fields .form-control,
+        .bom-modal-fields .select2-container--bootstrap4 .select2-selection { height: 59px; min-height: 59px; border: 1px solid #e1e5e9; border-radius: 12px; background: #fff; box-shadow: none; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; line-height: 1; color: #000; }
+        .bom-modal-fields .form-control { padding: 0 16px; }
+        .bom-modal-fields .form-control::placeholder { color: #ababab; }
+        .bom-modal-fields .form-control:focus,
+        .bom-modal-fields .select2-container--bootstrap4.select2-container--focus .select2-selection,
+        .bom-modal-fields .select2-container--bootstrap4.select2-container--open .select2-selection { border-color: #284a63 !important; box-shadow: none !important; }
+        .bom-modal-fields .select2-container--bootstrap4 .select2-selection--single { display: flex; align-items: center; padding: 0 44px 0 16px; }
+        .bom-modal-fields .select2-container--bootstrap4 .select2-selection__rendered { padding: 0; color: #000; font-size: 14px; font-weight: 500; line-height: 1; }
+        .bom-modal-fields .select2-container--bootstrap4 .select2-selection__placeholder { color: #ababab; }
+        .bom-modal-fields .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { top: 50%; right: 16px; width: 12px; height: 12px; transform: translateY(-50%); }
+        .bom-modal-fields .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b { top: 50%; left: 50%; width: 8px; height: 8px; margin: -6px 0 0 -4px; border: solid #284a63; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+        .bom-modal-fields .select2-container--bootstrap4.select2-container--open .select2-selection--single .select2-selection__arrow b { margin-top: -2px; transform: rotate(-135deg); }
+        /* State 2: ada isi + hover/fokus = border navy dan tanda X untuk menghapus pilihan (allowClear), menggantikan chevron.
+           State 3: sudah terpilih & diam = border abu + chevron. */
+        .bom-modal-fields > [class*="col-"] .select2-container--bootstrap4 .select2-selection { position: relative; }
+        .bom-modal-fields > [class*="col-"] .select2-container--bootstrap4 .select2-selection__clear { display: none; position: absolute; top: 50%; right: 14px; z-index: 2; float: none; width: 18px; height: 18px; margin: 0; padding: 0; transform: translateY(-50%); color: #284a63; font-size: 20px; font-weight: 400; line-height: 18px; text-align: center; cursor: pointer; }
+        .bom-modal-fields > [class*="col-"] .select2-container--bootstrap4:not(.select2-container--disabled):is(:hover, .select2-container--focus, .select2-container--open) .select2-selection__clear { display: block; }
+        .bom-modal-fields > [class*="col-"] .select2-container--bootstrap4:not(.select2-container--disabled):is(:hover, .select2-container--focus, .select2-container--open) .select2-selection--single:has(.select2-selection__clear) .select2-selection__arrow { display: none; }
+        .bom-modal-fields > [class*="col-"] .select2-container--bootstrap4:not(.select2-container--disabled):hover .select2-selection:has(.select2-selection__clear) { border-color: #284a63; }
+        /* State 4: disabled / readonly / view only = label ikut pudar. */
+        .bom-modal-fields > [class*="col-"]:has(.select2-container--disabled) label, .bom-modal-fields > [class*="col-"]:has(.form-control:disabled) label, .bom-modal-fields > [class*="col-"]:has(.form-control[readonly]) label { color: #c4c4c4; }
 
         /* ============ SECTION CARD (pengelompokan) ============ */
         .form-section {
@@ -335,10 +361,10 @@
             font-size: 10px;
             text-align: center;
         }
+        /* Tinggi mengikuti jumlah color (tanpa scroll atas-bawah); scroll samping hanya bila size sangat banyak. */
         .bom-breakdown-wrap {
             overflow-x: auto;
-            overflow-y: auto;
-            max-height: 140px;
+            overflow-y: visible;
             margin: 0 10px 10px;
         }
         #bom-breakdown-table {
@@ -348,16 +374,11 @@
             table-layout: fixed;
         }
         #bom-breakdown-table thead th {
-            position: sticky;
-            top: 0;
-            z-index: 1;
             background: #294d68;
             color: #fff;
             white-space: nowrap;
         }
         #bom-breakdown-table tfoot th {
-            position: sticky;
-            bottom: 0;
             background: #e9f5ff;
             font-weight: 700;
             white-space: nowrap;
@@ -390,45 +411,52 @@
             background: #fff;
         }
         #section-list-item > .card-body { padding: 8px 12px 12px; background: #fff; }
+        /* Tab kategori sama dengan Edit Costing (.costing-category-tab). */
         #bom-content-tabs {
             flex-wrap: nowrap;
+            margin: 10px 0 6px;
             overflow-x: auto;
-            border-bottom: 1px solid #dce4ec;
+            border-bottom: 1px solid #e3e8ee;
         }
         #bom-content-tabs .nav-link {
-            padding: 8px 20px;
+            padding: 11px 20px;
             border: 0;
-            border-bottom: 2px solid transparent;
-            color: #9aa1a8;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        #bom-content-tabs .nav-link.active {
-            border-bottom-color: #294d68;
+            border-bottom: 3px solid transparent;
             background: transparent;
-            color: #294d68;
-            font-weight: 700;
+            color: #d3d3d3;
+            font-family: 'Poppins', sans-serif;
+            font-size: 25px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: color .15s ease;
+        }
+        #bom-content-tabs .nav-link:hover { color: #6f8799; }
+        #bom-content-tabs .nav-link.active {
+            border-bottom-color: #284a63;
+            background: transparent;
+            color: #284a63;
         }
         .bom-content-table {
-            min-width: 1250px;
+            width: 100% !important;
             margin-bottom: 0;
             font-size: 10px;
         }
         .bom-content-table thead th {
-            padding: 6px 8px;
+            padding: 6px 5px;
             border-color: #c9d9f2;
             background: #cfe0ff;
             color: #26394c;
             font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
-            white-space: nowrap;
+            white-space: normal;
             position: relative;
         }
         .bom-content-table thead th .bom-column-heading {
             display: inline-flex;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 4px;
+            gap: 2px 4px;
         }
         .bom-content-table thead th .bom-column-dot {
             width: 5px;
@@ -446,7 +474,7 @@
             font-size: 11px;
         }
         .bom-content-table tbody td {
-            padding: 5px 7px;
+            padding: 5px 5px;
             border-color: #e1e5ea;
             vertical-align: middle;
         }
@@ -469,9 +497,9 @@
             white-space: normal;
             overflow-wrap: anywhere;
         }
-        .bom-desc-cell { min-width: 260px; }
+        .bom-desc-cell { min-width: 100px; }
         .bom-desc-cell .bom-saved-item-value { max-width: 320px; }
-        .bom-supplier-cell { min-width: 150px; }
+        .bom-supplier-cell { min-width: 80px; }
         .bom-supplier-cell .bom-saved-item-value { max-width: 190px; }
 
         /* ============ GRID EDIT ALA EXCEL ============ */
@@ -522,7 +550,7 @@
             cursor: crosshair;
         }
         .bom-auto { background: #f1f5f9; margin: 0 -4px; padding: 2px 4px; }
-        .bom-item-delete {
+        .bom-item-delete:not(.mkt-icon-btn) {
             padding: 0 4px;
             border: 0;
             background: transparent;
@@ -530,8 +558,8 @@
             font-size: 10px;
             line-height: 14px;
         }
-        .bom-item-delete:hover { color: #991b1b; }
-        .bom-item-delete:disabled { opacity: .4; }
+        .bom-item-delete:not(.mkt-icon-btn):hover { color: #991b1b; }
+        .bom-item-delete:not(.mkt-icon-btn):disabled { opacity: .4; }
         .bom-legend {
             display: flex;
             flex-wrap: wrap;
@@ -551,7 +579,7 @@
             gap: 8px;
         }
         .bom-content-row > span { min-width: 0; }
-        .bom-content-add {
+        .bom-content-add:not(.mkt-icon-btn) {
             display: inline-flex !important;
             width: 25px;
             height: 25px;
@@ -566,12 +594,12 @@
             line-height: 1;
             box-shadow: none;
         }
-        .bom-content-add:hover,
-        .bom-content-add:focus {
+        .bom-content-add:not(.mkt-icon-btn):hover,
+        .bom-content-add:not(.mkt-icon-btn):focus {
             background: #1d3d70;
             color: #fff;
         }
-        .bom-content-add:disabled { opacity: .45; }
+        .bom-content-add:not(.mkt-icon-btn):disabled { opacity: .45; }
         #section-list-item .dataTables_scroll { width: 100%; }
         #section-list-item .dataTables_scrollHead,
         #section-list-item .dataTables_scrollBody { width: 100% !important; }
@@ -607,8 +635,33 @@
             cursor: pointer;
             text-align: center;
         }
-        #bom-modal-items select, #bom-modal-items input { min-width: 110px; }
+        #bom-modal-items select, #bom-modal-items input:not([type="checkbox"]) { min-width: 110px; }
+        #bom-modal-items input[type="checkbox"] { width: 16px; min-width: 0; height: 16px; margin: 0; vertical-align: middle; }
+        #bom-modal-items th:first-child, #bom-modal-items td:first-child { width: 40px; text-align: center; }
         #bom-modal-items .select2-container { min-width: 280px; }
+        /* Summary Detail tetap muat di layar yang lebih sempit: padding & huruf dikecilkan bertahap. */
+        @media (max-width: 1280px) {
+            .bom-content-table thead th, .bom-content-table tbody td { padding-left: 3px; padding-right: 3px; }
+            .bom-content-table thead th { font-size: 8px; }
+            .bom-content-table thead th .bom-column-edit { font-size: 9px; }
+        }
+        @media (max-width: 1100px) {
+            .bom-content-table { font-size: 9px; }
+        }
+        @media (max-width: 1199.98px) {
+            /* Kolom hitungan otomatis & PRICE COSTING disembunyikan (hanya CSS, sel tetap ada sehingga index kolom grid tidak berubah). */
+            .bom-content-table tr > :nth-child(10), .bom-content-table tr > :nth-child(12),
+            .bom-content-table tr > :nth-child(13), .bom-content-table tr > :nth-child(14),
+            .bom-content-table tr > :nth-child(17) { display: none; }
+            .bom-desc-cell { min-width: 80px; }
+            .bom-supplier-cell { min-width: 70px; }
+        }
+        @media (max-width: 800px) {
+            .bom-desc-cell, .bom-supplier-cell { min-width: 0; }
+            .bom-content-table { font-size: 8.5px; }
+            #section-list-item > .card-body { padding-left: 4px; padding-right: 4px; }
+            .bom-content-table thead th, .bom-content-table tbody td { padding-left: 2px; padding-right: 2px; }
+        }
         @media (max-width: 991.98px) {
             .bom-summary-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
             .bom-top-layout { grid-template-columns: 1fr; }
@@ -617,14 +670,70 @@
         @media (max-width: 575.98px) {
             .bom-summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             #section-list-item > .card-body { padding: 6px; }
-            #bom-content-tabs .nav-link { padding: 8px 12px; }
-            .bom-content-table { min-width: 1000px; }
+            #bom-content-tabs .nav-link { padding: 8px 12px; font-size: 18px; }
         }
 
         .bom-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #294d68; color: #b4b4b4; font-size: 16px; font-weight: 500; }
         .bom-breadcrumb a { color: #b4b4b4; text-decoration: none; }
         .bom-breadcrumb a:hover { color: #fff; text-decoration: underline; }
         .bom-breadcrumb strong { color: #fff; font-weight: 500; }
+
+        /* Ukuran teks disamakan dengan SO create (so-page-heading, so-summary-card, so-overview-*, so-section-toggle). */
+        #form-bom { font-family: 'Poppins', sans-serif; }
+        .bom-page-heading { margin-bottom: 14px; }
+        .bom-page-heading h1 { margin: 0; color: #284a63; font-size: 32px; font-weight: 700; letter-spacing: 0; }
+        .bom-page-heading h1 i { font-size: 11px; vertical-align: middle; }
+        .bom-page-heading p { margin: 4px 0 0; color: #284a63; font-size: 12px; font-weight: 600; }
+        .bom-page-heading p i { margin-right: 6px; color: #a3b2c7; }
+        .bom-summary-card { min-height: 76px; padding: 10px 14px; }
+        .bom-summary-card span { margin-bottom: 4px; color: #9e9e9e; font-size: 20px; }
+        .bom-summary-card strong { margin-top: 0; font-size: 24px; font-weight: 600; }
+        .bom-overview-title { padding: 9px 0 7px; color: #616161; font-size: 16px; font-weight: 500; }
+        .bom-overview-grid { column-gap: 22px; padding: 8px 12px 10px; }
+        .bom-summary-item { min-height: 33px; }
+        .bom-summary-item span { color: #9e9e9e; font-size: 18px; font-weight: 400; }
+        .bom-summary-item strong { font-size: 18px; font-weight: 600; }
+        #section-list-item > .card-header .card-title { color: #284a63; font-size: 16px; font-weight: 500; }
+        /* Checkbox sesuai mockup: 16x16, radius 4. Kosong = putih border abu (hover: centang samar),
+           checked/indeterminate = #284A63 + ikon putih, focus = cincin biru muda. */
+        input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
+        input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):indeterminate { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' d='M3 6h6'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):focus { outline: 0; }
+        input[type="checkbox"]:not(.custom-control-input):focus-visible { box-shadow: 0 0 0 4px #b3daf7; }
+        input[type="checkbox"]:not(.custom-control-input):disabled { opacity: .5; cursor: not-allowed; }
+
+        /* Carousel gambar (coverflow): semua gambar dirender sekali di satu panggung. Pindah gambar hanya mengubah posisi &
+           skala dengan transition CSS (gambar benar-benar bergeser, tanpa ganti src), jadi gerakannya halus.
+           Aktif = besar di tengah, sebelum/sesudah = kecil di samping (klik untuk pindah), titik aktif memanjang. */
+        .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 200px; overflow: hidden; }
+        .mkt-cf-stage > .mkt-cf-main, .mkt-cf-stage > .mkt-cf-side { display: none !important; }
+        .mkt-cf-stage > img.mkt-cf-item { position: absolute; top: 50%; left: 50%; max-width: 46%; max-height: 100%; object-fit: contain; cursor: pointer; will-change: transform, opacity; transition: transform .55s cubic-bezier(.22, .61, .36, 1), opacity .55s ease; }
+        .mkt-cf-stage > img.mkt-cf-item.is-active { cursor: default; }
+        .mkt-cf-stage > img.mkt-cf-item.is-far { opacity: 0 !important; pointer-events: none; }
+        .mkt-cf-dots { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 10px; min-height: 4px; }
+        .mkt-cf-dot { width: 6px; height: 4px; padding: 0; border: 0; border-radius: 2px; background: #d9dee5; cursor: pointer; transition: width .3s ease, background-color .3s ease; }
+        .mkt-cf-dot.is-active { width: 16px; background: #1d6fd8; }
+        @media (prefers-reduced-motion: reduce) { .mkt-cf-stage > img.mkt-cf-item { transition: none; } }
+        .bom-image-review .mkt-cf-stage { flex: 1; min-width: 0; }
+
+        /* Banner "N fields are empty" (sama seperti Costing). */
+        .mkt-error-alert { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 12px; border-radius: 4px; background: #ff5f5f; color: #fff; font-family: Inter, sans-serif; font-size: 13px; }
+        .mkt-error-alert[hidden] { display: none; }
+        .mkt-error-alert > span { flex: 1; }
+        .mkt-error-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #fff; font-size: 16px; line-height: 1; }
+        /* Modal Add Items: field kosong merah + "Required" (sama seperti Costing). */
+        .bom-modal-fields .is-invalid label { color: #c8161d; }
+        .bom-modal-fields .is-invalid .select2-container--bootstrap4 .select2-selection { border-color: #c8161d !important; color: #c8161d; }
+        .bom-modal-fields .is-invalid .select2-selection__rendered,
+        .bom-modal-fields .is-invalid .select2-selection__placeholder { color: #c8161d !important; }
+        .bom-modal-fields .is-invalid .select2-selection__arrow b { border-color: #c8161d; }
+        .bom-modal-fields .is-invalid::after { content: 'Required'; display: block; margin-top: 4px; color: #c8161d; font-size: 13px; font-weight: 500; }
+        #bom-modal-items td.is-invalid .select2-container--bootstrap4 .select2-selection,
+        #bom-modal-items td.is-invalid .form-control { border-color: #c8161d !important; }
+        #bom-modal-items td.is-invalid .select2-selection__placeholder { color: #c8161d !important; }
+        #bom-modal-items td.is-invalid::after { content: 'Required'; display: block; margin-top: 2px; color: #c8161d; font-size: 11px; font-weight: 500; text-align: left; }
     </style>
 @endsection
 
@@ -633,18 +742,18 @@
     @csrf
 
     <div class="card card-primary ">
-        <div class="bom-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <strong>Create BOM</strong></div>
-        <div class="card-header bg-sb bom-create-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">Create BOM</h5>
-                    <br>
-                    <small class="text-muted"><i class="fas fa-info-circle"></i> Unit: Menambahkan BOM</small>
-                </div>
-                <input type="hidden" name="id_costing" id="id_costing" value="{{ $selectedCostingId }}">
-            </div>
-        </div>
+        {{-- Breadcrumb + judul di atas body card, sama seperti SO create. --}}
         <div class="card-body">
+            <div class="bom-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <strong>{{ $isEditBom ? 'Edit BOM' : 'Create BOM' }}</strong></div>
+            <div class="bom-page-heading">
+                <h1>{{ $isEditBom ? 'Edit BOM' : 'Create BOM' }} <i class="far fa-question-circle"></i></h1>
+                <p><i class="fas fa-cog"></i>{{ $isEditBom ? 'Untuk Mengubah Data BOM' : 'Untuk Menambah Data BOM' }}</p>
+            </div>
+            <div class="mkt-error-alert" id="bom-error-alert" role="alert" hidden>
+                <i class="fas fa-exclamation-circle"></i><span></span>
+                <button type="button" class="mkt-error-alert-close" aria-label="Tutup" onclick="this.parentElement.hidden = true"><i class="far fa-times-circle"></i></button>
+            </div>
+            <input type="hidden" name="id_costing" id="id_costing" value="{{ $selectedCostingId }}">
             <div class="bom-summary-cards" aria-label="Ringkasan BOM">
                 <div class="bom-summary-card"><span>No Costing</span><strong id="bom-summary-costing">{{ $selectedCostingNo }}</strong></div>
                 <div class="bom-summary-card"><span>No Worksheet</span><strong id="bom-summary-worksheet">-</strong></div>
@@ -691,14 +800,15 @@
                         <h2 class="bom-overview-title">Review Image</h2>
                         <div class="bom-image-review">
                             <button type="button" class="bom-image-nav" id="bom-image-prev" aria-label="Previous image" disabled><i class="fas fa-chevron-left"></i></button>
-                            <div class="bom-image-preview">
-                                <img id="bom-preview-image" src="" alt="Preview gambar Costing" hidden>
+                            <div class="bom-image-preview mkt-cf-stage">
+                                <img class="mkt-cf-side is-prev is-empty" alt="Gambar sebelumnya">
+                                <img id="bom-preview-image" class="mkt-cf-main" src="" alt="Preview gambar Costing" hidden>
                                 <span id="bom-image-empty">Informasi gambar Costing belum tersedia.</span>
+                                <img class="mkt-cf-side is-next is-empty" alt="Gambar berikutnya">
                             </div>
                             <button type="button" class="bom-image-nav" id="bom-image-next" aria-label="Next image" disabled><i class="fas fa-chevron-right"></i></button>
                         </div>
-                        <div class="bom-image-thumbnails" id="bom-image-thumbnails"></div>
-                        <div class="bom-image-counter" id="bom-image-counter"></div>
+                        <div class="bom-image-counter mkt-cf-dots" id="bom-image-counter"></div>
                     </section>
                     <section class="bom-overview-section">
                         <h2 class="bom-overview-title">Breakdown Order</h2>
@@ -736,7 +846,7 @@
                 <span><i class="bom-column-dot" style="background:#2878ee"></i>SO</span>
                 <span><i class="bom-column-dot" style="background:#f59e0b"></i>Input</span>
                 <span><i class="bom-column-dot" style="background:#94a3b8"></i>Auto</span>
-                <button type="button" class="btn btn-sm btn-outline-danger ml-auto" id="bom-delete-selected" disabled>
+                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--sm ml-auto" id="bom-delete-selected" disabled>
                     <i class="fas fa-trash" style="font-size:10px;"></i> Hapus item terpilih <span id="bom-delete-selected-count"></span>
                 </button>
             </div>
@@ -754,11 +864,11 @@
     </section>
 
     <div class="d-flex justify-content-end gap-2 mt-4 mb-4">
-        <a href="{{ route('master-bom') }}" class="btn btn-danger px-4" style="border-radius: 8px;">Cancel</a>
+        <a href="{{ route('master-costing') }}" class="mkt-btn mkt-btn--red mkt-btn--cancel">Cancel</a>
         <span id="bom-pending-sync" class="align-self-center small text-warning mr-2" hidden>
             {{-- <i class="fas fa-exclamation-circle"></i> Ada perubahan yang belum disimpan --}}
         </span>
-        <button type="submit" class="btn btn-success px-4" id="bom-grid-save" style="border-radius: 8px;">Save</button>
+        <button type="submit" class="mkt-btn mkt-btn--green ml-2" id="bom-grid-save">Save</button>
     </div>
 </form>
 
@@ -770,10 +880,14 @@
                 <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
+                <div class="mkt-error-alert" id="bom-modal-error-alert" role="alert" hidden>
+                    <i class="fas fa-exclamation-circle"></i><span></span>
+                    <button type="button" class="mkt-error-alert-close" aria-label="Tutup" onclick="this.parentElement.hidden = true"><i class="far fa-times-circle"></i></button>
+                </div>
                 <div class="mb-3">
                     <span class="badge badge-primary">1</span>
                     <strong>Definition Item</strong>
-                    <div class="row mt-2">
+                    <div class="row mt-2 bom-modal-fields">
                         <div class="col-md-4">
                             <label for="bom-modal-shell">Shell</label>
                             <select id="bom-modal-shell" class="form-control bom-modal-select2">
@@ -832,7 +946,7 @@
                         <div style="width: 130px;">
                             <input type="text" inputmode="decimal" id="bom-batch-cons" class="form-control form-control-sm" placeholder="Cons/PC">
                         </div>
-                        <button type="button" class="btn btn-sm btn-primary" id="bom-batch-update-btn">Update</button>
+                        <button type="button" class="mkt-btn mkt-btn--green mkt-btn--sm" id="bom-batch-update-btn">Update</button>
                     </div>
 
                     <div class="table-responsive mt-2">
@@ -856,8 +970,8 @@
                 <input type="hidden" id="bom-modal-supplier">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="bom-modal-save"><i class="fas fa-save"></i> Save</button>
+                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="mkt-btn mkt-btn--green ml-2" id="bom-modal-save">Save</button>
             </div>
         </div>
     </div>
@@ -927,7 +1041,7 @@
         $(document).on('shown.bs.tab', '#bom-content-tabs [data-bs-toggle="tab"]', function(event) {
             const pane = $(event.target).attr('href');
             const $table = $(pane).find('.bom-content-table');
-            initializeBomContentTable($table);
+            console.log('Tab shown:', pane, $table.length);
             if ($.fn.DataTable.isDataTable($table)) {
                 $table.DataTable().columns.adjust().draw(false);
             }
@@ -943,7 +1057,14 @@
         $('#bom-modal-save').on('click', saveBomJoItems);
         initializeBomGridEvents();
         // Semua dropdown di modal memakai select2; dropdownParent wajib agar kotak cari bisa diketik di dalam modal.
-        $('.bom-modal-select2').select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $('#bom-item-modal') });
+        // Shell/Unit di Definition Item: allowClear = tanda X untuk menghapus pilihan (state 2).
+        $('.bom-modal-select2').each(function () {
+            const clearable = $(this).closest('.bom-modal-fields').length > 0 && $(this).find('option[value=""]').length > 0;
+            $(this).select2(Object.assign({ theme: 'bootstrap4', width: '100%', dropdownParent: $('#bom-item-modal') }, clearable ? {
+                allowClear: true,
+                placeholder: $(this).find('option[value=""]').first().text()
+            } : {}));
+        });
         $(document).on('select2:open', function() {
             const search = document.querySelector('.select2-container--open .select2-search__field');
             if (search) search.focus();
@@ -986,29 +1107,77 @@
         }
     });
 
+    // Carousel coverflow: semua gambar dirender sekali; pindah gambar hanya menggeser & menskala (transition CSS).
+    // Sebelum/sesudah tidak berputar: di gambar pertama sisi kiri kosong, di gambar terakhir sisi kanan kosong.
+    function paintCoverflow($stage, urls, active, goTo) {
+        const stage = $stage[0];
+        if (!stage) return;
+        let $items = $stage.children('img.mkt-cf-item');
+        const key = urls.join('\n');
+        let fresh = false;
+        if ($stage.data('cfKey') !== key) {
+            $items.remove();
+            $items = $(urls.map((url, index) => $('<img class="mkt-cf-item" alt="">').attr('src', url)
+                .on('click', () => $stage.data('cfGoTo')(index))[0]));
+            $stage.append($items).data('cfKey', key);
+            fresh = true;
+        }
+        $stage.data({ cfGoTo: goTo, cfActive: active, cfUrls: urls });
+        const gap = stage.clientWidth * 0.36;
+        $items.each(function (index) {
+            const offset = index - active, far = Math.abs(offset) > 1;
+            const x = Math.max(-2, Math.min(2, offset)) * gap;
+            const scale = offset === 0 ? 1 : (far ? 0.4 : 0.55);
+            if (fresh) this.style.transition = 'none'; // posisi awal tanpa animasi
+            this.style.transform = `translate(-50%, -50%) translateX(${x}px) scale(${scale})`;
+            this.style.zIndex = String(10 - Math.min(Math.abs(offset), 9));
+            this.style.opacity = offset === 0 ? '1' : '0.85';
+            $(this).toggleClass('is-active', offset === 0).toggleClass('is-far', far);
+        });
+        if (fresh) { void stage.offsetWidth; $items.css('transition', ''); }
+        // Hitung ulang posisi saat ukuran panggung berubah (resize, atau bagian yang tadinya tersembunyi dibuka).
+        if (!$stage.data('cfObserver') && window.ResizeObserver) {
+            const observer = new ResizeObserver(() => {
+                const urlsNow = $stage.data('cfUrls');
+                if (urlsNow) paintCoverflow($stage, urlsNow, $stage.data('cfActive'), $stage.data('cfGoTo'));
+            });
+            observer.observe(stage);
+            $stage.data('cfObserver', observer);
+        }
+    }
+    function paintCoverflowDots($dots, count, active, goTo) {
+        $dots.empty();
+        if (count < 2) return;
+        for (let i = 0; i < count; i++) {
+            $('<button type="button" class="mkt-cf-dot"></button>')
+                .toggleClass('is-active', i === active)
+                .attr('aria-label', `Gambar ${i + 1}`)
+                .on('click', () => goTo(i))
+                .appendTo($dots);
+        }
+    }
+
     function renderBomCostingImage() {
         let hasImages = bomCostingImages.length > 0;
         $('#bom-image-empty').text(hasImages ? '' : 'Gambar Costing tidak tersedia.')
             .prop('hidden', hasImages);
         $('#bom-preview-image').prop('hidden', !hasImages);
-        $('#bom-image-counter').text(hasImages ? `${bomSelectedImage + 1} / ${bomCostingImages.length}` : '');
         $('#bom-image-prev, #bom-image-next').prop('disabled', bomCostingImages.length < 2);
+        const $stage = $('#bom-preview-image').closest('.mkt-cf-stage');
 
         if (!hasImages) {
             $('#bom-preview-image').attr('src', '');
-            $('#bom-image-thumbnails').empty();
+            paintCoverflow($stage, [], 0, $.noop);
+            paintCoverflowDots($('#bom-image-counter'), 0, 0, $.noop);
             return;
         }
 
         bomSelectedImage = (bomSelectedImage + bomCostingImages.length) % bomCostingImages.length;
         $('#bom-preview-image').attr('src', bomCostingImages[bomSelectedImage]);
-        let thumbnailsHtml = '';
-        bomCostingImages.forEach(function(image, index) {
-            thumbnailsHtml += `<button type="button" class="bom-image-thumbnail ${index === bomSelectedImage ? 'is-active' : ''}" data-image-index="${index}" aria-label="Tampilkan gambar ${index + 1}">
-                <img src="${image}" alt="">
-            </button>`;
-        });
-        $('#bom-image-thumbnails').html(thumbnailsHtml);
+        // Thumbnail diganti coverflow: gambar sebelum/sesudah tampil di samping, titik di bawah.
+        const goTo = index => { bomSelectedImage = index; renderBomCostingImage(); };
+        paintCoverflow($stage, bomCostingImages, bomSelectedImage, goTo);
+        paintCoverflowDots($('#bom-image-counter'), bomCostingImages.length, bomSelectedImage, goTo);
     }
 
     function loadBomCostingOverview() {
@@ -1200,7 +1369,7 @@
     }
 
     function renderBomContents(contents, savedItems) {
-        const categories = ['Fabric', 'Accessories Sewing', 'Accessories Packing', 'Other Cost'];
+        const categories = ['Fabric', 'Accessories Sewing', 'Accessories Packing'];
         bomContentTables.forEach(function(table) {
             if ($.fn.DataTable.isDataTable(table)) $(table).DataTable().destroy();
         });
@@ -1264,14 +1433,14 @@
                         title: content.content_id
                             ? 'Tambah item BOM untuk content ini'
                             : 'Other Cost tidak bisa ditambahkan item BOM'
-                    }).addClass('btn btn-sm btn-primary bom-content-add')
+                    }).addClass('mkt-icon-btn mkt-btn--navy bom-content-add')
                         .append($('<i>').addClass('fas fa-plus'))
                         .data('content', content);
                     if (!content.content_id) $button.prop('disabled', true);
 
                     const $description = $('<td>').addClass('bom-desc-cell bom-wrap-cell').text('-');
-                    const $colorMaterials = $('<td>').text('-');
-                    const $shell = $('<td>').text('-');
+                    const $colorMaterials = $('<td>').addClass('bom-wrap-cell').text('-');
+                    const $shell = $('<td>').addClass('bom-wrap-cell').text('-');
                     const $origQty = $('<td>').addClass('text-right').text('-');
                     const $cons = $('<td>').addClass('text-right').text('-');
                     const $consUnit = $('<td>').text('-');
@@ -1308,7 +1477,7 @@
                                 title: `Hapus item ${item.size_name || 'ALL'} / ${item.color_name || 'ALL'}`,
                                 'data-id': id,
                                 'data-label': `${content.content_name || '-'} (${item.size_name || 'ALL'} / ${item.color_name || 'ALL'})`
-                            }).addClass('bom-item-delete').append($('<i>').addClass('fas fa-trash'))
+                            }).addClass('mkt-icon-btn mkt-btn--red bom-item-delete').append($('<i>').addClass('fas fa-trash'))
                         );
                     });
 
@@ -1413,7 +1582,7 @@
             ordering: false,
             searching: false,
             responsive: false,
-            scrollX: true,
+            scrollX: false,
             pageLength: 4,
             lengthMenu: [[4, 10, 25, 50], [4, 10, 25, 50]],
             dom: 'rt<"d-flex justify-content-between align-items-center flex-wrap"<"d-flex align-items-center"li>p>',
@@ -2030,9 +2199,12 @@
     function saveBomGridChanges() {
         commitBomEdit();
         if (hasBomGridErrors()) {
-            Swal.fire('Data belum valid', 'Perbaiki sel bertanda merah. Cons/PC harus lebih dari 0, Loss % antara 0-100, Price tidak boleh minus, Unit wajib dipilih, dan Unit/Supplier harus sesuai master.', 'warning');
+            const count = Array.from(bomGridState.values()).reduce((total, record) => total + record.errors.size, 0);
+            showMktErrorAlert('#bom-error-alert', count, count + (count === 1 ? ' cell is' : ' cells are')
+                + ' not valid. Fix the red cells (Cons/PC > 0, Loss % 0-100, Price not negative, Unit/Supplier from master), then save again.');
             return;
         }
+        $('#bom-error-alert').prop('hidden', true);
         if (!bomSavedItems.length && !bomPendingSync) {
             Swal.fire('Belum ada item', 'Tambahkan item BOM melalui tombol + pada content terlebih dahulu.', 'warning');
             return;
@@ -2234,24 +2406,50 @@
             return;
         }
         const $rows = $checked.closest('tr');
-        if (idItem) $rows.find('.bom-modal-item-select').val(idItem).trigger('change.select2');
-        if (cons !== null) $rows.find('.bom-modal-qty').val(cons);
-        $rows.removeClass('table-danger');
+        if (idItem) $rows.find('.bom-modal-item-select').val(idItem).trigger('change.select2').closest('td').removeClass('is-invalid');
+        if (cons !== null) $rows.find('.bom-modal-qty').val(cons).trigger('input');
     }
+
+    // Banner merah di atas form: "N fields are empty. Fill them in, then save again."
+    function showMktErrorAlert(selector, count, text) {
+        const $alert = $(selector);
+        $alert.find('span').text(text || (count + (count === 1 ? ' field is' : ' fields are') + ' empty. Fill them in, then save again.'));
+        $alert.prop('hidden', count === 0);
+        if (count > 0) $alert[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Isian modal yang sudah diisi: merahnya hilang dan jumlah di banner berkurang.
+    $(document).on('change input', '#bom-item-modal .is-invalid :input', function () {
+        const $cell = $(this).closest('.is-invalid');
+        const value = $(this).val();
+        const filled = $(this).hasClass('bom-modal-qty') ? Number(value) > 0 : String(value || '').trim() !== '';
+        if (!filled) return;
+        $cell.removeClass('is-invalid');
+        const count = $('#bom-item-modal .is-invalid').length;
+        const $alert = $('#bom-modal-error-alert');
+        if (!$alert.prop('hidden')) {
+            $alert.find('span').text(count + (count === 1 ? ' field is' : ' fields are') + ' empty. Fill them in, then save again.');
+            $alert.prop('hidden', count === 0);
+        }
+    });
 
     function saveBomJoItems() {
         const rule = $('input[name="bom-modal-rule"]:checked').val();
         const items = [];
         let invalid = false;
+        let emptyCount = 0;
         $('#bom-modal-items tbody tr').each(function() {
             const idItem = $(this).find('.bom-modal-item-select').val();
             const qty = Number($(this).find('.bom-modal-qty').val());
-            if (!idItem || !Number.isFinite(qty) || qty <= 0) {
+            const itemEmpty = !idItem;
+            const qtyEmpty = !Number.isFinite(qty) || qty <= 0;
+            $(this).find('.bom-modal-item-select').closest('td').toggleClass('is-invalid', itemEmpty);
+            $(this).find('.bom-modal-qty').closest('td').toggleClass('is-invalid', qtyEmpty);
+            if (itemEmpty || qtyEmpty) {
                 invalid = true;
-                $(this).addClass('table-danger');
+                emptyCount += itemEmpty + qtyEmpty;
                 return;
             }
-            $(this).removeClass('table-danger');
             items.push({
                 id_item: idItem,
                 qty: qty,
@@ -2261,10 +2459,17 @@
         });
 
         const unit = $('#bom-modal-unit').val();
+        $('#bom-modal-unit').closest('.col-md-4').toggleClass('is-invalid', !unit);
+        if (!unit) emptyCount++;
         if (invalid || !items.length || !unit) {
-            Swal.fire('Data belum lengkap', 'Pilih item, isi Cons/PC lebih dari 0, dan pilih Unit untuk setiap baris.', 'warning');
+            if (!emptyCount && !items.length) {
+                Swal.fire('Belum ada item', 'Tidak ada baris item untuk disimpan.', 'warning');
+                return;
+            }
+            showMktErrorAlert('#bom-modal-error-alert', emptyCount);
             return;
         }
+        $('#bom-modal-error-alert').prop('hidden', true);
 
         $('#bom-modal-save').prop('disabled', true);
         $.ajax({

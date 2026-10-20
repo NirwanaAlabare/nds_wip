@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Yajra\DataTables\Facades\DataTables;
 
 /**
  * Marketing > Master > Master Content & Item.
@@ -107,35 +106,44 @@ class Marketing_MasterContentController extends Controller
         return response()->json(['status' => 200, 'message' => 'Content berhasil dihapus.']);
     }
 
-    /** Tabel List Item (DataTables), opsional difilter per content. */
-    public function items(Request $request)
+    private const SEARCH_COLUMNS = [
+        'group' => ['g.nama_group', 'g.kode_group'],
+        'content' => ['c.nama_contents'],
+        'item' => ['i.itemdesc', 'i.size', 'i.color'],
+    ];
+
+    /**
+     * Tabel Content & Items: 1 baris per item yang punya nama (content tanpa item tidak tampil). Paging di server.
+     */
+    public function rows(Request $request)
     {
-        $data = $this->db()->table('masteritem as i')
-            ->join('mastercontents as c', 'c.id', '=', 'i.id_contents')
-            ->join('mastergroup as g', 'g.id', '=', 'c.id_group')
-            ->where('i.cancel', 'N')
-            ->where('c.cancel', 'N')
-            ->select(
-                'i.id_item', 'i.id_contents', 'i.itemdesc', 'i.size', 'i.color', 'i.kd_satuan',
-                'i.width', 'i.length', 'i.gramasi',
-                'c.nama_contents as nm_contents', 'c.id_group', 'g.kode_group', 'g.nama_group', 'g.mattype'
-            );
-        if ($request->filled('id_contents')) {
-            $data->where('i.id_contents', (int) $request->id_contents);
-        }
+        $perPage = in_array((int) $request->per_page, [10, 25, 50, 100], true) ? (int) $request->per_page : 10;
+        $query = $this->activeContents()
+            ->join('masteritem as i', fn ($join) => $join->on('i.id_contents', '=', 'c.id')->where('i.cancel', 'N'))
+            ->whereRaw("TRIM(COALESCE(i.itemdesc, '')) <> ''");
+
         $keyword = trim((string) $request->keyword);
         if ($keyword !== '') {
-            $data->where(fn ($q) => $q->where('i.itemdesc', 'like', "%{$keyword}%")
-                ->orWhere('i.color', 'like', "%{$keyword}%")
-                ->orWhere('i.size', 'like', "%{$keyword}%")
-                ->orWhere('c.nama_contents', 'like', "%{$keyword}%"));
+            // search_by[] = group/content/item yang dicentang; kosong = semua kolom.
+            $fields = array_intersect((array) $request->input('search_by', []), array_keys(self::SEARCH_COLUMNS)) ?: array_keys(self::SEARCH_COLUMNS);
+            $columns = array_merge(...array_values(array_intersect_key(self::SEARCH_COLUMNS, array_flip($fields))));
+            $query->where(function ($q) use ($columns, $keyword) {
+                foreach ($columns as $column) {
+                    $q->orWhere($column, 'like', "%{$keyword}%");
+                }
+            });
         }
-        $data->orderByDesc('i.id_item');
 
-        return DataTables::of($data)
-            ->addIndexColumn()
-            ->addColumn('mattype_label', fn ($row) => Marketing_MasterGroupController::MATTYPES[trim((string) $row->mattype)] ?? null)
-            ->make(true);
+        $total = (clone $query)->count();
+        $page = min(max(1, (int) $request->page), max(1, (int) ceil($total / $perPage)));
+        $rows = $query->orderBy('g.id')->orderBy('c.nama_contents')->orderBy('i.id_item')
+            ->forPage($page, $perPage)
+            ->get([
+                'c.id as id_contents', 'c.id_group', 'c.id_type', 'c.nama_contents as nm_contents', 'g.nama_group',
+                'i.id_item', 'i.itemdesc', 'i.size', 'i.color', 'i.kd_satuan', 'i.width', 'i.length', 'i.gramasi',
+            ]);
+
+        return response()->json(['total' => $total, 'page' => $page, 'per_page' => $perPage, 'rows' => $rows]);
     }
 
     public function storeItem(Request $request)

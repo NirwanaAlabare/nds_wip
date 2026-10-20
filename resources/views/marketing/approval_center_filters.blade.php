@@ -6,7 +6,7 @@
         <input type="date" class="form-control ac-date-from">
         <label class="mb-1 mt-2">Sampai</label>
         <input type="date" class="form-control ac-date-to">
-        <button type="button" class="btn btn-sm btn-primary btn-block mt-2 ac-date-apply">Terapkan</button>
+        <button type="button" class="mkt-btn mkt-btn--green mkt-btn--sm w-100 mt-2 ac-date-apply">Terapkan</button>
     </div>
 </div>
 <div class="ac-search-by-wrap">
