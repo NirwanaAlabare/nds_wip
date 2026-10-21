@@ -203,7 +203,7 @@ class ExportImportController extends Controller
                                 WHEN fil_aju IN (33) THEN (fob * ndpbm)
                 ELSE '0'
                 END AS cif_rupiah, kode_satuan
-                from (SELECT nomor_aju, LEFT(nomor_aju,6) + 0 fil_aju, kode_barang,uraian,jumlah_satuan,kode_satuan, cif,cif_rupiah,harga_satuan,ndpbm, fob, harga_penyerahan FROM exim_barang) a
+                from (SELECT nomor_aju, fil_aju, kode_barang,uraian,jumlah_satuan,kode_satuan, cif,cif_rupiah,harga_satuan,ndpbm, fob, harga_penyerahan FROM (select eb.*, (select MAX(eh.kode_dokumen) from exim_header eh where eh.nomor_aju = eb.nomor_aju) + 0 fil_aju from exim_barang eb) exim_barang) a
                 ) b ON b.nomor_aju=a.nomor_aju
                 ) a GROUP BY a.no_daftar, a.nomor_aju, kode_satuan) a LEFT JOIN
                 (SELECT *
@@ -220,7 +220,7 @@ INNER JOIN exim_header b
 WHERE
 (
     (
-        (LEFT(b.nomor_aju,6)+0) = 27
+        (b.kode_dokumen+0) = 27
         AND
         (
             -- Prioritas 1 : 3,3,6
@@ -245,12 +245,13 @@ WHERE
                       AND x.seri = '3'
                       AND x.kode_entitas = '3'
                       AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                 )
             )
 
             OR
 
-            -- Terakhir : 8,8,6
+            -- Berikutnya : 8,8,6
             (
                 a.seri = '8'
                 AND a.kode_entitas = '8'
@@ -263,6 +264,25 @@ WHERE
                       AND x.seri = '3'
                       AND x.kode_entitas IN ('3','8')
                       AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
+                )
+            )
+
+            OR
+
+            -- Terakhir : 1,3,6
+            (
+                a.seri = '1'
+                AND a.kode_entitas = '3'
+                AND a.kode_jenis_identitas = '6'
+                AND NOT EXISTS
+                (
+                    SELECT 1
+                    FROM exim_entitas x
+                    WHERE x.nomor_aju = a.nomor_aju
+                      AND ((x.seri = '3' AND x.kode_entitas IN ('3','8')) OR (x.seri = '8' AND x.kode_entitas = '8'))
+                      AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                 )
             )
         )
@@ -271,12 +291,14 @@ WHERE
     OR
 
     (
-        (LEFT(b.nomor_aju,6)+0) IN (25,41,261)
+        (b.kode_dokumen+0) IN (25,41,261)
         AND a.seri='8'
         AND a.kode_entitas='8'
         AND a.kode_jenis_identitas='6'
     )
 )
+-- Supplier Ceisa tidak pernah Nirwana sendiri (semua variasi tulisan)
+AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
 GROUP BY b.nomor_aju
 
     UNION
@@ -292,7 +314,7 @@ GROUP BY b.nomor_aju
     WHERE
     (
         (
-            (LEFT(b.nomor_aju,6)+0) IN (40,262)
+            (b.kode_dokumen+0) IN (40,262)
             AND
             (
                 (
@@ -313,12 +335,14 @@ GROUP BY b.nomor_aju
                           AND x.seri='3'
                           AND x.kode_entitas='9'
                           AND x.kode_jenis_identitas='6'
+                          AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                     )
                 )
             )
         )
 
     )
+    AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
     GROUP BY b.nomor_aju
 
     UNION
@@ -335,12 +359,8 @@ GROUP BY b.nomor_aju
         a.seri <> '4'
         AND a.kode_entitas <> '4'
         AND a.kode_jenis_identitas <> '6'
-        AND (LEFT(b.nomor_aju,6)+0)=23
-        AND a.nama_entitas NOT IN
-        (
-            'PT NIRWANA ALABARE GARMENT',
-            'NIRWANA ALABARE GARMENT'
-        )
+        AND (b.kode_dokumen+0)=23
+        AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
     GROUP BY b.nomor_aju
 
     UNION
@@ -373,6 +393,7 @@ WHERE
               AND x.seri='8'
               AND x.kode_entitas='8'
               AND x.kode_jenis_identitas=''
+              AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
         )
     )
     OR
@@ -387,10 +408,12 @@ WHERE
               AND x.seri='8'
               AND x.kode_entitas='8'
               AND x.kode_jenis_identitas=''
+              AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
         )
     )
 )
-AND (LEFT(b.nomor_aju,6)+0) IN (30,33)
+AND (b.kode_dokumen+0) IN (30,33)
+AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
 GROUP BY b.nomor_aju
 
 ) a) b on b.nomor_aju = a.nomor_aju) a LEFT JOIN (select satuan_ceisa, GROUP_CONCAT(satuan_sb) satuan_sb from mapping_satuan_ceisa GROUP BY satuan_ceisa) b on b.satuan_ceisa = a.kode_satuan) a GROUP BY a.no_daftar, a.nomor_aju) a JOIN ( SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) numbers ON n<=LENGTH(a.kode_dokumen) GROUP BY no_daftar, nomor_aju ORDER BY nomor_aju asc) a
@@ -442,19 +465,19 @@ GROUP BY b.nomor_aju
                 SUBSTRING(kode_dokumen, 1, 1), '.',
                 SUBSTRING(kode_dokumen, 2, 1))
                 ELSE kode_dokumen
-                END AS kode_dokumen_format FROM ( SELECT a.*,c.nama_entitas,kode_barang, uraian, qty, unit, (cif/qty) price, rates, cif, cif_rupiah FROM (SELECT no_dokumen, kode_dokumen ,nomor_aju,SUBSTRING(nomor_aju,-6) no_aju,DATE_FORMAT(STR_TO_DATE(SUBSTRING(nomor_aju,13,8),'%Y%m%d'),'%Y-%m-%d') tgl_aju,LPAD(nomor_daftar,6,0) no_daftar,tanggal_daftar tgl_daftar, created_by, created_date, IF(kode_valuta = '' OR kode_valuta is null, 'IDR', kode_valuta) curr FROM exim_header) a LEFT JOIN ( SELECT nomor_aju,kode_barang,uraian,jumlah_satuan qty,kode_satuan unit,IF((LEFT(nomor_aju,6) + 0) IN (33),(fob/jumlah_satuan),(cif/jumlah_satuan)) price, ndpbm rates, CASE
-                WHEN (LEFT(nomor_aju,6) + 0) IN (25, 40, 41) THEN harga_penyerahan
-                WHEN (LEFT(nomor_aju,6) + 0) IN (23, 27, 261, 262) THEN cif
-                WHEN (LEFT(nomor_aju,6) + 0) IN (30) THEN (harga_satuan * jumlah_satuan)
-                WHEN (LEFT(nomor_aju,6) + 0) IN (33) THEN (fob)
+                END AS kode_dokumen_format FROM ( SELECT a.*,c.nama_entitas,kode_barang, uraian, qty, unit, (cif/qty) price, rates, cif, cif_rupiah FROM (SELECT no_dokumen, kode_dokumen ,nomor_aju,SUBSTRING(nomor_aju,-6) no_aju,DATE_FORMAT(STR_TO_DATE(SUBSTRING(nomor_aju,13,8),'%Y%m%d'),'%Y-%m-%d') tgl_aju,LPAD(nomor_daftar,6,0) no_daftar,tanggal_daftar tgl_daftar, created_by, created_date, IF(kode_valuta = '' OR kode_valuta is null, 'IDR', kode_valuta) curr FROM exim_header) a LEFT JOIN ( SELECT nomor_aju,kode_barang,uraian,jumlah_satuan qty,kode_satuan unit,IF(fil_aju IN (33),(fob/jumlah_satuan),(cif/jumlah_satuan)) price, ndpbm rates, CASE
+                WHEN fil_aju IN (25, 40, 41) THEN harga_penyerahan
+                WHEN fil_aju IN (23, 27, 261, 262) THEN cif
+                WHEN fil_aju IN (30) THEN (harga_satuan * jumlah_satuan)
+                WHEN fil_aju IN (33) THEN (fob)
                 ELSE '0'
                 END AS cif, CASE
-                WHEN (LEFT(nomor_aju,6) + 0) IN (25, 40, 41) THEN harga_penyerahan
-                WHEN (LEFT(nomor_aju,6) + 0) IN (23, 27, 261, 262) THEN cif_rupiah
-                WHEN (LEFT(nomor_aju,6) + 0) IN (30) THEN ((harga_satuan * jumlah_satuan) * ndpbm)
-                WHEN (LEFT(nomor_aju,6) + 0) IN (33) THEN (fob * ndpbm)
+                WHEN fil_aju IN (25, 40, 41) THEN harga_penyerahan
+                WHEN fil_aju IN (23, 27, 261, 262) THEN cif_rupiah
+                WHEN fil_aju IN (30) THEN ((harga_satuan * jumlah_satuan) * ndpbm)
+                WHEN fil_aju IN (33) THEN (fob * ndpbm)
                 ELSE '0'
-                END AS cif_rupiah FROM exim_barang) b ON b.nomor_aju=a.nomor_aju left join (SELECT *
+                END AS cif_rupiah FROM (select eb.*, (select MAX(eh.kode_dokumen) from exim_header eh where eh.nomor_aju = eb.nomor_aju) + 0 fil_aju from exim_barang eb) exim_barang) b ON b.nomor_aju=a.nomor_aju left join (SELECT *
 FROM
 (
     SELECT
@@ -468,7 +491,7 @@ INNER JOIN exim_header b
 WHERE
 (
     (
-        (LEFT(b.nomor_aju,6)+0) = 27
+        (b.kode_dokumen+0) = 27
         AND
         (
             -- Prioritas 1 : 3,3,6
@@ -493,12 +516,13 @@ WHERE
                       AND x.seri = '3'
                       AND x.kode_entitas = '3'
                       AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                 )
             )
 
             OR
 
-            -- Terakhir : 8,8,6
+            -- Berikutnya : 8,8,6
             (
                 a.seri = '8'
                 AND a.kode_entitas = '8'
@@ -511,6 +535,25 @@ WHERE
                       AND x.seri = '3'
                       AND x.kode_entitas IN ('3','8')
                       AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
+                )
+            )
+
+            OR
+
+            -- Terakhir : 1,3,6
+            (
+                a.seri = '1'
+                AND a.kode_entitas = '3'
+                AND a.kode_jenis_identitas = '6'
+                AND NOT EXISTS
+                (
+                    SELECT 1
+                    FROM exim_entitas x
+                    WHERE x.nomor_aju = a.nomor_aju
+                      AND ((x.seri = '3' AND x.kode_entitas IN ('3','8')) OR (x.seri = '8' AND x.kode_entitas = '8'))
+                      AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                 )
             )
         )
@@ -519,12 +562,14 @@ WHERE
     OR
 
     (
-        (LEFT(b.nomor_aju,6)+0) IN (25,41,261)
+        (b.kode_dokumen+0) IN (25,41,261)
         AND a.seri='8'
         AND a.kode_entitas='8'
         AND a.kode_jenis_identitas='6'
     )
 )
+-- Supplier Ceisa tidak pernah Nirwana sendiri (semua variasi tulisan)
+AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
 GROUP BY b.nomor_aju
 
     UNION
@@ -540,7 +585,7 @@ GROUP BY b.nomor_aju
     WHERE
     (
         (
-            (LEFT(b.nomor_aju,6)+0) IN (40,262)
+            (b.kode_dokumen+0) IN (40,262)
             AND
             (
                 (
@@ -561,12 +606,14 @@ GROUP BY b.nomor_aju
                           AND x.seri='3'
                           AND x.kode_entitas='9'
                           AND x.kode_jenis_identitas='6'
+                          AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                     )
                 )
             )
         )
 
     )
+    AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
     GROUP BY b.nomor_aju
 
     UNION
@@ -583,18 +630,14 @@ GROUP BY b.nomor_aju
         a.seri <> '4'
         AND a.kode_entitas <> '4'
         AND a.kode_jenis_identitas <> '6'
-        AND (LEFT(b.nomor_aju,6)+0)=23
-        AND a.nama_entitas NOT IN
-        (
-            'PT NIRWANA ALABARE GARMENT',
-            'NIRWANA ALABARE GARMENT'
-        )
+        AND (b.kode_dokumen+0)=23
+        AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
     GROUP BY b.nomor_aju
 
     UNION
 
     /* BC 30,33 */
-     SELECT
+    SELECT
     b.nomor_aju,
     a.nomor_identitas,
     a.nama_entitas,
@@ -621,6 +664,7 @@ WHERE
               AND x.seri='8'
               AND x.kode_entitas='8'
               AND x.kode_jenis_identitas=''
+              AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
         )
     )
     OR
@@ -635,15 +679,17 @@ WHERE
               AND x.seri='8'
               AND x.kode_entitas='8'
               AND x.kode_jenis_identitas=''
+              AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
         )
     )
 )
-AND (LEFT(b.nomor_aju,6)+0) IN (30,33)
+AND (b.kode_dokumen+0) IN (30,33)
+AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
 GROUP BY b.nomor_aju
 
 ) a) c on c.nomor_aju=a.nomor_aju) a) a where tgl_daftar >= '".$request->dateFrom."' and tgl_daftar <= '".$request->dateTo."'
                 UNION
-                select no_dok, jenis_dok, nomor_aju, nomor_aju no_aju, tanggal_aju, nomor_daftar, tanggal_daftar, created_by, created_date, supplier, '-' kode_barang, nama_item, qty, satuan, a.curr, (price / qty) price, IF(rate is null,1,rate) rate, price cif, IF(rate is null,price,price * rate) cif_rupiah, jenis_dok dok_format from exim_ceisa_manual a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = a.tanggal_daftar and cr.curr = a.curr INNER JOIN mastersupplier ms on ms.id_supplier = a.id_supplier where tanggal_daftar >= '".$request->dateFrom."' and tanggal_daftar <= '".$request->dateTo."' and status != 'CANCEL') a where 1=1 ".$additionalQuery."");
+                select no_dok, jenis_dok, nomor_aju, nomor_aju no_aju, tanggal_aju, nomor_daftar, tanggal_daftar, created_by, created_date, a.curr, supplier, '-' kode_barang, nama_item, qty, satuan, (price / qty) price, IF(rate is null,1,rate) rate, price cif, IF(rate is null,price,price * rate) cif_rupiah, jenis_dok dok_format from exim_ceisa_manual a left join (select tanggal, curr, rate from masterrate where v_codecurr = 'PAJAK' GROUP BY tanggal, curr ) cr on cr.tanggal = a.tanggal_daftar and cr.curr = a.curr INNER JOIN mastersupplier ms on ms.id_supplier = a.id_supplier where tanggal_daftar >= '".$request->dateFrom."' and tanggal_daftar <= '".$request->dateTo."' and status != 'CANCEL') a where 1=1 ".$additionalQuery."");
 
 
             return DataTables::of($data_ceisa)->toJson();
@@ -665,15 +711,7 @@ GROUP BY b.nomor_aju
     public function ReportSignalbitBC(Request $request)
     {
         if ($request->ajax()) {
-            $additionalQuery = "";
-
-            $data = DB::connection('mysql_sb')->select("select a.bpbno_int, a.bpbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, b.itemdesc, IFNULL(NULLIF(satuan_bc, ''), unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), qty) AS qty, IFNULL(NULLIF(price_bc, ''), price) AS price, (IFNULL(NULLIF(qty_bc, ''), qty) * IFNULL(NULLIF(price_bc, ''), price)) total from bpb a INNER JOIN masteritem b on b.id_item = a.id_item where bcdate BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and jenis_dok != 'INHOUSE' and a.bpbno_int not like '%FG%'
-            UNION
-            select a.bpbno_int, a.bpbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, CONCAT(b.itemname, ' ', IFNULL(b.color,''), ' ', IFNULL(b.size,'')) itemdesc, IFNULL(NULLIF(satuan_bc, ''), a.unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), a.qty) AS qty, IFNULL(NULLIF(price_bc, ''), a.price) AS price, (IFNULL(NULLIF(qty_bc, ''), a.qty) * IFNULL(NULLIF(price_bc, ''), a.price)) total from bpb a INNER JOIN masterstyle b on b.id_item = a.id_item where bcdate BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and jenis_dok != 'INHOUSE' and a.bpbno_int like '%FG%'
-            UNION
-            select a.bppbno_int, a.bppbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, b.itemdesc, IFNULL(NULLIF(satuan_bc, ''), unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), qty) AS qty, IFNULL(NULLIF(price_bc, ''), price) AS price, (IFNULL(NULLIF(qty_bc, ''), qty) * IFNULL(NULLIF(price_bc, ''), price)) total from bppb a INNER JOIN masteritem b on b.id_item = a.id_item where bcdate BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and jenis_dok != 'INHOUSE' and a.bppbno_int not like '%FG%'
-            UNION
-            select a.bppbno_int, a.bppbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, CONCAT(b.itemname, ' ', IFNULL(b.color,''), ' ', IFNULL(b.size,'')) itemdesc, IFNULL(NULLIF(satuan_bc, ''), a.unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), a.qty) AS qty, IFNULL(NULLIF(price_bc, ''), a.price) AS price, (IFNULL(NULLIF(qty_bc, ''), a.qty) * IFNULL(NULLIF(price_bc, ''), a.price)) total from bppb a INNER JOIN masterstyle b on b.id_item = a.id_item where bcdate BETWEEN '".$request->dateFrom."' and '".$request->dateTo."' and jenis_dok != 'INHOUSE' and a.bppbno_int like '%FG%'");
+            $data = $this->dataReportSignalbitBC($request->dateFrom, $request->dateTo);
 
             return DataTables::of($data)->toJson();
         }
@@ -682,23 +720,42 @@ GROUP BY b.nomor_aju
     }
 
 
+    // Data BC Signalbit, dipakai layar (ReportSignalbitBC) dan Excel (ExportReportSignalbitBC).
+    // Curr mengikuti sumber harga: price_bc -> curr_bc, price -> curr (kosong / '0' / '-' dianggap IDR).
+    // Rate: IDR = 1; mata uang lain pakai rate_bc kalau terisi, kalau kosong kurs pajak (masterrate PAJAK) pada tanggal aju
+    // (tanggal aju kosong -> tanggal daftar; kalau tanggal itu tidak ada kurs, pakai kurs terakhir maks. 7 hari sebelumnya).
+    // Nilai IDR = Total x Rate.
+    // UNION ALL: satu dokumen bisa punya beberapa baris item yang sama (beda id_jo) dan semuanya harus ikut terhitung.
+    private function dataReportSignalbitBC($from, $to)
+    {
+        $kode = fn ($kolom) => "NULLIF(NULLIF(NULLIF(UPPER(TRIM(".$kolom.")), ''), '0'), '-')";
+        $curr = "COALESCE(CASE WHEN NULLIF(a.price_bc, '') IS NOT NULL THEN COALESCE(".$kode('a.curr_bc').", ".$kode('a.curr').") ELSE COALESCE(".$kode('a.curr').", ".$kode('a.curr_bc').") END, 'IDR') curr, a.rate_bc";
+        $tglKurs = "IF(u.tanggal_aju > '2000-01-01', u.tanggal_aju, u.bcdate)";
+
+        $sql = "select x.*, ROUND(x.total * x.rate, 2) nilai_idr from (
+            select u.*, CASE WHEN u.curr = 'IDR' THEN 1 WHEN u.rate_bc > 0 THEN u.rate_bc
+                ELSE (select r.rate from masterrate r where r.v_codecurr = 'PAJAK' and r.curr = IF(u.curr = 'CNY', 'RMB', u.curr)
+                    and r.tanggal BETWEEN ".$tglKurs." - INTERVAL 7 DAY and ".$tglKurs." order by r.tanggal desc, r.id desc limit 1) END rate
+            from (
+            select a.bpbno_int, a.bpbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, b.itemdesc, IFNULL(NULLIF(satuan_bc, ''), unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), qty) AS qty, IFNULL(NULLIF(price_bc, ''), price) AS price, (IFNULL(NULLIF(qty_bc, ''), qty) * IFNULL(NULLIF(price_bc, ''), price)) total, ".$curr." from bpb a INNER JOIN masteritem b on b.id_item = a.id_item where bcdate BETWEEN ? and ? and jenis_dok != 'INHOUSE' and a.bpbno_int not like '%FG%'
+            UNION ALL
+            select a.bpbno_int, a.bpbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, CONCAT(b.itemname, ' ', IFNULL(b.color,''), ' ', IFNULL(b.size,'')) itemdesc, IFNULL(NULLIF(satuan_bc, ''), a.unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), a.qty) AS qty, IFNULL(NULLIF(price_bc, ''), a.price) AS price, (IFNULL(NULLIF(qty_bc, ''), a.qty) * IFNULL(NULLIF(price_bc, ''), a.price)) total, ".$curr." from bpb a INNER JOIN masterstyle b on b.id_item = a.id_item where bcdate BETWEEN ? and ? and jenis_dok != 'INHOUSE' and a.bpbno_int like '%FG%'
+            UNION ALL
+            select a.bppbno_int, a.bppbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, b.itemdesc, IFNULL(NULLIF(satuan_bc, ''), unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), qty) AS qty, IFNULL(NULLIF(price_bc, ''), price) AS price, (IFNULL(NULLIF(qty_bc, ''), qty) * IFNULL(NULLIF(price_bc, ''), price)) total, ".$curr." from bppb a INNER JOIN masteritem b on b.id_item = a.id_item where bcdate BETWEEN ? and ? and jenis_dok != 'INHOUSE' and a.bppbno_int not like '%FG%'
+            UNION ALL
+            select a.bppbno_int, a.bppbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, CONCAT(b.itemname, ' ', IFNULL(b.color,''), ' ', IFNULL(b.size,'')) itemdesc, IFNULL(NULLIF(satuan_bc, ''), a.unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), a.qty) AS qty, IFNULL(NULLIF(price_bc, ''), a.price) AS price, (IFNULL(NULLIF(qty_bc, ''), a.qty) * IFNULL(NULLIF(price_bc, ''), a.price)) total, ".$curr." from bppb a INNER JOIN masterstyle b on b.id_item = a.id_item where bcdate BETWEEN ? and ? and jenis_dok != 'INHOUSE' and a.bppbno_int like '%FG%'
+            ) u
+        ) x";
+
+        return DB::connection('mysql_sb')->select($sql, [$from, $to, $from, $to, $from, $to, $from, $to]);
+    }
+
     public function ExportReportSignalbitBC(Request $request)
     {
         $from = $request->from;
         $to   = $request->to;
 
-        // ==============================
-        // SQL
-        // ==============================
-        $sql = "select a.bpbno_int, a.bpbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, b.itemdesc, IFNULL(NULLIF(satuan_bc, ''), unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), qty) AS qty, IFNULL(NULLIF(price_bc, ''), price) AS price, (IFNULL(NULLIF(qty_bc, ''), qty) * IFNULL(NULLIF(price_bc, ''), price)) total from bpb a INNER JOIN masteritem b on b.id_item = a.id_item where bcdate BETWEEN '".$request->from."' and '".$request->to."' and jenis_dok != 'INHOUSE' and a.bpbno_int not like '%FG%'
-            UNION
-            select a.bpbno_int, a.bpbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, CONCAT(b.itemname, ' ', IFNULL(b.color,''), ' ', IFNULL(b.size,'')) itemdesc, IFNULL(NULLIF(satuan_bc, ''), a.unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), a.qty) AS qty, IFNULL(NULLIF(price_bc, ''), a.price) AS price, (IFNULL(NULLIF(qty_bc, ''), a.qty) * IFNULL(NULLIF(price_bc, ''), a.price)) total from bpb a INNER JOIN masterstyle b on b.id_item = a.id_item where bcdate BETWEEN '".$request->from."' and '".$request->to."' and jenis_dok != 'INHOUSE' and a.bpbno_int like '%FG%'
-            UNION
-            select a.bppbno_int, a.bppbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, b.itemdesc, IFNULL(NULLIF(satuan_bc, ''), unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), qty) AS qty, IFNULL(NULLIF(price_bc, ''), price) AS price, (IFNULL(NULLIF(qty_bc, ''), qty) * IFNULL(NULLIF(price_bc, ''), price)) total from bppb a INNER JOIN masteritem b on b.id_item = a.id_item where bcdate BETWEEN '".$request->from."' and '".$request->to."' and jenis_dok != 'INHOUSE' and a.bppbno_int not like '%FG%'
-            UNION
-            select a.bppbno_int, a.bppbdate, jenis_dok, bcno no_daftar, bcdate, RIGHT(nomor_aju,6) nomor_aju, tanggal_aju , a.id_item, CONCAT(b.itemname, ' ', IFNULL(b.color,''), ' ', IFNULL(b.size,'')) itemdesc, IFNULL(NULLIF(satuan_bc, ''), a.unit) AS satuan, IFNULL(NULLIF(qty_bc, ''), a.qty) AS qty, IFNULL(NULLIF(price_bc, ''), a.price) AS price, (IFNULL(NULLIF(qty_bc, ''), a.qty) * IFNULL(NULLIF(price_bc, ''), a.price)) total from bppb a INNER JOIN masterstyle b on b.id_item = a.id_item where bcdate BETWEEN '".$request->from."' and '".$request->to."' and jenis_dok != 'INHOUSE' and a.bppbno_int like '%FG%'";
-
-        $data = DB::connection('mysql_sb')->select($sql);
+        $data = $this->dataReportSignalbitBC($from, $to);
 
         // convert object → array
         $rows = array_map(fn($r) => (array)$r, $data);
@@ -716,12 +773,12 @@ GROUP BY b.nomor_aju
         ->applyFontSize(16);
         $sheet->writeRow(["Tanggal Daftar: {$from} s/d {$to}"])->applyFontStyleBold();
 
-        $sheet->mergeCells('A1:M1');
+        $sheet->mergeCells('A1:P1');
 
         $sheet->writeRow(['']);
 
         $headers = [
-        'No BPB', 'BPB Date', 'Jenis Dokumen', 'No Daftar', 'Tgl Daftar', 'No Aju', 'Tgl Aju', 'Id Item', 'Item Descriptions', 'Unit', 'Qty', 'Price', 'Total'
+        'No BPB', 'BPB Date', 'Jenis Dokumen', 'No Daftar', 'Tgl Daftar', 'No Aju', 'Tgl Aju', 'Id Item', 'Item Descriptions', 'Unit', 'Qty', 'Curr', 'Price', 'Total', 'Rate', 'Nilai IDR'
         ];
 
         $sheet->writeRow($headers)
@@ -747,8 +804,11 @@ GROUP BY b.nomor_aju
                 $r['itemdesc'] ?? '',
                 $r['satuan'] ?? 0,
                 $r['qty'] ?? 0,
+                $r['curr'] ?? '',
                 $r['price'] ?? 0,
                 $r['total'] ?? 0,
+                $r['rate'] ?? '',
+                $r['nilai_idr'] ?? '',
             ];
 
         foreach ($rowData as $i => $v) {

@@ -178,7 +178,7 @@ class ExportLaporanRekonsiliasi implements FromView, WithEvents, ShouldAutoSize
             WHEN fil_aju IN (33) THEN (fob * ndpbm)
             ELSE '0'
             END AS cif_rupiah, kode_satuan
-            from (SELECT nomor_aju, LEFT(nomor_aju,6) + 0 fil_aju, kode_barang,uraian,jumlah_satuan,kode_satuan, cif,cif_rupiah,harga_satuan,ndpbm, fob, harga_penyerahan FROM exim_barang) a
+            from (SELECT nomor_aju, fil_aju, kode_barang,uraian,jumlah_satuan,kode_satuan, cif,cif_rupiah,harga_satuan,ndpbm, fob, harga_penyerahan FROM (select eb.*, (select MAX(eh.kode_dokumen) from exim_header eh where eh.nomor_aju = eb.nomor_aju) + 0 fil_aju from exim_barang eb) exim_barang) a
             ) b ON b.nomor_aju=a.nomor_aju
             ) a GROUP BY a.no_daftar, a.nomor_aju, kode_satuan) a LEFT JOIN
             (
@@ -196,7 +196,7 @@ INNER JOIN exim_header b
 WHERE
 (
     (
-        (LEFT(b.nomor_aju,6)+0) = 27
+        (b.kode_dokumen+0) = 27
         AND
         (
             -- Prioritas 1 : 3,3,6
@@ -221,12 +221,13 @@ WHERE
                       AND x.seri = '3'
                       AND x.kode_entitas = '3'
                       AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                 )
             )
 
             OR
 
-            -- Terakhir : 8,8,6
+            -- Berikutnya : 8,8,6
             (
                 a.seri = '8'
                 AND a.kode_entitas = '8'
@@ -239,6 +240,25 @@ WHERE
                       AND x.seri = '3'
                       AND x.kode_entitas IN ('3','8')
                       AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
+                )
+            )
+
+            OR
+
+            -- Terakhir : 1,3,6
+            (
+                a.seri = '1'
+                AND a.kode_entitas = '3'
+                AND a.kode_jenis_identitas = '6'
+                AND NOT EXISTS
+                (
+                    SELECT 1
+                    FROM exim_entitas x
+                    WHERE x.nomor_aju = a.nomor_aju
+                      AND ((x.seri = '3' AND x.kode_entitas IN ('3','8')) OR (x.seri = '8' AND x.kode_entitas = '8'))
+                      AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                 )
             )
         )
@@ -247,12 +267,14 @@ WHERE
     OR
 
     (
-        (LEFT(b.nomor_aju,6)+0) IN (25,41,261)
+        (b.kode_dokumen+0) IN (25,41,261)
         AND a.seri='8'
         AND a.kode_entitas='8'
         AND a.kode_jenis_identitas='6'
     )
 )
+-- Supplier Ceisa tidak pernah Nirwana sendiri (semua variasi tulisan)
+AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
 GROUP BY b.nomor_aju
 
     UNION
@@ -268,7 +290,7 @@ GROUP BY b.nomor_aju
     WHERE
     (
         (
-            (LEFT(b.nomor_aju,6)+0) IN (40,262)
+            (b.kode_dokumen+0) IN (40,262)
             AND
             (
                 (
@@ -289,12 +311,14 @@ GROUP BY b.nomor_aju
                           AND x.seri='3'
                           AND x.kode_entitas='9'
                           AND x.kode_jenis_identitas='6'
+                          AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                     )
                 )
             )
         )
 
     )
+    AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
     GROUP BY b.nomor_aju
 
     UNION
@@ -311,18 +335,14 @@ GROUP BY b.nomor_aju
         a.seri <> '4'
         AND a.kode_entitas <> '4'
         AND a.kode_jenis_identitas <> '6'
-        AND (LEFT(b.nomor_aju,6)+0)=23
-        AND a.nama_entitas NOT IN
-        (
-            'PT NIRWANA ALABARE GARMENT',
-            'NIRWANA ALABARE GARMENT'
-        )
+        AND (b.kode_dokumen+0)=23
+        AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
     GROUP BY b.nomor_aju
 
     UNION
 
     /* BC 30,33 */
-     SELECT
+    SELECT
     b.nomor_aju,
     a.nomor_identitas,
     a.nama_entitas,
@@ -349,6 +369,7 @@ WHERE
               AND x.seri='8'
               AND x.kode_entitas='8'
               AND x.kode_jenis_identitas=''
+              AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
         )
     )
     OR
@@ -363,10 +384,12 @@ WHERE
               AND x.seri='8'
               AND x.kode_entitas='8'
               AND x.kode_jenis_identitas=''
+              AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
         )
     )
 )
-AND (LEFT(b.nomor_aju,6)+0) IN (30,33)
+AND (b.kode_dokumen+0) IN (30,33)
+AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
 GROUP BY b.nomor_aju
 
 ) a) b on b.nomor_aju = a.nomor_aju) a LEFT JOIN (select satuan_ceisa, GROUP_CONCAT(satuan_sb) satuan_sb from mapping_satuan_ceisa GROUP BY satuan_ceisa) b on b.satuan_ceisa = a.kode_satuan) a GROUP BY a.no_daftar, a.nomor_aju) a JOIN ( SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) numbers ON n<=LENGTH(a.kode_dokumen) GROUP BY no_daftar, nomor_aju ORDER BY nomor_aju asc) a
