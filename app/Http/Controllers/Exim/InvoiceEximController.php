@@ -2043,17 +2043,15 @@ class InvoiceEximController extends Controller
                 return array('pesan' => 'Some SO rows are no longer available. Please search again.');
             }
             $r = $perKunci[$kunci];
+            // Dibawa apa adanya ke layar; bukan batas.
             $qtySo = (float) $r['qty_so'];
 
             if ($qty === null || $qty <= 0) {
                 return array('pesan' => 'Qty is required on SO row ' . $r['ws'] . ' / ' . $r['color'] . '.');
             }
-            // Dibulatkan dulu: angka di layar juga 2 desimal, jadi selisih
-            // pembulatan tidak boleh dianggap "melebihi pesanan".
-            if (round($qty, 2) > round($qtySo, 2)) {
-                return array('pesan' => 'Qty on SO row ' . $r['ws'] . ' / ' . $r['color']
-                    . ' is more than the ordered qty (' . rtrim(rtrim(number_format($qtySo, 2, '.', ''), '0'), '.') . ').');
-            }
+            // Qty kirim boleh lebih dari qty pesanan - pengirimannya memang bisa
+            // lebih, dan yang ditagih adalah yang benar-benar dikirim. Qty
+            // pesanannya ikut dibawa ke layar sebagai keterangan saja.
 
             $r['qty'] = $qty;
             $r['disc'] = isset($discKirim[$kunci]) ? $discKirim[$kunci] : 0;
