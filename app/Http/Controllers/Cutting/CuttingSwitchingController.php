@@ -74,7 +74,7 @@ class CuttingSwitchingController extends Controller
                         msb_asal.styleno styleno,
                         msb_asal.color color,
                         msb_asal.size size,
-                        marker_asal.panel panel,
+                        (CASE WHEN COALESCE(pcust.set_part_status, pd_asal.part_status) = 'complement' THEN COALESCE(p_com.panel, part_asal.panel) ELSE part_asal.panel END) panel,
                         mp_asal.nama_part part,
                         form_cut_input_detail_output_logs.qty_transfer `out`,
                         0 `in`,
@@ -91,8 +91,12 @@ class CuttingSwitchingController extends Controller
                         LEFT JOIN part part_asal on part_asal.act_costing_id = marker_asal.act_costing_id and part_asal.panel = marker_asal.panel
                         LEFT JOIN part_detail pd_asal on pd_asal.part_id = part_asal.id and (pd_asal.status IS NULL OR pd_asal.status = 'active')
                         LEFT JOIN part_detail pd_com on pd_com.id = pd_asal.from_part_detail and pd_asal.part_status = 'complement'
-                        LEFT JOIN master_part mp_asal on mp_asal.id = pd_asal.master_part_id and 
+                        LEFT JOIN master_part mp_asal on mp_asal.id = pd_asal.master_part_id
+                        LEFT JOIN part p_com on p_com.id = pd_com.part_id
+                        LEFT JOIN master_part mp_com on mp_com.id = pd_com.master_part_id
+                        LEFT JOIN part_custom pcust on pcust.part_detail_id = pd_asal.id and pcust.color = msb_asal.color
                     where
+                        (pd_asal.part_status != 'complement' OR pd_asal.part_status IS NULL) and
                         ".$logFilter."
                     UNION ALL
                     select
@@ -103,7 +107,7 @@ class CuttingSwitchingController extends Controller
                         msb_tujuan.styleno styleno,
                         msb_tujuan.color color,
                         msb_tujuan.size size,
-                        marker_tujuan.panel panel,
+                        (CASE WHEN COALESCE(pcust.set_part_status, pd_tujuan.part_status) = 'complement' THEN COALESCE(p_com.panel, part_tujuan.panel) ELSE part_tujuan.panel END) panel,
                         mp_tujuan.nama_part part,
                         0 `out`,
                         form_cut_input_detail_output_logs.qty_transfer `in`,
@@ -120,8 +124,12 @@ class CuttingSwitchingController extends Controller
                         LEFT JOIN part part_tujuan on part_tujuan.act_costing_id = marker_tujuan.act_costing_id and part_tujuan.panel = marker_tujuan.panel
                         LEFT JOIN part_detail pd_tujuan on pd_tujuan.part_id = part_tujuan.id and (pd_tujuan.status IS NULL OR pd_tujuan.status = 'active')
                         LEFT JOIN part_detail pd_com on pd_com.id = pd_tujuan.from_part_detail and pd_tujuan.part_status = 'complement'
-                        LEFT JOIN master_part mp_tujuan on mp_tujuan.id = pd_tujuan.master_part_id and 
+                        LEFT JOIN master_part mp_tujuan on mp_tujuan.id = pd_tujuan.master_part_id
+                        LEFT JOIN part p_com on p_com.id = pd_com.part_id
+                        LEFT JOIN master_part mp_com on mp_com.id = pd_com.master_part_id
+                        LEFT JOIN part_custom pcust on pcust.part_detail_id = pd_tujuan.id and pcust.color = msb_tujuan.color
                     where
+                        (pd_tujuan.part_status != 'complement' OR pd_tujuan.part_status IS NULL) and
                         ".$logFilter."
                 ) form_cut_input_detail_output_logs
                 GROUP BY
