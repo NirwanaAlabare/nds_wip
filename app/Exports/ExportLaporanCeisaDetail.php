@@ -67,19 +67,19 @@ class ExportLaporanCeisaDetail implements FromView, WithEvents, ShouldAutoSize
             SUBSTRING(kode_dokumen, 1, 1), '.',
             SUBSTRING(kode_dokumen, 2, 1))
             ELSE kode_dokumen 
-            END AS kode_dokumen_format FROM ( SELECT a.*,c.nama_entitas,kode_barang, uraian, qty, unit, (cif/qty) price, rates, cif, cif_rupiah FROM (SELECT no_dokumen, kode_dokumen ,nomor_aju,SUBSTRING(nomor_aju,-6) no_aju,DATE_FORMAT(STR_TO_DATE(SUBSTRING(nomor_aju,13,8),'%Y%m%d'),'%Y-%m-%d') tgl_aju,LPAD(nomor_daftar,6,0) no_daftar,tanggal_daftar tgl_daftar, created_by, created_date, IF(kode_valuta = '' OR kode_valuta is null, 'IDR', kode_valuta) curr FROM exim_header) a LEFT JOIN ( SELECT nomor_aju,kode_barang,uraian,jumlah_satuan qty,kode_satuan unit,IF((LEFT(nomor_aju,6) + 0) IN (33),(fob/jumlah_satuan),(cif/jumlah_satuan)) price, ndpbm rates, CASE
-                WHEN (LEFT(nomor_aju,6) + 0) IN (25, 40, 41) THEN harga_penyerahan
-                WHEN (LEFT(nomor_aju,6) + 0) IN (23, 27, 261, 262) THEN cif
-                WHEN (LEFT(nomor_aju,6) + 0) IN (30) THEN (harga_satuan * jumlah_satuan)
-                WHEN (LEFT(nomor_aju,6) + 0) IN (33) THEN (fob)
+            END AS kode_dokumen_format FROM ( SELECT a.*,c.nama_entitas,kode_barang, uraian, qty, unit, (cif/qty) price, rates, cif, cif_rupiah FROM (SELECT no_dokumen, kode_dokumen ,nomor_aju,SUBSTRING(nomor_aju,-6) no_aju,DATE_FORMAT(STR_TO_DATE(SUBSTRING(nomor_aju,13,8),'%Y%m%d'),'%Y-%m-%d') tgl_aju,LPAD(nomor_daftar,6,0) no_daftar,tanggal_daftar tgl_daftar, created_by, created_date, IF(kode_valuta = '' OR kode_valuta is null, 'IDR', kode_valuta) curr FROM exim_header) a LEFT JOIN ( SELECT nomor_aju,kode_barang,uraian,jumlah_satuan qty,kode_satuan unit,IF(fil_aju IN (33),(fob/jumlah_satuan),(cif/jumlah_satuan)) price, ndpbm rates, CASE
+                WHEN fil_aju IN (25, 40, 41) THEN harga_penyerahan
+                WHEN fil_aju IN (23, 27, 261, 262) THEN cif
+                WHEN fil_aju IN (30) THEN (harga_satuan * jumlah_satuan)
+                WHEN fil_aju IN (33) THEN (fob)
                 ELSE '0'
                 END AS cif, CASE
-                WHEN (LEFT(nomor_aju,6) + 0) IN (25, 40, 41) THEN harga_penyerahan
-                WHEN (LEFT(nomor_aju,6) + 0) IN (23, 27, 261, 262) THEN cif_rupiah
-                WHEN (LEFT(nomor_aju,6) + 0) IN (30) THEN ((harga_satuan * jumlah_satuan) * ndpbm)
-                WHEN (LEFT(nomor_aju,6) + 0) IN (33) THEN (fob * ndpbm)
+                WHEN fil_aju IN (25, 40, 41) THEN harga_penyerahan
+                WHEN fil_aju IN (23, 27, 261, 262) THEN cif_rupiah
+                WHEN fil_aju IN (30) THEN ((harga_satuan * jumlah_satuan) * ndpbm)
+                WHEN fil_aju IN (33) THEN (fob * ndpbm)
                 ELSE '0'
-            END AS cif_rupiah FROM exim_barang) b ON b.nomor_aju=a.nomor_aju left join (SELECT *
+            END AS cif_rupiah FROM (select eb.*, (select MAX(eh.kode_dokumen) from exim_header eh where eh.nomor_aju = eb.nomor_aju) + 0 fil_aju from exim_barang eb) exim_barang) b ON b.nomor_aju=a.nomor_aju left join (SELECT *
 FROM
 (
     SELECT
@@ -93,7 +93,7 @@ INNER JOIN exim_header b
 WHERE
 (
     (
-        (LEFT(b.nomor_aju,6)+0) = 27
+        (b.kode_dokumen+0) = 27
         AND
         (
             -- Prioritas 1 : 3,3,6
@@ -118,12 +118,13 @@ WHERE
                       AND x.seri = '3'
                       AND x.kode_entitas = '3'
                       AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                 )
             )
 
             OR
 
-            -- Terakhir : 8,8,6
+            -- Berikutnya : 8,8,6
             (
                 a.seri = '8'
                 AND a.kode_entitas = '8'
@@ -136,6 +137,25 @@ WHERE
                       AND x.seri = '3'
                       AND x.kode_entitas IN ('3','8')
                       AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
+                )
+            )
+
+            OR
+
+            -- Terakhir : 1,3,6
+            (
+                a.seri = '1'
+                AND a.kode_entitas = '3'
+                AND a.kode_jenis_identitas = '6'
+                AND NOT EXISTS
+                (
+                    SELECT 1
+                    FROM exim_entitas x
+                    WHERE x.nomor_aju = a.nomor_aju
+                      AND ((x.seri = '3' AND x.kode_entitas IN ('3','8')) OR (x.seri = '8' AND x.kode_entitas = '8'))
+                      AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                 )
             )
         )
@@ -144,12 +164,14 @@ WHERE
     OR
 
     (
-        (LEFT(b.nomor_aju,6)+0) IN (25,41,261)
+        (b.kode_dokumen+0) IN (25,41,261)
         AND a.seri='8'
         AND a.kode_entitas='8'
         AND a.kode_jenis_identitas='6'
     )
 )
+-- Supplier Ceisa tidak pernah Nirwana sendiri (semua variasi tulisan)
+AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
 GROUP BY b.nomor_aju
 
     UNION
@@ -165,7 +187,7 @@ GROUP BY b.nomor_aju
     WHERE
     (
         (
-            (LEFT(b.nomor_aju,6)+0) IN (40,262)
+            (b.kode_dokumen+0) IN (40,262)
             AND
             (
                 (
@@ -186,12 +208,14 @@ GROUP BY b.nomor_aju
                           AND x.seri='3'
                           AND x.kode_entitas='9'
                           AND x.kode_jenis_identitas='6'
+                          AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                     )
                 )
             )
         )
 
     )
+    AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
     GROUP BY b.nomor_aju
 
     UNION
@@ -208,18 +232,14 @@ GROUP BY b.nomor_aju
         a.seri <> '4'
         AND a.kode_entitas <> '4'
         AND a.kode_jenis_identitas <> '6'
-        AND (LEFT(b.nomor_aju,6)+0)=23
-        AND a.nama_entitas NOT IN
-        (
-            'PT NIRWANA ALABARE GARMENT',
-            'NIRWANA ALABARE GARMENT'
-        )
+        AND (b.kode_dokumen+0)=23
+        AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
     GROUP BY b.nomor_aju
 
     UNION
 
     /* BC 30,33 */
-     SELECT
+    SELECT
     b.nomor_aju,
     a.nomor_identitas,
     a.nama_entitas,
@@ -246,6 +266,7 @@ WHERE
               AND x.seri='8'
               AND x.kode_entitas='8'
               AND x.kode_jenis_identitas=''
+              AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
         )
     )
     OR
@@ -260,10 +281,12 @@ WHERE
               AND x.seri='8'
               AND x.kode_entitas='8'
               AND x.kode_jenis_identitas=''
+              AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
         )
     )
 )
-AND (LEFT(b.nomor_aju,6)+0) IN (30,33)
+AND (b.kode_dokumen+0) IN (30,33)
+AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
 GROUP BY b.nomor_aju
 
 ) a) c on c.nomor_aju=a.nomor_aju) a) a where tgl_daftar >= '".$this->from."' and tgl_daftar <= '".$this->to."'

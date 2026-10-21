@@ -62,8 +62,11 @@
                     <th>Item Descriptions</th>
                     <th>Unit</th>
                     <th>Qty</th>
+                    <th>Curr</th>
                     <th>Price</th>
                     <th>Total</th>
+                    <th>Rate</th>
+                    <th>Nilai IDR</th>
                 </tr>
             </thead>
             <tbody>
@@ -134,10 +137,21 @@
                     data: 'qty'
                 },
                 {
+                    data: 'curr'
+                },
+                {
                     data: 'price'
                 },
                 {
                     data: 'total'
+                },
+                {
+                    data: 'rate',
+                    render: (data) => data === null ? '-' : data
+                },
+                {
+                    data: 'nilai_idr',
+                    render: (data) => data === null ? '-' : data
                 }
             ],
             columnDefs: [
