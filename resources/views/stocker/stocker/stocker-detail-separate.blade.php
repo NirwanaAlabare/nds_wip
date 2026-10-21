@@ -12,6 +12,9 @@
         <tbody>
             @foreach ($dataRatio as $ratio)
                 @php
+                    // Reset agar qty output size/group sebelumnya tidak terbawa
+                    $currentOutputQty = null;
+
                 // Get Ratio Output List Array
                     $checkRatioOutputList = array_filter($ratioOutputList->getArrayCopy(), function ($ratioOutput) use ($currentGroupSeparate, $ratio) { return  $ratioOutput['currentGroupRoll'] === $currentGroupSeparate && $ratioOutput['currentMarkerDetailId'] === $ratio->marker_detail_id; });
 
@@ -19,8 +22,8 @@
                     if (isset($checkRatioOutputList) && count($checkRatioOutputList) > 0) {
                         // When Found Ratio Output Qty is greater than current qty
                         $index = array_key_first($checkRatioOutputList);
-                        if ($checkRatioOutputList[$index]['qty'] > (intval($ratio->ratio) * intval($currentTotal))) {
-                            $currentOutputQty = intval($ratio->ratio) * intval($currentTotal);
+                        if ($checkRatioOutputList[$index]['qty'] > (intval($ratio->ratio) * intval($currentTotalSeparate))) {
+                            $currentOutputQty = intval($ratio->ratio) * intval($currentTotalSeparate);
                             $checkRatioOutputList[$index]['qty'] = intval($checkRatioOutputList[$index]['qty']) - $currentOutputQty;
                         }
                         // When less
@@ -49,8 +52,8 @@
                         if ($currentOutput) {
                             $currentOutputStock = $currentOutput['qty_output_aktual'];
                             // When Found Ratio Output Qty is greater than current qty
-                            if ($currentOutput['qty_output_aktual'] > (intval($ratio->ratio) * intval($currentTotal))) {
-                                $currentOutputQty = intval($ratio->ratio) * intval($currentTotal);
+                            if ($currentOutput['qty_output_aktual'] > (intval($ratio->ratio) * intval($currentTotalSeparate))) {
+                                $currentOutputQty = intval($ratio->ratio) * intval($currentTotalSeparate);
                                 $currentOutputStock = $currentOutputStock - $currentOutputQty;
                             }
                             // When less
@@ -60,7 +63,7 @@
                             }
 
                             // Next Group Stocker
-                            $checkNextGroupStocker = $dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->where('group_roll',  $currentGroupSeparate)->where('group_stocker', '<', $currentGroupStocker)->first();
+                            $checkNextGroupStocker = $dataSpreading->formCutInputDetails->where('status', '!=', 'not complete')->where('group_roll',  $currentGroupSeparate)->where('group_stocker', '<', $currentGroupStockerSeparate)->first();
                             if (!$checkNextGroupStocker) {
                                 $currentOutputQty += $currentOutputStock;
                                 $currentOutputStock = 0;
