@@ -304,12 +304,15 @@
                                 <a href="{{ route('lap-mutasi-barcode') }}" class="dropdown-item">
                                     Mutasi Barcode
                                 </a>
+                                <div class="dropdown-divider"></div>
                                 @if (auth()->check() && in_array(auth()->user()->username, \App\Http\Controllers\RekonsiliasiMutasiController::ALLOWED_USERNAMES, true))
-                                    <div class="dropdown-divider"></div>
                                     <a href="{{ route('rekonsiliasi-mutasi') }}" class="dropdown-item">
                                         <i class="fas fa-balance-scale fa-sm"></i> Rekonsiliasi Mutasi
                                     </a>
                                 @endif
+                                <a href="{{ route('barcode-rak') }}" class="dropdown-item">
+                                    <i class="fas fa-barcode fa-sm"></i> Barcode per Rak
+                                </a>
                             </li>
                         </ul>
                     </li>
