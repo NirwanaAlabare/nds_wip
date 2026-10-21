@@ -74,6 +74,7 @@ class CuttingSwitchingController extends Controller
                     msb_asal.color color_asal,
                     msb_asal.size size_asal,
                     marker_asal.panel panel_asal,
+                    mp_asal.nama_part part_asal,
                     form_tujuan.no_form no_form_tujuan,
                     DATE(form_tujuan.waktu_selesai) tanggal_form_tujuan,
                     msb_tujuan.ws ws_tujuan,
@@ -81,6 +82,7 @@ class CuttingSwitchingController extends Controller
                     msb_tujuan.color color_tujuan,
                     msb_tujuan.size size_tujuan,
                     marker_tujuan.panel panel_tujuan,
+                    mp_tujuan.nama_part part_tujuan,
                     form_cut_input_detail_output_logs.qty_transfer,
                     form_cut_input_detail_output_logs.`is_active`,
                     form_cut_input_detail_output_logs.created_by,
@@ -92,10 +94,16 @@ class CuttingSwitchingController extends Controller
                     LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id
                     LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
                     LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
+                    LEFT JOIN stocker_input stocker_asal on stocker_asal.form_cut_id = form_asal.id
+                    LEFT JOIN part_detail pd_asal on pd_asal.id = stocker_asal.part_detail_id
+                    LEFT JOIN master_part mp_asal on mp_asal.id = pd_asal.master_part_id
                     LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
                     LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id
                     LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
                     LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
+                    LEFT JOIN stocker_input stocker_tujuan on stocker_tujuan.form_cut_id = form_tujuan.id
+                    LEFT JOIN part_detail pd_tujuan on pd_tujuan.id = stocker_tujuan.part_detail_id
+                    LEFT JOIN master_part mp_tujuan on mp_tujuan.id = pd_tujuan.master_part_id
                 where
                     form_cut_input_detail_output_logs.id is not null
                     ".$additionalQuery."
@@ -626,6 +634,7 @@ class CuttingSwitchingController extends Controller
                 msb_asal.color color_asal,
                 msb_asal.size size_asal,
                 marker_asal.panel panel_asal,
+                mp_asal.nama_part part_asal,
                 form_tujuan.no_form no_form_tujuan,
                 DATE(form_tujuan.waktu_selesai) tanggal_form_tujuan,
                 msb_tujuan.ws ws_tujuan,
@@ -633,6 +642,7 @@ class CuttingSwitchingController extends Controller
                 msb_tujuan.color color_tujuan,
                 msb_tujuan.size size_tujuan,
                 marker_tujuan.panel panel_tujuan,
+                mp_tujuan.nama_part part_tujuan,
                 form_cut_input_detail_output_logs.qty_transfer,
                 form_cut_input_detail_output_logs.`is_active`,
                 form_cut_input_detail_output_logs.created_by,
@@ -644,10 +654,16 @@ class CuttingSwitchingController extends Controller
                 LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id
                 LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
                 LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
+                LEFT JOIN stocker_input stocker_asal on stocker_asal.form_cut_id = form_asal.id
+                LEFT JOIN part_detail pd_asal on pd_asal.id = stocker_asal.part_detail_id
+                LEFT JOIN master_part mp_asal on mp_asal.id = pd_asal.master_part_id
                 LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
                 LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id
                 LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
                 LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
+                LEFT JOIN stocker_input stocker_tujuan on stocker_tujuan.form_cut_id = form_tujuan.id
+                LEFT JOIN part_detail pd_tujuan on pd_tujuan.id = stocker_tujuan.part_detail_id
+                LEFT JOIN master_part mp_tujuan on mp_tujuan.id = pd_tujuan.master_part_id
             where
                 form_cut_input_detail_output_logs.id is not null
                 ".$additionalQuery."
@@ -690,6 +706,7 @@ class CuttingSwitchingController extends Controller
             'Color Asal',
             'Size Asal',
             'Panel Asal',
+            'Part Asal',
             'No Form Tujuan',
             'Tgl Form Tujuan',
             'WS Tujuan',
@@ -697,6 +714,7 @@ class CuttingSwitchingController extends Controller
             'Color Tujuan',
             'Size Tujuan',
             'Panel Tujuan',
+            'Part Tujuan',
             'Qty Transfer',
             'Status',
             'Created By',
@@ -721,6 +739,7 @@ class CuttingSwitchingController extends Controller
                 $row->color_asal ?? '',
                 $row->size_asal ?? '',
                 (string) $row->panel_asal,
+                (string) $row->part_asal,
                 $row->no_form_tujuan ?? '',
                 $row->tanggal_form_tujuan ?? '',
                 $row->ws_tujuan ?? '',
@@ -728,6 +747,7 @@ class CuttingSwitchingController extends Controller
                 $row->color_tujuan ?? '',
                 $row->size_tujuan ?? '',
                 (string) $row->panel_tujuan,
+                (string) $row->part_tujuan,
                 (int) ($row->qty_transfer ?? 0),
                 $row->is_active ? 'Aktif' : 'Tidak Aktif',
                 $row->created_by ?? '',
@@ -742,7 +762,7 @@ class CuttingSwitchingController extends Controller
         }
 
         // Mengatur lebar kolom agar tampilan Excel rapi
-        foreach (range('A', 'S') as $col) {
+        foreach (range('A', 'U') as $col) {
             $sheet->setColWidth($col, 18);
         }
 
