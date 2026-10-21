@@ -69,6 +69,9 @@
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
             $('#tgl-awal').val(sevenDaysAgo.toISOString().slice(0, 10));
+
+            // Datatable sudah dibuat sebelum tanggal awal diisi, muat ulang dengan tanggal yang baru
+            dataTableReload();
         });
 
         const selectFilterColumns = {
