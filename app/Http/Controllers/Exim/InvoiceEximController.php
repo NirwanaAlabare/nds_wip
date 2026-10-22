@@ -2043,17 +2043,15 @@ class InvoiceEximController extends Controller
                 return array('pesan' => 'Some SO rows are no longer available. Please search again.');
             }
             $r = $perKunci[$kunci];
+            // Dibawa apa adanya ke layar; bukan batas.
             $qtySo = (float) $r['qty_so'];
 
             if ($qty === null || $qty <= 0) {
                 return array('pesan' => 'Qty is required on SO row ' . $r['ws'] . ' / ' . $r['color'] . '.');
             }
-            // Dibulatkan dulu: angka di layar juga 2 desimal, jadi selisih
-            // pembulatan tidak boleh dianggap "melebihi pesanan".
-            if (round($qty, 2) > round($qtySo, 2)) {
-                return array('pesan' => 'Qty on SO row ' . $r['ws'] . ' / ' . $r['color']
-                    . ' is more than the ordered qty (' . rtrim(rtrim(number_format($qtySo, 2, '.', ''), '0'), '.') . ').');
-            }
+            // Qty kirim boleh lebih dari qty pesanan - pengirimannya memang bisa
+            // lebih, dan yang ditagih adalah yang benar-benar dikirim. Qty
+            // pesanannya ikut dibawa ke layar sebagai keterangan saja.
 
             $r['qty'] = $qty;
             $r['disc'] = isset($discKirim[$kunci]) ? $discKirim[$kunci] : 0;
@@ -5281,8 +5279,15 @@ class InvoiceEximController extends Controller
             $saring .= " AND mk.kode_konsumen = ?";
             $bind[] = $kodeKnitting;
         }
+        // Barisnya GRUP, bukan roll: satu baris menggabung semua roll dengan
+        // kain & harga yang sama dalam satu SJ, dan id_baris-nya roll pertama.
+        // Jadi yang disaring grupnya - lewat HAVING. Kalau disaring per roll
+        // (AND b.id IN ...), yang terbaca cuma roll itu saja dan qty-nya
+        // anjlok jadi satu roll.
+        $having = '';
         if ($idBaris) {
-            $saring .= " AND b.id IN (" . implode(',', array_fill(0, count($idBaris), '?')) . ")";
+            $having = " HAVING MIN(barcode_id) IN ("
+                . implode(',', array_fill(0, count($idBaris), '?')) . ")";
             $bind = array_merge($bind, array_values($idBaris));
         }
 
@@ -5356,7 +5361,7 @@ class InvoiceEximController extends Controller
                         OR a.tipe_pengeluaran ILIKE 'Penggantian%')
                    AND a.tgl_bppb BETWEEN ? AND ?" . $saring . "
               ) x
-             GROUP BY kain_id, harga, sj
+             GROUP BY kain_id, harga, sj" . $having . "
              ORDER BY MIN(sj) ASC";
 
         return $this->baris(DB::connection(self::KONEKSI_NAK)->select($sql, $bind), 'NAK');

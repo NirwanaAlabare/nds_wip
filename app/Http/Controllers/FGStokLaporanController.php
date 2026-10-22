@@ -46,6 +46,8 @@ class FGStokLaporanController extends Controller
 
     public function exportExcelMutasiFgStok(Request $request)
     {
+        ini_set('memory_limit', '1024M');
+
         $dateFrom = Carbon::parse($request->from)->format('Y-m-d');
         $dateTo   = Carbon::parse($request->to)->format('Y-m-d');
 
@@ -163,6 +165,7 @@ class FGStokLaporanController extends Controller
     // api
     public function show_fg_stok_mutasi(Request $request)
     {
+        ini_set("memory_limit", "1024M");
         ini_set("max_execution_time", 3600);
 
         // $user = Auth::user()->name;
@@ -391,6 +394,8 @@ class FGStokLaporanController extends Controller
 
     public function rep_mutasi_fg_stock(Request $request)
     {
+        ini_set('memory_limit', '1024M');
+
         if (!$request->ajax()) {
             abort(404);
         }
@@ -473,6 +478,8 @@ class FGStokLaporanController extends Controller
 
     public function export_excel_mutasi_fg_stock(Request $request)
     {
+        ini_set('memory_limit', '1024M');
+
         $tgl_awal = $request->from;
         $tgl_akhir = $request->to;
         $data = DB::select("
@@ -637,6 +644,8 @@ class FGStokLaporanController extends Controller
 
     public function exportExcelMutasiFgStokSb(Request $request)
     {
+        ini_set('memory_limit', '1024M');
+
         $dateFrom = Carbon::parse($request->from)->format('Y-m-d');
         $dateTo   = Carbon::parse($request->to)->format('Y-m-d');
 
@@ -913,6 +922,7 @@ class FGStokLaporanController extends Controller
 
     public function getDataPenerimaan(Request $request)
     {
+        ini_set('memory_limit', '1024M');
 
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
@@ -924,6 +934,8 @@ class FGStokLaporanController extends Controller
 
     public function exportPenerimaan(Request $request)
     {
+        ini_set('memory_limit', '1024M');
+
         $tgl_awal = $request->from;
         $tgl_akhir = $request->to;
 
@@ -1926,7 +1938,7 @@ class FGStokLaporanController extends Controller
                             GROUP BY fg_stok_bppb_id
                         ) p ON p.fg_stok_bppb_id = fg_stok_bppb.id
                     WHERE
-                        tgl_pengeluaran <= '{$tgl_akhir}' 
+                        tgl_pengeluaran <= '{$tgl_akhir}'
                         AND tujuan = 'PACKING CENTRAL'
                     GROUP BY
                         master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
@@ -2186,10 +2198,10 @@ class FGStokLaporanController extends Controller
                         0 qty_terima_qa
                     FROM
                         fg_stok_bppb
-                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_bppb.id_so_det 
+                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = fg_stok_bppb.id_so_det
                     WHERE
                         tgl_pengeluaran <= '{$tgl_akhir}' AND
-                        tujuan = 'PEMUSNAHAN' 
+                        tujuan = 'PEMUSNAHAN'
                     GROUP BY
                         master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
 
@@ -2365,6 +2377,8 @@ class FGStokLaporanController extends Controller
 
     public function rep_mutasi_global_fg_stock(Request $request)
     {
+        ini_set('memory_limit', '1024M');
+
         $tgl_awal = $request->dateFrom;
         $tgl_akhir = $request->dateTo;
         $saldo_awal = '2026-05-01';
@@ -2379,6 +2393,8 @@ class FGStokLaporanController extends Controller
 
     public function export_excel_rep_mutasi_global_fg_stock(Request $request)
     {
+        ini_set('memory_limit', '1024M');
+
         $tgl_awal = $request->from;
         $tgl_akhir = $request->to;
         $saldo_awal = '2026-05-01';

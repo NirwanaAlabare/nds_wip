@@ -46,6 +46,7 @@ use App\Http\Controllers\LapMutasiBarcodeController;
 use App\Http\Controllers\LapMutasiDetailController;
 use App\Http\Controllers\LapMutasiGlobalController;
 use App\Http\Controllers\RekonsiliasiMutasiController;
+use App\Http\Controllers\BarcodeRakController;
 use App\Http\Controllers\MaintainBpbController;
 use App\Http\Controllers\Marketing_AdditionalBomController;
 use App\Http\Controllers\Marketing_BomController;
@@ -615,6 +616,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/hitung', 'hitung')->name('rekonsiliasi-mutasi-hitung');
         Route::get('/status', 'status')->name('rekonsiliasi-mutasi-status');
         Route::get('/hasil', 'hasil')->name('rekonsiliasi-mutasi-hasil');
+    });
+
+    //print barcode roll per rak
+    Route::controller(BarcodeRakController::class)->prefix("barcode-rak")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('barcode-rak');
+        Route::get('/detail', 'detail')->name('barcode-rak-detail');
+        Route::get('/pdf', 'pdf')->name('barcode-rak-pdf');
     });
 
     //konfirmasi penerimaan

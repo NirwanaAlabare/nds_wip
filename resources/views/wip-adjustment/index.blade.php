@@ -212,11 +212,13 @@
                         Export Excel
                     </a>
                 </div>
-                <div>
-                    <button type="button" class="btn btn-danger btn-sm" id="btnCancelSelected" onclick="cancelSelected()" disabled>
-                        <i class="fa fa-times"></i> Cancel Multiple (<span id="selectedCount">0</span>)
-                    </button>
-                </div>
+                @if ($canManage)
+                    <div>
+                        <button type="button" class="btn btn-danger btn-sm" id="btnCancelSelected" onclick="cancelSelected()" disabled>
+                            <i class="fa fa-times"></i> Cancel Multiple (<span id="selectedCount">0</span>)
+                        </button>
+                    </div>
+                @endif
 
                 <!-- Button kanan -->
                 <div class="ms-auto d-flex align-items-center gap-2">
@@ -224,9 +226,11 @@
                         <i class="fa fa-file-excel"></i> Template Report
                     </button>
 
-                    <button type="button" class="btn btn-success btn-sm" id="btnOpenImport" onclick="OpenModal()">
-                        <i class="fa fa-upload"></i> Import Adjustment
-                    </button>
+                    @if ($canManage)
+                        <button type="button" class="btn btn-success btn-sm" id="btnOpenImport" onclick="OpenModal()">
+                            <i class="fa fa-upload"></i> Import Adjustment
+                        </button>
+                    @endif
                 </div>
             </div>
             <div>
@@ -417,6 +421,8 @@
         const lastClosing = @json($lastClosing ? date('Y-m-d', strtotime($lastClosing)) : null);
         // Jenis report yang sedang tampil di tabel (bukan yang sedang dipilih di dropdown)
         let currentListType;
+        // User yang boleh import & cancel (checkbox, kolom aksi, tombol cancel & import)
+        const canManage = @json($canManage);
 
         function isClosingRow(row) {
             return lastClosing && row.tgl_saldo_raw <= lastClosing;
@@ -456,8 +462,7 @@
         function buildListTable(type) {
             currentListType = type;
 
-            const columns = [
-                {
+            const checkColumn = {
                     title: '<input type="checkbox" class="form-check-input check-all-adjustment">',
                     data: null,
                     className: 'text-center col-check',
@@ -466,7 +471,28 @@
                     render: function (data, type, row) {
                         return `<input type="checkbox" class="form-check-input check-adjustment" ${isCancelable(row) ? '' : 'disabled'} ${isRowChecked(row) ? 'checked' : ''}>`;
                     }
-                },
+                };
+
+            const actionColumn = {
+                    title: 'Aksi',
+                    data: null,
+                    className: 'text-center',
+                    searchable: false,
+                    render: function (data, type, row) {
+                        const isClosing = isClosingRow(row);
+
+                        return `
+                            <button type="button" class="btn btn-danger btn-sm btn-cancel-adjustment" ${isCancelable(row) ? '' : 'disabled'}
+                                ${isClosing ? 'title="Periode sudah closing"' : ''}>
+                                <i class="fa fa-times"></i> Cancel
+                            </button>
+                        `;
+                    }
+                };
+
+            const columns = [
+                // Checkbox & kolom aksi hanya untuk user yang boleh cancel
+                ...(canManage ? [checkColumn] : []),
                 { title: 'ID', data: 'id', className: 'text-center' },
                 { title: 'Tanggal Saldo', data: 'tgl_saldo' },
                 { title: 'Jenis Report', data: 'type_report' },
@@ -485,22 +511,7 @@
                             : '<span class="badge-soft badge-soft-success">Aktif</span>';
                     }
                 },
-                {
-                    title: 'Aksi',
-                    data: null,
-                    className: 'text-center',
-                    searchable: false,
-                    render: function (data, type, row) {
-                        const isClosing = isClosingRow(row);
-
-                        return `
-                            <button type="button" class="btn btn-danger btn-sm btn-cancel-adjustment" ${isCancelable(row) ? '' : 'disabled'}
-                                ${isClosing ? 'title="Periode sudah closing"' : ''}>
-                                <i class="fa fa-times"></i> Cancel
-                            </button>
-                        `;
-                    }
-                },
+                ...(canManage ? [actionColumn] : []),
             ];
 
             if (listTable) {

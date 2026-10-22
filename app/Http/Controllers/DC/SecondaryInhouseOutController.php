@@ -1032,7 +1032,7 @@ class SecondaryInhouseOutController extends Controller
         $sheet->writeTo('O2', 'Qty Awal')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('P2', 'Qty Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('Q2', 'Qty Replace')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R2', 'Qty In')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R2', 'Qty Out')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('S2', 'Urutan')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('T2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('U2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -1049,9 +1049,9 @@ class SecondaryInhouseOutController extends Controller
                     $row->act_costing_ws ?? "-",
                     $row->style ?? "-",
                     $row->color ?? "-",
-                    $row->nama_part_only ? preg_replace('/\s+/', ' ', $row->nama_part_only) : "-",
+                    $row->nama_part_only ? $row->nama_part_only : "-",
                     $row->part_status ?? "-",
-                    $row->panel_only ? preg_replace('/\s+/', ' ', $row->panel_only) : "-",
+                    $row->panel_only ? $row->panel_only : "-",
                     $row->panel_status ?? "-",
                     $row->size ?? "-",
                     $row->no_cut ?? "-",
@@ -1270,9 +1270,9 @@ class SecondaryInhouseOutController extends Controller
                     $row->act_costing_ws ?? "-",
                     $row->style ?? "-",
                     $row->color ?? "-",
-                    preg_replace('/\s+/', ' ', (string) $row->nama_part) ?: "-",
+                    (string) $row->nama_part ?: "-",
                     $row->part_status ?? "-",
-                    preg_replace('/\s+/', ' ', (string) $row->panel) ?: "-",
+                    (string) $row->panel ?: "-",
                     $row->panel_status ?? "-",
                     $row->size ?? "-",
                     $row->no_cut ?? "-",

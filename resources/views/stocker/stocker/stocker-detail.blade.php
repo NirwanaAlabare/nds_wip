@@ -1028,6 +1028,10 @@
                         @php
                             $indexSeparate = 0;
 
+                            // Ratio output untuk modal separate dihitung terpisah, karena
+                            // $ratioOutputList sudah dihabiskan oleh tabel stocker utama
+                            $ratioOutputListSeparate = new \ArrayObject();
+
                             $currentGroupSeparate = "";
                             $currentGroupStockerSeparate = 0;
                             $currentTotalSeparate = 0;
@@ -1058,7 +1062,7 @@
                                         </div>
                                     </div>
 
-                                    @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
+                                    @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputListSeparate])
                                     @php
                                         $indexSeparate += $dataRatio->count();
                                     @endphp
@@ -1085,7 +1089,7 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputListSeparate])
                                         @php
                                             $indexSeparate += $dataRatio->count();
                                         @endphp
@@ -1109,7 +1113,7 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputListSeparate])
                                         @php
                                             $indexSeparate += $dataRatio->count();
                                         @endphp
@@ -1139,7 +1143,7 @@
                                         </div>
                                     </div>
 
-                                    @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
+                                    @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputListSeparate])
                                     @php
                                         $indexSeparate += $dataRatio->count();
                                     @endphp
@@ -1166,7 +1170,7 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputListSeparate])
                                         @php
                                             $indexSeparate += $dataRatio->count();
                                         @endphp
@@ -1176,7 +1180,7 @@
                                     @php
                                         $currentTotalSeparate += $detail->lembar_gelaran;
                                     @endphp
-
+                                    
                                     @if ($loop->last)
                                     {{-- Create last element when it comes to an end of this loop --}}
                                         <div class="d-flex gap-3">
@@ -1190,7 +1194,7 @@
                                             </div>
                                         </div>
 
-                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputList])
+                                        @include('stocker.stocker.stocker-detail-separate', ["modifySizeQtyStocker" => $modifySizeQty, "ratioOutputList" => $ratioOutputListSeparate])
                                         @php
                                             $indexSeparate += $dataRatio->count();
                                         @endphp

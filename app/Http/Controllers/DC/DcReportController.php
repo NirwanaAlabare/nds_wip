@@ -349,8 +349,8 @@ class DcReportController extends Controller
                         $row->style,
                         $row->color,
                         $row->size,
-                        preg_replace('/\s+/', ' ', (string) $row->panel),
-                        preg_replace('/\s+/', ' ', (string) $row->nama_part),
+                        $row->panel,
+                        $row->nama_part,
 
                         (float) $saldoAwal,
                         (float) $masuk,
@@ -2322,7 +2322,7 @@ class DcReportController extends Controller
         return $excel->download();
     }
 
-    public function report_terima_secondary_luar(Request $request){
+    public function report_terima_secondary_luar(Request $request) {
         ini_set("max_execution_time", 36000);
         ini_set('memory_limit', '1024M');
 
@@ -2338,9 +2338,10 @@ class DcReportController extends Controller
                                 *,
                                 DATE_FORMAT(tanggal, '%d-%m-%Y') AS tanggal
                         FROM inject_mutasi_dc
-                        WHERE tanggal BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                        WHERE tanggal BETWEEN ? AND ?
+                        AND type_report = 'SECONDARY_LUAR'
                         AND cancelled_at IS NULL
-                ");
+                ", [$dateFrom, $dateTo]);
             }
 
             return DataTables::of($dataReport)->toJson();
@@ -2351,6 +2352,46 @@ class DcReportController extends Controller
             "subPageGroup" => "report",
             "subPage" => "report_terima_secondary_luar",
         ]);
+    }
+
+    // Semua id hasil filter tabel (lintas halaman) untuk check all
+    public function checkAllTerimaSecondaryLuar(Request $request) {
+        $request->validate([
+            'dateFrom' => 'required|date',
+            'dateTo'   => 'required|date',
+        ]);
+
+        // Parameter filter kolom => kolom/ekspresi SQL (format sama dengan yang tampil di tabel)
+        $filters = [
+            'tanggal_filter'    => "DATE_FORMAT(tanggal, '%d-%m-%Y')",
+            'no_ws_filter'      => 'no_ws',
+            'buyer_filter'      => 'buyer',
+            'style_filter'      => 'style',
+            'color_filter'      => 'color',
+            'size_filter'       => 'size',
+            'panel_filter'      => 'panel',
+            'part_filter'       => 'part',
+            'qty_filter'        => 'qty',
+            'created_by_filter' => 'created_by_username',
+            'created_at_filter' => 'created_at',
+        ];
+
+        $query = DB::table('inject_mutasi_dc')
+            ->select('id')
+            ->whereBetween('tanggal', [$request->dateFrom, $request->dateTo])
+            ->where('type_report', 'SECONDARY_LUAR')
+            ->whereNull('cancelled_at');
+
+        // Semua filter yang terisi dipakai bersamaan
+        foreach ($filters as $param => $expression) {
+            $value = trim((string) $request->input($param));
+
+            if ($value !== '') {
+                $query->whereRaw("CAST($expression AS CHAR) LIKE ?", ['%' . $value . '%']);
+            }
+        }
+
+        return $query->get();
     }
 
     public function previewImportTerimaSecLuar(Request $request)
@@ -2437,6 +2478,17 @@ class DcReportController extends Controller
             ], 422);
         }
 
+        // Check Closing Date (per tanggal unik, sebelum transaksi dimulai)
+        foreach (array_unique(array_column($data, 'tanggal')) as $tanggal) {
+            if (checkClosingDate($tanggal)) {
+                return response()->json([
+                    'success'    => false,
+                    'message'    => 'Data tidak dapat disimpan karena periode ' . date('d-m-Y', strtotime($tanggal)) . ' sudah ditutup.',
+                    'additional' => 'Closing'
+                ], 422);
+            }
+        }
+
         try {
             DB::beginTransaction();
 
@@ -2500,6 +2552,20 @@ class DcReportController extends Controller
 
         $user = Auth::user();
 
+        // Check Closing Date (cukup tanggal paling awal dari data yang akan dicancel)
+        $minTanggal = DB::table('inject_mutasi_dc')
+            ->whereIn('id', $request->ids)
+            ->where('type_report', 'SECONDARY_LUAR')
+            ->whereNull('cancelled_at')
+            ->min('tanggal');
+
+        if ($minTanggal && checkClosingDate($minTanggal)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data periode ' . date('d-m-Y', strtotime($minTanggal)) . ' sudah closing, tidak dapat dicancel.'
+            ], 422);
+        }
+
         $cancelled = DB::table('inject_mutasi_dc')
             ->whereIn('id', $request->ids)
             ->where('type_report', 'SECONDARY_LUAR')
@@ -2536,9 +2602,10 @@ class DcReportController extends Controller
                         *,
                         DATE_FORMAT(tanggal, '%d-%m-%Y') AS tanggal
                 FROM inject_mutasi_dc
-                WHERE tanggal BETWEEN '".$dateFrom."' AND '".$dateTo."'
+                WHERE tanggal BETWEEN ? AND ?
+                AND type_report = 'SECONDARY_LUAR'
                 AND cancelled_at IS NULL
-        ");
+        ", [$dateFrom, $dateTo]);
 
         $fileName = 'report-mutasi-wip-set-dc';
 
@@ -2592,8 +2659,8 @@ class DcReportController extends Controller
                 $row->style ?: '',
                 $row->color ?: '',
                 $row->size ?: '',
-                preg_replace('/\s+/', ' ', (string) $row->panel),
-                preg_replace('/\s+/', ' ', (string) $row->part),
+                (string) $row->panel,
+                (string) $row->part,
                 (float) ($row->qty ?? 0),
                 $row->created_by_username ?: '',
                 $row->created_at ?: '',

@@ -376,6 +376,7 @@
             serverSide: true,
             ajax: {
                 url: '{{ route('dc-in-list') }}',
+                type: 'POST',
                 data: function(d) {
                     d.stocker_ids = $("#dc-in-stocker-ids").val();
                 },

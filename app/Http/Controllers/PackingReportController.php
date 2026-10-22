@@ -2078,14 +2078,14 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
         foreach ($data as $row) {
 
             $rows = [
-                preg_replace('/\s+/', ' ', (string) ($row->ws ?? '')),
-                preg_replace('/\s+/', ' ', (string) ($row->buyer ?? '')),
-                preg_replace('/\s+/', ' ', (string) ($row->style ?? '')),
-                preg_replace('/\s+/', ' ', (string) ($row->color ?? '')),
-                preg_replace('/\s+/', ' ', (string) ($row->size ?? '')),
+                (string) ($row->ws ?? ''),
+                (string) ($row->buyer ?? ''),
+                (string) ($row->style ?? ''),
+                (string) ($row->color ?? ''),
+                (string) ($row->size ?? ''),
 
                 (float) ($row->tpl_saldo_awal ?? 0),
-                (float) ($row->tpl_in ?? 0),
+                (float) ($row->tpl_in ?? 0), 
                 (float) ($row->tpl_out ?? 0),
                 (float) ($row->tpl_adjustment ?? 0),
                 (float) ($row->tpl_saldo_akhir ?? 0),

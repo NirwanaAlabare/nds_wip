@@ -21,90 +21,156 @@ use DB;
 
 class CuttingSwitchingController extends Controller
 {
+    // Kolom hasil query log switching (urutan sama dengan tabel & export)
+    private $switchingLogColumns = [
+        'group_roll', 'no_form', 'tanggal_form', 'ws', 'styleno', 'color', 'size', 'panel', 'part',
+        'total_out', 'total_in', 'is_active', 'created_by', 'created_at', 'updated_at',
+    ];
+
+    // Log switching per form/size/part: sisi asal = out, sisi tujuan = in
+    private function switchingLogQuery($dateFrom, $dateTo)
+    {
+        $start = $dateFrom . " 00:00:00";
+        $end = $dateTo . " 23:59:59";
+
+        // Log masuk periode jika waktu selesai form asal / form tujuan / update log ada di rentang tanggal.
+        // Dipakai di kedua sisi UNION supaya out & in dari log yang sama selalu ikut bersamaan.
+        $logFilter = "
+            form_cut_input_detail_output_logs.id IN (
+                SELECT l.id
+                FROM form_cut_input_detail_output_logs l
+                LEFT JOIN form_cut_input fa ON fa.id = l.form_cut_input_id_asal
+                LEFT JOIN form_cut_input ft ON ft.id = l.form_cut_input_id_tujuan
+                WHERE fa.waktu_selesai BETWEEN ? AND ?
+                    OR ft.waktu_selesai BETWEEN ? AND ?
+                    OR l.updated_at BETWEEN ? AND ?
+            )
+        ";
+        $logFilterBindings = [$start, $end, $start, $end, $start, $end];
+
+        $sql = "
+                SELECT 
+                    group_roll,
+                    no_form,
+                    tanggal_form,
+                    ws,
+                    styleno,
+                    color,
+                    size,
+                    panel,
+                    part,
+                    SUM(`out`) total_out,
+                    SUM(`in`) total_in,
+                    is_active,
+                    created_by,
+                    created_at,
+                    updated_at
+                FROM (
+                    select
+                        form_cut_input_detail_output_logs.group_roll_asal group_roll,
+                        form_asal.no_form no_form,
+                        DATE(form_asal.waktu_selesai) tanggal_form,
+                        msb_asal.ws ws,
+                        msb_asal.styleno styleno,
+                        msb_asal.color color,
+                        msb_asal.size size,
+                        (CASE WHEN COALESCE(pcust.set_part_status, pd_asal.part_status) = 'complement' THEN COALESCE(p_com.panel, part_asal.panel) ELSE part_asal.panel END) panel,
+                        mp_asal.nama_part part,
+                        form_cut_input_detail_output_logs.qty_transfer `out`,
+                        0 `in`,
+                        form_cut_input_detail_output_logs.`is_active`,
+                        form_cut_input_detail_output_logs.created_by,
+                        form_cut_input_detail_output_logs.created_at,
+                        form_cut_input_detail_output_logs.updated_at
+                    from
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_asal on form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                        LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
+                        LEFT JOIN part part_asal on part_asal.act_costing_id = marker_asal.act_costing_id and part_asal.panel = marker_asal.panel
+                        LEFT JOIN part_detail pd_asal on pd_asal.part_id = part_asal.id and (pd_asal.status IS NULL OR pd_asal.status = 'active')
+                        LEFT JOIN part_detail pd_com on pd_com.id = pd_asal.from_part_detail and pd_asal.part_status = 'complement'
+                        LEFT JOIN master_part mp_asal on mp_asal.id = pd_asal.master_part_id
+                        LEFT JOIN part p_com on p_com.id = pd_com.part_id
+                        LEFT JOIN master_part mp_com on mp_com.id = pd_com.master_part_id
+                        LEFT JOIN part_custom pcust on pcust.part_detail_id = pd_asal.id and pcust.color = msb_asal.color
+                    where
+                        (pd_asal.part_status != 'complement' OR pd_asal.part_status IS NULL) and
+                        ".$logFilter."
+                    UNION ALL
+                    select
+                        form_cut_input_detail_output_logs.group_roll_asal group_roll,
+                        form_tujuan.no_form no_form,
+                        DATE(form_tujuan.waktu_selesai) tanggal_form,
+                        msb_tujuan.ws ws,
+                        msb_tujuan.styleno styleno,
+                        msb_tujuan.color color,
+                        msb_tujuan.size size,
+                        (CASE WHEN COALESCE(pcust.set_part_status, pd_tujuan.part_status) = 'complement' THEN COALESCE(p_com.panel, part_tujuan.panel) ELSE part_tujuan.panel END) panel,
+                        mp_tujuan.nama_part part,
+                        0 `out`,
+                        form_cut_input_detail_output_logs.qty_transfer `in`,
+                        form_cut_input_detail_output_logs.`is_active`,
+                        form_cut_input_detail_output_logs.created_by,
+                        form_cut_input_detail_output_logs.created_at,
+                        form_cut_input_detail_output_logs.updated_at
+                    from
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                        LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
+                        LEFT JOIN part part_tujuan on part_tujuan.act_costing_id = marker_tujuan.act_costing_id and part_tujuan.panel = marker_tujuan.panel
+                        LEFT JOIN part_detail pd_tujuan on pd_tujuan.part_id = part_tujuan.id and (pd_tujuan.status IS NULL OR pd_tujuan.status = 'active')
+                        LEFT JOIN part_detail pd_com on pd_com.id = pd_tujuan.from_part_detail and pd_tujuan.part_status = 'complement'
+                        LEFT JOIN master_part mp_tujuan on mp_tujuan.id = pd_tujuan.master_part_id
+                        LEFT JOIN part p_com on p_com.id = pd_com.part_id
+                        LEFT JOIN master_part mp_com on mp_com.id = pd_com.master_part_id
+                        LEFT JOIN part_custom pcust on pcust.part_detail_id = pd_tujuan.id and pcust.color = msb_tujuan.color
+                    where
+                        (pd_tujuan.part_status != 'complement' OR pd_tujuan.part_status IS NULL) and
+                        ".$logFilter."
+                ) form_cut_input_detail_output_logs
+                GROUP BY
+                    group_roll,
+                    no_form,
+                    tanggal_form,
+                    ws,
+                    styleno,
+                    color,
+                    size,
+                    panel,
+                    part,
+                    is_active,
+                    created_by,
+                    created_at,
+                    updated_at
+        ";
+
+        return DB::query()
+            ->fromRaw("($sql) as switching_log", array_merge($logFilterBindings, $logFilterBindings))
+            ->orderBy('created_at')
+            ->orderBy('no_form')
+            ->orderBy('size')
+            ->orderBy('part');
+    }
+
     public function index(Request $request) {
         if ($request->ajax()) {
-            $additionalQuery = "";
-
             $dateFrom = $request->dateFrom ?? date("Y-m-d");
             $dateTo = $request->dateTo ?? date("Y-m-d");
 
-            if ($dateFrom) {
-                $additionalQuery .= " and (form_asal.waktu_selesai >= '" . $dateFrom . " 00:00:00' OR form_tujuan.waktu_selesai >= '" . $dateFrom . " 00:00:00' OR form_cut_input_detail_output_logs.updated_at >= '" . $dateFrom . " 00:00:00')";
+            $dataTable = DataTables::query($this->switchingLogQuery($dateFrom, $dateTo));
+
+            // Search global & per kolom langsung ke kolom hasil query (binding, tanpa prefix tabel)
+            foreach ($this->switchingLogColumns as $column) {
+                $dataTable->filterColumn($column, function ($query, $keyword) use ($column) {
+                    $query->whereRaw("CAST(`$column` AS CHAR) LIKE ?", ['%' . $keyword . '%']);
+                });
             }
 
-            if ($dateTo) {
-                $additionalQuery .= " and (form_asal.waktu_selesai <= '" . $dateTo . " 23:59:59' OR form_tujuan.waktu_selesai <= '" . $dateTo . " 23:59:59' OR form_cut_input_detail_output_logs.updated_at <= '" . $dateTo . " 23:59:59')";
-            }
-
-            $keywordQuery = "";
-            if ($request->search["value"]) {
-                $keywordQuery = "
-                    and (
-                        form_cut_input_detail_output_logs.group_roll_asal like '%".$request->search['value']."%' OR
-                        DATE(form_asal.waktu_selesai) LIKE '%".$request->search['value']."%' OR
-                        DATE(form_tujuan.waktu_selesai) LIKE '%".$request->search['value']."%' OR
-                        form_asal.no_form like '%".$request->search['value']."%' OR
-                        msb_asal.ws like '%".$request->search['value']."%' OR
-                        msb_asal.styleno like '%".$request->search['value']."%' OR
-                        msb_asal.color like '%".$request->search['value']."%' OR
-                        msb_asal.size like '%".$request->search['value']."%' OR
-                        marker_asal.panel like '%".$request->search['value']."%' OR
-                        form_tujuan.no_form like '%".$request->search['value']."%' OR
-                        msb_tujuan.ws like '%".$request->search['value']."%' OR
-                        msb_tujuan.styleno like '%".$request->search['value']."%' OR
-                        msb_tujuan.color like '%".$request->search['value']."%' OR
-                        msb_tujuan.size like '%".$request->search['value']."%' OR
-                        marker_tujuan.panel like '%".$request->search['value']."%' OR
-                        form_cut_input_detail_output_logs.qty_transfer like '%".$request->search['value']."%' OR
-                        form_cut_input_detail_output_logs.is_active like '%".$request->search['value']."%' OR
-                        form_cut_input_detail_output_logs.created_by like '%".$request->search['value']."%' OR
-                        form_cut_input_detail_output_logs.created_at like '%".$request->search['value']."%' OR
-                        form_cut_input_detail_output_logs.updated_at like '%".$request->search['value']."%'
-                    )
-                ";
-            }
-
-            $data_spreading = DB::select("
-                select
-                    form_cut_input_detail_output_logs.group_roll_asal,
-                    form_asal.no_form no_form_asal,
-                    DATE(form_asal.waktu_selesai) tanggal_form_asal,
-                    msb_asal.ws ws_asal,
-                    msb_asal.styleno styleno_asal,
-                    msb_asal.color color_asal,
-                    msb_asal.size size_asal,
-                    marker_asal.panel panel_asal,
-                    form_tujuan.no_form no_form_tujuan,
-                    DATE(form_tujuan.waktu_selesai) tanggal_form_tujuan,
-                    msb_tujuan.ws ws_tujuan,
-                    msb_tujuan.styleno styleno_tujuan,
-                    msb_tujuan.color color_tujuan,
-                    msb_tujuan.size size_tujuan,
-                    marker_tujuan.panel panel_tujuan,
-                    form_cut_input_detail_output_logs.qty_transfer,
-                    form_cut_input_detail_output_logs.`is_active`,
-                    form_cut_input_detail_output_logs.created_by,
-                    form_cut_input_detail_output_logs.created_at,
-                    form_cut_input_detail_output_logs.updated_at
-                from
-                    form_cut_input_detail_output_logs
-                    LEFT JOIN form_cut_input form_asal on form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
-                    LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id
-                    LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
-                    LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
-                    LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
-                    LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id
-                    LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
-                    LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
-                where
-                    form_cut_input_detail_output_logs.id is not null
-                    ".$additionalQuery."
-                    ".$keywordQuery."
-                group by
-                    form_cut_input_detail_output_logs.id
-            ");
-
-            return DataTables::of($data_spreading)->toJson();
+            return $dataTable->toJson();
         }
 
         return view('cutting.switching.index', ["page" => "dashboard-cutting"]);
@@ -594,67 +660,24 @@ class CuttingSwitchingController extends Controller
     }
 
     public function exportFormCutInputDetailOutputLog(Request $request) {
-        // 1. Inisialisasi variabel filter
-        $additionalQuery = "";
-        $keywordQuery = ""; // Inisialisasi agar tidak error jika tidak ada kata kunci
+        // 1. Filter tanggal & keyword (keyword = search global tabel)
+        $dateFrom = $request->dateFrom ?? date("Y-m-d");
+        $dateTo = $request->dateTo ?? date("Y-m-d");
 
-        $dateFrom =$request->dateFrom ?? date("Y-m-d");
-        $dateTo =$request->dateTo ?? date("Y-m-d");
+        $query = $this->switchingLogQuery($dateFrom, $dateTo);
 
-        // Jika request membawa input keyword/pencarian (opsional)
         if ($request->filled('keyword')) {
-            $keyword =$request->keyword;
-            $keywordQuery = " and (msb_asal.ws like '%{$keyword}%' or msb_tujuan.ws like '%{$keyword}%')";
-        }
+            $keyword = $request->keyword;
 
-        if ($dateFrom) {
-            $additionalQuery .= " and (form_asal.waktu_selesai >= '" . $dateFrom . " 00:00:00' OR form_tujuan.waktu_selesai >= '" . $dateFrom . " 00:00:00' OR form_cut_input_detail_output_logs.updated_at >= '" . $dateFrom . " 00:00:00')";
-        }
-
-        if ($dateTo) {
-            $additionalQuery .= " and (form_asal.waktu_selesai <= '" . $dateTo . " 23:59:59' OR form_tujuan.waktu_selesai <= '" . $dateTo . " 23:59:59' OR form_cut_input_detail_output_logs.updated_at <= '" . $dateTo . " 23:59:59')";
+            $query->where(function ($q) use ($keyword) {
+                foreach ($this->switchingLogColumns as $column) {
+                    $q->orWhereRaw("CAST(`$column` AS CHAR) LIKE ?", ['%' . $keyword . '%']);
+                }
+            });
         }
 
         // 2. Eksekusi SQL Query
-        $data_spreading = DB::select("
-            select
-                form_cut_input_detail_output_logs.group_roll_asal,
-                form_asal.no_form no_form_asal,
-                DATE(form_asal.waktu_selesai) tanggal_form_asal,
-                msb_asal.ws ws_asal,
-                msb_asal.styleno styleno_asal,
-                msb_asal.color color_asal,
-                msb_asal.size size_asal,
-                marker_asal.panel panel_asal,
-                form_tujuan.no_form no_form_tujuan,
-                DATE(form_tujuan.waktu_selesai) tanggal_form_tujuan,
-                msb_tujuan.ws ws_tujuan,
-                msb_tujuan.styleno styleno_tujuan,
-                msb_tujuan.color color_tujuan,
-                msb_tujuan.size size_tujuan,
-                marker_tujuan.panel panel_tujuan,
-                form_cut_input_detail_output_logs.qty_transfer,
-                form_cut_input_detail_output_logs.`is_active`,
-                form_cut_input_detail_output_logs.created_by,
-                form_cut_input_detail_output_logs.created_at,
-                form_cut_input_detail_output_logs.updated_at
-            from
-                form_cut_input_detail_output_logs
-                LEFT JOIN form_cut_input form_asal on form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
-                LEFT JOIN marker_input marker_asal on marker_asal.id = form_asal.marker_id
-                LEFT JOIN marker_input_detail marker_detail_asal on marker_detail_asal.marker_id = marker_asal.id and marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
-                LEFT JOIN master_sb_ws msb_asal on msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
-                LEFT JOIN form_cut_input form_tujuan on form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
-                LEFT JOIN marker_input marker_tujuan on marker_tujuan.id = form_tujuan.marker_id
-                LEFT JOIN marker_input_detail marker_detail_tujuan on marker_detail_tujuan.marker_id = marker_tujuan.id and marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
-                LEFT JOIN master_sb_ws msb_tujuan on msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
-            where
-                form_cut_input_detail_output_logs.id is not null
-                ".$additionalQuery."
-                ".$keywordQuery."
-            group by
-                form_cut_input_detail_output_logs.id
-        ");
+        $data_spreading = $query->get();
 
         // 3. Set Up FastExcel
         $fileName = 'report-log-switching-cutting.xlsx';
@@ -683,24 +706,20 @@ class CuttingSwitchingController extends Controller
         // Header tabel disesuaikan dengan data hasil SQL Query
         $header = [
             'Group Roll',
-            'No Form Asal',
-            'Tgl Form Asal',
-            'WS Asal',
-            'Style Asal',
-            'Color Asal',
-            'Size Asal',
-            'Panel Asal',
-            'No Form Tujuan',
-            'Tgl Form Tujuan',
-            'WS Tujuan',
-            'Style Tujuan',
-            'Color Tujuan',
-            'Size Tujuan',
-            'Panel Tujuan',
-            'Qty Transfer',
+            'No Form',
+            'Tgl Form',
+            'WS',
+            'Style',
+            'Color',
+            'Size',
+            'Panel',
+            'Part',
+            'Total Out',
+            'Total In',
             'Status',
             'Created By',
-            'Created At'
+            'Created At',
+            'Updated At'
         ];
 
         $sheet->writeRow($header,
@@ -712,26 +731,23 @@ class CuttingSwitchingController extends Controller
 
         // Loop data dari variabel $data_spreading
         foreach ($data_spreading as$row) {
+            // Urutan kolom sama dengan $header
             $rows = [
-                $row->group_roll_asal ?? '',
-                $row->no_form_asal ?? '',
-                $row->tanggal_form_asal ?? '',
-                $row->ws_asal ?? '',
-                $row->styleno_asal ?? '',
-                $row->color_asal ?? '',
-                $row->size_asal ?? '',
-                preg_replace('/\s+/', ' ', (string) $row->panel_asal),
-                $row->no_form_tujuan ?? '',
-                $row->tanggal_form_tujuan ?? '',
-                $row->ws_tujuan ?? '',
-                $row->styleno_tujuan ?? '',
-                $row->color_tujuan ?? '',
-                $row->size_tujuan ?? '',
-                preg_replace('/\s+/', ' ', (string) $row->panel_tujuan),
-                (int) ($row->qty_transfer ?? 0),
+                $row->group_roll ?? '',
+                $row->no_form ?? '',
+                $row->tanggal_form ?? '',
+                $row->ws ?? '',
+                $row->styleno ?? '',
+                $row->color ?? '',
+                $row->size ?? '',
+                (string) $row->panel,
+                (string) $row->part,
+                (int) ($row->total_out ?? 0),
+                (int) ($row->total_in ?? 0),
                 $row->is_active ? 'Aktif' : 'Tidak Aktif',
                 $row->created_by ?? '',
                 $row->created_at ?? '',
+                $row->updated_at ?? '',
             ];
 
             $sheet->writeRow($rows,
@@ -742,7 +758,7 @@ class CuttingSwitchingController extends Controller
         }
 
         // Mengatur lebar kolom agar tampilan Excel rapi
-        foreach (range('A', 'S') as $col) {
+        foreach (range('A', 'O') as $col) {
             $sheet->setColWidth($col, 18);
         }
 

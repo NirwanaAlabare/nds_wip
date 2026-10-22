@@ -63,7 +63,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/export-excel', 'exportExcel')->name('dc-in-export-excel');
         Route::get('/export-excel-detail', 'exportExcelDetail')->name('dc-in-detail-export-excel');
 
-        Route::get('/dc-in-list', 'dcInList')->name('dc-in-list');
+        Route::post('/dc-in-list', 'dcInList')->name('dc-in-list');
     });
 
     // Secondary INHOUSE IN
@@ -305,6 +305,7 @@ Route::middleware('auth')->group(function () {
 
         // Route untuk cancel data
         Route::post('/secondary-luar/cancel', 'cancelTerimaSecLuar')->name('terima.secondary.luar.cancel');
+        Route::post('/secondary-luar/check-all', 'checkAllTerimaSecondaryLuar')->name('terima.secondary.luar.check-all');
     });
 
     // Stocker Process
