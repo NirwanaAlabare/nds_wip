@@ -1517,16 +1517,24 @@
                 return;
             }
 
-            let params = new URLSearchParams({
+            // Dikirim via POST (form target _blank), karena kalau lewat URL (GET) dan QR yang dipilih
+            // banyak, URL-nya kepanjangan -> error "Request-URI Too Long"
+            let params = {
+                _token: '{{ csrf_token() }}',
                 ids: ids.join(','),
                 color: $('#qrPrintTransparent').is(':checked') ?
                     'transparent' : $('#qrPrintColor').val().replace('#', '')
-            });
+            };
 
-            window.open(
-                `{{ route('asset_mesin_tambah_qr_list_print') }}?${params.toString()}`,
-                '_blank'
-            );
+            let form = $('<form>', {
+                method: 'POST',
+                action: `{{ route('asset_mesin_tambah_qr_list_print') }}`,
+                target: '_blank'
+            });
+            $.each(params, function(name, value) {
+                form.append($('<input>', { type: 'hidden', name: name, value: value }));
+            });
+            form.appendTo('body').trigger('submit').remove();
         });
 
         // Stacking z-index agar modal kedua tampil rapi di atas modal pertama
