@@ -1168,11 +1168,6 @@
                             class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('update-data-ceisa') }}" class="dropdown-item">
-                                    Update Data Ceisa
-                                </a>
-                            </li>
-                            <li>
                                 <a href="{{ route('lock') }}" target="_blank" class="dropdown-item">
                                     Master Data Closing
                                 </a>
