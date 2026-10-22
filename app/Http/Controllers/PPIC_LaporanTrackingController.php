@@ -1321,6 +1321,42 @@ class PPIC_LaporanTrackingController extends Controller
                             ws, color, size,styleno_prod, reff_no, panel
                         UNION ALL
                         -- 	ADJUSTMENT
+                        -- SELECT
+                        --     buyer,
+                        --     ws,
+                        --     color,
+                        --     size,
+                        --     styleno_prod,
+                        --     reff_no,
+                        --     id_so_det,
+                        --     panel,
+                        --     MIN(qty_adjustment) qty
+                        -- FROM (
+                        --     SELECT
+                        --         master_sb_ws.buyer,
+                        --         master_sb_ws.ws,
+                        --         master_sb_ws.color,
+                        --         master_sb_ws.size,
+                        --         master_sb_ws.styleno_prod,
+                        --         master_sb_ws.reff_no,
+                        --         master_sb_ws.id_so_det,
+                        --         wip_adjustment.panel,
+                        --         SUM(wip_adjustment.qty) as qty_adjustment
+                        --     FROM
+                        --         wip_adjustment
+                        --         left join master_sb_ws on master_sb_ws.ws = wip_adjustment.no_ws and master_sb_ws.color = wip_adjustment.color and master_sb_ws.size = wip_adjustment.size
+                        --     WHERE
+                        --         type_report = 'CUTTING' and
+                        --         status = 'Y' and
+                        --         master_sb_ws.buyer = '$buyer'
+                        --         $cond_ws_msb
+                        --         $cond_color_msb
+                        --         $cond_size_msb
+                        --     GROUP BY
+                        --         wip_adjustment.no_ws, wip_adjustment.style, wip_adjustment.color, wip_adjustment.size, wip_adjustment.panel, wip_adjustment.part
+                        -- ) wip_adjustment
+                        -- GROUP BY
+                        --     ws, styleno_prod, reff_no, color, size, panel
                         SELECT
                             buyer,
                             ws,
@@ -1330,7 +1366,7 @@ class PPIC_LaporanTrackingController extends Controller
                             reff_no,
                             id_so_det,
                             panel,
-                            MIN(qty_adjustment) qty
+                            MIN(qty_adjustment) AS qty
                         FROM (
                             SELECT
                                 master_sb_ws.buyer,
@@ -1341,22 +1377,60 @@ class PPIC_LaporanTrackingController extends Controller
                                 master_sb_ws.reff_no,
                                 master_sb_ws.id_so_det,
                                 wip_adjustment.panel,
-                                SUM(wip_adjustment.qty) as qty_adjustment
-                            FROM
-                                wip_adjustment
-                                left join master_sb_ws on master_sb_ws.ws = wip_adjustment.no_ws and master_sb_ws.color = wip_adjustment.color and master_sb_ws.size = wip_adjustment.size
+                                SUM(wip_adjustment.qty) AS qty_adjustment
+                            FROM wip_adjustment
+                            LEFT JOIN (
+                                SELECT
+                                    MIN(id_so_det) AS id_so_det,
+                                    ws,
+                                    color,
+                                    size,
+                                    styleno,
+                                    styleno_prod,
+                                    reff_no,
+                                    buyer
+                                FROM master_sb_ws
+                                GROUP BY
+                                    ws,
+                                    color,
+                                    size,
+                                    styleno,
+                                    styleno_prod,
+                                    reff_no,
+                                    buyer
+                            ) master_sb_ws
+                                ON master_sb_ws.ws = wip_adjustment.no_ws
+                                AND master_sb_ws.color = wip_adjustment.color
+                                AND master_sb_ws.size = wip_adjustment.size
+                                AND master_sb_ws.styleno = wip_adjustment.style
                             WHERE
-                                type_report = 'CUTTING' and
-                                status = 'Y' and
-                                master_sb_ws.buyer = '$buyer'
+                                wip_adjustment.type_report = 'CUTTING'
+                                AND wip_adjustment.status = 'Y'
+                                AND master_sb_ws.buyer = '$buyer'
                                 $cond_ws_msb
                                 $cond_color_msb
                                 $cond_size_msb
                             GROUP BY
-                                wip_adjustment.no_ws, wip_adjustment.style, wip_adjustment.color, wip_adjustment.size, wip_adjustment.panel, wip_adjustment.part
-                        ) wip_adjustment
+                                wip_adjustment.style,
+                                wip_adjustment.panel,
+                                wip_adjustment.part,
+                                master_sb_ws.buyer,
+                                master_sb_ws.ws,
+                                master_sb_ws.color,
+                                master_sb_ws.size,
+                                master_sb_ws.styleno_prod,
+                                master_sb_ws.reff_no,
+                                master_sb_ws.id_so_det
+                        ) AS adjustment
                         GROUP BY
-                            ws, styleno_prod, reff_no, color, size, panel
+                            buyer,
+                            ws,
+                            color,
+                            size,
+                            styleno_prod,
+                            reff_no,
+                            id_so_det,
+                            panel
                         UNION ALL
                         -- 	SWITCHING
                         SELECT
