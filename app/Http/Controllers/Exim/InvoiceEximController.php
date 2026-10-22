@@ -5121,16 +5121,10 @@ class InvoiceEximController extends Controller
             }
         }
 
-        // po_konsumen ikut dibawa: dipakai kolom PO di PDF khusus knitting.
-        //
-        // Kalau PO konsumennya belum ada isinya - NULL, kosong, '-', atau masih
-        // ditulis 'TBA' - yang dipakai PO buyer. Cetakan tanpa nomor PO sama
-        // saja tidak berguna buat customer, dan 'TBA' bukan nomor.
-        $sql = "SELECT CASE
-                           WHEN UPPER(TRIM(COALESCE(f.po_konsumen, ''))) IN ('', '-', 'TBA')
-                               THEN f.po_buyer
-                           ELSE f.po_konsumen
-                       END AS po_konsumen,
+        // Kolom PO di PDF khusus knitting: PO BUYER, apa adanya. Tidak lagi
+        // ditukar ke po_konsumen waktu kosong - PO yang benar cuma satu, dan
+        // menukarnya diam-diam bikin cetakan menyebut PO yang bukan itu.
+        $sql = "SELECT f.po_buyer AS po_konsumen,
                        f.kode_so AS no_so, a.kode_out AS sj, a.tgl_pengeluaran AS bppbdate,
                        a.kode_out AS shipping_number, '-' AS ws, d.lab_dip AS styleno,
                        '-' AS product_group, c.nama_kain AS product_item, d.warna AS color,
@@ -5321,11 +5315,7 @@ class InvoiceEximController extends Controller
                        i.id AS id_so, a.id AS id_bppb, b.id_item AS kain_id,
                        UPPER(SPLIT_PART(a.no_bppb, '/', 1)) AS tipe_sj,
                        -- Aturan PO-nya sama dengan OFC/OUT.
-                       CASE
-                           WHEN UPPER(TRIM(COALESCE(i.po_konsumen, ''))) IN ('', '-', 'TBA')
-                               THEN i.po_buyer
-                           ELSE i.po_konsumen
-                       END AS po_konsumen
+                       i.po_buyer AS po_konsumen
                   FROM gp_out_greige_h a
                   INNER JOIN gp_out_greige_barcode b ON b.out_greige_id = a.id
                   INNER JOIN master_kain c ON c.id = b.id_item
