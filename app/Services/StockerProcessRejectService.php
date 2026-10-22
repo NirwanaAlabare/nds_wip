@@ -360,7 +360,7 @@ class StockerProcessRejectService
                             $currentDcIn = DCIn::where("id_qr_stocker", $stocker->id_qr_stocker)->first();
                             if ($currentDcIn) {
                                 $currentDcIn->tujuan = $newSecondary->tujuan;
-                                $currentDcIn->proses = $newSecondary->proses;
+                                $currentDcIn->lokasi = $newSecondary->proses;
                                 $currentDcIn->save();
                             }
                         }
