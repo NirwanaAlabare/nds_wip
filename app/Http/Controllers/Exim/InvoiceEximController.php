@@ -3071,6 +3071,44 @@ class InvoiceEximController extends Controller
     }
 
     /**
+     * Nilai BILLING per baris Invoice Summary, dijumlah dari baris SJ-nya.
+     *
+     * Knitting punya dua angka untuk SJ yang sama: KIRIM (yang dipakai layar
+     * & cetakan EXIM) dan TAGIH (yang ditagihkan ke customer). Baris summary
+     * selama ini cuma menyimpan angka kirim, padahal baris itulah yang
+     * ditarik AR - jadi angka tagihnya ikut disimpan di sini.
+     *
+     * Baris tanpa angka tagih - garment - sengaja dilewati: "tidak punya
+     * angka billing" harus tetap bisa dibedakan dari "billingnya nol".
+     *
+     * @return array [nomor urut summary => array(qty, total, uom)]
+     */
+    private function billingPerSummary(array $s)
+    {
+        $out = array();
+        foreach ((array) (isset($s['asli']) ? $s['asli'] : array()) as $r) {
+            $id   = (string) (isset($r['id_baris']) ? $r['id_baris'] : '');
+            $urut = isset($s['urutan_sj'][$id]) ? $s['urutan_sj'][$id] : null;
+            if ($urut === null || $urut === '') { continue; }
+
+            $qty = isset($r['qty_tagih']) ? (float) $r['qty_tagih'] : 0;
+            if ($qty <= 0) { continue; }
+
+            $k = (string) (int) $urut;
+            if (!isset($out[$k])) {
+                $out[$k] = array('qty' => 0, 'total' => 0, 'uom' => null);
+            }
+            $out[$k]['qty']   += $qty;
+            $out[$k]['total'] += isset($r['total_price_tagih']) ? (float) $r['total_price_tagih'] : 0;
+            if ($out[$k]['uom'] === null) {
+                $u = trim((string) (isset($r['uom_tagih']) ? $r['uom_tagih'] : ''));
+                if ($u !== '') { $out[$k]['uom'] = $u; }
+            }
+        }
+        return $out;
+    }
+
+    /**
      * Tulis isi Invoice Export di bawah header: shipment, summary, baris SJ
      * & rekap. Dipakai Save dan Update, jadi keduanya tidak mungkin beda cara.
      */
@@ -3085,8 +3123,27 @@ class InvoiceEximController extends Controller
         }
         $db->table(self::TABEL_EXP_SHIP)->insert($kirim);
 
+        // Angka BILLING baris summary - kolomnya ada sesudah migrasi 20261023.
+        // Selama belum ada, barisnya disimpan persis seperti dulu.
+        $adaBilling = $this->kolomAda(self::TABEL_EXP_DET, 'qty_invoiced_tagih');
+        $billing    = $adaBilling ? $this->billingPerSummary($s) : array();
+
         $ringkas = array();
         foreach ($s['summary'] as $r) {
+            if ($adaBilling) {
+                $b   = isset($billing[(string) (int) $r['urutan']])
+                    ? $billing[(string) (int) $r['urutan']] : null;
+                $cm  = (float) $r['total_cm'];
+                $fob = (float) $r['total_fob'];
+                $r['qty_invoiced_tagih'] = $b ? round($b['qty'], 4) : 0;
+                $r['unit_tagih']         = $b ? $b['uom'] : null;
+                $r['total_cm_tagih']     = $b ? round($b['total'], 4) : 0;
+                // FOB billing mengikuti perbandingan FOB : CM baris itu -
+                // sama dengan cara migrasinya mengisi invoice lama.
+                $r['total_fob_tagih']    = $b
+                    ? ($cm != 0 ? round($b['total'] * ($fob / $cm), 4) : round($b['total'], 4))
+                    : 0;
+            }
             $ringkas[] = $tanda + $r + $jejak;
         }
         $db->table(self::TABEL_EXP_DET)->insert($ringkas);
