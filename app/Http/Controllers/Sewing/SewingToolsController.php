@@ -5433,10 +5433,12 @@ class SewingToolsController extends Controller
                     $currentDefect = null;
                     if ($restore->output_defect_id) {
                         // Update Defect
-                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
-                        $currentDefect->timestamps = false;
-                        $currentDefect->defect_status = 'reworked';
-                        $currentDefect->save();
+                        $currentDefect = ($department == "packing" ? DefectPacking::where("id", $restore->output_defect_id)->first() : Defect::where("id", $restore->output_defect_id)->first());
+                        if ($currentDefect) {
+                            $currentDefect->timestamps = false;
+                            $currentDefect->defect_status = 'reworked';
+                            $currentDefect->save();
+                        }
                     }
 
                     // No Defect
@@ -5547,7 +5549,7 @@ class SewingToolsController extends Controller
                     $currentDefect = null;
                     if ($restore->output_defect_id) {
                         // Update REJECT
-                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
+                        $currentDefect = ($department == "packing" ? DefectPacking::where("id", $restore->output_defect_id)->first() : Defect::where("id", $restore->output_defect_id)->first());
 
                         // No REJECT
                         if (!$currentDefect) {
@@ -5655,7 +5657,9 @@ class SewingToolsController extends Controller
             // }
 
             if (count($deleteUndoIds) > 0) {
-                if ($department == "packing") {
+                if ($department == "packing_po") {
+                    UndoPackingPo::whereIn("id", $deleteUndoIds)->delete();
+                } else if ($department == "packing") {
                     UndoPacking::whereIn("id", $deleteUndoIds)->delete();
                 } else {
                     Undo::whereIn("id", $deleteUndoIds)->delete();
@@ -5939,10 +5943,12 @@ class SewingToolsController extends Controller
                     $currentDefect = null;
                     if ($restore->output_defect_id) {
                         // Update Defect
-                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
-                        $currentDefect->timestamps = false;
-                        $currentDefect->defect_status = 'reworked';
-                        $currentDefect->save();
+                        $currentDefect = ($department == "packing" ? DefectPacking::where("id", $restore->output_defect_id)->first() : Defect::where("id", $restore->output_defect_id)->first());
+                        if ($currentDefect) {
+                            $currentDefect->timestamps = false;
+                            $currentDefect->defect_status = 'reworked';
+                            $currentDefect->save();
+                        }
                     }
 
                     // No Defect
@@ -6053,7 +6059,7 @@ class SewingToolsController extends Controller
                     $currentDefect = null;
                     if ($restore->output_defect_id) {
                         // Update REJECT
-                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
+                        $currentDefect = ($department == "packing" ? DefectPacking::where("id", $restore->output_defect_id)->first() : Defect::where("id", $restore->output_defect_id)->first());
 
                         // No REJECT
                         if (!$currentDefect) {
@@ -6161,7 +6167,9 @@ class SewingToolsController extends Controller
             // }
 
             if (count($deleteUndoIds) > 0) {
-                if ($department == "packing") {
+                if ($department == "packing_po") {
+                    UndoPackingPo::whereIn("id", $deleteUndoIds)->delete();
+                } else if ($department == "packing") {
                     UndoPacking::whereIn("id", $deleteUndoIds)->delete();
                 } else {
                     Undo::whereIn("id", $deleteUndoIds)->delete();
