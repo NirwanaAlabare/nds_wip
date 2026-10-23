@@ -1691,7 +1691,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_tambah/unit/{id}/print_qr', 'print_qr_mesin')->name('asset_mesin_tambah_print_qr');
         Route::get('/asset_mesin_tambah/qr_list', 'get_penerimaan_mesin_qr_list')->name('asset_mesin_tambah_qr_list');
         Route::get('/asset_mesin_tambah/qr_list/filter_options', 'get_penerimaan_mesin_qr_filter_options')->name('asset_mesin_tambah_qr_filter_options');
-        Route::get('/asset_mesin_tambah/qr_list/print', 'print_qr_list_mesin')->name('asset_mesin_tambah_qr_list_print');
+        Route::match(['get', 'post'], '/asset_mesin_tambah/qr_list/print', 'print_qr_list_mesin')->name('asset_mesin_tambah_qr_list_print');
     });
     // Master Asset Management Pengeluaran Mesin Replacement (Pembelian)
     Route::controller(AssetMesinPengeluaranController::class)->middleware('role:asset')->group(function () {
