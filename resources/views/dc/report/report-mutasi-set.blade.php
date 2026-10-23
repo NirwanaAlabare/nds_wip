@@ -48,34 +48,19 @@
                             <th class="text-center" rowspan="2">Style</th>
                             <th class="text-center" rowspan="2">Color</th>
                             <th class="text-center" rowspan="2">Size</th>
-                            <th class="text-center" colspan="7">Mutasi DC</th>
-                            <th class="text-center" colspan="5">Mutasi Secondary Luar</th>
+                            <th class="text-center" colspan="5">Mutasi DC</th>
                         </tr>
                         <tr>
                             <th class="text-center">Saldo Awal</th>
-                            <th class="text-center">Masuk</th>
-                            <th class="text-center">Kirim Sec Luar</th>
-                            <th class="text-center">Terima Repaired Sec Luar</th>
-                            <th class="text-center">Terima Good Sec Luar</th>
-                            <th class="text-center">Loading</th>
+                            <th class="text-center">Pemasukan</th>
+                            <th class="text-center">Pengeluaran</th>
+                            <th class="text-center">Adjustment</th>
                             <th class="text-center">Saldo Akhir</th>
-                            <th class="text-center">Saldo Awal Secondary</th>
-                            <th class="text-center">Terima DC</th>
-                            <th class="text-center">Kirim Rep ke DC</th>
-                            <th class="text-center">Kirim Good ke DC</th>
-                            <th class="text-center">Saldo Akhir Secondary</th>
                         </tr>
                     </thead>
                     <tfoot>
                         <tr>
                             <th colspan="5">TOTAL</th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -143,20 +128,13 @@
                 { data: 'size' },
                 { data: 'current_saldo_awal_adjustment', defaultContent: 0 },
                 { data: 'qty_in', defaultContent: 0 },
-                { data: 'kirim_secondary_luar', defaultContent: 0 },
-                { data: 'terima_repaired_secondary_luar', defaultContent: 0 },
-                { data: 'terima_good_secondary_luar', defaultContent: 0 },
                 { data: 'loading', defaultContent: 0 },
+                { data: 'adjustment', defaultContent: 0 },
                 { data: 'current_saldo_akhir_adjustment', defaultContent: 0 },
-                { data: 'saldo_awal_secondary', defaultContent: 0 },
-                { data: 'kirim_secondary_luar', defaultContent: 0 },
-                { data: 'terima_repaired_secondary_luar', defaultContent: 0 },
-                { data: 'terima_good_secondary_luar', defaultContent: 0 },
-                { data: 'saldo_akhir_secondary', defaultContent: 0 },
             ],
             columnDefs: [
                 {
-                    targets: [5,6,7,8,9,10,11,12,13,14,15,16],
+                    targets: [5,6,7,8,9],
                     className: 'text-end'
                 },
                 {
@@ -187,7 +165,7 @@
                 };
 
                 $(api.column(0).footer()).html('<b>TOTAL</b>');
-                for (let i = 5; i <= 16; i++) {
+                for (let i = 5; i <= 9; i++) {
                     $(api.column(i).footer())
                         .addClass('text-end')
                         .html(sumCol(i));

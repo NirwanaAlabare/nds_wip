@@ -330,9 +330,8 @@ dd AS (
         LEFT   JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
         WHERE  a.status_prod = 'KERJA'
           AND  (b.status_absen <> 'LN' OR b.status_absen IS NULL)
-AND CAST(a.bulan AS UNSIGNED) >= '$year'
-AND CAST(a.tahun AS UNSIGNED) >= '$month'
-AND CAST(a.tahun AS UNSIGNED) <= '$month'
+AND CAST(a.bulan AS UNSIGNED) = '$month'
+AND CAST(a.tahun AS UNSIGNED) = '$year'
         GROUP  BY a.bulan, a.nama_bulan, a.tahun
 ),
 dim_tgl AS (
@@ -342,7 +341,7 @@ SELECT d.tanggal,
        END AS stat_kerja
 FROM   dim_date d
 LEFT JOIN mgt_rep_hari_libur b ON d.tanggal = b.tanggal_libur
-        WHERE  tanggal >= '$start_date' and tanggal <= '$end_date'
+        WHERE  tanggal = '$today'
 ),
 dc AS (
 SELECT
@@ -354,9 +353,8 @@ projection,
 round(sum(projection / tot_working_days),2) AS daily_cost
 FROM mgt_rep_daily_cost a
 LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
-WHERE CAST(a.bulan AS UNSIGNED) >= '$year'
-AND CAST(a.tahun AS UNSIGNED) >= '$month'
-AND CAST(a.tahun AS UNSIGNED) <= '$month'
+WHERE CAST(a.bulan AS UNSIGNED) = '$month'
+AND CAST(a.tahun AS UNSIGNED) = '$year'
 GROUP BY no_coa, dd.bulan, dd.tahun
 ),
 coa AS (
@@ -398,7 +396,7 @@ m_labor AS (
                SUM(bpjs_ks) AS bpjs_ks,
                SUM(thr)     AS thr
         FROM   mgt_rep_labor
-        WHERE  tanggal_berjalan BETWEEN '$start_date' AND '$end_date'
+        WHERE  tanggal_berjalan = '$today'
           AND  status_staff = 'NON STAFF'
         GROUP  BY sub_dept_id, group_department, tanggal_berjalan
 ),
@@ -681,12 +679,12 @@ left join m_kurs_bi e on a.tanggal = e.tanggal_kurs_bi
                     from
                     (
                     select tanggal, sum(blc_full_earning) blc_full_earning, case when sum(sum_tot_earning_rupiah) = 0 then sum(blc_full_earning) else 0 end as day_without_output  from mgt_rep_tmp_sum_prod_full_earning
-                    where tanggal >= '$start_date' and tanggal <= '$end_date'
+                    where tanggal >= '$start_date' and tanggal < '$today'
                     group by tanggal
                     ) a
                     left join
                     (
-                    select tanggal,buyer,sum(blc_full_earn) blc from mgt_rep_tmp_earning where tanggal >= '$start_date' and tanggal <= '$end_date' group by buyer, tanggal
+                    select tanggal,buyer,sum(blc_full_earn) blc from mgt_rep_tmp_earning where tanggal >= '$start_date' and tanggal < '$today' group by buyer, tanggal
                     ) b on a.tanggal = b.tanggal
                     UNION ALL
                      SELECT

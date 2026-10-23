@@ -36,7 +36,7 @@ class LockTransactionMiddleware
             ], 423);
         }
 
-        return response()->view('errors.404', ['message' => $message], 404);
+        return response()->view('errors.403', ['message' => $message], 403);
     }
 
     // [route_name => transaction_name] milik transaksi yang sedang locked

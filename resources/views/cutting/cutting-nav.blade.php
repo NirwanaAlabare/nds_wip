@@ -74,13 +74,19 @@
         </li>
         <li class="nav-item dropdown">
             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                class="nav-link dropdown-toggle {{ $subPage == 'manage-cutting' ? 'active' : '' }}">Completed
+                class="nav-link dropdown-toggle {{ in_array($subPage, ['manage-cutting', 'proses-output']) ? 'active' : '' }}">Completed
             </a>
             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                 <li>
                     <a href="{{ route('manage-cutting') }}"
                         class="dropdown-item {{ $routeName == 'manage-cutting' ? 'active' : '' }}">
                         Completed Form <i class="fa-solid fa-check-to-slot"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('proses-output') }}"
+                        class="dropdown-item {{ $subPage == 'proses-output' ? 'active' : '' }}">
+                        Proses Output <i class="fa fa-file"></i>
                     </a>
                 </li>
             </ul>
