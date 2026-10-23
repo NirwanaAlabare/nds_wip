@@ -4,8 +4,7 @@
             class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-master' ? 'active' : '' }}">Master</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
-                <a href="{{ route('master-line') }}"
-                    class="dropdown-item {{ $routeName == 'master-line' ? 'active' : '' }}">
+                <a href="{{ route('master-line') }}" class="dropdown-item {{ $routeName == 'master-line' ? 'active' : '' }}">
                     Master Line <i class="fa-solid fa-people-group"></i>
                 </a>
             </li>
@@ -78,7 +77,8 @@
         </ul>
     </li>
     <li class="nav-item dropdown">
-        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-defect' ? 'active' : '' }}">Defect</a>
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+            class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-defect' ? 'active' : '' }}">Defect</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
                 <a href="{{ route('order-defects') }}"
@@ -254,7 +254,7 @@
                     Report Rework Sewing <i class="fa-solid fa-sync-alt"></i>
                 </a>
             </li> --}}
-            
+
             {{-- Deprecated --}}
             {{--
                     <li>
@@ -285,16 +285,31 @@
             class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-wip' ? 'active' : '' }}">WIP</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
-                <a href="{{ route('line-wip') }}"
-                    class="dropdown-item {{ $subPage == 'line-wip' ? 'active' : '' }}">
+                <a href="{{ route('line-wip') }}" class="dropdown-item {{ $subPage == 'line-wip' ? 'active' : '' }}">
                     Line WIP <i class="fa-solid fa-bars-progress"></i>
                 </a>
             </li>
         </ul>
     </li>
     <li class="nav-item dropdown">
-        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-packing-in' ? 'active' : '' }}">Sewing In</a>
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+            class="nav-link dropdown-toggle {{ $subPageGroup == 'sewing-packing-in' ? 'active' : '' }}">Sewing In</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+            <li>
+                <a href="{{ route('sewing-in') }}" class="dropdown-item {{ $subPage == 'sewing-in' ? 'active' : '' }}">
+                    Sewing In <i class="fas fa-qrcode"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('sewing-in-mutasi') }}" class="dropdown-item {{ $subPage == 'sewing-in-mutasi' ? 'active' : '' }}">
+                    Mutasi Line <i class="fas fa-right-left"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('sewing-in-closing') }}" class="dropdown-item {{ $subPage == 'sewing-in-closing' ? 'active' : '' }}">
+                    Closing Stok <i class="fas fa-lock"></i>
+                </a>
+            </li>
             <li>
                 <a href="{{ route('sewing-in-subcont') }}"
                     class="dropdown-item {{ $subPage == 'sewing-in-subcont' ? 'active' : '' }}">
@@ -310,7 +325,9 @@
         </ul>
     </li>
     <li class="nav-item dropdown">
-        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false" class="nav-link dropdown-toggle {{ in_array($subPageGroup, ['sewing-packing-out','sewing-out']) ? 'active' : '' }}">Sewing Out</a>
+        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+            class="nav-link dropdown-toggle {{ in_array($subPageGroup, ['sewing-packing-out', 'sewing-out']) ? 'active' : '' }}">Sewing
+            Out</a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
                 <a href="{{ route('sewing-out-subcont') }}"
@@ -324,7 +341,9 @@
                     Approval Sewing Out Subcont <i class="fas fa-thumbs-up"></i>
                 </a>
             </li>
-            <li><hr class="dropdown-divider"></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
             <li>
                 <a href="{{ route('sewing-out') }}"
                     class="dropdown-item {{ $subPage == 'sewing-out' ? 'active' : '' }}">
@@ -334,16 +353,16 @@
         </ul>
     </li>
     <li class="nav-item">
-        <a href="{{ route('dashboard-wip') }}"
-            class="nav-link {{ $routeName == 'dashboard-wip' ? 'active' : '' }}" target="_blank">
+        <a href="{{ route('dashboard-wip') }}" class="nav-link {{ $routeName == 'dashboard-wip' ? 'active' : '' }}"
+            target="_blank">
             <i class="fa fa-pager"></i>
         </a>
     </li>
 @endrole
 @role('superadmin')
     <li class="nav-item">
-        <a href="{{ route('sewing-tools') }}"
-            class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}" target="_blank">
+        <a href="{{ route('sewing-tools') }}" class="nav-link {{ $routeName == 'sewing-tools' ? 'active' : '' }}"
+            target="_blank">
             <i class="fa-solid fa-toolbox"></i>
         </a>
     </li>

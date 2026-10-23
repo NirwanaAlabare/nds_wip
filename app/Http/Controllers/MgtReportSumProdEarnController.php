@@ -335,9 +335,8 @@ dd AS (
         LEFT   JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
         WHERE  a.status_prod = 'KERJA'
           AND  (b.status_absen <> 'LN' OR b.status_absen IS NULL)
-AND CAST(a.bulan AS UNSIGNED) >= '$year'
-AND CAST(a.tahun AS UNSIGNED) >= '$month'
-AND CAST(a.tahun AS UNSIGNED) <= '$month'
+AND CAST(a.bulan AS UNSIGNED) = '$month'
+AND CAST(a.tahun AS UNSIGNED) = '$year'
         GROUP  BY a.bulan, a.nama_bulan, a.tahun
 ),
 dim_tgl AS (
@@ -347,7 +346,7 @@ SELECT d.tanggal,
        END AS stat_kerja
 FROM   dim_date d
 LEFT JOIN mgt_rep_hari_libur b ON d.tanggal = b.tanggal_libur
-        WHERE  tanggal >= '$start_date' and tanggal <= '$end_date'
+        WHERE  tanggal = '$today'
 ),
 dc AS (
 SELECT
@@ -359,9 +358,8 @@ projection,
 round(sum(projection / tot_working_days),2) AS daily_cost
 FROM mgt_rep_daily_cost a
 LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
-WHERE CAST(a.bulan AS UNSIGNED) >= '$year'
-AND CAST(a.tahun AS UNSIGNED) >= '$month'
-AND CAST(a.tahun AS UNSIGNED) <= '$month'
+WHERE CAST(a.bulan AS UNSIGNED) = '$month'
+AND CAST(a.tahun AS UNSIGNED) = '$year'
 GROUP BY no_coa, dd.bulan, dd.tahun
 ),
 coa AS (
@@ -403,7 +401,7 @@ m_labor AS (
                SUM(bpjs_ks) AS bpjs_ks,
                SUM(thr)     AS thr
         FROM   mgt_rep_labor
-        WHERE  tanggal_berjalan BETWEEN '$start_date' AND '$end_date'
+        WHERE  tanggal_berjalan = '$today'
           AND  status_staff = 'NON STAFF'
         GROUP  BY sub_dept_id, group_department, tanggal_berjalan
 ),
@@ -702,7 +700,7 @@ SELECT
                     est_earning_rate_per_man_power,
                     est_cost_rate_per_man_power,
                     blc_rate_per_man_power
-                    FROM mgt_rep_tmp_sum_prod_earning WHERE tanggal >= '$start_date' and tanggal <= '$end_date'
+                    FROM mgt_rep_tmp_sum_prod_earning WHERE tanggal >= '$start_date' and tanggal < '$today'
 )
 select * from sum_prod_earn where tanggal >= '$start_date' and tanggal <= '$end_date'
 order by tanggal asc
