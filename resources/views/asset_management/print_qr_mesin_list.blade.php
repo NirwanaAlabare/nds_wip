@@ -13,7 +13,7 @@
             font-family: sans-serif;
             margin: 0;
             min-height: 100%;
-            background: #{{ $color }};
+            background: {{ $color }};
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
@@ -29,7 +29,7 @@
             justify-content: flex-start;
             align-content: flex-start;
             min-height: calc(100vh - 2cm);
-            background: #{{ $color }};
+            background: {{ $color }};
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
@@ -39,7 +39,7 @@
             height: 6.5cm;
             box-sizing: border-box;
             border: 1px solid #333;
-            background: #{{ $color }};
+            background: {{ $color }};
             display: flex;
             flex-direction: column;
             align-items: center;

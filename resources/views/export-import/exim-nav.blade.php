@@ -24,6 +24,12 @@
                     Master Kantor <i class="fa-solid fa-building fa-sm"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('update-data-ceisa') }}"
+                    class="dropdown-item {{ (isset($subPage) && $subPage == 'update-data-ceisa') ? 'active' : '' }}">
+                    Update Data Ceisa <i class="fa-solid fa-pen-to-square fa-sm"></i>
+                </a>
+            </li>
         </ul>
     </li>
     <li class="nav-item dropdown">

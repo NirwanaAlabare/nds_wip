@@ -2424,16 +2424,20 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// Accounting
-Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting')->group(function () {
-    // get worksheet
-    Route::get('/', 'index')->name('accounting');
+// Update Data Ceisa (menu di Export Import > Proses), bisa dibuka user export import dan accounting
+Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting,export_import')->group(function () {
     Route::get('/update-data-ceisa', 'UpdateData')->name('update-data-ceisa');
     Route::get('/create', 'create')->name('create-update-ceisa');
     Route::get('/get-data-ceisa', 'getData')->name('get-data-ceisa');
     Route::post('/store', 'store')->name('store-update-ceisa');
     Route::get('/cancel-keterangan-ceisa', 'CancelDataCeisa')->name('cancel-keterangan-ceisa');
     Route::get('/edit-keterangan-ceisa', 'EditDataCeisa')->name('edit-keterangan-ceisa');
+});
+
+// Accounting
+Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting')->group(function () {
+    // get worksheet
+    Route::get('/', 'index')->name('accounting');
 
     // Memo Permintaan Pembayaran
     Route::get('/memo', 'memoIndex')->name('accounting-memo');

@@ -694,8 +694,8 @@ class Marketing_SOController extends Controller
             // Skip baris kosong
             if (empty($row[0])) continue;
 
-            $style      = trim($row[0]);
-            $po         = trim($row[2]);
+            $style      = $this->cleanText($row[0]);
+            $po         = $this->cleanText($row[2]);
             $color_name = trim($row[6]);
 
             // FOB
@@ -766,9 +766,9 @@ class Marketing_SOController extends Controller
                 $temp_data[] = [
                     'user_id'     => $user_id,
                     'style'       => $style,
-                    'desc'        => trim($row[1]),
+                    'desc'        => $this->cleanText($row[1]),
                     'po'          => $po,
-                    'market'      => trim($row[3]),
+                    'market'      => $this->cleanText($row[3]),
                     'ex_fty'      => trim($row[4]),
                     'id_color'    => $color_id,
                     'size'        => $size_id,
@@ -967,6 +967,14 @@ class Marketing_SOController extends Controller
             'missing_colors'  => $missing_colors_names,
             'missing_sizes'   => $missing_sizes_names
         ]);
+    }
+
+    private function cleanText($raw)
+    {
+        $raw  = (string) $raw;
+        $text = preg_replace('/[\s\x{00A0}]+/u', ' ', $raw);
+        if ($text === null) $text = preg_replace('/\s+/', ' ', $raw);
+        return trim($text);
     }
 
     /**
@@ -1768,7 +1776,7 @@ class Marketing_SOController extends Controller
         $details = $mysql_sb->table('so_det')
             ->leftJoin('master_size_new', 'so_det.id_size', '=', 'master_size_new.id')
             ->select(
-                'so_det.*', 
+                'so_det.*',
                 'master_size_new.urutan as size_urutan',
                 DB::raw('(SELECT COUNT(so_det_id) FROM laravel_nds.marker_input_detail WHERE so_det_id = so_det.id) AS cek_marker')
             )
@@ -4147,39 +4155,39 @@ class Marketing_SOController extends Controller
 
                         if (in_array($det->type, ['Fabric', 'Accessories Sewing', 'Accessories Packing'])) {
                             $mysql_sb->table('act_costing_mat')->insert([
-                                'id_act_cost'     => $so->id_cost, 
+                                'id_act_cost'     => $so->id_cost,
                                 'id_item'         => $det->item_id,
-                                'price'           => $price, 
-                                'cons'            => $det->cons ?? 0, 
-                                'unit'            => $det->unit ?? '', 
-                                'allowance'       => $det->allowance ?? 0, 
-                                'material_source' => $det->origin ?? 'LOKAL', 
+                                'price'           => $price,
+                                'cons'            => $det->cons ?? 0,
+                                'unit'            => $det->unit ?? '',
+                                'allowance'       => $det->allowance ?? 0,
+                                'material_source' => $det->origin ?? 'LOKAL',
                                 'jenis_rate'      => $jenis_rate_val
                             ]);
                         }
                         elseif ($det->type == 'Manufacturing') {
                             $mysql_sb->table('act_costing_mfg')->insert([
-                                'id_act_cost'     => $so->id_cost, 
+                                'id_act_cost'     => $so->id_cost,
                                 'id_item'         => $det->item_id,
-                                'smv'             => null, 
-                                'price'           => $price, 
-                                'cons'            => $det->cons ?? 1, 
-                                'unit'            => $det->unit ?? 'PCS', 
-                                'allowance'       => $det->allowance ?? 0, 
-                                'material_source' => $det->origin ?? 'LOKAL', 
+                                'smv'             => null,
+                                'price'           => $price,
+                                'cons'            => $det->cons ?? 1,
+                                'unit'            => $det->unit ?? 'PCS',
+                                'allowance'       => $det->allowance ?? 0,
+                                'material_source' => $det->origin ?? 'LOKAL',
                                 'jenis_rate'      => $jenis_rate_val
                             ]);
                         }
                         elseif ($det->type == 'Other Cost') {
                             $mysql_sb->table('act_costing_oth')->insert([
-                                'id_act_cost'     => $so->id_cost, 
+                                'id_act_cost'     => $so->id_cost,
                                 'id_item'         => $det->item_id,
-                                'smv'             => null, 
-                                'price'           => $price, 
-                                'cons'            => $det->cons ?? null, 
-                                'unit'            => $det->unit ?? null, 
-                                'allowance'       => $det->allowance ?? null, 
-                                'material_source' => null, 
+                                'smv'             => null,
+                                'price'           => $price,
+                                'cons'            => $det->cons ?? null,
+                                'unit'            => $det->unit ?? null,
+                                'allowance'       => $det->allowance ?? null,
+                                'material_source' => null,
                                 'jenis_rate'      => $jenis_rate_val
                             ]);
                         }
