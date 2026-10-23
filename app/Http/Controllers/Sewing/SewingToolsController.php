@@ -3107,7 +3107,7 @@ class SewingToolsController extends Controller
                                     $insertArr = ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()];
                                 }
 
-                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()]);
+                                DB::connection("mysql_sb")->table("output_undo".$department)->insert($insertArr);
 
                                 array_push($result, "REJECT '".$reject->kode_numbering."' -> DELETED");
                             }
@@ -6693,11 +6693,11 @@ class SewingToolsController extends Controller
         return Datatables::of($packingPo)->toJson();
     }
 
-    public function modifyPackingPoUpdate(Request $request) 
+    public function modifyPackingPoUpdate(Request $request)
     {
         // Ensure kode_numbering is handled as an array
-        $kodeNumbering = is_array($request->kode_numbering) 
-            ? $request->kode_numbering 
+        $kodeNumbering = is_array($request->kode_numbering)
+            ? $request->kode_numbering
             : array_filter(explode(',', str_replace(["'", '"'], '', $request->kode_numbering)));
 
         if (empty($kodeNumbering) || !$request->edit_packing_po) {
@@ -6752,8 +6752,8 @@ class SewingToolsController extends Controller
 
                 if ($currentPo) {
                     Log::channel('modifyPackingPo')->info([
-                        "update packing po", 
-                        "by " . Auth::user()->id . " - " . Auth::user()->username, 
+                        "update packing po",
+                        "by " . Auth::user()->id . " - " . Auth::user()->username,
                         $packingPo
                     ]);
 
@@ -6789,11 +6789,11 @@ class SewingToolsController extends Controller
         }
     }
 
-    public function modifyPackingPoDelete(Request $request) 
+    public function modifyPackingPoDelete(Request $request)
     {
         // Pastikan kode_numbering dalam bentuk array
-        $kodeNumbering = is_array($request->kode_numbering) 
-            ? $request->kode_numbering 
+        $kodeNumbering = is_array($request->kode_numbering)
+            ? $request->kode_numbering
             : explode(',', $request->kode_numbering);
 
         if (empty($kodeNumbering)) {
