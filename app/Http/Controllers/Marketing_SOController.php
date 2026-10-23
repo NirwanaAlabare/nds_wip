@@ -1491,6 +1491,9 @@ class Marketing_SOController extends Controller
                 $rate_to_idr = $act_costing_new->rate_to_idr;
             }
 
+            // Style dari form (default dari costing, bisa diedit user) -> rapikan spasi ganda
+            $style_clean = $request->filled('style') ? $this->cleanText($request->style) : null;
+
             foreach ($temp_data as $no_po => $details) {
                 $total_qty_po = $details->sum('qty');
                 $kode = $this->generate_kode($request->id_buyer);
@@ -1509,7 +1512,7 @@ class Marketing_SOController extends Controller
                     'cost_date'   => now(),
                     'kpno'        => $kode['kpno'],
                     'id_buyer'    => $request->id_buyer ?? ($act_costing_new ? $act_costing_new->id_buyer : null),
-                    'styleno'     => $request->style ?? ($act_costing_new ? $act_costing_new->styleno : null),
+                    'styleno'     => $style_clean ?? ($act_costing_new ? $this->cleanText($act_costing_new->styleno) : null),
                     'qty'         => $act_costing_new ? $act_costing_new->qty : $total_qty_po,
                     'curr'        => $curr_name ?: ($act_costing_new ? $act_costing_new->curr : $request->id_currency),
                     'username'    => $username_2 ?? ($act_costing_new ? $act_costing_new->username : null),
@@ -1550,7 +1553,7 @@ class Marketing_SOController extends Controller
                     'id_bom'    => $request->id_bom ?? null,
                     'market'    => $request->market ?? ($act_costing_new ? $act_costing_new->market : null),
                     'nm_file'   => $file_name,
-                    'style'     => $request->style ?? ($act_costing_new ? $act_costing_new->style : null),
+                    'style'     => $style_clean ?? ($act_costing_new ? $this->cleanText($act_costing_new->style) : null),
                     'brand'     => $request->brand ?? ($act_costing_new ? $act_costing_new->brand : null),
                     'id_product'=> $request->id_product_item ?? null,
                     'smv'       => $request->smv ?? ($act_costing_new ? $act_costing_new->smv : null),
@@ -2320,7 +2323,7 @@ class Marketing_SOController extends Controller
             $updateData = ['qty' => $totalQty];
 
             if ($newStyle !== null) {
-                $updateData['style'] = $newStyle;
+                $updateData['style'] = $this->cleanText($newStyle);
             }
 
             DB::connection('mysql_sb')->table('so')

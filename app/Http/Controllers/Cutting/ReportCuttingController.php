@@ -5113,12 +5113,46 @@ class ReportCuttingController extends Controller
         $tipe       = $type;
         $prev_date  = date('Y-m-d', strtotime($start_date . ' -1 day'));
 
+        // Mutasi dihitung per roll + item (mutasi_roll), tipe Item menjumlahkan hasil per roll ke per item
         if ($tipe == 'Barcode') {
-            $barcode = 'mut.id_roll as barcode';
-            $groupBy = 'mut.id_roll';
+            $finalSelect = "
+                SELECT
+                    id_roll AS barcode,
+                    id_item,
+                    itemdesc,
+                    saldo_awal,
+                    penerimaan,
+                    pemakaian,
+                    short_roll,
+                    gr_panel,
+                    gr_set,
+                    retur,
+                    adjustment,
+                    saldo_akhir,
+                    satuan
+                FROM mutasi_roll
+                ORDER BY id_roll ASC, id_item ASC
+            ";
         } else {
-            $barcode = 'NULL as barcode';
-            $groupBy = 'mut.id_item';
+            $finalSelect = "
+                SELECT
+                    NULL AS barcode,
+                    id_item,
+                    MAX(itemdesc) AS itemdesc,
+                    ROUND(SUM(saldo_awal), 2) AS saldo_awal,
+                    ROUND(SUM(penerimaan), 2) AS penerimaan,
+                    ROUND(SUM(pemakaian), 2) AS pemakaian,
+                    ROUND(SUM(short_roll), 2) AS short_roll,
+                    ROUND(SUM(gr_panel), 2) AS gr_panel,
+                    ROUND(SUM(gr_set), 2) AS gr_set,
+                    ROUND(SUM(retur), 2) AS retur,
+                    ROUND(SUM(adjustment), 2) AS adjustment,
+                    ROUND(SUM(saldo_akhir), 2) AS saldo_akhir,
+                    satuan
+                FROM mutasi_roll
+                GROUP BY id_item, satuan
+                ORDER BY id_item ASC, satuan ASC
+            ";
         }
 
         $query = "WITH
@@ -5157,7 +5191,7 @@ class ReportCuttingController extends Controller
                         and a.waktu_selesai <= '" . $start_date . " 23:59:59'
                     group by b.id
                 ) roll_detail
-                group by id_roll
+                group by id_roll, id_item
 
                 UNION ALL
 
@@ -5177,7 +5211,7 @@ class ReportCuttingController extends Controller
                     scanned_item.id_item is not null
                     and form_cut_piping.updated_at > '2026-05-01 00:00:00'
                     and form_cut_piping.updated_at <= '" . $start_date . " 23:59:59'
-                group by form_cut_piping.id_roll
+                group by form_cut_piping.id_roll, scanned_item.id_item
 
                 UNION ALL
 
@@ -5190,14 +5224,13 @@ class ReportCuttingController extends Controller
                     ROUND(SUM(form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa))) short_roll
                 FROM form_cut_piece
                 LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-                LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
                 LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
                 LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
                 WHERE
                     form_cut_piece_detail.STATUS = 'complete'
                     and form_cut_piece.waktu_selesai > '2026-05-01 00:00:00'
                     and form_cut_piece.waktu_selesai <= '" . $start_date . " 23:59:59'
-                GROUP BY form_cut_piece_detail.id_roll
+                GROUP BY form_cut_piece_detail.id_roll, COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item)
             ),
 
             manajemen_roll as (
@@ -5235,7 +5268,7 @@ class ReportCuttingController extends Controller
                         and a.waktu_selesai <= '" . $end_date . " 23:59:59'
                     group by b.id
                 ) roll_detail
-                group by id_roll
+                group by id_roll, id_item
 
                 UNION ALL
 
@@ -5255,7 +5288,7 @@ class ReportCuttingController extends Controller
                     scanned_item.id_item is not null
                     and form_cut_piping.updated_at >= '" . $start_date . " 00:00:00'
                     and form_cut_piping.updated_at <= '" . $end_date . " 23:59:59'
-                group by form_cut_piping.id_roll
+                group by form_cut_piping.id_roll, scanned_item.id_item
 
                 UNION ALL
 
@@ -5268,14 +5301,13 @@ class ReportCuttingController extends Controller
                     ROUND(SUM(form_cut_piece_detail.qty - (form_cut_piece_detail.qty_pemakaian + form_cut_piece_detail.qty_sisa))) short_roll
                 FROM form_cut_piece
                 LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
-                LEFT JOIN form_cut_piece_detail b on b.id_roll = form_cut_piece_detail.id_roll AND b.created_at > form_cut_piece_detail.created_at
                 LEFT JOIN ( SELECT * FROM master_sb_ws GROUP BY id_act_cost ) master_sb_ws ON master_sb_ws.id_act_cost = form_cut_piece.act_costing_id
                 LEFT JOIN scanned_item ON scanned_item.id_roll = form_cut_piece_detail.id_roll
                 WHERE
                     form_cut_piece_detail.STATUS = 'complete'
                     and form_cut_piece.waktu_selesai >= '" . $start_date . " 00:00:00'
                     and form_cut_piece.waktu_selesai <= '" . $end_date . " 23:59:59'
-                GROUP BY form_cut_piece_detail.id_roll
+                GROUP BY form_cut_piece_detail.id_roll, COALESCE(scanned_item.id_item, form_cut_piece_detail.id_item)
             ),
 
             retur_before as (
@@ -5293,7 +5325,7 @@ class ReportCuttingController extends Controller
                     AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
                     and whs_inmaterial_fabric.tgl_dok > '2026-05-01 00:00:00'
                     and whs_inmaterial_fabric.tgl_dok <= '" . $start_date . " 23:59:59'
-                group by whs_lokasi_inmaterial.no_barcode
+                group by whs_lokasi_inmaterial.no_barcode, whs_lokasi_inmaterial.id_item
             ),
 
             retur as (
@@ -5310,11 +5342,12 @@ class ReportCuttingController extends Controller
                     whs_lokasi_inmaterial.no_dok LIKE 'GK/RI%'
                     AND whs_inmaterial_fabric.supplier = 'Production - Cutting'
                     AND DATE(whs_inmaterial_fabric.tgl_dok) BETWEEN '" . $start_date . "' AND '" . $end_date . "'
-                group by whs_lokasi_inmaterial.no_barcode
-            )
+                group by whs_lokasi_inmaterial.no_barcode, whs_lokasi_inmaterial.id_item
+            ),
 
+            mutasi_roll as (
             SELECT
-                {$barcode},
+                mut.id_roll,
                 mut.id_item,
                 MAX(mi.itemdesc) as itemdesc,
 
@@ -5442,7 +5475,7 @@ class ReportCuttingController extends Controller
                     null type
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans BETWEEN ? AND ?
-                GROUP BY id_roll
+                GROUP BY id_roll, id_item
 
                 UNION ALL
 
@@ -5462,7 +5495,7 @@ class ReportCuttingController extends Controller
                     null type
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans = ?
-                GROUP BY id_roll
+                GROUP BY id_roll, id_item
 
                 UNION ALL
 
@@ -5482,7 +5515,7 @@ class ReportCuttingController extends Controller
                     null type
                 FROM mut_cut_fab_saldo_tmp
                 WHERE tgl_trans > '2026-05-01' and tgl_trans <= '{$start_date}'
-                GROUP BY id_roll
+                GROUP BY id_roll, id_item
 
                 UNION ALL
 
@@ -5555,7 +5588,7 @@ class ReportCuttingController extends Controller
                 WHERE
                     wip_adjustment_fabric.tgl_saldo <= '{$end_date}'
                     AND wip_adjustment_fabric.status = 'Y'
-                GROUP BY id_roll
+                GROUP BY id_roll, id_item
 
                 UNION ALL
 
@@ -5590,10 +5623,10 @@ class ReportCuttingController extends Controller
                     AND wip_adjustment_fabric.tgl_saldo >= '2026-09-01'
                     AND wip_adjustment_fabric.status = 'Y'
                     AND (wip_adjustment_fabric.type = 'REKAP' OR wip_adjustment_fabric.type IS NULL)
-                GROUP BY id_roll
+                GROUP BY id_roll, id_item
             ) mut
             LEFT JOIN signalbit_erp.masteritem mi ON mut.id_item = mi.id_item
-            GROUP BY {$groupBy}
+            GROUP BY mut.id_roll, mut.id_item
             HAVING
                 ROUND(
                     SUM(saldo_awal)
@@ -5601,6 +5634,7 @@ class ReportCuttingController extends Controller
                         WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
                             AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
                             AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                            AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
                         THEN SUM(qty_pakai_adjustment_before)
                         ELSE 0
                     END
@@ -5608,6 +5642,7 @@ class ReportCuttingController extends Controller
                         WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
                             AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
                             AND COALESCE(SUM(sr_before), 0) = 0
+                            AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
                         THEN SUM(sr_adjustment_before)
                         ELSE 0
                     END
@@ -5615,6 +5650,7 @@ class ReportCuttingController extends Controller
                         WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
                             AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
                             AND COALESCE(SUM(qty_retur_before), 0) = 0
+                            AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
                         THEN SUM(qty_retur_adjustment_before)
                         ELSE 0
                     END
@@ -5623,19 +5659,24 @@ class ReportCuttingController extends Controller
                 OR ROUND(SUM(qty_in), 2) <> 0
                 OR ROUND(
                     CASE
-                        WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(qty_pakai)
                         ELSE SUM(qty_pakai_adjustment)
                     END
                 , 2) <> 0
                 OR ROUND(
                     CASE
-                        WHEN COALESCE(SUM(sr), 0) <> 0 THEN SUM(sr)
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(sr)
                         ELSE SUM(sr_adjustment)
                     END
                 , 2) <> 0
                 OR ROUND(SUM(gr_p), 2) <> 0
                 OR ROUND(SUM(gr_g), 2) <> 0
-                OR ROUND(SUM(qty_retur), 2) <> 0
+                OR ROUND(
+                    CASE
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(qty_retur)
+                        ELSE SUM(qty_retur_adjustment)
+                    END
+                , 2) <> 0
                 OR ROUND(SUM(qty_adjustment), 2) <> 0
                 OR ROUND(
                     (
@@ -5644,6 +5685,7 @@ class ReportCuttingController extends Controller
                             WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
                                 AND COALESCE(SUM(qty_pakai_adjustment_before), 0) <> 0
                                 AND COALESCE(SUM(qty_pakai_before), 0) = 0
+                                AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
                             THEN SUM(qty_pakai_adjustment_before)
                             ELSE 0
                         END
@@ -5651,6 +5693,7 @@ class ReportCuttingController extends Controller
                             WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
                                 AND COALESCE(SUM(sr_adjustment_before), 0) <> 0
                                 AND COALESCE(SUM(sr_before), 0) = 0
+                                AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
                             THEN SUM(sr_adjustment_before)
                             ELSE 0
                         END
@@ -5658,6 +5701,7 @@ class ReportCuttingController extends Controller
                             WHEN COALESCE(SUM(qty_adjustment_before), 0) <> 0
                                 AND COALESCE(SUM(qty_retur_adjustment_before), 0) <> 0
                                 AND COALESCE(SUM(qty_retur_before), 0) = 0
+                                AND COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') LIKE '%NON REKAP%'
                             THEN SUM(qty_retur_adjustment_before)
                             ELSE 0
                         END
@@ -5665,22 +5709,24 @@ class ReportCuttingController extends Controller
                     )
                     + SUM(qty_in)
                     - CASE
-                        WHEN SUM(qty_pakai) > 0 THEN SUM(qty_pakai)
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(qty_pakai)
                         ELSE SUM(qty_pakai_adjustment)
                     END
                     + CASE
-                        WHEN COALESCE(SUM(sr), 0) <> 0 THEN SUM(sr)
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(sr)
                         ELSE SUM(sr_adjustment)
                     END
                     - SUM(gr_p)
                     - SUM(gr_g)
                     - CASE
-                        WHEN COALESCE(SUM(qty_retur), 0) <> 0 THEN SUM(qty_retur)
+                        WHEN COALESCE(GROUP_CONCAT(type SEPARATOR ''), '') NOT LIKE '%NON REKAP%' THEN SUM(qty_retur)
                         ELSE SUM(qty_retur_adjustment)
                     END
                     + SUM(qty_adjustment),
                 2) <> 0
-            ORDER BY {$groupBy} ASC";
+            )
+
+            " . $finalSelect;
 
         return $query;
     }

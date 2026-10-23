@@ -21,6 +21,7 @@ use App\Http\Controllers\Cutting\PipingStockController;
 use App\Http\Controllers\Cutting\CuttingStockOpnameController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
 use App\Http\Controllers\Cutting\CuttingSwitchingController;
+use App\Http\Controllers\Cutting\ProsesOutputController;
 
 Route::middleware('auth')->group(function () {
     // Spreading
@@ -385,6 +386,14 @@ Route::middleware('auth')->group(function () {
             Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
             Route::post('/cutting/recalculate-form/{id?}', 'recalculateForm')->name('recalculate-spreading-form');
             Route::get('/check-stocker-form', 'checkStockerForm')->name('check-stocker-form');
+        });
+
+        // Proses Output
+        Route::controller(ProsesOutputController::class)->prefix("proses-output")->middleware('role:cutting')->group(function () {
+            Route::get('/', 'index')->name('proses-output');
+            Route::get('/get-filter', 'getFilter')->name('get-filter-proses-output');
+            Route::post('/get-data', 'getData')->name('get-data-proses-output');
+            Route::get('/export-excel', 'exportExcel')->name('export-excel-proses-output');
         });
 
         // ReportCutting

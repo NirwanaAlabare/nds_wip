@@ -199,12 +199,16 @@ class BonLoadingController extends Controller
                                         "size" => $thisStockerData['size'],
                                         "number" => ($currentNumber > $thisStockerData['range_akhir'] ? $thisStockerData['range_akhir'] : ($currentNumber)),
                                         "id_qr_stocker" => $thisStockerData["id_qr_stocker"],
+                                        "created_by" => Auth::user()->id,
+                                        "created_by_username" => Auth::user()->username,
+                                        "updated_by" => Auth::user()->id,
+                                        "updated_by_username" => Auth::user()->username,
                                         "created_at" => $now,
                                         "updated_at" => $now,
                                     ]);
 
                                     if (count($upsertData) % 5000 == 0) {
-                                        YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
+                                        YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'updated_by', 'updated_by_username', 'updated_at']);
 
                                         $upsertData = [];
 
@@ -218,7 +222,7 @@ class BonLoadingController extends Controller
                             }
 
                             if (count($upsertData) > 0) {
-                                YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
+                                YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['form_cut_id', 'so_det_id', 'size', 'number', 'id_qr_stocker', 'updated_by', 'updated_by_username', 'updated_at']);
                             }
                         }
 
