@@ -251,7 +251,7 @@ class GeneralController extends Controller
     public function getBuyers(Request $request)
     {
         // Get Buyer List (From mastersupplier SB)
-        $buyers = DB::select("
+        $buyers = DB::connection("mysql_sb")->select("
             SELECT
                 Id_Supplier as id,
                 Supplier as buyer

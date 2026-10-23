@@ -71,6 +71,8 @@
                             <th>Shade</th>
                             <th>Ratio</th>
                             <th>Stocker Range</th>
+                            <th>Created By</th>
+                            <th>Updated By</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,6 +82,8 @@
                             <th colspan="8"></th>
                             <th></th>
                             <th colspan="3"></th>
+                            <th></th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -300,7 +304,7 @@
             $("#switch-method").prop("checked", false);
         });
 
-        var stockListFilter = ['action', 'tanggal_filter', 'no_bon_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'panel_filter', 'qty_filter', 'year_sequence_filter', 'numbering_range_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'stocker_filter', 'tipe_filter', 'part_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter'];
+        var stockListFilter = ['action', 'tanggal_filter', 'no_bon_filter', 'no_form_filter', 'no_cut_filter', 'color_filter', 'size_filter', 'dest_filter', 'panel_filter', 'qty_filter', 'year_sequence_filter', 'numbering_range_filter', 'buyer_filter', 'ws_filter', 'style_filter', 'stocker_filter', 'tipe_filter', 'part_filter', 'group_filter', 'shade_filter', 'ratio_filter', 'stocker_range_filter', 'created_by_filter', 'updated_by_filter'];
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
@@ -416,6 +420,12 @@
                 {
                     data: 'stocker_range',
                 },
+                {
+                    data: 'created_by_username',
+                },
+                {
+                    data: 'updated_by_username',
+                },
             ],
             columnDefs: [
                 // Act Column
@@ -486,7 +496,9 @@
                         'group_filter': $('#group_filter').val(),
                         'shade_filter': $('#shade_filter').val(),
                         'ratio_filter': $('#ratio_filter').val(),
-                        'stocker_range_filter': $('#stocker_range_filter').val()
+                        'stocker_range_filter': $('#stocker_range_filter').val(),
+                        'created_by_filter': $('#created_by_filter').val(),
+                        'updated_by_filter': $('#updated_by_filter').val()
                     },
                     success: function(response) {
                         if (response && response[0]) {
@@ -606,7 +618,9 @@
                     'group_filter': $('#group_filter').val(),
                     'shade_filter': $('#shade_filter').val(),
                     'ratio_filter': $('#ratio_filter').val(),
-                    'stocker_range_filter': $('#stocker_range_filter').val()
+                    'stocker_range_filter': $('#stocker_range_filter').val(),
+                    'created_by_filter': $('#created_by_filter').val(),
+                    'updated_by_filter': $('#updated_by_filter').val()
                 },
                 xhrFields:{
                     responseType: 'blob'
