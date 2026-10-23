@@ -1025,7 +1025,14 @@ class CompletedFormController extends Controller
                     if ($formCutDetail->id_sambungan) {
                         $formCutDetailReference = FormCutInputDetail::where("id", $formCutDetail['id_sambungan'])->first();
 
-                        $this->destroySpreadingRoll($formCutDetailReference->id, $cuttingService);
+                        if ($formCutDetailReference) {
+                            $this->destroySpreadingRoll($formCutDetailReference->id, $cuttingService);
+                        }
+
+                        $after = FormCutInputDetail::where("form_cut_id", $formCutDetail->form_cut_id)->where('created_at', '<', $formCutDetail->created_at)->orderBy("created_at", "desc")->first();
+                        if ($after && $after->id_roll == $formCutDetail->id_roll) {
+                            $this->destroySpreadingRoll($after->id, $cuttingService);
+                        }
                     }
 
                     // Fix Roll Qty after form_cut_detail has been deleted, in case the qty is still not updating
