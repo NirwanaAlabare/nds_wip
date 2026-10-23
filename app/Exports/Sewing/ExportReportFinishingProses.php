@@ -24,7 +24,7 @@ use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 class ExportReportFinishingProses extends DefaultValueBinder implements FromView, ShouldAutoSize, WithEvents, WithCustomValueBinder, WithColumnFormatting
 {
     use Exportable;
-    protected $start_date, $end_date, $proses, $rowCount;
+    protected $start_date, $end_date, $proses, $rowCount, $rawData;
 
     public function __construct($start_date, $end_date, $proses)
     {
@@ -374,6 +374,7 @@ class ExportReportFinishingProses extends DefaultValueBinder implements FromView
         }
 
         $this->rowCount = count($rawData) + 4; // 1 for header
+        $this->rawData = $rawData;
 
         return view('sewing.report.excel.export_report_finishing_proses', [
             'rawData' => $rawData,
@@ -408,6 +409,17 @@ class ExportReportFinishingProses extends DefaultValueBinder implements FromView
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
+
+                // HTML reader collapses multiple spaces, rewrite text columns from original data
+                $row = 6;
+                foreach ($this->rawData ?? [] as $item) {
+                    foreach (['A' => 'proses', 'B' => 'line', 'C' => 'buyer', 'D' => 'no_ws', 'E' => 'style', 'F' => 'color', 'G' => 'size'] as $col => $field) {
+                        if ($item->$field !== null) {
+                            $sheet->setCellValueExplicit($col . $row, (string) $item->$field, DataType::TYPE_STRING);
+                        }
+                    }
+                    $row++;
+                }
 
                 $highestRow = $sheet->getHighestRow();
                 $highestColumn = $sheet->getHighestColumn(); // e.g. 'Z'
