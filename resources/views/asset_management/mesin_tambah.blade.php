@@ -371,7 +371,8 @@
                 <div class="modal-body">
                     <div class="mb-3 d-flex align-items-start gap-2 flex-wrap">
                         <div>
-                            <label for="qrSearchBy" class="col-form-label"><small><b>Cari Berdasarkan :</b></small></label>
+                            <label for="qrSearchBy" class="col-form-label"><small><b>Cari Berdasarkan
+                                        :</b></small></label>
                             <select id="qrSearchBy" class="form-control form-control-sm select2bs4 border-primary"
                                 style="width: 160px;">
                                 <option value="tanggal">Range Tanggal</option>
@@ -385,7 +386,8 @@
                                     <input type="date" id="qrTglAwal" class="form-control form-control-sm">
                                 </div>
                                 <div>
-                                    <label for="qrTglAkhir" class="col-form-label"><small><b>Tgl Akhir :</b></small></label>
+                                    <label for="qrTglAkhir" class="col-form-label"><small><b>Tgl Akhir
+                                                :</b></small></label>
                                     <input type="date" id="qrTglAkhir" class="form-control form-control-sm">
                                 </div>
                                 <div>
@@ -403,7 +405,8 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="qrSupplier" class="col-form-label"><small><b>Supplier :</b></small></label>
+                                    <label for="qrSupplier" class="col-form-label"><small><b>Supplier
+                                                :</b></small></label>
                                     <select id="qrSupplier" class="form-control form-control-sm select2bs4 border-primary"
                                         style="width: 200px;">
                                         <option value="">Semua Supplier</option>
@@ -459,7 +462,11 @@
                         <label for="qrPrintColor" class="col-form-label mb-0"><small><b>Warna
                                     Background :</b></small></label>
                         <input type="color" id="qrPrintColor" class="form-control form-control-sm p-1"
-                            style="width: 50px; height: 32px;" value="#f8bbd0">
+                            style="width: 50px; height: 32px;" value="#f8bbd0" disabled>
+                        <div class="form-check mb-0 ms-1">
+                            <input class="form-check-input" type="checkbox" id="qrPrintTransparent" checked>
+                            <label class="form-check-label" for="qrPrintTransparent"><small>Transparant</small></label>
+                        </div>
                     </div>
                     <div>
                         <button type="button" class="btn btn-primary btn-sm" id="btnDoPrintQr"><i
@@ -481,7 +488,7 @@
 
     <script>
         // Modul Asset: senyapkan alert bawaan DataTables saat ajax gagal, cukup dicatat di console
-        $.fn.dataTable.ext.errMode = function (settings, techNote, message) {
+        $.fn.dataTable.ext.errMode = function(settings, techNote, message) {
             console.error('DataTable ajax error:', message);
         };
     </script>
@@ -829,7 +836,8 @@
             $('#txtinject_qty').val(1);
 
             let options = jenisList
-                .map(j => `<option value="${j.id_jenis}">${j.jenis} - ${j.merk} - ${j.tipe} (${j.supplier})</option>`)
+                .map(j =>
+                    `<option value="${j.id_jenis}">${j.jenis} - ${j.merk} - ${j.tipe} (${j.supplier})</option>`)
                 .join('');
             $('#cbojenis_inject').html('<option value="">-- Pilih Jenis --</option>' + options).val('')
                 .trigger('change');
@@ -973,11 +981,11 @@
                         </td>
                         <td class="text-center align-middle">
                             ${qrSrc ? `
-                                                    <img class="unit-qr-img" src="${qrSrc}" data-unit-id="${unit.id}"
-                                                        title="Klik untuk print PDF" style="display:none;">
-                                                    <span class="unit-qr-locked text-muted"
-                                                        title="Isi Serial Number & Foto dahulu"><i class="fas fa-lock"></i></span>
-                                                ` : '<span class="text-muted">-</span>'}
+                                                        <img class="unit-qr-img" src="${qrSrc}" data-unit-id="${unit.id}"
+                                                            title="Klik untuk print PDF" style="display:none;">
+                                                        <span class="unit-qr-locked text-muted"
+                                                            title="Isi Serial Number & Foto dahulu"><i class="fas fa-lock"></i></span>
+                                                    ` : '<span class="text-muted">-</span>'}
                         </td>
                     </tr>`);
                     });
@@ -1490,6 +1498,11 @@
         // Dibuka di tab baru (bukan print langsung dari dalam modal), karena modal punya area scroll terbatas
         // sehingga hasil print bisa kepotong/tidak lengkap. Halaman baru ini full A4 & auto memunculkan dialog
         // print saat dibuka.
+        // Background transparant (default) -> pemilih warna dinonaktifkan
+        $('#qrPrintTransparent').on('change', function() {
+            $('#qrPrintColor').prop('disabled', this.checked);
+        });
+
         $('#btnDoPrintQr').on('click', function() {
             let ids = $('.qr-row-check:checked').map(function() {
                 return $(this).val();
@@ -1504,15 +1517,24 @@
                 return;
             }
 
-            let params = new URLSearchParams({
+            // Dikirim via POST (form target _blank), karena kalau lewat URL (GET) dan QR yang dipilih
+            // banyak, URL-nya kepanjangan -> error "Request-URI Too Long"
+            let params = {
+                _token: '{{ csrf_token() }}',
                 ids: ids.join(','),
-                color: $('#qrPrintColor').val().replace('#', '')
-            });
+                color: $('#qrPrintTransparent').is(':checked') ?
+                    'transparent' : $('#qrPrintColor').val().replace('#', '')
+            };
 
-            window.open(
-                `{{ route('asset_mesin_tambah_qr_list_print') }}?${params.toString()}`,
-                '_blank'
-            );
+            let form = $('<form>', {
+                method: 'POST',
+                action: `{{ route('asset_mesin_tambah_qr_list_print') }}`,
+                target: '_blank'
+            });
+            $.each(params, function(name, value) {
+                form.append($('<input>', { type: 'hidden', name: name, value: value }));
+            });
+            form.appendTo('body').trigger('submit').remove();
         });
 
         // Stacking z-index agar modal kedua tampil rapi di atas modal pertama

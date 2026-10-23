@@ -294,7 +294,10 @@ group by id_bpb, id_item, a.bpbno_int
 
         foreach ($units as $unit) {
             $qr = QrCode::format('svg')->size(80);
-            if ($bgColorHex && preg_match('/^[0-9a-fA-F]{6}$/', $bgColorHex)) {
+            if ($bgColorHex === 'transparent') {
+                // Alpha 0 = background QR tembus pandang
+                $qr->backgroundColor(255, 255, 255, 0);
+            } elseif ($bgColorHex && preg_match('/^[0-9a-fA-F]{6}$/', $bgColorHex)) {
                 $qr->backgroundColor(...array_map('hexdec', str_split($bgColorHex, 2)));
             }
             $unit->qr = base64_encode($qr->generate($unit->kode_qr));
@@ -342,7 +345,8 @@ group by id_bpb, id_item, a.bpbno_int
     public function print_qr_list_mesin(Request $request)
     {
         $color = ltrim((string) $request->color, '#');
-        $color = preg_match('/^[0-9a-fA-F]{6}$/', $color) ? strtolower($color) : 'f8bbd0';
+        // Default transparan; selain itu harus hex 6 digit
+        $color = preg_match('/^[0-9a-fA-F]{6}$/', $color) ? strtolower($color) : 'transparent';
 
         $units = $this->get_penerimaan_mesin_qr_units(
             $request->tgl_awal,
@@ -356,7 +360,7 @@ group by id_bpb, id_item, a.bpbno_int
 
         return view('asset_management.print_qr_mesin_list', [
             'units' => $units,
-            'color' => $color,
+            'color' => $color === 'transparent' ? 'transparent' : '#' . $color,
         ]);
     }
 

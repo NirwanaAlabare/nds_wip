@@ -44,9 +44,13 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
     protected $shade_filter;
     protected $ratio_filter;
     protected $stocker_range_filter;
+    protected $created_by_filter;
+    protected $updated_by_filter;
 
-    public function __construct($dateFrom, $dateTo, $tanggal_filter, $no_form_filter, $no_cut_filter, $color_filter, $size_filter, $dest_filter, $panel_filter, $qty_filter, $year_sequence_filter, $numbering_range_filter, $buyer_filter, $ws_filter, $style_filter, $stocker_filter, $part_filter, $group_filter, $shade_filter, $ratio_filter, $stocker_range_filter)
+    public function __construct($dateFrom, $dateTo, $tanggal_filter, $no_form_filter, $no_cut_filter, $color_filter, $size_filter, $dest_filter, $panel_filter, $qty_filter, $year_sequence_filter, $numbering_range_filter, $buyer_filter, $ws_filter, $style_filter, $stocker_filter, $part_filter, $group_filter, $shade_filter, $ratio_filter, $stocker_range_filter, $created_by_filter = null, $updated_by_filter = null)
     {
+        $this->created_by_filter = $created_by_filter ? $created_by_filter : null;
+        $this->updated_by_filter = $updated_by_filter ? $updated_by_filter : null;
         $this->dateFrom = $dateFrom ? $dateFrom : date('Y-m-d');
         $this->dateTo = $dateTo ? $dateTo : date('Y-m-d');
         $this->tanggal_filter = $tanggal_filter ? $tanggal_filter : null;
@@ -160,6 +164,17 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
         $stocker_range_filter = "";
         if ($this->stocker_range_filter) {
             $stocker_range_filter = "AND CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir) ) LIKE '%".$this->stocker_range_filter."%' ";
+        }
+        // Filter user (binding)
+        $user_filter = "";
+        $user_filter_bindings = [];
+        if ($this->created_by_filter) {
+            $user_filter .= "AND year_sequence_num.created_by_username LIKE ? ";
+            $user_filter_bindings[] = '%'.$this->created_by_filter.'%';
+        }
+        if ($this->updated_by_filter) {
+            $user_filter .= "AND year_sequence_num.updated_by_username LIKE ? ";
+            $user_filter_bindings[] = '%'.$this->updated_by_filter.'%';
         }
 
         // Deprecated
@@ -438,6 +453,8 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         MIN( year_sequence_number ) range_awal,
                         MAX( year_sequence_number ) range_akhir,
                         COUNT(*) as total,
+                        GROUP_CONCAT(DISTINCT created_by_username) created_by_username,
+                        GROUP_CONCAT(DISTINCT updated_by_username) updated_by_username,
                         updated_at,
                         (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                     from
@@ -474,7 +491,9 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         year_sequence_num.year_sequence,
                         year_sequence_num.total qty,
                         CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
-                        (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
+                        (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
+                        year_sequence_num.created_by_username,
+                        year_sequence_num.updated_by_username
                     from
                         stocker_input
                         left join stocker_input stocker_bundle on stocker_bundle.form_cut_id <=> stocker_input.form_cut_id
@@ -494,6 +513,8 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
                         LEFT JOIN form_cut_reject ON form_cut_reject.id = stocker_input.form_reject_id
                         LEFT JOIN form_cut_piece ON form_cut_piece.id = stocker_input.form_piece_id
+                    WHERE
+                        stocker_input.id is not null
                         ".$tanggal_filter."
                         ".$no_form_filter."
                         ".$no_cut_filter."
@@ -508,6 +529,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                         ".$group_filter."
                         ".$shade_filter."
                         ".$ratio_filter."
+                        ".$user_filter."
                     GROUP BY
                         stocker_input.id_qr_stocker,
                         stocker_input.form_cut_id,
@@ -528,7 +550,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
                 )
 
                 select * from stocker_bundle order by updated_at desc
-        ");
+        ", $user_filter_bindings);
 
         $this->rowCount = count($stockerList);
 
@@ -549,7 +571,7 @@ class StockerListExport implements FromView, WithEvents, ShouldAutoSize
     public static function afterSheet(AfterSheet $event)
     {
         $event->sheet->styleCells(
-            'A3:T' . ($event->getConcernable()->rowCount+4),
+            'A3:V' . ($event->getConcernable()->rowCount+4),
             [
                 'borders' => [
                     'allBorders' => [
