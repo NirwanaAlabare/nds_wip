@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
     <meta name="theme-color" content="#0b1120">
-    <title>Akses Dikunci</title>
+    <title>Halaman Tidak Ditemukan</title>
     <style>
         :root {
             color-scheme: dark;
@@ -182,31 +182,31 @@
     <main class="card" role="main">
         <div class="icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="11" width="16" height="10" rx="2"/>
-                <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
-                <circle cx="12" cy="16" r="1.2" fill="currentColor"/>
+                <circle cx="11" cy="11" r="7"/>
+                <path d="m20 20-3.5-3.5"/>
+                <path d="M9 9l4 4M13 9l-4 4"/>
             </svg>
         </div>
 
-        <span class="badge"><span class="dot"></span>Stock Opname</span>
-        <h1>Aplikasi Sedang Dikunci</h1>
-        <p class="lead">Mohon maaf, akses ke aplikasi ini sedang ditutup sementara. Data Anda tetap aman.</p>
+        <span class="badge"><span class="dot"></span>Error 404</span>
+        <h1>Halaman Tidak Ditemukan</h1>
+        <p class="lead">Halaman yang Anda cari tidak ada, sudah dipindahkan, atau alamatnya salah ketik.</p>
 
         <div class="info">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
             </svg>
-            <span>Biasanya ini terjadi saat proses tutup buku, stock opname, atau pemeliharaan sistem. Silakan coba lagi nanti atau hubungi administrator / tim IT.</span>
+            <span>Periksa kembali alamat URL, atau kembali ke halaman sebelumnya. Jika Anda yakin halaman ini seharusnya ada, hubungi administrator / tim IT.</span>
         </div>
 
         <div class="actions">
-            <button type="button" class="btn btn-primary" id="btnRetry">
+            <button type="button" class="btn" id="btnBack">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>
+                    <path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>
                 </svg>
-                Coba Lagi
+                Kembali
             </button>
-            <a href="{{ route('home') }}" class="btn">
+            <a href="{{ route('home') }}" class="btn btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>
                 </svg>
@@ -215,17 +215,19 @@
         </div>
 
         <div class="footer">
-            <span>Kode <code>403</code></span>
+            <span>Kode <code>404</code></span>
             <span>&middot;</span>
             <span>{{ now('Asia/Jakarta')->format('d M Y, H:i') }} WIB</span>
         </div>
     </main>
 
     <script>
-        document.getElementById('btnRetry').addEventListener('click', function () {
-            this.classList.add('loading');
-            this.disabled = true;
-            location.reload();
+        document.getElementById('btnBack').addEventListener('click', function () {
+            if (history.length > 1) {
+                history.back();
+            } else {
+                location.href = "{{ route('home') }}";
+            }
         });
     </script>
 </body>
