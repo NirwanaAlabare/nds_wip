@@ -20,7 +20,7 @@ use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 class ExportReportQcReject extends DefaultValueBinder implements FromView, ShouldAutoSize, WithEvents, WithCustomValueBinder, WithColumnFormatting
 {
     use Exportable;
-    protected $tglAwal, $tglAkhir, $kategori, $buyer, $rowCount;
+    protected $tglAwal, $tglAkhir, $kategori, $buyer, $rowCount, $data;
 
     public function __construct($tglAwal, $tglAkhir, $kategori, $buyer)
     {
@@ -356,6 +356,7 @@ class ExportReportQcReject extends DefaultValueBinder implements FromView, Shoul
         $data = $data->get();
 
         $this->rowCount = $data->count() + 5; // 1 for header
+        $this->data = $data;
 
         return view('sewing.report.excel.export_report_qc_reject', [
             'data' => $data,
@@ -391,6 +392,17 @@ class ExportReportQcReject extends DefaultValueBinder implements FromView, Shoul
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
+
+                // HTML reader collapses multiple spaces, rewrite text columns from original data
+                $row = 7;
+                foreach ($this->data ?? [] as $item) {
+                    foreach (['A' => 'buyer', 'B' => 'ws', 'C' => 'styleno', 'D' => 'color', 'E' => 'size'] as $col => $field) {
+                        if ($item->$field !== null) {
+                            $sheet->setCellValueExplicit($col . $row, (string) $item->$field, DataType::TYPE_STRING);
+                        }
+                    }
+                    $row++;
+                }
 
                 $highestRow = $sheet->getHighestRow();
                 $highestColumn = $sheet->getHighestColumn(); // e.g. 'Z'
