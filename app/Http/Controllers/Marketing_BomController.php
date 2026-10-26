@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\MarketingBomService;
 use App\Services\MarketingApprovalService;
+use App\Services\MarketingHistoryService;
 
 class Marketing_BomController extends Controller
 {
@@ -466,6 +467,26 @@ class Marketing_BomController extends Controller
     }
 
 
+    /**
+     * Histori item BOM. items_added: item pertama -> "Marketing Staff created BOM on ...", berikutnya
+     * "added N BOM items"; items_updated / items_deleted -> "updated BOM items (N changes)" / "deleted N BOM items".
+     */
+    private function recordBomHistory(int $bomId, string $action, int $count): void
+    {
+        if ($count <= 0) {
+            return;
+        }
+        $costingId = (int) DB::connection('mysql_sb')->table('bom_marketing')->where('id', $bomId)->value('id_costing');
+        if ($costingId <= 0) {
+            return;
+        }
+        $history = app(MarketingHistoryService::class);
+        if ($action === 'items_added' && $history->bomCreatedOnce($costingId, $bomId)) {
+            return;
+        }
+        $history->bomItemsChanged($costingId, $bomId, $action, $count);
+    }
+
     public function storeJoItems(Request $request)
     {
         if ($locked = $this->bomLockedResponse($request->id_bom_marketing)) {
@@ -615,6 +636,7 @@ class Marketing_BomController extends Controller
 
             // Hanya ke bom_marketing_detail; BOM JO baru diperbarui saat Save form (updateItemsBatch).
             $mysql_sb->table('bom_marketing_detail')->insert($insertRows);
+            $this->recordBomHistory((int) $validated['id_bom_marketing'], 'items_added', count($insertRows));
 
             $mysql_sb->commit();
 
@@ -690,6 +712,7 @@ class Marketing_BomController extends Controller
 
             if (count($details) > 0) {
                 $mysql_sb->table('bom_marketing_detail')->insert($details);
+                $this->recordBomHistory((int) $bom_id, 'items_added', count($details));
             }
 
             $this->triggerAutoSyncSO($bom_id);
@@ -951,6 +974,7 @@ class Marketing_BomController extends Controller
 
             if (count($details_to_insert) > 0) {
                 $mysql_sb->table('bom_marketing_detail')->insert($details_to_insert);
+                $this->recordBomHistory((int) $bom_id, 'items_added', count($details_to_insert));
             }
 
             $this->triggerAutoSyncSO($bom_id);
@@ -1151,8 +1175,11 @@ class Marketing_BomController extends Controller
                 throw new \RuntimeException('Sebagian item tidak terdaftar pada BOM yang sedang dibuka.');
             }
 
+            // Nilai lama untuk menghitung baris yang benar-benar berubah (histori "updated BOM items (N changes)").
+            $before = $mysql_sb->table('bom_marketing_detail')->whereIn('id', $ids)->get()->keyBy('id');
+            $changedRows = 0;
             foreach ($items as $item) {
-                $mysql_sb->table('bom_marketing_detail')->where('id', $item['id'])->update([
+                $values = [
                     'qty' => $item['qty'],
                     'unit' => $item['unit'],
                     'allowance' => $item['allowance'],
@@ -1160,8 +1187,19 @@ class Marketing_BomController extends Controller
                     'price' => $item['price'],
                     // Shell = id_panel di kunci sync; baris lama otomatis dibatalkan dan diganti baris dengan shell baru.
                     'shell' => $item['shell'] ?? null,
-                ]);
+                ];
+                $old = $before[$item['id']] ?? null;
+                if ($old && collect($values)->contains(function ($value, $column) use ($old) {
+                    $prev = $old->{$column} ?? null;
+                    return is_numeric($prev) && is_numeric($value)
+                        ? round((float) $prev, 7) !== round((float) $value, 7)
+                        : trim((string) $prev) !== trim((string) $value);
+                })) {
+                    $changedRows++;
+                }
+                $mysql_sb->table('bom_marketing_detail')->where('id', $item['id'])->update($values);
             }
+            $this->recordBomHistory((int) $validated['id_bom_marketing'], 'items_updated', $changedRows);
 
             $salesOrders = $mysql_sb->table('so')
                 ->where('id_bom', $validated['id_bom_marketing'])
@@ -1249,6 +1287,7 @@ class Marketing_BomController extends Controller
 
             // Hanya soft delete di BOM; baris BOM JO terkait dibatalkan saat Save form.
             $mysql_sb->table('bom_marketing_detail')->whereIn('id', $ids)->update(['cancel' => 'Y']);
+            $this->recordBomHistory((int) $validated['id_bom_marketing'], 'items_deleted', $ids->count());
 
             $mysql_sb->commit();
 

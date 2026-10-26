@@ -23,7 +23,7 @@
         .ac-page { color: #1e293b; }
         .ac-title { margin: 0; font-size: 26px; font-weight: 700; color: #475569; }
         /* Breadcrumb sama dengan SO/BOM create. */
-        .ac-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #294d68; color: #b4b4b4; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 500; }
+        .ac-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #284A63; color: #b4b4b4; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 500; }
         .ac-breadcrumb strong { color: #fff; font-weight: 500; }
         .ac-subtitle { margin: 2px 0 18px; color: #64748b; font-size: 12px; }
 
@@ -130,12 +130,41 @@
         .ac-card .page-item.disabled .page-link { background: none; color: #cbd5e1; }
         .ac-badges { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 
+        /* Tabel lebar (banyak kolom/teks panjang) menggulir di dalam kartu, bukan menggeser halaman. */
+        .ac-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
         @media (max-width: 991.98px) {
-            .ac-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .ac-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+            .ac-summary-card { min-height: 92px; padding: 12px 14px; }
+            .ac-summary-card strong { font-size: 32px; }
             .ac-actions { margin-left: 0; }
+            .ac-actions .mkt-btn { min-width: 110px; height: 40px; border-radius: 20px; font-size: 15px; }
+            .ac-actions .mkt-btn--return { min-width: 150px; }
+            .ac-table tbody td { font-size: 13px; }
+            .ac-table { min-width: 900px; }
         }
-        /* Checkbox sesuai mockup: 16x16, radius 4. Kosong = putih border abu (hover: centang samar),
-           checked/indeterminate = #284A63 + ikon putih, focus = cincin biru muda. */
+        @media (max-width: 767.98px) {
+            .ac-title { font-size: 22px; }
+            .ac-breadcrumb { font-size: 14px; }
+            .ac-card { padding: 12px; }
+            /* Tab status satu baris, digulir ke samping bila tidak muat. */
+            .ac-status-tabs { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; }
+            .ac-status-tab, .ac-status-selected { flex: 0 0 auto; font-size: 13px; }
+        }
+        @media (max-width: 599.98px) {
+            .ac-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+            .ac-summary-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+            .ac-summary-card { min-height: 0; padding: 10px 12px; }
+            .ac-summary-card span { font-size: 12px; }
+            .ac-summary-card strong { font-size: 26px; }
+            .ac-toolbar .ac-search-by-wrap { flex: 1 1 0; width: auto; min-width: 0; }
+            .ac-toolbar .ac-keyword-wrap { flex: 1 1 100%; width: auto; }
+            .ac-actions { flex: 1 1 100%; gap: 8px; }
+            .ac-actions .mkt-btn { flex: 1 1 0; min-width: 0; height: auto; min-height: 40px; padding-left: 10px; padding-right: 10px; }
+            .ac-actions .mkt-btn--return { flex-basis: 100%; order: -1; }
+            .ac-card .dataTables_paginate { width: 100%; margin-top: 4px; }
+            .ac-card .pagination { justify-content: center; flex-wrap: wrap; }
+        }
         input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
         input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
         input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }

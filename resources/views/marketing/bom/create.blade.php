@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-form.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-form.css')) }}">
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
@@ -105,8 +106,6 @@
             box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12) !important;
         }
 
-        /* Dropdown & input modal (Shell/Unit/Notes) sesuai mockup: tinggi 59, radius 12, border 1px, padding 16,
-           gap teks–panah 16, teks Poppins Medium 14 (placeholder #ABABAB, terisi hitam), focus border #284A63. */
         .bom-modal-fields .form-control,
         .bom-modal-fields .select2-container--bootstrap4 .select2-selection { height: 59px; min-height: 59px; border: 1px solid #e1e5e9; border-radius: 12px; background: #fff; box-shadow: none; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; line-height: 1; color: #000; }
         .bom-modal-fields .form-control { padding: 0 16px; }
@@ -334,8 +333,8 @@
         }
         .bom-image-thumbnail {
             display: flex;
-            width: 42px;
-            height: 42px;
+            width: 76px;
+            height: 97px;
             flex: 0 0 auto;
             align-items: center;
             justify-content: center;
@@ -345,6 +344,8 @@
             background: #fff;
             opacity: .72;
         }
+        .bom-image-caption { margin: 6px 0 4px; color: #9aa5ad; font-size: 12px; text-align: center; }
+        .bom-image-caption:empty { display: none; }
         .bom-image-thumbnail.is-active {
             border-color: #3b82f6;
             opacity: 1;
@@ -673,7 +674,7 @@
             #bom-content-tabs .nav-link { padding: 8px 12px; font-size: 18px; }
         }
 
-        .bom-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #294d68; color: #b4b4b4; font-size: 16px; font-weight: 500; }
+        .bom-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #284A63; color: #b4b4b4; font-size: 16px; font-weight: 500; }
         .bom-breadcrumb a { color: #b4b4b4; text-decoration: none; }
         .bom-breadcrumb a:hover { color: #fff; text-decoration: underline; }
         .bom-breadcrumb strong { color: #fff; font-weight: 500; }
@@ -694,8 +695,6 @@
         .bom-summary-item span { color: #9e9e9e; font-size: 18px; font-weight: 400; }
         .bom-summary-item strong { font-size: 18px; font-weight: 600; }
         #section-list-item > .card-header .card-title { color: #284a63; font-size: 16px; font-weight: 500; }
-        /* Checkbox sesuai mockup: 16x16, radius 4. Kosong = putih border abu (hover: centang samar),
-           checked/indeterminate = #284A63 + ikon putih, focus = cincin biru muda. */
         input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
         input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
         input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
@@ -707,10 +706,14 @@
         /* Carousel gambar (coverflow): semua gambar dirender sekali di satu panggung. Pindah gambar hanya mengubah posisi &
            skala dengan transition CSS (gambar benar-benar bergeser, tanpa ganti src), jadi gerakannya halus.
            Aktif = besar di tengah, sebelum/sesudah = kecil di samping (klik untuk pindah), titik aktif memanjang. */
-        .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 200px; overflow: hidden; }
+        .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 288px; overflow: hidden; }
         .mkt-cf-stage > .mkt-cf-main, .mkt-cf-stage > .mkt-cf-side { display: none !important; }
         .mkt-cf-stage > img.mkt-cf-item { position: absolute; top: 50%; left: 50%; max-width: 46%; max-height: 100%; object-fit: contain; cursor: pointer; will-change: transform, opacity; transition: transform .55s cubic-bezier(.22, .61, .36, 1), opacity .55s ease; }
         .mkt-cf-stage > img.mkt-cf-item.is-active { cursor: default; }
+        /* Gambar samping (sebelum/sesudah): 90x192, sejajar tengah dengan gambar aktif 182x256. */
+        .mkt-cf-stage > img.mkt-cf-item.is-side { width: 90px; height: 192px; max-height: 192px; }
+        .mkt-cf-stage > img.mkt-cf-item.is-active { width: 182px; height: 256px; max-height: 256px; }
+        .mkt-cf-stage > img.mkt-cf-item { transition-property: transform, opacity, width, height; }
         .mkt-cf-stage > img.mkt-cf-item.is-far { opacity: 0 !important; pointer-events: none; }
         .mkt-cf-dots { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 10px; min-height: 4px; }
         .mkt-cf-dot { width: 6px; height: 4px; padding: 0; border: 0; border-radius: 2px; background: #d9dee5; cursor: pointer; transition: width .3s ease, background-color .3s ease; }
@@ -734,6 +737,83 @@
         #bom-modal-items td.is-invalid .form-control { border-color: #c8161d !important; }
         #bom-modal-items td.is-invalid .select2-selection__placeholder { color: #c8161d !important; }
         #bom-modal-items td.is-invalid::after { content: 'Required'; display: block; margin-top: 2px; color: #c8161d; font-size: 11px; font-weight: 500; text-align: left; }
+
+        /* ============ RESPONSIVE (tablet & HP) — desktop >= 1200px tidak berubah ============ */
+        @media (max-width: 1199.98px) {
+            .bom-summary-card { padding: 10px 12px; }
+            .bom-summary-card span { font-size: 15px; }
+            .bom-summary-card strong { font-size: 17px; }
+            .bom-summary-item span, .bom-summary-item strong { font-size: 16px; }
+            #bom-content-tabs { overflow-y: hidden; }
+            #bom-content-tabs .nav-link { padding: 10px 16px; font-size: 21px; }
+        }
+        @media (max-width: 991.98px) {
+            /* 5 kartu: 3 di atas + 2 di bawah. */
+            .bom-summary-cards { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+            .bom-summary-cards > .bom-summary-card { grid-column: span 2; }
+            .bom-summary-cards > .bom-summary-card:nth-child(n+4) { grid-column: span 3; }
+            .bom-summary-card { min-height: 0; }
+            .bom-summary-card span { font-size: 14px; }
+            .bom-summary-card strong { font-size: 18px; overflow-wrap: anywhere; white-space: normal; }
+            .bom-summary-item span { font-size: 14px; }
+            .bom-summary-item strong { font-size: 15px; overflow-wrap: anywhere; white-space: normal; }
+            #bom-content-tabs .nav-link { padding: 8px 14px; font-size: 18px; }
+            /* Tabel Summary Detail digeser ke samping di dalam card, bukan terpotong. */
+            #bom-content-panels .dataTables_wrapper { overflow-x: auto; }
+            #bom-content-panels .dataTables_wrapper > .d-flex { position: sticky; left: 0; }
+        }
+        @media (max-width: 575.98px) {
+            #form-bom > .card > .card-body { padding: .9rem .8rem 1rem; }
+            .bom-breadcrumb { font-size: 13px; }
+            .bom-page-heading h1 { font-size: 24px; }
+            .bom-summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+            .bom-summary-cards > .bom-summary-card, .bom-summary-cards > .bom-summary-card:nth-child(n+4) { grid-column: auto; }
+            .bom-summary-cards > .bom-summary-card:last-child { grid-column: 1 / -1; }
+            .bom-summary-card { padding: 8px 10px; }
+            .bom-summary-card span { font-size: 13px; }
+            .bom-summary-card strong { font-size: 16px; }
+            .bom-overview-grid { column-gap: 14px; }
+            .bom-overview-title, #section-list-item > .card-header .card-title { font-size: 15px; }
+            .bom-summary-item span { font-size: 13px; }
+            .bom-summary-item strong { font-size: 14px; }
+            .bom-image-review { gap: 8px; padding: 10px 6px; }
+            #bom-content-tabs .nav-link { padding: 8px 12px; font-size: 16px; }
+            /* Modal Add Items di HP: rule 1 kolom, toolbar batch memenuhi lebar. */
+            #bom-item-modal .modal-body { padding: .8rem; }
+            .bom-rule-options { grid-template-columns: 1fr; gap: 8px; }
+            .bom-rule-options label { min-height: 40px; justify-content: flex-start; text-align: left; }
+            .bom-modal-fields .form-control,
+            .bom-modal-fields .select2-container--bootstrap4 .select2-selection { height: 48px; min-height: 48px; }
+            #bom-item-modal .modal-body .bg-light.border.rounded > div { flex: 1 1 100%; width: auto !important; min-width: 0 !important; }
+            #bom-item-modal .modal-body .bg-light.border.rounded > #bom-batch-update-btn { flex: 1 1 100%; }
+        }
+        @media (max-width: 359.98px) {
+            .bom-summary-cards, .bom-overview-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===== Tipografi QA Figma (Create BOM) — berlaku di semua ukuran layar ===== */
+        .bom-summary-card > span { font-family: "Instrument Sans", 'Poppins', sans-serif !important; font-size: 20px !important; font-weight: 500 !important; }
+        .bom-summary-card > strong { font-family: 'Poppins', sans-serif !important; font-size: 24px !important; font-weight: 700 !important; }
+        /* Di HP nomor 24px tidak muat 2 kolom (terpotong di tengah) -> kartu ringkasan 1 kolom. */
+        @media (max-width: 575.98px) {
+            .bom-summary-cards { grid-template-columns: minmax(0, 1fr) !important; }
+            .bom-summary-cards > .bom-summary-card:last-child { grid-column: auto; }
+        }
+        .bom-overview-title { font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 700 !important; }
+        .bom-summary-item > span { font-family: "Instrument Sans", 'Poppins', sans-serif !important; font-size: 18px !important; font-weight: 500 !important; }
+        .bom-summary-item > strong { font-family: 'Poppins', sans-serif !important; font-size: 18px !important; font-weight: 700 !important; }
+        #bom-content-tabs .nav-link { font-family: 'Poppins', sans-serif !important; font-size: 25px !important; font-weight: 600 !important; }
+        .bom-legend > span { font-family: Inter, sans-serif !important; font-size: 12px !important; font-weight: 400 !important; }
+        #bom-image-empty, #bom-image-counter { font-family: "Instrument Sans", 'Poppins', sans-serif !important; font-size: 12px !important; font-weight: 500 !important; }
+        #section-list-item > .card-header .card-title { font-family: 'Poppins', sans-serif !important; font-size: 25px !important; font-weight: 500 !important; }
+        /* Tabel (tab konten & Breakdown Order): header Inter Medium 12, isi Inter Regular 14, baris TOTAL Inter Bold 14. */
+        .bom-create-page table thead th, #bom-content-panels table thead th, #bom-breakdown-table thead th { font-family: Inter, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; }
+        #bom-content-panels table tbody td, #bom-breakdown-table tbody td { font-family: Inter, sans-serif !important; font-size: 14px !important; font-weight: 400 !important; font-variant-numeric: lining-nums tabular-nums; }
+        #bom-breakdown-table tfoot td, #bom-breakdown-table tfoot th { font-family: Inter, sans-serif !important; font-size: 14px !important; font-weight: 700 !important; font-variant-numeric: lining-nums tabular-nums; }
+        /* Pagination tabel konten: Poppins 16 (nomor halaman Medium, label/dropdown/info Regular). */
+        #bom-content-panels .dataTables_paginate, #bom-content-panels .dataTables_paginate .paginate_button, #bom-content-panels .dataTables_paginate .page-link { font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 500 !important; }
+        #bom-content-panels .dataTables_length, #bom-content-panels .dataTables_length label, #bom-content-panels .dataTables_info { font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 400 !important; }
+        #bom-content-panels .dataTables_length select { height: 36px; min-width: 70px; font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 400 !important; }
     </style>
 @endsection
 
@@ -746,7 +826,7 @@
         <div class="card-body">
             <div class="bom-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <strong>{{ $isEditBom ? 'Edit BOM' : 'Create BOM' }}</strong></div>
             <div class="bom-page-heading">
-                <h1>{{ $isEditBom ? 'Edit BOM' : 'Create BOM' }} <i class="far fa-question-circle"></i></h1>
+                <h1>{{ $isEditBom ? 'Edit Bill of Material' : 'Create Bill of Material' }} <i class="far fa-question-circle"></i></h1>
                 <p><i class="fas fa-cog"></i>{{ $isEditBom ? 'Untuk Mengubah Data BOM' : 'Untuk Menambah Data BOM' }}</p>
             </div>
             <div class="mkt-error-alert" id="bom-error-alert" role="alert" hidden>
@@ -808,6 +888,8 @@
                             </div>
                             <button type="button" class="bom-image-nav" id="bom-image-next" aria-label="Next image" disabled><i class="fas fa-chevron-right"></i></button>
                         </div>
+                        <div class="bom-image-thumbnails" id="bom-image-thumbnails" aria-label="Daftar gambar Costing"></div>
+                        <div class="bom-image-caption" id="bom-image-caption"></div>
                         <div class="bom-image-counter mkt-cf-dots" id="bom-image-counter"></div>
                     </section>
                     <section class="bom-overview-section">
@@ -1123,16 +1205,17 @@
             fresh = true;
         }
         $stage.data({ cfGoTo: goTo, cfActive: active, cfUrls: urls });
-        const gap = stage.clientWidth * 0.36;
+        // Jarak tengah gambar aktif ke tengah gambar samping 195px (182/2 + celah 59 + 90/2); menyempit di layar kecil.
+            const gap = Math.min(195, Math.max(0, stage.clientWidth / 2 - 49));
         $items.each(function (index) {
             const offset = index - active, far = Math.abs(offset) > 1;
             const x = Math.max(-2, Math.min(2, offset)) * gap;
-            const scale = offset === 0 ? 1 : (far ? 0.4 : 0.55);
+            const scale = far ? 0.8 : 1;   // samping pakai ukuran sendiri (90x192), bukan diskala
             if (fresh) this.style.transition = 'none'; // posisi awal tanpa animasi
             this.style.transform = `translate(-50%, -50%) translateX(${x}px) scale(${scale})`;
             this.style.zIndex = String(10 - Math.min(Math.abs(offset), 9));
             this.style.opacity = offset === 0 ? '1' : '0.85';
-            $(this).toggleClass('is-active', offset === 0).toggleClass('is-far', far);
+            $(this).toggleClass('is-active', offset === 0).toggleClass('is-side', offset !== 0).toggleClass('is-far', far);
         });
         if (fresh) { void stage.offsetWidth; $items.css('transition', ''); }
         // Hitung ulang posisi saat ukuran panggung berubah (resize, atau bagian yang tadinya tersembunyi dibuka).
@@ -1159,6 +1242,7 @@
 
     function renderBomCostingImage() {
         let hasImages = bomCostingImages.length > 0;
+        const $thumbnails = $('#bom-image-thumbnails').empty().toggleClass('d-none', !hasImages);
         $('#bom-image-empty').text(hasImages ? '' : 'Gambar Costing tidak tersedia.')
             .prop('hidden', hasImages);
         $('#bom-preview-image').prop('hidden', !hasImages);
@@ -1169,15 +1253,27 @@
             $('#bom-preview-image').attr('src', '');
             paintCoverflow($stage, [], 0, $.noop);
             paintCoverflowDots($('#bom-image-counter'), 0, 0, $.noop);
+            $('#bom-image-caption').text('');
             return;
         }
 
         bomSelectedImage = (bomSelectedImage + bomCostingImages.length) % bomCostingImages.length;
         $('#bom-preview-image').attr('src', bomCostingImages[bomSelectedImage]);
-        // Thumbnail diganti coverflow: gambar sebelum/sesudah tampil di samping, titik di bawah.
         const goTo = index => { bomSelectedImage = index; renderBomCostingImage(); };
         paintCoverflow($stage, bomCostingImages, bomSelectedImage, goTo);
+        bomCostingImages.forEach((url, index) => {
+            const $thumbnail = $('<button type="button" class="bom-image-thumbnail"></button>')
+                .toggleClass('is-active', index === bomSelectedImage)
+                .attr({
+                    'aria-label': `Tampilkan gambar ${index + 1}`,
+                    'aria-pressed': index === bomSelectedImage ? 'true' : 'false',
+                    'data-image-index': index
+                });
+            $('<img alt="">').attr('src', url).appendTo($thumbnail);
+            $thumbnails.append($thumbnail);
+        });
         paintCoverflowDots($('#bom-image-counter'), bomCostingImages.length, bomSelectedImage, goTo);
+        $('#bom-image-caption').text(`Image ${bomSelectedImage + 1} of ${bomCostingImages.length}`);
     }
 
     function loadBomCostingOverview() {
@@ -1240,7 +1336,7 @@
                 setSummary('#bom-summary-brand', data.brand);
                 setSummary('#bom-summary-season', [data.season_name, data.season_desc].filter(Boolean).join(' - ') || data.season_id);
                 setSummary('#bom-summary-style', data.style);
-                setSummary('#bom-summary-planned-qty', data.planned_qty ? Number(data.planned_qty).toLocaleString('id-ID') : '-');
+                setSummary('#bom-summary-planned-qty', data.planned_qty ? formatBomNumber(data.planned_qty) : '-');
                 setSummary('#bom-summary-product-group', data.product_group);
                 setSummary('#bom-summary-product-item', data.nama_product_item);
                 setSummary('#bom-summary-product-type', data.type_product);
@@ -1352,19 +1448,19 @@
                 let qty = quantities.get(`${color.id}_${size.id}`) || 0;
                 rowTotal += qty;
                 sizeTotals.set(String(size.id), sizeTotals.get(String(size.id)) + qty);
-                $('<td>').text(qty ? qty.toLocaleString('id-ID') : '-').appendTo($row);
+                $('<td>').text(qty ? formatBomNumber(qty) : '-').appendTo($row);
             });
             grandTotal += rowTotal;
-            $('<td>').addClass('bom-breakdown-total').text(rowTotal.toLocaleString('id-ID')).appendTo($row);
+            $('<td>').addClass('bom-breakdown-total').text(formatBomNumber(rowTotal)).appendTo($row);
             $tbody.append($row);
         });
 
         let $totalRow =$('<tr>');
         $('<th>').attr('colspan', 3).addClass('text-left').text('TOTAL').appendTo($totalRow);
         sizes.forEach(function(size) {
-            $('<th>').text(sizeTotals.get(String(size.id)).toLocaleString('id-ID')).appendTo($totalRow);
+            $('<th>').text(formatBomNumber(sizeTotals.get(String(size.id)))).appendTo($totalRow);
         });
-        $('<th>').text(grandTotal.toLocaleString('id-ID')).appendTo($totalRow);
+        $('<th>').text(formatBomNumber(grandTotal)).appendTo($totalRow);
         $tfoot.append($totalRow);
     }
 
@@ -1453,7 +1549,7 @@
                     const $price = $('<td>').addClass('text-right').text('-');
                     const $action = $('<td>').addClass('text-center').text('-');
                     const $priceCosting = $('<td>').addClass('text-right')
-                        .text(content.price_costing !== null && content.price_costing !== undefined ? formatBomNumber(content.price_costing) : '-');
+                        .text(content.price_costing !== null && content.price_costing !== undefined ? formatBomMoney(content.price_costing) : '-');
 
                     contentItems.forEach(function(item) {
                         const id = String(item.id);
@@ -1470,7 +1566,7 @@
                         appendBomAutoCell($totalUnit, id, 'unit');
                         appendBomGridCell($supplier, id, 'id_supplier');
                         appendBomGridCell($price, id, 'price');
-                        appendBomSavedItemValue($priceCosting, content.price_costing !== null && content.price_costing !== undefined ? formatBomNumber(content.price_costing) : '-');
+                        appendBomSavedItemValue($priceCosting, content.price_costing !== null && content.price_costing !== undefined ? formatBomMoney(content.price_costing) : '-');
                         appendBomSavedItemValue($action, '').append(
                             $('<button>').attr({
                                 type: 'button',
@@ -1636,20 +1732,40 @@
         return textarea.value;
     }
 
-    function formatBomNumber(value, grouping = true) {
-        return Number(value || 0).toLocaleString('id-ID', { maximumFractionDigits: 4, useGrouping: grouping });
+    // Format angka Indonesia: '.' ribuan, ',' desimal (17.000 ; 0,5 ; 1.234.567,5).
+    // grouping=false untuk isi editor/copy; maxDigits default 4 untuk tampilan tabel.
+    const bomNumberFormats = {};
+    function formatBomNumber(value, grouping = true, maxDigits = 4) {
+        const key = `${grouping ? 1 : 0}_${maxDigits}`;
+        bomNumberFormats[key] = bomNumberFormats[key]
+            || new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: maxDigits, useGrouping: grouping });
+        return bomNumberFormats[key].format(Number(value) || 0);
     }
 
+    // Harga (Price / Price Costing) minimal 2 desimal, sama dengan tabel Costing: 17000 -> 17.000,00.
+    function formatBomMoney(value) {
+        bomNumberFormats.money = bomNumberFormats.money
+            || new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+        return bomNumberFormats.money.format(Number(value) || 0);
+    }
+
+    // Presisi penuh untuk isi editor, copy, dan input modal, agar simpan ulang tanpa perubahan tidak membulatkan nilai.
+    function formatBomEditNumber(value) {
+        return formatBomNumber(value, false, 10);
+    }
+
+    // Terima format Indonesia maupun Excel/US. Ada '.' dan ',' -> pemisah terakhir = desimal;
+    // hanya ',' -> koma desimal; hanya '.' -> ribuan bila pola 1.234(.567) selain itu titik desimal (0.5).
     function parseBomNumber(text) {
-        let value = String(text ?? '').replace(/[\s%]/g, '');
+        let value = String(text ?? '').replace(/[\s %]/g, '');
         if (value === '') return null;
         const lastComma = value.lastIndexOf(',');
         const lastDot = value.lastIndexOf('.');
         if (lastComma > -1 && lastDot > -1) {
             value = lastComma > lastDot ? value.replace(/\./g, '').replace(',', '.') : value.replace(/,/g, '');
         } else if (lastComma > -1) {
-            value = value.split(',').length > 2 ? value.replace(/,/g, '') : value.replace(',', '.');
-        } else if (value.split('.').length > 2) {
+            value = value.replace(',', '.');
+        } else if (/^-?\d{1,3}(\.\d{3})+$/.test(value)) {
             value = value.replace(/\./g, '');
         }
         return /^-?\d*\.?\d+$/.test(value) ? Number(value) : null;
@@ -1724,7 +1840,7 @@
             if (option) return option.name;
             return value !== '' && value === record.original[field] && record.labels[field] ? record.labels[field] : '-';
         }
-        return formatBomNumber(value);
+        return field === 'price' ? formatBomMoney(value) : formatBomNumber(value);
     }
 
     function getBomCellRawValue(record, field) {
@@ -1733,7 +1849,7 @@
             const text = getBomCellText(record, field);
             return text === '-' ? '' : text;
         }
-        return formatBomNumber(record.values[field], false);
+        return formatBomEditNumber(record.values[field]);
     }
 
     function calculateBomRow(record) {
@@ -2333,10 +2449,9 @@
                 $('<td>').append($item),
                 $('<td>').text(row.color),$('<td>').text(row.size),
                 $('<td>').append($('<input>').attr({
-                    type: 'number',
-                    min: '0.0000000001',
-                    step: '0.0000000001',
-                    placeholder: '0.0000000000'
+                    type: 'text',
+                    inputmode: 'decimal',
+                    placeholder: '0,0000'
                 }).addClass('form-control form-control-sm bom-modal-qty'))
             ).appendTo($tbody);
         });
@@ -2407,7 +2522,7 @@
         }
         const $rows = $checked.closest('tr');
         if (idItem) $rows.find('.bom-modal-item-select').val(idItem).trigger('change.select2').closest('td').removeClass('is-invalid');
-        if (cons !== null) $rows.find('.bom-modal-qty').val(cons).trigger('input');
+        if (cons !== null) $rows.find('.bom-modal-qty').val(formatBomEditNumber(cons)).trigger('input');
     }
 
     // Banner merah di atas form: "N fields are empty. Fill them in, then save again."
@@ -2422,7 +2537,7 @@
     $(document).on('change input', '#bom-item-modal .is-invalid :input', function () {
         const $cell = $(this).closest('.is-invalid');
         const value = $(this).val();
-        const filled = $(this).hasClass('bom-modal-qty') ? Number(value) > 0 : String(value || '').trim() !== '';
+        const filled = $(this).hasClass('bom-modal-qty') ? parseBomNumber(value) > 0 :String(value || '').trim() !== '';
         if (!filled) return;
         $cell.removeClass('is-invalid');
         const count = $('#bom-item-modal .is-invalid').length;
@@ -2440,9 +2555,9 @@
         let emptyCount = 0;
         $('#bom-modal-items tbody tr').each(function() {
             const idItem = $(this).find('.bom-modal-item-select').val();
-            const qty = Number($(this).find('.bom-modal-qty').val());
+            const qty = parseBomNumber($(this).find('.bom-modal-qty').val());
             const itemEmpty = !idItem;
-            const qtyEmpty = !Number.isFinite(qty) || qty <= 0;
+            const qtyEmpty = qty === null || !Number.isFinite(qty) || qty <= 0;
             $(this).find('.bom-modal-item-select').closest('td').toggleClass('is-invalid', itemEmpty);
             $(this).find('.bom-modal-qty').closest('td').toggleClass('is-invalid', qtyEmpty);
             if (itemEmpty || qtyEmpty) {

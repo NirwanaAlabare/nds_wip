@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-form.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-form.css')) }}">
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
@@ -8,13 +9,12 @@
     <style>
         :root { --costing-navy: #183f5a; --costing-border: #dce4ec; }
         .costing-create-page { padding: 8px 12px 24px; background: #f5f3f3; min-height: calc(100vh - 56px); font-family: 'Poppins', sans-serif; }
-        .costing-crumb { background: var(--costing-navy); color: #b4b4b4; padding: 8px 10px; margin-bottom: 14px; font-size: 16px; font-weight: 500; }
+        .costing-crumb { background: #284A63; color: #b4b4b4; padding: 8px 10px; margin-bottom: 14px; font-size: 16px; font-weight: 500; }
         .costing-crumb a { color: #b4b4b4; text-decoration: none; }
         .costing-crumb a:hover { color: #fff; text-decoration: underline; }
         .costing-crumb b { color: #fff; font-weight: 500; }
-        .costing-back { display: inline-flex; align-items: center; gap: 8px; margin: 10px 0; color: var(--costing-navy); font-size: 14px; font-weight: 700; }
 
-        .costing-create-card { border: 0; border-radius: 4px; box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07); background: #fff;}
+        .costing-create-card { border: 0; border-radius: 4px; box-shadow: none; background: #fff;}
         .costing-create-card > .card-body { padding: 20px 24px 32px; }
 
         .costing-page-title { color: #284a63; font-size: 32px; font-weight: 700; margin: 0 0 4px; }
@@ -31,6 +31,9 @@
         }
         .costing-section-toggle:focus { outline: 0; box-shadow: 0 0 0 2px rgba(48, 133, 214, .18); }
         .costing-section-toggle .required-mark { color: #dc3545; margin-left: 2px;}
+        .costing-summary-section { overflow: visible; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+        .costing-summary-section .costing-section-toggle { border: 1px solid #284a63; border-radius: 6px; background: #fff; }
+        .costing-summary-section .costing-section-body { border-top: 0; padding: 14px 0 4px; }
 
         .section-chevron-box {
             background-color: #a3b2c7; color: white; border-radius: 4px;
@@ -46,9 +49,9 @@
 
         .costing-field { min-width: 0; margin-bottom: 10px; }
         .costing-field label { display: block; min-height: 27px; margin-bottom: 6px; color: #ababab; font-size: 18px; }
-        .costing-create-page .costing-field label:not(.form-check-label):not(.custom-file-label) { font-weight: 400; }
+        .costing-create-page .costing-field label:not(.form-check-label):not(.custom-file-label) { font-weight: 400; font-family: 'Poppins', sans-serif; font-size: 14px;}
         .costing-field .form-control,
-        .costing-field .select2-container--bootstrap4 .select2-selection { height: 36px; min-height: 36px; border: 1px solid #e1e5e9; border-radius: 5px; font-size: 12px; color: #495057; font-weight: 600;}
+        .costing-field .select2-container--bootstrap4 .select2-selection { height: 36px; min-height: 36px; border: 1px solid #e1e5e9; border-radius: 5px; font-size: 14px; font-weight: 500;}
         .costing-field input.form-control::placeholder { color: #adb5bd; font-weight: 500; }
         .costing-field input.form-control { padding: 6px 12px; }
 
@@ -118,11 +121,20 @@
         .costing-category-tab:focus { outline: 0; }
         .costing-category-tab.active { color: #284a63; border-bottom-color: #284a63; }
         @media (max-width: 767.98px) { .costing-category-tabs { overflow-x: auto; } .costing-category-tab { padding: 10px 14px; font-size: 16px; } }
-        .costing-next-wrap { display: flex; justify-content: flex-end; padding: 0 0 24px; }
+        .costing-next-wrap { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 0 0 24px; }
+        .costing-create-page.is-readonly #xl-submit-all { display: none; }
 
         /* ---- toolbar Add Item ---- */
         .costing-detail-toolbar { display: flex; align-items: flex-end; gap: 12px; margin: 0 0 14px; flex-wrap: wrap; }
-        .costing-detail-toolbar .costing-field { width: 300px; max-width: 100%; margin: 0; }
+        .costing-detail-toolbar .costing-field { width: 357px; max-width: 100%; margin: 0; }
+        #costing-item-select-host label { margin-bottom: 8px; color: #ababab; font-size: 16px; font-weight: 500 !important; }
+        #costing-item-select-host .select2-container--bootstrap4 .select2-selection { position: relative; display: flex; align-items: center; height: 59px; min-height: 59px; padding: 0 42px 0 16px; border: 1px solid #d6d6d6; border-radius: 12px; background: #fff; box-shadow: none; }
+        #costing-item-select-host .select2-container--bootstrap4 .select2-selection__rendered,
+        #costing-item-select-host .select2-container--bootstrap4 .select2-selection__placeholder { padding: 0; color: #ababab; font-size: 14px; font-weight: 500; line-height: 1.4; }
+        #costing-item-select-host .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { top: 50%; right: 16px; width: 12px; height: auto; transform: translateY(-50%); }
+        #costing-item-select-host .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b { top: 50%; left: 50%; width: 10px; height: 10px; margin: -7px 0 0 -5px; border: solid #284a63; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+        #costing-item-select-host .select2-container--bootstrap4.select2-container--open .select2-selection--single .select2-selection__arrow b { margin-top: -2px; transform: rotate(-135deg); }
+        #toggle-add-costing-item { height: 59px; padding: 0 34px; border-radius: 30px; }
         .costing-detail-body:has(.costing-category-content.is-all-items) .costing-detail-toolbar { display: none; }
         .xl-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px; min-height: 26px; }
 
@@ -136,8 +148,12 @@
         .costing-panel-heading .section-chevron-box i { transition: transform .2s ease; }
         .costing-tab-panel.is-collapsed .costing-panel-heading .section-chevron-box i { transform: rotate(180deg); }
         .costing-tab-panel.is-collapsed .table-responsive,
-        .costing-tab-panel.is-collapsed .xl-pager { display: none; }
+        .costing-tab-panel.is-collapsed .xl-pager,
+        .costing-tab-panel.is-collapsed .xl-cell-legend { display: none; }
         .costing-tab-panel .table-responsive { margin: 0 0 8px !important; padding: 10px 12px 8px; overflow-x: auto; border: 1px solid #edf0f5; border-radius: 8px; background: #fff; box-shadow: 0 3px 12px rgba(30, 41, 59, .09); }
+        .xl-submit-row { display: none; }
+        .xl-dirty .row-number::after { content: ' *'; color: #d97706; }
+        .costing-tab-panel.xl-submit-running { opacity: .75; }
         .costing-tab-panel table { margin-bottom: 0; border: 0; background: #fff; }
         .costing-tab-panel table thead th { padding: 8px 8px; border: 0; border-right: 1px solid #3a5f78; background: #274b63 !important; color: #fff !important; font-size: 10px; font-weight: 700; text-align: center; vertical-align: middle; white-space: nowrap; }
         .costing-tab-panel table thead th:first-child { border-top-left-radius: 4px; }
@@ -157,7 +173,20 @@
         .costing-tab-panel table tbody td.xl-cell[data-field="set"],
         .costing-tab-panel table tbody td.xl-cell[data-field="unit"],
         .costing-tab-panel table tbody td.xl-cell[data-field="supplier"] { min-width: 110px; }
-        .costing-tab-panel table tbody td.xl-cell.xl-invalid { box-shadow: inset 0 0 0 2px #dc3545; }
+        .costing-tab-panel table tbody td.xl-cell.xl-invalid { background: #ffe4e6 !important; box-shadow: inset 0 0 0 2px #dc3545; }
+        /* Sel hasil paste: biru muda sebentar (lihat handler paste). */
+        .costing-tab-panel table tbody td.xl-cell.xl-pasted { background: #dbeafe !important; transition: background-color .4s ease; }
+        /* Legend di bawah tabel: Editable / Auto-calculated / Just Pasted / Error. */
+        .xl-cell-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin: -6px 5px 16px; padding: 0 12px; color: #94a3b8; font-family: Inter, sans-serif; font-size: 11px; }
+        .xl-cell-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+        .xl-cell-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; }
+        .xl-cell-legend i.is-edit { border: 1px solid #cbd5e1; background: #fff; }
+        .xl-cell-legend i.is-auto { border: 1px solid #e2e8f0; background: #f1f4f8; }
+        .xl-cell-legend i.is-pasted { border: 1px solid #93c5fd; background: #dbeafe; }
+        .xl-cell-legend i.is-error { border: 1px solid #fca5a5; background: #ffe4e6; }
+        .costing-create-page.is-view .xl-cell-legend,
+        .costing-create-page.is-readonly .xl-cell-legend,
+        .costing-tab-panel.is-collapsed .xl-cell-legend { display: none; }
         .costing-tab-panel table tbody td.xl-editing { padding: 0; }
         .xl-editor { position: absolute; inset: 0; z-index: 5; width: 100%; height: 100%; padding: 3px 6px; border: 2px solid #1a73e8; border-radius: 0; background: #fff; color: inherit; font: inherit; outline: none; }
         td.xl-editing .select2-container { position: absolute; inset: 0; z-index: 5; width: 100% !important; min-width: 110px; }
@@ -228,7 +257,6 @@
         .xl-pager .xl-page-btn:disabled { opacity: .35; cursor: default; }
         .costing-category-content:not(.is-all-items) .costing-tab-panel table tfoot[id^="tfoot-"] tr:not(:last-child) { display: none; }
 
-        /* ===== Tampilan tabel item (mockup): header biru muda, kolom Auto abu, legend titik ===== */
         .costing-tab-panel table td, .costing-tab-panel table th { font-family: Inter, sans-serif; }
         .costing-tab-panel table thead th {
             padding: 9px 8px; border: 0 !important; background: #cfe0ff !important; color: #1e293b !important;
@@ -304,14 +332,48 @@
         .unlock-alert i { margin-right: 6px; }
 
         /* Detail Costing (mode baca saja): semua kategori tampil, tanpa kontrol edit */
-        .costing-back { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 12px; color: #1e293b; font-size: 15px; font-weight: 700; text-decoration: none !important; }
-        .costing-back i { padding: 4px 6px; border-radius: 4px; background: #a3b2c7; color: #fff; font-size: 10px; }
         .costing-view-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
         .costing-lock-alert { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding: 8px 12px; border-radius: 4px; background: #ff5f5f; color: #fff; font-size: 12px; }
         .costing-lock-alert > span { flex: 1; }
         .costing-lock-alert > span i { margin-right: 6px; }
         .costing-lock-alert-btn { flex: 0 0 auto; }
         .costing-lock-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #fff; font-size: 18px; line-height: 1; }
+        /* Kartu ringkasan saat terkunci (sama dengan Detail Costing): 3 putih + 3 abu-biru. */
+        .costing-lock-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .costing-lock-stat { min-width: 0; min-height: 76px; padding: 10px 14px; border-radius: 10px; background: #6c8798; color: #fff; box-shadow: 0 3px 8px rgba(30, 41, 59, .10); }
+        .costing-lock-stat span { display: block; margin-bottom: 4px; color: #e7eef2; font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: 0.2px; line-height: 1.25; }
+        .costing-lock-stat strong { display: block; overflow: hidden; color: #fff; font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: 0.05em; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+        .costing-lock-stat:nth-child(n+4) strong { text-align: center; }
+        .costing-lock-stat.is-light { border: 1px solid #e1e7ef; background: #fff; }
+        .costing-lock-stat.is-light span { color: #9e9e9e; }
+        .costing-lock-stat.is-light strong { color: #284a63; }
+        @media (max-width: 1599.98px) {
+            .costing-lock-stat span { font-size: 16px; }
+            .costing-lock-stat strong { font-size: 18px; }
+        }
+        @media (max-width: 1199.98px) {
+            .costing-lock-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 991.98px) {
+            .costing-lock-stat { min-height: 0; }
+            .costing-lock-stat span { font-size: 14px; }
+            .costing-lock-stat strong { white-space: normal; overflow-wrap: anywhere; }
+        }
+        @media (max-width: 767.98px) {
+            .costing-lock-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+            .costing-lock-stat { padding: 8px 10px; }
+            .costing-lock-stat span { font-size: 13px; }
+            .costing-lock-stat strong { font-size: 16px; }
+            .costing-lock-alert { flex-wrap: wrap; }
+            .costing-lock-alert > span { flex-basis: calc(100% - 30px); }
+        }
+        @media (max-width: 575.98px) {
+            /* Nomor dokumen tetap satu baris di HP (tidak terpotong di tengah). */
+            .costing-lock-stat strong { font-size: 14px; letter-spacing: 0; white-space: nowrap; overflow-wrap: normal; text-overflow: ellipsis; }
+        }
+        @media (max-width: 359.98px) {
+            .costing-lock-summary { grid-template-columns: minmax(0, 1fr); }
+        }
         .costing-create-page.is-view .costing-category-tabs,
         .costing-create-page.is-view .costing-detail-toolbar,
         .costing-create-page.is-view .costing-next-wrap,
@@ -353,14 +415,10 @@
         #form-header .costing-field .select2-container--bootstrap4 .select2-selection--single { padding: 4px 10px; }
         #form-header .costing-field .select2-container--bootstrap4 .select2-selection__rendered { line-height: 24px; font-weight: 400; }
         #form-header .costing-field .select2-container--bootstrap4 .select2-selection--multiple { height: auto; }
-        /* Tipografi sesuai mockup: judul Poppins Bold 32, subjudul SemiBold 12, judul section Medium 25,
-           label Medium 16, isian dropdown/input Medium 14 #ABABAB, tinggi isian 60. */
         .costing-page-title { color: #284a63; font-size: 32px; font-weight: 700; }
         .costing-page-subtitle { color: #284a63; font-size: 12px; font-weight: 600; }
         #form-header .costing-head-title { color: #284a63; font-size: 25px; font-weight: 500; }
         #form-header .costing-field label { font-size: 16px; font-weight: 500 !important; }
-        /* Dropdown & input sesuai mockup: tinggi 59, radius 12, border 1px, padding 16, gap teks–panah 16,
-           teks Poppins Medium 14 (placeholder #ABABAB, terisi hitam), focus border #284A63. */
         #form-header .costing-field .form-control,
         #form-header .costing-field .select2-container--bootstrap4 .select2-selection { height: 59px; min-height: 59px; border: 1px solid #e1e5e9; border-radius: 12px; background: #fff; box-shadow: none; font-size: 14px; font-weight: 500; line-height: 1; color: #000; }
         #form-header .costing-field .form-control { padding: 0 16px; }
@@ -407,6 +465,7 @@
         #form-header .costing-field.is-invalid .form-control::placeholder { color: #c8161d; }
         #form-header .costing-field.is-invalid .select2-container--bootstrap4 .select2-selection__arrow b { border-color: #c8161d; }
         #form-header .costing-field.is-invalid::after { content: 'Required'; display: block; margin-top: 4px; color: #c8161d; font-size: 13px; font-weight: 500; }
+        #form-header .costing-field.is-invalid[data-error]::after { content: attr(data-error); }
 
         #form-header .costing-upload-box { padding: 10px; border: 1px solid var(--costing-border); border-radius: 6px; }
         #form-header .costing-picture-dropzone { flex-direction: row; gap: 10px; min-height: 64px; padding: 10px; color: var(--costing-navy); font-size: 10px; font-weight: 600; }
@@ -431,8 +490,6 @@
         @media (max-width: 480px) {
             #form-header .costing-fields, #form-header .costing-fields.four-columns, #form-header .costing-fields.price-columns { grid-template-columns: minmax(0, 1fr); }
         }
-        /* Checkbox sesuai mockup: 16x16, radius 4. Kosong = putih border abu (hover: centang samar),
-           checked/indeterminate = #284A63 + ikon putih, focus = cincin biru muda. */
         input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
         input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
         input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
@@ -444,15 +501,77 @@
         /* Carousel gambar (coverflow): semua gambar dirender sekali di satu panggung. Pindah gambar hanya mengubah posisi &
            skala dengan transition CSS (gambar benar-benar bergeser, tanpa ganti src), jadi gerakannya halus.
            Aktif = besar di tengah, sebelum/sesudah = kecil di samping (klik untuk pindah), titik aktif memanjang. */
-        .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 210px; overflow: hidden; }
+        .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 288px; overflow: hidden; }
         .mkt-cf-stage > .mkt-cf-main, .mkt-cf-stage > .mkt-cf-side { display: none !important; }
         .mkt-cf-stage > img.mkt-cf-item { position: absolute; top: 50%; left: 50%; max-width: 46%; max-height: 100%; object-fit: contain; cursor: pointer; will-change: transform, opacity; transition: transform .55s cubic-bezier(.22, .61, .36, 1), opacity .55s ease; }
         .mkt-cf-stage > img.mkt-cf-item.is-active { cursor: default; }
+        /* Gambar samping (sebelum/sesudah): 90x192, sejajar tengah dengan gambar aktif 182x256. */
+        .mkt-cf-stage > img.mkt-cf-item.is-side { width: 90px; height: 192px; max-height: 192px; }
+        .mkt-cf-stage > img.mkt-cf-item.is-active { width: 182px; height: 256px; max-height: 256px; }
+        .mkt-cf-stage > img.mkt-cf-item { transition-property: transform, opacity, width, height; }
         .mkt-cf-stage > img.mkt-cf-item.is-far { opacity: 0 !important; pointer-events: none; }
         .mkt-cf-dots { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 10px; min-height: 4px; }
         .mkt-cf-dot { width: 6px; height: 4px; padding: 0; border: 0; border-radius: 2px; background: #d9dee5; cursor: pointer; transition: width .3s ease, background-color .3s ease; }
         .mkt-cf-dot.is-active { width: 16px; background: #1d6fd8; }
         @media (prefers-reduced-motion: reduce) { .mkt-cf-stage > img.mkt-cf-item { transition: none; } }
+        /* ===== Responsif tablet & HP (desktop >= 1200px tidak berubah) ===== */
+        @media (max-width: 1199.98px) {
+            /* Label boleh turun baris (tidak terpotong "..."), chevron tidak ikut menyusut. */
+            #form-header .costing-field label { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+            #form-header .costing-head-chevron, .section-chevron-box { flex: 0 0 auto; margin-left: 8px; }
+        }
+        @media (max-width: 991.98px) {
+            #form-header .costing-fields.four-columns, #form-header .costing-fields.price-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .costing-page-title { font-size: 28px; }
+            #form-header .costing-head-title, .costing-section-toggle { font-size: 22px; }
+            #form-header .costing-field label { font-size: 15px; }
+            #form-header .costing-field .form-control,
+            #form-header .costing-field .select2-container--bootstrap4 .select2-selection { height: 52px; min-height: 52px; }
+            #form-header .costing-field .select2-container--bootstrap4 .select2-selection--multiple { min-height: 52px !important; }
+        }
+        @media (max-width: 767.98px) {
+            .costing-create-page { padding: 8px 8px 20px; }
+            .costing-create-card > .card-body { padding: 16px 14px 24px; }
+            .costing-page-title { font-size: 26px; line-height: 1.25; }
+            .costing-no { font-size: 11px; white-space: nowrap; }
+            #form-header .costing-head-title, .costing-section-toggle { font-size: 20px; }
+            #form-header .costing-field label { font-size: 14px; }
+            #form-header .costing-field .form-control,
+            #form-header .costing-field .select2-container--bootstrap4 .select2-selection { height: 48px; min-height: 48px; }
+            #form-header .costing-field .form-control { padding: 0 12px; }
+            #form-header .costing-field textarea.form-control { padding: 8px 12px; }
+            #form-header .costing-field .select2-container--bootstrap4 .select2-selection--single { padding: 0 38px 0 12px; }
+            #form-header .costing-field .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { right: 12px; }
+            #form-header .costing-field .select2-container--bootstrap4 .select2-selection__clear { right: 10px; }
+            #form-header .costing-field .select2-container--bootstrap4 .select2-selection--multiple { min-height: 48px !important; padding: 4px 12px; }
+            #form-header .costing-field.is-invalid::after { font-size: 12px; }
+            .costing-error-alert { align-items: flex-start; font-size: 12px; }
+            /* Judul Detail + tombol Edit, banner lock & kartu unlock: turun baris dengan rapi. */
+            .costing-view-head { flex-wrap: wrap; }
+            .costing-view-head > .mkt-btn { margin-bottom: 14px; }
+            .costing-lock-alert { flex-wrap: wrap; gap: 8px 12px; }
+            .costing-lock-alert > span { flex: 1 1 calc(100% - 40px); }
+            .costing-lock-alert-close { order: 1; }
+            .costing-lock-alert-btn { order: 2; }
+            .unlock-alert > span { flex: 1 1 100%; }
+            .costing-category-tabs { margin: 20px 0 14px; }
+            .costing-section-body { padding: 12px 10px 4px; }
+            .costing-tab-panel .table-responsive { padding: 8px 8px 6px; }
+            .xl-legend { flex-wrap: wrap; gap: 6px 12px; }
+            .xl-pager { justify-content: center; margin: 0 0 12px; padding: 6px 4px; }
+            .xl-pager .xl-pages { flex-wrap: wrap; justify-content: center; }
+        }
+        @media (max-width: 480px) {
+            .costing-create-card > .card-body { padding: 14px 10px 22px; }
+            .costing-page-title { font-size: 24px; }
+            #form-header .costing-head-title { padding: 6px 10px; font-size: 18px; }
+            #form-header .costing-head-body { padding: 10px 8px 2px; }
+            #form-header .costing-fields, #form-header .costing-fields.four-columns, #form-header .costing-fields.price-columns { grid-template-columns: minmax(0, 1fr); }
+            .costing-section-toggle { padding: 8px 10px; font-size: 18px; }
+            .costing-section-body { padding: 10px 8px 4px; }
+            .unlock-card { padding: 10px; }
+            .unlock-badges, .unlock-actions { flex-wrap: wrap; margin-left: 0; }
+        }
     </style>
 @endsection
 
@@ -496,26 +615,27 @@
                 $requestedAt = $unlock['request'] ? \Carbon\Carbon::parse($unlock['request']->dateinput) : null;
                 $unlockedAt = $unlock['unlock'] ? \Carbon\Carbon::parse($unlock['unlock']->approved_at ?? $unlock['unlock']->dateinput) : null;
             @endphp
-            @if ($unlockState === 'locked' && $viewOnly)
+            @if ($unlockState === 'locked')
+            {{-- Terkunci (approved): banner merah + kartu ringkasan, sama dengan halaman Detail Costing. --}}
             <div class="costing-lock-alert" id="costing-lock-alert" role="alert">
                 <span><i class="fas fa-lock"></i> This document is approved and can't be edited. Request an unlock from the marketing manager if you need to change it.</span>
                 <button type="button" class="mkt-btn mkt-btn--navy mkt-btn--sm costing-lock-alert-btn" id="btn-open-unlock">Request Unlock</button>
                 <button type="button" class="costing-lock-alert-close" aria-label="Tutup" onclick="document.getElementById('costing-lock-alert').remove()"><i class="far fa-times-circle"></i></button>
             </div>
-            @elseif ($unlockState === 'locked')
-            <div class="unlock-card">
-                <div class="unlock-card-head">
-                    <span class="unlock-doc-no">{{ $costing->cost_no }}</span>
-                    <span class="unlock-buyer">{{ $buyerName }}</span>
-                    <span class="unlock-badges">
-                        <span class="unlock-badge is-approved"><i class="fas fa-circle"></i> Approved</span>
-                        <span class="unlock-badge is-locked"><i class="fas fa-lock"></i> Locked</span>
-                    </span>
-                </div>
-                <div class="unlock-card-foot">
-                    <p class="unlock-note mb-0">This document is approved and can't be edited. Request an unlock from the <b>marketing manager</b> if you need to change it.</p>
-                    <button type="button" class="mkt-btn mkt-btn--navy mkt-btn--sm" id="btn-open-unlock"><i class="fas fa-lock-open"></i> Request unlock</button>
-                </div>
+            @php
+                $lockCards = [
+                    ['No Worksheet', $costing->kpno ?: '-'],
+                    ['No Costing', $costing->no_costing ?: '-'],
+                    ['DELIVERY DATE', $costing->deldate ? \Carbon\Carbon::parse($costing->deldate)->format('d/m/Y') : '-'],
+                    ['QTY Planned', $costing->qty_planned ?: 0],
+                    ['SMV (MINUTES)', number_format((float) ($costing->smv ?? 0), 0, ',', '.')],
+                    ['CONFIRM PRICE', number_format((float) ($costing->confirm_price ?? 0), 2, ',', '.')],
+                ];
+            @endphp
+            <div class="costing-lock-summary">
+                @foreach ($lockCards as [$label, $value])
+                <div class="costing-lock-stat{{ $loop->index < 3 ? ' is-light' : '' }}"><span>{{ $label }}</span><strong title="{{ $value }}">{{ $value }}</strong></div>
+                @endforeach
             </div>
             @elseif ($unlockState === 'requested')
             <div class="unlock-card">
@@ -759,19 +879,8 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="costing-field">
-                                    <label for="main_dest">Main Destination</label>
-                                    @php $saved_dests = $costing->main_dest ? explode(',', $costing->main_dest) : []; $saved_dests = array_map('trim', $saved_dests); @endphp
-                                    <select name="main_dest[]" id="main_dest" class="form-control select2bs4" data-placeholder="Choose Destination" multiple>
-                                        @foreach ($destinations as $dest)
-                                        <option value="{{ $dest->country_name }}" {{ in_array($dest->country_name, $saved_dests) ? 'selected' : '' }}>{{ $dest->country_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="costing-field">
-                                    <label for="market">Market</label>
-                                    <input type="text" name="market" id="market" class="form-control" required value="{{ $costing->market }}" placeholder="Market">
-                                </div>
+                                <input type="hidden" name="main_dest" value="{{ $costing->main_dest }}">
+                                <input type="hidden" name="market" value="{{ $costing->market }}">
                                 <div class="costing-field">
                                     <label for="notes">Notes</label>
                                     <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Notes">{{ $costing->notes }}</textarea>
@@ -849,23 +958,23 @@
                 <button type="button" id="view-all-items" class="costing-category-tab docs-tab">View All Items</button>
             </div>
 
-            <div class="costing-section">
+            <div class="costing-section costing-summary-section">
                 <div class="costing-section-header">
                     <button type="button" class="costing-section-toggle" data-section-target="#section-detail" aria-expanded="true">
                         <span>Summary Detail</span>
-                        <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span>
+                        {{-- <span class="section-chevron-box"><i class="fas fa-chevron-down"></i></span> --}}
                     </button>
                 </div>
                 <div id="section-detail" class="collapse show">
                     <div class="costing-section-body costing-detail-body">
                         <div class="costing-detail-toolbar">
                             <div class="costing-field" id="costing-item-select-host">
-                                <label>Choose Contents</label>
+                                <label>Content</label>
                                 <select id="txt_item" class="form-control select2bs4">
-                                    <option value="">Choose Contents</option>
+                                    <option value="">Choose Content</option>
                                 </select>
                             </div>
-                            <button type="button" id="toggle-add-costing-item" class="mkt-btn mkt-btn--navy mkt-btn--sm"><i class="fas fa-plus"></i> Add Content</button>
+                            <button type="button" id="toggle-add-costing-item" class="mkt-btn mkt-btn--green">Add Content</button>
                         </div>
                         <div class="xl-bar">
                             <button type="button" id="xl-bulk-delete" class="mkt-btn mkt-btn--red mkt-btn--sm" hidden><i class="fas fa-trash"></i> Hapus (0)</button>
@@ -990,7 +1099,7 @@
                                                     <input type="checkbox" class="xl-check-all" title="Pilih semua">
                                                 </th>
                                                 <th width="3%">NO</th>
-                                                <th width="14%"><span class="xl-dot is-input"></span>ITEM</th>
+                                                <th width="14%"><span class="xl-dot is-input"></span>CONTENT</th>
                                                 <th width="7%"><span class="xl-dot is-input"></span>SET<i class="fas fa-pencil-alt xl-th-pen"></i></th>
                                                 <th class="costing-desc-column"><span class="xl-dot is-input"></span>DESCRIPTION<i class="fas fa-pencil-alt xl-th-pen"></i></th>
                                                 <th width="10%"><span class="xl-dot is-input"></span>SUPPLIER<i class="fas fa-pencil-alt xl-th-pen"></i></th>
@@ -1025,17 +1134,17 @@
                                                 <td class="desc-td">{{ $det->item_desc }}</td>
                                                 <td class="supplier-td">{{ $det->nama_supplier }}</td>
                                                 <td class="text-center curr-td">{{ $det->curr }}</td>
-                                                <td class="text-right price-td" data-val="{{ $det->price }}">{{ number_format($det->price, 2, '.', ',') }}</td>
-                                                <td class="text-right px-idr-td" data-val="{{ $det->price_px_idr }}">{{ number_format($det->price_px_idr, 2, '.', ',') }}</td>
-                                                <td class="text-right px-usd-td" data-val="{{ $det->price_px_usd }}">{{ number_format($det->price_px_usd, 4, '.', ',') }}</td>
-                                                <td class="text-center cons-td" data-val="{{ $det->cons }}">{{ number_format($det->cons, 4, '.', '') }}</td>
+                                                <td class="text-right price-td" data-val="{{ $det->price }}">{{ number_format($det->price, 2, ',', '.') }}</td>
+                                                <td class="text-right px-idr-td" data-val="{{ $det->price_px_idr }}">{{ number_format($det->price_px_idr, 2, ',', '.') }}</td>
+                                                <td class="text-right px-usd-td" data-val="{{ $det->price_px_usd }}">{{ number_format($det->price_px_usd, 4, ',', '.') }}</td>
+                                                <td class="text-center cons-td" data-val="{{ $det->cons }}">{{ number_format($det->cons, 4, ',', '.') }}</td>
                                                 <td class="text-center unit-td">{{ $det->unit }}</td>
-                                                <td class="text-center allow-td" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, '.', '') . '%' }}</td>
-                                                <td class="text-right val-idr-td fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 2, '.', ',') }}</td>
-                                                <td class="text-right val-usd-td fw-bold" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 4, '.', ',') }}</td>
+                                                <td class="text-center allow-td" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, ',', '.') . '%' }}</td>
+                                                <td class="text-right val-idr-td fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 2, ',', '.') }}</td>
+                                                <td class="text-right val-usd-td fw-bold" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 4, ',', '.') }}</td>
                                                 <td class="text-center pct-td fw-bold">0%</td>
-                                                <td class="text-right qty-bom-td fw-bold" data-val="{{ $qty_bom }}">{{ number_format($qty_bom, 0, '.', ',') }}</td>
-                                                <td class="text-right tot-val-td fw-bold" data-val="{{ $tot_val }}">{{ number_format($tot_val, 2, '.', ',') }}</td>
+                                                <td class="text-right qty-bom-td fw-bold" data-val="{{ $qty_bom }}">{{ number_format($qty_bom, 0, ',', '.') }}</td>
+                                                <td class="text-right tot-val-td fw-bold" data-val="{{ $tot_val }}">{{ number_format($tot_val, 2, ',', '.') }}</td>
                                                 <td class="text-center align-middle">
                                                     {{-- <button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-edit"></i></button> --}}
                                                     <button type="button" class="mkt-icon-btn mkt-btn--red" title="Hapus" onclick="removeRow(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-trash"></i></button>
@@ -1078,9 +1187,9 @@
                                                 </td>
                                                 <td class="text-center fw-bold row-number">{{ $loop->iteration }}</td>
                                                 <td class="item-name">{{ $det->nama_item }}</td>
-                                                <td class="text-center allow-td" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, '.', '') }}%</td>
-                                                <td class="text-right val-idr-td-other fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 7, '.', ',') }}</td>
-                                                <td class="text-right val-usd-td-other fw-bold" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 7, '.', ',') }}</td>
+                                                <td class="text-center allow-td" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, ',', '.') }}%</td>
+                                                <td class="text-right val-idr-td-other fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 2, ',', '.') }}</td>
+                                                <td class="text-right val-usd-td-other fw-bold" data-val="{{ $det->value_usd }}">{{ number_format($det->value_usd, 4, ',', '.') }}</td>
                                                 <td class="text-center pct-td fw-bold">0%</td>
                                                 <td class="text-center align-middle">
                                                     {{-- <button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-edit"></i></button> --}}
@@ -1092,8 +1201,8 @@
                                         <tfoot class="bg-warning fw-bold">
                                             <tr>
                                                 <td colspan="4" class="text-left">TOTAL OTHER COST :</td>
-                                                <td class="text-right" id="tot-other-idr">0.00</td>
-                                                <td class="text-right" id="tot-other-usd">0.00</td>
+                                                <td class="text-right" id="tot-other-idr">0,00</td>
+                                                <td class="text-right" id="tot-other-usd">0,00</td>
                                                 <td class="text-center" id="tot-other-pct">0%</td>
                                                 <td></td>
                                             </tr>
@@ -1101,8 +1210,8 @@
                                                 <td colspan="3" class="text-left">G&A</td>
                                                 <td class="text-center">
                                                     <input type="text" id="ga_percent" name="ga_percent" class="form-control form-control-sm d-inline-block text-center input-decimal" style="width: 120px;" value="{{$costing->ga_percent ?? '3.00' }}">%</td>
-                                                <td class="text-right" id="val-ga-idr">0.00</td>
-                                                <td class="text-right" id="val-ga-usd">0.00</td>
+                                                <td class="text-right" id="val-ga-idr">0,00</td>
+                                                <td class="text-right" id="val-ga-usd">0,00</td>
                                                 <td class="text-center pct-ga fw-bold">0%</td>
                                                 <td></td>
                                             </tr>
@@ -1128,23 +1237,23 @@
                                             </tr>
                                             <tr>
                                                 <td width="50%">TOTAL COST</td>
-                                                <td width="25%" class="text-right" id="grand-tot-idr">0.00</td>
-                                                <td width="25%" class="text-right" id="grand-tot-usd">0.00</td>
+                                                <td width="25%" class="text-right" id="grand-tot-idr">0,00</td>
+                                                <td width="25%" class="text-right" id="grand-tot-usd">0,00</td>
                                             </tr>
                                             <tr>
                                                 <td>BALANCE OTHER COST</td>
-                                                <td class="text-right" id="val-suggest-idr">0.00</td>
-                                                <td class="text-right" id="val-suggest-usd">0.00</td>
+                                                <td class="text-right" id="val-suggest-idr">0,00</td>
+                                                <td class="text-right" id="val-suggest-usd">0,00</td>
                                             </tr>
                                             <tr>
                                                 <td>VAT <span class="float-right" id="vat-label-pct">0%</span></td>
-                                                <td class="text-right" id="val-vat-idr">0.00</td>
-                                                <td class="text-right" id="val-vat-usd">0.00</td>
+                                                <td class="text-right" id="val-vat-idr">0,00</td>
+                                                <td class="text-right" id="val-vat-usd">0,00</td>
                                             </tr>
                                             <tr>
                                                 <td>PROFIT <span class="float-right">6%</span></td>
-                                                <td class="text-right" id="val-profit-idr">0.00</td>
-                                                <td class="text-right" id="val-profit-usd">0.00</td>
+                                                <td class="text-right" id="val-profit-idr">0,00</td>
+                                                <td class="text-right" id="val-profit-usd">0,00</td>
                                             </tr>
                                         </table>
                                     </div>
@@ -1156,6 +1265,11 @@
             </div>
             <div class="costing-next-wrap">
                 <button type="button" id="costing-next-tab" class="mkt-btn mkt-btn--orange">Next</button>
+                @unless ($viewOnly)
+                <button type="button" id="xl-submit-all" class="mkt-btn mkt-btn--blue" disabled>
+                    <span class="xl-submit-label">Update</span>
+                </button>
+                @endunless
             </div>
         </div>
     </div>
@@ -1247,7 +1361,7 @@
                 </div>
             </div>
             <div class="modal-footer py-1">
-                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="mkt-btn mkt-btn--green" onclick="updateDetailModal()"><i class="fas fa-save"></i> Update</button>
             </div>
         </div>
@@ -1256,6 +1370,7 @@
 @endsection
 
 @section('custom-script')
+<script src="{{ asset('dist/js/marketing-title-case.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-title-case.js')) }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script>
     function costingRowSelector(category, id) {
@@ -1380,23 +1495,52 @@
 
     $(document).ready(function() {
         // Header: allowClear = tanda X untuk menghapus pilihan (state 2); hanya select header yang punya opsi kosong / multiple.
+        // Dropdown nama (buyer, brand, season, product, supplier, content) tampil Title Case; singkatan (PT, CV, LTD) tetap kapital.
+        // Hanya teks tampilan select2 — <option> & value yang dikirim tetap data asli.
+        window.COSTING_TC_SELECTS = ['buyer', 'brand', 'season_id', 'product_group', 'product_item', 'shipment_type', 'marketing_order', 'txt_item', 'txt_supplier', 'm_item', 'm_supplier'];
+        window.costingTcOpts = el => (window.mktTitleCaseSelect2 && COSTING_TC_SELECTS.includes(el.id || el.name)) ? window.mktTitleCaseSelect2() : {};
         $('.select2bs4').each(function () {
             const clearable = $(this).closest('#form-header').length > 0
                 && ($(this).prop('multiple') || $(this).find('option[value=""]').length > 0);
             $(this).select2(Object.assign({ theme: 'bootstrap4', width: '100%' }, clearable ? {
                 allowClear: true,
                 placeholder: $(this).data('placeholder') || $(this).find('option[value=""]').first().text() || 'Choose'
-            } : {}));
+            } : {}, costingTcOpts(this)));
         });
 
         // State 5 (error): field wajib yang kosong saat Save diberi .is-invalid (label, border, teks merah + "Required")
         // dan banner "N fields are empty" di atas; tooltip bawaan browser dimatikan. Hilang lagi begitu diisi.
         let firstInvalid = null;
         function refreshCostingErrorAlert() {
-            const count = $('#form-header .costing-field.is-invalid').length;
-            $('#costing-error-text').text(count + (count === 1 ? ' field is' : ' fields are') + ' empty. Fill them in, then save again.');
-            $('#costing-error-alert').prop('hidden', count === 0);
+            const $invalid = $('#form-header .costing-field.is-invalid');
+            const spacing = $invalid.filter('[data-error]').length;
+            const empty = $invalid.length - spacing;
+            const parts = [];
+            if (empty) parts.push(empty + (empty === 1 ? ' field is' : ' fields are') + ' empty.');
+            if (spacing) parts.push('Style tidak boleh ada spasi di awal/akhir atau spasi ganda.');
+            $('#costing-error-text').text(parts.join(' ') + ' Fix them, then save again.');
+            $('#costing-error-alert').prop('hidden', $invalid.length === 0);
         }
+
+        // Style masuk ke act_costing.styleno: spasi di awal/akhir atau spasi ganda berpengaruh ke produksi -> field error.
+        // Data lama yang sudah berspasi ganda langsung ditandai saat halaman dibuka supaya diperbaiki sebelum save.
+        const STYLE_SPACING_MSG = 'Tidak boleh ada spasi di awal/akhir atau spasi ganda.';
+        function checkStyleSpacing(input) {
+            const value = input.value;
+            const editable = !input.disabled && !$('.costing-create-page').hasClass('is-readonly');
+            const bad = editable && (value !== value.trim() || /\s{2,}/.test(value));
+            const $field = $(input).closest('.costing-field');
+            input.setCustomValidity(bad ? STYLE_SPACING_MSG : '');
+            if (bad) {
+                $field.attr('data-error', STYLE_SPACING_MSG).addClass('is-invalid');
+            } else {
+                $field.removeAttr('data-error');
+                if (input.checkValidity()) $field.removeClass('is-invalid');
+            }
+            if (!$('#costing-error-alert').prop('hidden')) refreshCostingErrorAlert();
+        }
+        $('#form-header input[name="style"]').on('input change', function () { checkStyleSpacing(this); })
+            .each(function () { checkStyleSpacing(this); });
         document.getElementById('form-header').addEventListener('invalid', function (event) {
             event.preventDefault();
             const $field = $(event.target).closest('.costing-field').addClass('is-invalid');
@@ -1638,7 +1782,7 @@
             }
 
             select_item.html('<option value="" disabled selected>Sedang Menarik Data Contents...</option>');
-            select_item.select2({ theme: 'bootstrap4', width: '100%' });
+            select_item.select2(Object.assign({ theme: 'bootstrap4', width: '100%' }, costingTcOpts(select_item[0])));
 
             if (cat) {
                 let cat_query = cat;
@@ -1652,7 +1796,7 @@
                             select_item.select2('destroy');
                         }
                         select_item.html(res);
-                        select_item.select2({ theme: 'bootstrap4', width: '100%' });
+                        select_item.select2(Object.assign({ theme: 'bootstrap4', width: '100%' }, costingTcOpts(select_item[0])));
                     },
                     error: function() { alert('Gagal mengambil data item dari server.'); }
                 });
@@ -1909,7 +2053,7 @@
     function costingRowHtml(cat, rowId, idDetail, d, no) {
         const esc = v => $('<span>').text(v == null ? '' : v).html();
         const at = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-        const fmt = (n, dp) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+        const fmt = (n, dp) => fmtId(n, dp);
         const attrs = `class="row-costing" data-category="${at(cat)}" data-item="${at(d.item_id)}" data-set="${at(d.set_val)}" data-desc="${at(d.desc)}" data-supplier="${at(d.supplier_id)}" data-curr="${at(d.curr)}" data-price="${at(d.price)}" data-cons="${at(d.cons)}" data-unit="${at(d.unit)}" data-allowance="${at(d.allow)}" data-px-idr="${at(d.px_idr)}" data-px-usd="${at(d.px_usd)}" data-value-idr="${at(d.val_idr)}" data-value-usd="${at(d.val_usd)}" id="${rowId}"`;
         const check = '<td class="xl-check-td"><input type="checkbox" class="xl-row-check"></td>';
         const actions = `<td class="text-center align-middle">${costingActionButtons(idDetail, cat)}</td>`;
@@ -2080,13 +2224,13 @@
             success: function(res) {
                 if(res.status == 200) {
                     Swal.close();
-                    let val_idr_text = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
+                    let val_idr_text = fmtId(val_idr_raw, 2);
+                    let val_usd_text = fmtId(val_usd_raw, 4);
 
-                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
+                    let val_idr_text_other = fmtId(val_idr_raw, 2);
 
-                    let qty_bom_text = qty_bom_js.toLocaleString('en-US');
-                    let tot_val_text = tot_val_js.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    let qty_bom_text = fmtId(qty_bom_js, 0);
+                    let tot_val_text = fmtId(tot_val_js, 2);
 
                     let target_tbody = '';
                     if(cat === 'Fabric') { target_tbody = '#tbody-fabric'; }
@@ -2106,7 +2250,7 @@
                                 <td class="item-name">${item_text}</td>
                                 <td class="text-center allow-td" data-val="${allow}">${allow > 0 ? allow + '%' : ''}</td>
                                 <td class="text-right val-idr-td-other fw-bold" data-val="${val_idr_raw}">${val_idr_text_other}</td>
-                                <td class="text-right val-usd-td- fw-bold" data-val="${val_usd_raw}">${val_usd_text}</td>
+                                <td class="text-right val-usd-td-other fw-bold" data-val="${val_usd_raw}">${val_usd_text}</td>
                                 <td class="text-center pct-td fw-bold">0%</td>
                                 <td class="text-center align-middle">
                                     <button type="button" class="mkt-icon-btn mkt-btn--red" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
@@ -2187,7 +2331,7 @@
                             $('#m_item').select2('destroy');
                         }
 
-                        $('#m_item').html(htmlOptions).select2({ theme: 'bootstrap4', dropdownParent: $('#modal_edit_costing') });
+                        $('#m_item').html(htmlOptions).select2(Object.assign({ theme: 'bootstrap4', dropdownParent: $('#modal_edit_costing') }, costingTcOpts($('#m_item')[0])));
                         $('#m_item').val(d.item_id).trigger('change');
 
                         if(cat === 'Other Cost') { $('.m-not-other').hide(); }
@@ -2210,7 +2354,7 @@
                         $('.select2modal').not('#m_item').each(function() {
                             if ($(this).data('select2')) { $(this).select2('destroy'); }
                         });
-                        $('.select2modal').not('#m_item').select2({ theme: 'bootstrap4', dropdownParent: $('#modal_edit_costing') });
+                        $('.select2modal').not('#m_item').each(function () { $(this).select2(Object.assign({ theme: 'bootstrap4', dropdownParent: $('#modal_edit_costing') }, costingTcOpts(this))); });
 
                         $('#modal_edit_costing').modal('show');
                     },
@@ -2294,14 +2438,14 @@
                     Swal.close();
                     $('#modal_edit_costing').modal('hide');
 
-                    let val_idr_text = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    let val_idr_text_other = val_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
-                    let val_usd_text = val_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 7, maximumFractionDigits: 7});
-                    let px_idr_text = px_idr_raw.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                    let px_usd_text = px_usd_raw.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+                    let val_idr_text = fmtId(val_idr_raw, 2);
+                    let val_idr_text_other = fmtId(val_idr_raw, 2);
+                    let val_usd_text = fmtId(val_usd_raw, 4);
+                    let px_idr_text = fmtId(px_idr_raw, 2);
+                    let px_usd_text = fmtId(px_usd_raw, 4);
 
-                    let qty_bom_text = qty_bom_js.toLocaleString('en-US');
-                    let tot_val_text = tot_val_js.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    let qty_bom_text = fmtId(qty_bom_js, 0);
+                    let tot_val_text = fmtId(tot_val_js, 2);
 
                     let target_tbody = '';
                     if(cat === 'Fabric') { target_tbody = '#tbody-fabric'; }
@@ -2402,16 +2546,17 @@
             fresh = true;
         }
         $stage.data({ cfGoTo: goTo, cfActive: active, cfUrls: urls });
-        const gap = stage.clientWidth * 0.36;
+        // Jarak tengah gambar aktif ke tengah gambar samping 195px (182/2 + celah 59 + 90/2); menyempit di layar kecil.
+            const gap = Math.min(195, Math.max(0, stage.clientWidth / 2 - 49));
         $items.each(function (index) {
             const offset = index - active, far = Math.abs(offset) > 1;
             const x = Math.max(-2, Math.min(2, offset)) * gap;
-            const scale = offset === 0 ? 1 : (far ? 0.4 : 0.55);
+            const scale = far ? 0.8 : 1;   // samping pakai ukuran sendiri (90x192), bukan diskala
             if (fresh) this.style.transition = 'none'; // posisi awal tanpa animasi
             this.style.transform = `translate(-50%, -50%) translateX(${x}px) scale(${scale})`;
             this.style.zIndex = String(10 - Math.min(Math.abs(offset), 9));
             this.style.opacity = offset === 0 ? '1' : '0.85';
-            $(this).toggleClass('is-active', offset === 0).toggleClass('is-far', far);
+            $(this).toggleClass('is-active', offset === 0).toggleClass('is-side', offset !== 0).toggleClass('is-far', far);
         });
         if (fresh) { void stage.offsetWidth; $items.css('transition', ''); }
         // Hitung ulang posisi saat ukuran panggung berubah (resize, atau bagian yang tadinya tersembunyi dibuka).
@@ -2582,6 +2727,37 @@
     });
     renderCostingImageCarousel();
 
+    /* ---------- format angka Indonesia (id-ID): '.' ribuan, ',' desimal ---------- */
+    // fmtId(17000, 2) -> "17.000,00"; fmtId(0.5, 4) -> "0,5000"; fmtId(n, 0, 7) -> desimal 0..7 digit.
+    function fmtId(n, minDp, maxDp) {
+        if (maxDp === undefined) maxDp = minDp;
+        const cache = fmtId._c || (fmtId._c = {});
+        const key = minDp + ':' + maxDp;
+        const f = cache[key] || (cache[key] = new Intl.NumberFormat('id-ID', { minimumFractionDigits: minDp, maximumFractionDigits: maxDp }));
+        const v = Number(n);
+        return f.format(Number.isFinite(v) ? v : 0);
+    }
+
+    // Baca angka dari teks (ketik / paste Excel / teks sel). Hasil: Number (titik desimal) atau NaN.
+    // - ada '.' dan ',' -> separator yang PALING AKHIR = desimal ("1.500,25" / "1,500.25" -> 1500.25)
+    // - hanya ',' -> koma desimal ("2,5" -> 2.5); lebih dari satu ',' -> pemisah ribuan ("1,234,567")
+    // - hanya '.' -> ribuan jika pola 1.234 / 1.234.567, selain itu titik desimal ("0.5", "1234.5")
+    function parseIdNum(v) {
+        if (typeof v === 'number') return Number.isFinite(v) ? v : NaN;
+        let t = String(v === null || v === undefined ? '' : v).replace(/[%\s\u00a0]/g, '');
+        if (t === '') return NaN;
+        const dot = t.lastIndexOf('.'), comma = t.lastIndexOf(',');
+        if (dot !== -1 && comma !== -1) {
+            t = comma > dot ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+        } else if (comma !== -1) {
+            t = (t.indexOf(',') !== comma) ? t.replace(/,/g, '') : t.replace(',', '.');
+        } else if (dot !== -1 && /^[-+]?\d{1,3}(\.\d{3})+$/.test(t)) {
+            t = t.replace(/\./g, '');
+        }
+        const n = parseFloat(t);
+        return Number.isFinite(n) ? n : NaN;
+    }
+
     function calculate_summary() {
         calculate_summary_core();
         if (typeof xlPaginateAll === 'function') xlPaginateAll();
@@ -2645,8 +2821,8 @@
             let $set = $(this).find('.set-td select');
             let set_name = ($set.length ? $set.find('option:selected').text() : $(this).find('.set-td').text()).toUpperCase().trim();
 
-            $(this).find('.qty-bom-td').data('val', qty_bom).text(qty_bom.toLocaleString('en-US'));
-            $(this).find('.tot-val-td').data('val', tot_val).text(tot_val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $(this).find('.qty-bom-td').data('val', qty_bom).text(fmtId(qty_bom, 0));
+            $(this).find('.tot-val-td').data('val', tot_val).text(fmtId(tot_val, 2));
 
             cat_totals[cat].idr += val_idr;
             cat_totals[cat].usd += val_usd;
@@ -2690,7 +2866,7 @@
             $usdCell.data('val', val_usd);
             if (!$usdCell.find('.xl-editor').length) {
                 $usdCell.contents().filter(function () { return !$(this).hasClass('xl-fill-handle'); }).remove();
-                $usdCell.prepend(document.createTextNode(val_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 })));
+                $usdCell.prepend(document.createTextNode(fmtId(val_usd, 4)));
             }
 
             sum_oth_norm_idr += val_idr;
@@ -2700,8 +2876,8 @@
         let tot_other_idr = sum_oth_norm_idr;
         let tot_other_usd = sum_oth_norm_usd;
 
-        $('#tot-other-idr').text(tot_other_idr.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
-        $('#tot-other-usd').text(tot_other_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
+        $('#tot-other-idr').text(fmtId(tot_other_idr, 2));
+        $('#tot-other-usd').text(fmtId(tot_other_usd, 4));
 
         // ============================
         // 4. G&A (dihitung dari material + manufacturing + other cost)
@@ -2716,19 +2892,19 @@
         let grand_idr = base_ga_idr + ga_idr;
         let grand_usd = grand_idr / rate_to_idr;
 
-        $('#val-ga-idr').text(ga_idr.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
-        $('#val-ga-usd').text(ga_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
+        $('#val-ga-idr').text(fmtId(ga_idr, 2));
+        $('#val-ga-usd').text(fmtId(ga_usd, 4));
 
         let ga_pct = (grand_idr > 0) ? (ga_idr / grand_idr) * 100 : 0;
-        $('.pct-ga').text(ga_pct.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%');
+        $('.pct-ga').text(fmtId(ga_pct, 2) + '%');
 
         let pct_other = (grand_idr > 0) ? (tot_other_idr / grand_idr) * 100 : 0;
-        $('#tot-other-pct').text(pct_other.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%');
+        $('#tot-other-pct').text(fmtId(pct_other, 2) + '%');
 
         $('.row-costing').each(function() {
             let val_idr = parseFloat($(this).find('.val-idr-td, .val-idr-td-other').data('val')) || 0;
             let pct = (grand_idr > 0) ? (val_idr / grand_idr) * 100 : 0;
-            $(this).find('.pct-td').text(pct.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%');
+            $(this).find('.pct-td').text(fmtId(pct, 2) + '%');
         });
 
         // ============================
@@ -2746,11 +2922,11 @@
                 tfoot_html += `
                     <tr style="background-color: #f8f9fa;">
                         <td colspan="13" class="text-left">${title} - TOTAL ${s}</td>
-                        <td class="text-right">${d.idr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td class="text-right">${d.usd.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+                        <td class="text-right">${fmtId(d.idr, 2)}</td>
+                        <td class="text-right">${fmtId(d.usd, 4)}</td>
                         <td></td>
-                        <td class="text-right">${d.bom.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-                        <td class="text-right">${d.val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td class="text-right">${fmtId(d.bom, 0)}</td>
+                        <td class="text-right">${fmtId(d.val, 2)}</td>
                         <td></td>
                     </tr>
                 `;
@@ -2759,11 +2935,11 @@
             tfoot_html += `
                 <tr class="bg-warning text-dark">
                     <td colspan="2"></td><td colspan="11" class="text-left">TOTAL</td>
-                    <td class="text-right">${obj.idr.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td class="text-right">${obj.usd.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+                    <td class="text-right">${fmtId(obj.idr, 2)}</td>
+                    <td class="text-right">${fmtId(obj.usd, 4)}</td>
                     <td class="text-center"></td>
-                    <td class="text-right">${obj.bom.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-                    <td class="text-right">${obj.val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td class="text-right">${fmtId(obj.bom, 0)}</td>
+                    <td class="text-right">${fmtId(obj.val, 2)}</td>
                     <td></td>
                 </tr>
             `;
@@ -2780,8 +2956,8 @@
             grand_set_html += `
                 <tr style="font-weight: bold; background-color: #f8f9fa;">
                     <td width="40%">TOTAL ${s}</td>
-                    <td width="30%" class="text-center">${d.bom.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-                    <td width="30%" class="text-center">${d.val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td width="30%" class="text-center">${fmtId(d.bom, 0)}</td>
+                    <td width="30%" class="text-center">${fmtId(d.val, 2)}</td>
                 </tr>
             `;
         });
@@ -2795,8 +2971,8 @@
             ${grand_set_html}
             <tr style="font-weight: bold;">
                 <td>GRAND TOTAL</td>
-                <td class="text-center text-dark">${grand_totals.bom.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-                <td class="text-center text-dark">${grand_totals.val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td class="text-center text-dark">${fmtId(grand_totals.bom, 0)}</td>
+                <td class="text-center text-dark">${fmtId(grand_totals.val, 2)}</td>
             </tr>
         `);
 
@@ -2806,7 +2982,7 @@
         let input_vat      = parseFloat($('input[name="vat"]').val()) || 0;
         let shipment_type   = $('#shipment_type').val();
         let actual_vat_pct  = (shipment_type === 'export') ? 0 : input_vat;
-        $('#vat-label-pct').text(actual_vat_pct + '%');
+        $('#vat-label-pct').text(fmtId(actual_vat_pct, 0, 2) + '%');
 
         let vat_multiplier = 1 + (actual_vat_pct / 100);
         let vat_idr     = Math.round((grand_idr * vat_multiplier) * 100) / 100;
@@ -2843,17 +3019,17 @@
         // ============================
         // 9. RENDER RINGKASAN AKHIR
         // ============================
-        $('#grand-tot-idr').text(grand_idr.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
-        $('#grand-tot-usd').text(grand_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
+        $('#grand-tot-idr').text(fmtId(grand_idr, 2));
+        $('#grand-tot-usd').text(fmtId(grand_usd, 4));
 
-        $('#val-vat-idr').text(vat_idr.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
-        $('#val-vat-usd').text(vat_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
+        $('#val-vat-idr').text(fmtId(vat_idr, 2));
+        $('#val-vat-usd').text(fmtId(vat_usd, 4));
 
-        $('#val-suggest-idr').text(suggest_idr.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
-        $('#val-suggest-usd').text(suggest_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
+        $('#val-suggest-idr').text(fmtId(suggest_idr, 2));
+        $('#val-suggest-usd').text(fmtId(suggest_usd, 4));
 
-        $('#val-profit-idr').text(profit_idr.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
-        $('#val-profit-usd').text(profit_usd.toLocaleString('en-US', { minimumFractionDigits: 7, maximumFractionDigits: 7 }));
+        $('#val-profit-idr').text(fmtId(profit_idr, 2));
+        $('#val-profit-usd').text(fmtId(profit_usd, 4));
 
         lock_type_dropdown();
     }
@@ -2913,22 +3089,39 @@
         return v;
     }
 
-    function xlFormat(field, v) {
+    // Desimal minimum per kolom (sama dengan tampilan awal Blade); maksimum 7 supaya presisi tidak hilang.
+    const XL_MIN_DP = { price: 2, price_px_idr: 2, price_px_usd: 4, cons: 4, allowance: 2, value_idr: 2, value_usd: 4 };
+    const XL_MIN_DP_OTHER = { allowance: 2, value_idr: 2, value_usd: 4 };
+    // Kolom uang: IDR 2 desimal, USD 4 desimal (tampilan saja; data-val tetap presisi penuh).
+    const XL_MONEY_FIELDS = ['price', 'price_px_idr', 'price_px_usd', 'value_idr', 'value_usd'];
+
+    function xlFormat(field, v, isOther) {
         if (!xlIsNumber(field) || v === '') return v;
         const n = Number(v);
-        return Number.isFinite(n) ? n.toLocaleString('en-US', { maximumFractionDigits: 7 }) : v;
+        if (!Number.isFinite(n)) return v;
+        const dp = (isOther ? XL_MIN_DP_OTHER : XL_MIN_DP)[field] || 0;
+        return fmtId(n, dp, XL_MONEY_FIELDS.includes(field) ? dp : Math.max(dp, 7));
+    }
+    function xlIsOtherTd($td) { return $td.closest('tr').attr('data-category') === 'Other Cost'; }
+    // Nilai sumber untuk fill (drag / Ctrl+D): angka dikirim sebagai Number agar tidak di-parse ulang.
+    function xlFillVal($td) {
+        const v = xlCellVal($td);
+        if (!xlIsNumber(xlField($td)) || v === '') return v;
+        const n = Number(v);
+        return Number.isFinite(n) ? n : v;
     }
 
     function xlRenderCell($td) {
         if ($td.find('.xl-editor').length) return;
         const field = xlField($td);
         $td.contents().filter(function () { return !$(this).hasClass('xl-fill-handle'); }).remove();
-        const text = xlIsSelect(field) ? xlCellText($td) : xlFormat(field, xlCellVal($td));
+        const text = xlIsSelect(field) ? xlCellText($td) : xlFormat(field, xlCellVal($td), xlIsOtherTd($td));
         $td.prepend(document.createTextNode(text === '' ? '--' : text));
     }
 
     // Normalisasi nilai baru (ketik / paste / fill). null = tidak valid.
     function xlNormalize(field, val) {
+        if (typeof val === 'number' && xlIsNumber(field)) return Number.isFinite(val) ? val : null;
         val = val === null || val === undefined ? '' : String(val).trim();
         if (xlIsSelect(field)) {
             if (val === '') return '';
@@ -2946,12 +3139,13 @@
 
     /* ---------- set nilai sel (auto hitung + save) ---------- */
     function xlSetCell($td, val) {
-        if (xlReadonly()) return false;
+        if (xlReadonly() || $td.closest('.costing-tab-panel').hasClass('xl-submit-running')) return false;
         const field = xlField($td);
         const value = xlNormalize(field, val);
         if (value === null) { $td.addClass('xl-invalid'); return false; }
         $td.removeClass('xl-invalid');
         if (String(value) === xlCellVal($td)) return true;
+        if (xlIsNumber(field) && xlCellVal($td) !== '' && Number(xlCellVal($td)) === value) return true;
         const $row = $td.parent();
         xlPut($row, field, value, false);
         xlRenderCell($td);
@@ -2974,7 +3168,7 @@
     const xlReadonly = () => $('.costing-create-page').hasClass('is-readonly');
 
     function xlOpenEditor($td, initial) {
-        if (!xlHasCtrl($td) || xlReadonly()) return;
+        if (!xlHasCtrl($td) || xlReadonly() || $td.closest('.costing-tab-panel').hasClass('xl-submit-running')) return;
         xlCloseEditor(true);
         const field = xlField($td);
         XL_EDIT.$td = $td;
@@ -3000,7 +3194,7 @@
 
         const $input = $('<input type="text" class="xl-editor" autocomplete="off">')
             .toggleClass('text-right', xlIsNumber(field))
-            .val(initial !== undefined ? initial : xlCellVal($td));
+            .val(initial !== undefined ? initial : xlFormat(field, xlCellVal($td), xlIsOtherTd($td)));
         $td.prepend($input);
         XL_EDIT.$input = $input;
         $input[0].focus();
@@ -3084,7 +3278,9 @@
             const cells = [];
             for (let c = R.c0; c <= R.c1; c++) {
                 const $td = xlTdAt(XL.$tbody, r, c);
-                cells.push(xlHasCtrl($td) ? xlCellText($td) : '');
+                if (!xlHasCtrl($td)) { cells.push(''); continue; }
+                const v = xlCellText($td), n = Number(v);
+                cells.push(xlIsNumber(xlField($td)) && v !== '' && Number.isFinite(n) ? fmtId(n, 0, 7) : v);
             }
             lines.push(cells.join('\t'));
         }
@@ -3104,7 +3300,7 @@
             const sr = R.r0 + ((((i - R.r0) % n) + n) % n);
             for (let c = R.c0; c <= R.c1; c++) {
                 const $s = xlTdAt($tb, sr, c), $d = xlTdAt($tb, i, c);
-                if (xlHasCtrl($s) && xlHasCtrl($d) && xlField($s) === xlField($d)) xlSetCell($d, xlCellVal($s));
+                if (xlHasCtrl($s) && xlHasCtrl($d) && xlField($s) === xlField($d)) xlSetCell($d, xlFillVal($s));
             }
         }
         const nr0 = Math.min(R.r0, from), nr1 = Math.max(R.r1, to);
@@ -3118,13 +3314,13 @@
             if (R.r0 === 0) return;
             for (let c = R.c0; c <= R.c1; c++) {
                 const $s = xlTdAt($tb, R.r0 - 1, c), $d = xlTdAt($tb, R.r0, c);
-                if (xlHasCtrl($s) && xlHasCtrl($d) && xlField($s) === xlField($d)) xlSetCell($d, xlCellVal($s));
+                if (xlHasCtrl($s) && xlHasCtrl($d) && xlField($s) === xlField($d)) xlSetCell($d, xlFillVal($s));
             }
         } else {
             for (let r = R.r0 + 1; r <= R.r1; r++) {
                 for (let c = R.c0; c <= R.c1; c++) {
                     const $s = xlTdAt($tb, R.r0, c), $d = xlTdAt($tb, r, c);
-                    if (xlHasCtrl($s) && xlHasCtrl($d) && xlField($s) === xlField($d)) xlSetCell($d, xlCellVal($s));
+                    if (xlHasCtrl($s) && xlHasCtrl($d) && xlField($s) === xlField($d)) xlSetCell($d, xlFillVal($s));
                 }
             }
         }
@@ -3141,8 +3337,8 @@
         }
     }
 
-    /* ---------- hitung ulang & simpan per baris ---------- */
-    function xlNum(v) { const n = parseFloat(String(v).replace(/[,%\s]/g, '')); return Number.isFinite(n) ? n : NaN; }
+    /* ---------- hitung ulang & simpan per tab ---------- */
+    function xlNum(v) { return parseIdNum(v); }
     function xlRound(n) { return Number((Math.round(n * 1e7) / 1e7).toFixed(7)); }
 
     function xlPut($row, field, value, syncControl) {
@@ -3180,18 +3376,17 @@
     }
 
     function xlQueueSave($row, resort) {
-        clearTimeout($row.data('xlTimer'));
-        $row.addClass('xl-saving').removeClass('xl-row-error');
+        $row.addClass('xl-dirty').removeClass('xl-row-error');
         if (resort) $row.data('xlResort', true);
-        $row.data('xlTimer', setTimeout(function () { xlSaveRow($row); }, 350));
+        xlUpdateSubmitButton();
     }
 
     function xlSaveRow($row) {
-        if ($row.data('xlInflight')) { $row.data('xlDirty', true); return; }
         const m = ($row.attr('id') || '').match(/(\d+)$/);
-        if (!m) { Swal.fire('Gagal menyimpan', 'ID detail Costing tidak valid.', 'error'); return; }
+        if (!m) return $.Deferred().reject({ message: 'ID detail Costing tidak valid.' }).promise();
         const a = function (k, d) { const v = $row.attr('data-' + k); return (v === undefined || v === null || v === '') ? d : v; };
-        $row.data('xlInflight', true);
+        $row.addClass('xl-saving');
+        const result = $.Deferred();
         $.ajax({
             url: "{{ route('update-detail-costing') }}",
             type: 'POST',
@@ -3213,26 +3408,92 @@
                 set: a('set', ''),
                 value_idr: a('value-idr', 0),
                 value_usd: a('value-usd', 0)
-            },
-            success: function (response) {
-                if (response.status !== 200) {
-                    $row.addClass('xl-row-error');
-                    Swal.fire('Gagal menyimpan', response.message || 'Perubahan item tidak tersimpan.', 'error');
-                    return;
-                }
-                if ($row.data('xlResort')) { $row.data('xlResort', false); xlScheduleSort($row.closest('tbody')); }
-            },
-            error: function (xhr) {
-                $row.addClass('xl-row-error');
-                const message = xhr.responseJSON && xhr.responseJSON.message;
-                Swal.fire('Gagal menyimpan', message || 'Perubahan item tidak tersimpan.', 'error');
-            },
-            complete: function () {
-                $row.data('xlInflight', false);
-                if ($row.data('xlDirty')) { $row.data('xlDirty', false); xlSaveRow($row); return; }
-                $row.removeClass('xl-saving');
             }
+        }).done(function (response) {
+            if (response.status !== 200) {
+                $row.addClass('xl-row-error');
+                result.reject({ message: response.message || 'Perubahan item tidak tersimpan.' });
+                return;
+            }
+            $row.removeClass('xl-dirty xl-row-error');
+            result.resolve(response);
+        }).fail(function (xhr) {
+            $row.addClass('xl-row-error');
+            result.reject({
+                message: xhr.responseJSON && xhr.responseJSON.message
+                    ? xhr.responseJSON.message
+                    : 'Perubahan item tidak tersimpan.'
+            });
+        }).always(function () {
+                $row.removeClass('xl-saving');
         });
+        return result.promise();
+    }
+
+    function xlUpdateSubmitButton() {
+        const count = $('#costing-category-content tbody tr.row-costing.xl-dirty').length;
+        const $button = $('#xl-submit-all');
+        const isRunning = $('#costing-category-content').hasClass('xl-submit-running');
+        $button.prop('disabled', count === 0 || isRunning);
+        $button.find('.xl-submit-label').text(isRunning ? 'Updating...' : 'Update');
+    }
+
+    function xlSubmitAll() {
+        const $content = $('#costing-category-content');
+        if (xlReadonly() || $content.hasClass('xl-submit-running')) return;
+        if (XL_EDIT.$td) {
+            if (!xlCloseEditor(true)) return;
+        }
+        const $invalid = $content.find('td.xl-invalid').first();
+        if ($invalid.length) {
+            Swal.fire('Periksa input', 'Perbaiki nilai yang ditandai sebelum menyimpan.', 'warning');
+            const category = $invalid.closest('.costing-tab-panel').data('panel-category');
+            $('.costing-category-tab[data-category="' + category + '"]').trigger('click');
+            xlOpenEditor($invalid);
+            return;
+        }
+        const rows = $content.find('tbody tr.row-costing.xl-dirty').toArray().map(function (row) { return $(row); });
+        if (!rows.length) {
+            Swal.fire('Tidak ada perubahan', 'Tidak ada perubahan untuk disimpan.', 'info');
+            return;
+        }
+
+        const failures = [];
+        const resortedBodies = new Set();
+        let index = 0;
+        $content.addClass('xl-submit-running');
+        $content.find('.costing-tab-panel').addClass('xl-submit-running');
+        xlUpdateSubmitButton();
+
+        function saveNext() {
+            if (index >= rows.length) {
+                $content.removeClass('xl-submit-running');
+                $content.find('.costing-tab-panel').removeClass('xl-submit-running');
+                resortedBodies.forEach(function (tbodyId) {
+                    sortTbody('#' + tbodyId);
+                });
+                if (resortedBodies.size) {
+                    calculate_summary();
+                }
+                xlUpdateSubmitButton();
+                if (failures.length) {
+                    Swal.fire('Sebagian perubahan gagal disimpan', failures.join('; '), 'error');
+                } else {
+                    Swal.fire('Berhasil', 'Semua perubahan berhasil disimpan.', 'success');
+                }
+                return;
+            }
+            const $row = rows[index++];
+            xlSaveRow($row).done(function () {
+                if ($row.data('xlResort')) {
+                    resortedBodies.add($row.closest('tbody').attr('id'));
+                    $row.data('xlResort', false);
+                }
+            }).fail(function (error) {
+                failures.push($.trim($row.find('.item-name').text()) + ': ' + error.message);
+            }).always(saveNext);
+        }
+        saveNext();
     }
 
     function xlScheduleSort($tbody) {
@@ -3261,7 +3522,15 @@
                     '<div class="xl-pages"></div>' +
                 '</div>');
             $panel.find('.table-responsive').first().after($pager);
+            $pager.after(
+                '<div class="xl-cell-legend">' +
+                    '<span><i class="is-edit"></i>Editable</span>' +
+                    '<span><i class="is-auto"></i>Auto-calculated</span>' +
+                    '<span><i class="is-pasted"></i>Just Pasted</span>' +
+                    '<span><i class="is-error"></i>Error</span>' +
+                '</div>');
         });
+        xlUpdateSubmitButton();
     }
 
     function xlPaginateAll() {
@@ -3355,6 +3624,11 @@
     function xlInit() {
         xlBuildPagers();
         xlPaginateAll();
+        window.addEventListener('beforeunload', function (event) {
+            if (xlReadonly() || !$('#costing-category-content .row-costing.xl-dirty').length) return;
+            event.preventDefault();
+            event.returnValue = '';
+        });
 
         // pagination
         $(document).on('change', '.xl-per-page', function () {
@@ -3382,6 +3656,7 @@
             xlUpdateBulk();
         });
         $('#xl-bulk-delete').on('click', xlBulkDelete);
+        $('#xl-submit-all').on('click', xlSubmitAll);
 
         // dobel klik / F2 / langsung ketik = edit sel
         $(document).on('dblclick', '#costing-category-content td.xl-cell', function (e) {
@@ -3524,10 +3799,15 @@
             e.preventDefault();
             if (XL_EDIT.$td) xlCloseEditor(false);
             const R = XL.rect, $tb = XL.$tbody;
+            // Tandai sel yang baru di-paste (biru muda) beberapa detik supaya user tahu sel mana yang berubah.
+            clearTimeout(window.xlPastedTimer);
+            $('.costing-tab-panel td.xl-pasted').removeClass('xl-pasted');
+            const markPasted = function ($td) { $td.addClass('xl-pasted'); };
+            window.xlPastedTimer = setTimeout(function () { $('.costing-tab-panel td.xl-pasted').removeClass('xl-pasted'); }, 4000);
             if (!isGrid) {
                 for (let r = R.r0; r <= R.r1; r++) for (let c = R.c0; c <= R.c1; c++) {
                     const $td = xlTdAt($tb, r, c);
-                    if (xlHasCtrl($td)) xlSetCell($td, clean);
+                    if (xlHasCtrl($td)) { xlSetCell($td, clean); markPasted($td); }
                 }
                 return;
             }
@@ -3537,7 +3817,7 @@
                 maxC = Math.max(maxC, cols.length);
                 cols.forEach(function (v, j) {
                     const $td = xlTdAt($tb, R.r0 + i, R.c0 + j);
-                    if ($td.length && xlHasCtrl($td)) xlSetCell($td, v);
+                    if ($td.length && xlHasCtrl($td)) { xlSetCell($td, v); markPasted($td); }
                 });
             });
             const lastR = Math.min(xlRows($tb).length - 1, R.r0 + data.length - 1);

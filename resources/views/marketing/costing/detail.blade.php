@@ -6,7 +6,7 @@
         .costing-detail-page { min-height: calc(100vh - 56px); padding: 10px 14px 24px; background: #f5f5f5; color: #263746; font-family: 'Poppins', sans-serif; }
         .costing-detail-card { margin: 0 auto; border: 0; border-radius: 10px; box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07); }
         .costing-detail-card > .card-body { padding: 20px 24px 28px; }
-        .costing-crumb { margin-bottom: 14px; padding: 8px 10px; background: #183f5a; color: #b4b4b4; font-size: 16px; font-weight: 500; }
+        .costing-crumb { margin-bottom: 14px; padding: 8px 10px; background: #284A63; color: #b4b4b4; font-size: 16px; font-weight: 500; }
         .costing-crumb a { color: #b4b4b4; text-decoration: none; }
         .costing-crumb a:hover { color: #fff; text-decoration: underline; }
         .costing-crumb b { color: #fff; font-weight: 500; }
@@ -23,7 +23,7 @@
 
         .costing-detail-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
         .costing-detail-stat { min-width: 0; min-height: 76px; padding: 10px 14px; border-radius: 10px; background: #6c8798; color: #fff; box-shadow: 0 3px 8px rgba(30, 41, 59, .10); }
-        .costing-detail-stat span { display: block; margin-bottom: 4px; color: #e7eef2; font-family: 'Instrument Sans', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: 0.2px; line-height: 1.25; }
+        .costing-detail-stat span { display: block; margin-bottom: 4px; color: #e7eef2; font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: 0.2px; line-height: 1.25; }
         .costing-detail-stat strong { display: block; overflow: hidden; color: #fff; font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: 0.05em; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
         .costing-detail-stat:nth-child(n+4) strong { text-align: center; }
         .costing-detail-stat.is-light { border: 1px solid #e1e7ef; background: #fff; }
@@ -36,20 +36,21 @@
         .costing-detail-panel h2 { margin: 0 12px; padding: 9px 0 7px; border-bottom: 1px solid #dce4ec; color: #616161; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.05em; }
         .costing-detail-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; padding: 4px 12px 10px; }
         .costing-detail-field { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: 2px; padding: 6px 0; border-bottom: 1px solid #e7e7e7; }
-        .costing-detail-field span { color: #9e9e9e; font-family: 'Instrument Sans', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.2px; }
+        .costing-detail-field span { color: #9e9e9e; font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.2px; }
         .costing-detail-field strong { min-width: 0; overflow-wrap: anywhere; color: #284a63; font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.05em; }
         .costing-detail-gallery-panel { min-height: 100%; }
         .costing-detail-gallery { display: flex; min-height: 320px; flex-direction: column; justify-content: center; padding: 12px 16px; }
-        .costing-detail-image-stage { display: flex; height: 260px; align-items: center; justify-content: center; gap: 14px; }
-        .costing-detail-image { display: block; max-width: 62%; max-height: 250px; object-fit: contain; }
-        .costing-detail-peek { display: block; max-width: 22%; max-height: 150px; object-fit: contain; cursor: pointer; }
+        /* Gambar aktif 182x256, samping 90x192 (sejajar tengah, celah 59px), sama dengan carousel halaman lain. */
+        .costing-detail-image-stage { display: flex; height: 288px; align-items: center; justify-content: center; gap: 14px; }
+        .costing-detail-image { display: block; width: 182px; max-width: 46%; height: 256px; object-fit: contain; }
+        .costing-detail-peek { display: block; width: 90px; max-width: 22%; height: 192px; margin-left: 45px; object-fit: contain; cursor: pointer; }
         .costing-detail-dots { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
         .costing-detail-dots button { width: 8px; height: 6px; padding: 0; border: 0; border-radius: 3px; background: #d6dde5; transition: width .15s ease; }
         .costing-detail-dots button.active { width: 22px; background: #1d6fe0; }
         .costing-detail-image[hidden] { display: none; }
         .costing-detail-image-nav { flex: 0 0 auto; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: #f1f3f5; color: #7b8791; font-size: 13px; }
         .costing-detail-thumbs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 12px; }
-        .costing-detail-thumb { width: 64px; height: 64px; padding: 3px; border: 1px solid #dce4ec; border-radius: 6px; background: #fff; cursor: pointer; }
+        .costing-detail-thumb { width: 76px; height: 97px; padding: 3px; border: 1px solid #dce4ec; border-radius: 6px; background: #fff; cursor: pointer; }
         .costing-detail-thumb.active { border: 2px solid #5287f5; }
         .costing-detail-thumb img { width: 100%; height: 100%; object-fit: contain; }
         .costing-detail-image-count { margin-top: 6px; color: #9aa5ad; font-size: 12px; text-align: center; }
@@ -141,7 +142,7 @@
             .costing-detail-field strong { font-size: 14px; }
             .costing-detail-image-stage { height: 180px; }
             .costing-detail-image { max-height: 170px; }
-            .costing-detail-thumb { width: 52px; height: 52px; }
+            .costing-detail-thumb { width: 60px; height: 77px; }
             .costing-detail-summary-wrap { margin-top: 18px; }
             .costing-detail-summary-card { width: 100%; }
             .costing-detail-summary-table th { padding: 8px 4px; font-size: 11px !important; }
@@ -165,6 +166,10 @@
         .costing-detail-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; }
         .costing-detail-table thead th + th::before { content: ''; display: inline-block; width: 5px; height: 5px; margin: 0 5px 1px 0; border-radius: 50%; background: #94a3b8; vertical-align: middle; }
         .costing-detail-table tfoot td { font-weight: 600 !important; }
+        /* QA ketebalan: teks biasa Medium 500 (sebelumnya campur Regular 400 / Bold 700). */
+        .costing-detail-alert > span, .costing-detail-image-count, .costing-detail-auto, .costing-detail-pages button, .costing-detail-page-size span { font-weight: 500; }
+        .costing-detail-page .costing-detail-page-size { font-weight: 500 !important; }
+        .costing-detail-pages button[aria-current="page"] { font-weight: 600; }
     </style>
 @endsection
 
@@ -223,11 +228,11 @@
     $profitUsd = round(($vatUsd * 1.06) * 10000000) / 10000000;
     $pictures = collect($pictures);
     $summaryCards = [
-        ['Worksheet No', $costing->kpno ?: '-'],
+        ['No Worksheet', $costing->kpno ?: '-'],
         ['No Costing', $costing->no_costing ?: '-'],
         ['DELIVERY DATE', $costing->deldate ? \Carbon\Carbon::parse($costing->deldate)->format('d/m/Y') : '-'],
         ['Qty Planned', $costing->qty_planned?: 0],
-        ['SMV (MINUTES)', number_format((float) ($costing->smv ?? 0), 0, '.', ',')],
+        ['SMV (MINUTES)', number_format((float) ($costing->smv ?? 0), 0, ',', '.')],
         ['CONFIRM PRICE', number_format($confirmPrice, 2, ',', '.')],
     ];
 @endphp
@@ -278,18 +283,18 @@
                     <section class="costing-detail-panel">
                         <h2>Information Buyer</h2>
                         <div class="costing-detail-fields">
-                            <div class="costing-detail-field"><span>Buyer Name</span><strong>{{ $buyerName ?: '-' }}</strong></div>
+                            <div class="costing-detail-field"><span>Buyer Name</span><strong class="mkt-tc">{{ $buyerName ?: '-' }}</strong></div>
                             <div class="costing-detail-field"><span>Kode Buyer</span><strong>{{ $costing->buyer_code ?: '-' }}</strong></div>
-                            <div class="costing-detail-field"><span>Brand</span><strong>{{ $costing->brand ?: '-' }}</strong></div>
-                            <div class="costing-detail-field"><span>Season</span><strong>{{ $season ? trim($season->season.' '.$season->season_desc) : '-' }}</strong></div>
+                            <div class="costing-detail-field"><span>Brand</span><strong class="mkt-tc">{{ $costing->brand ?: '-' }}</strong></div>
+                            <div class="costing-detail-field"><span>Season</span><strong class="mkt-tc">{{ $season ? trim($season->season.' '.$season->season_desc) : '-' }}</strong></div>
                             <div class="costing-detail-field"><span>Style</span><strong>{{ $costing->style ?: '-' }}</strong></div>
                         </div>
                     </section>
                     <section class="costing-detail-panel">
                         <h2>Product &amp; Type</h2>
                         <div class="costing-detail-fields">
-                            <div class="costing-detail-field"><span>Product Group</span><strong>{{ $costing->product_group ?: '-' }}</strong></div>
-                            <div class="costing-detail-field"><span>Product Item</span><strong>{{ $costing->product_item_name ?: '-' }}</strong></div>
+                            <div class="costing-detail-field"><span>Product Group</span><strong class="mkt-tc">{{ $costing->product_group ?: '-' }}</strong></div>
+                            <div class="costing-detail-field"><span>Product Item</span><strong class="mkt-tc">{{ $costing->product_item_name ?: '-' }}</strong></div>
                             <div class="costing-detail-field"><span>Product Type</span><strong>{{ $productSetNames ?: '-' }}</strong></div>
                             <div class="costing-detail-field"><span>Costing Type</span><strong>{{ strtoupper($costing->type ?: '-') }}</strong></div>
                             <div class="costing-detail-field"><span>Unit</span><strong>{{ $costing->unit ?: '-' }}</strong></div>
@@ -342,10 +347,8 @@
                     <h2>Shipping &amp; Destinations</h2>
                     <div class="costing-detail-fields">
                         <div class="costing-detail-field"><span>Ship Mode</span><strong>{{ $shipMode->shipmode ?? '-' }}</strong></div>
-                        <div class="costing-detail-field"><span>Shipment Type</span><strong>{{ strtoupper($costing->shipment_type ?: '-') }}</strong></div>
-                        <div class="costing-detail-field"><span>Main Destination</span><strong>{{ str_replace(',', ', ', (string) ($costing->main_dest ?? '')) ?: '-' }}</strong></div>
-                        <div class="costing-detail-field"><span>Market</span><strong>{{ $costing->market ?: '-' }}</strong></div>
-                        <div class="costing-detail-field"><span>Marketing Order</span><strong>{{ $costing->mkt_order ?: '-' }}</strong></div>
+                        <div class="costing-detail-field"><span>Shipment Type</span><strong class="mkt-tc">{{ strtoupper($costing->shipment_type ?: '-') }}</strong></div>
+                        <div class="costing-detail-field"><span>Marketing Order</span><strong class="mkt-tc">{{ $costing->mkt_order ?: '-' }}</strong></div>
                         <div class="costing-detail-field"><span>Notes</span><strong>{{ $costing->notes ?: '-' }}</strong></div>
                     </div>
                 </section>
@@ -355,7 +358,7 @@
                         <div class="costing-detail-fields">
                             <div class="costing-detail-field"><span>Qty (PCS)</span><strong>{{ $orderQty }}</strong></div>
                             {{-- <div class="costing-detail-field"><span>Unit</span><strong>{{ $costing->unit ?: '-' }}</strong></div> --}}
-                            <div class="costing-detail-field"><span>VAT</span><strong>{{ number_format((float) ($costing->vat ?? 0), 2, '.', ',') }}%</strong></div>
+                            <div class="costing-detail-field"><span>VAT</span><strong>{{ number_format((float) ($costing->vat ?? 0), 2, ',', '.') }}%</strong></div>
                         </div>
                     </section>
                     <section class="costing-detail-panel is-price">
@@ -363,8 +366,8 @@
                         <div class="costing-detail-fields">
                             <div class="costing-detail-field"><span>Currency</span><strong>{{ $currency->nama_pilihan ?? '-' }}</strong></div>
                             <div class="costing-detail-field"><span>Confirm Price</span><strong>{{ number_format($confirmPrice, 2, ',', '.') }}</strong></div>
-                            <div class="costing-detail-field"><span>Rate to IDR</span><strong>{{ number_format($rateToIdr, 2, '.', ',') }}</strong></div>
-                            <div class="costing-detail-field"><span>Rate from IDR</span><strong>{{ number_format((float) ($costing->rate_from_idr ?? 0), 2, '.', ',') }}</strong></div>
+                            <div class="costing-detail-field"><span>Rate to IDR</span><strong>{{ number_format($rateToIdr, 2, ',', '.') }}</strong></div>
+                            <div class="costing-detail-field"><span>Rate from IDR</span><strong>{{ number_format((float) ($costing->rate_from_idr ?? 0), 2, ',', '.') }}</strong></div>
                         </div>
                     </section>
                 </div>
@@ -421,22 +424,22 @@
                                         <tr>
                                             {{-- <td class="text-center"><input type="checkbox" class="row-check" aria-label="Pilih item {{ $loop->iteration }}" disabled></td> --}}
                                             <td class="text-center">{{ $loop->iteration }}</td>
-                                            <td>{{ $det->nama_item ?: '-' }}</td>
+                                            <td class="mkt-tc">{{ $det->nama_item ?: '-' }}</td>
                                             <td>{{ $det->nama_set ?? ($productSets[$det->set]->nama ?? '-') }}</td>
-                                            <td>{{ $det->item_desc ?: '-' }}</td>
-                                            <td>{{ $det->nama_supplier ?: '-' }}</td>
+                                            <td class="mkt-tc">{{ $det->item_desc ?: '-' }}</td>
+                                            <td class="mkt-tc">{{ $det->nama_supplier ?: '-' }}</td>
                                             <td class="text-center">{{ $det->curr ?: '-' }}</td>
-                                            <td class="text-right">{{ number_format((float) ($det->price ?? 0), 2, '.', ',') }}</td>
-                                            <td class="text-right">{{ number_format((float) ($det->price_px_idr ?? 0), 2, '.', ',') }}</td>
-                                            <td class="text-right">{{ number_format((float) ($det->price_px_usd ?? 0), 4, '.', ',') }}</td>
-                                            <td class="text-right">{{ number_format((float) ($det->cons ?? 0), 4, '.', ',') }}</td>
+                                            <td class="text-right">{{ number_format((float) ($det->price ?? 0), 2, ',', '.') }}</td>
+                                            <td class="text-right">{{ number_format((float) ($det->price_px_idr ?? 0), 2, ',', '.') }}</td>
+                                            <td class="text-right">{{ number_format((float) ($det->price_px_usd ?? 0), 4, ',', '.') }}</td>
+                                            <td class="text-right">{{ number_format((float) ($det->cons ?? 0), 4, ',', '.') }}</td>
                                             <td class="text-center">{{ $det->unit ?: '-' }}</td>
-                                            <td class="text-right">{{ number_format($allowance, 2, '.', ',') }}%</td>
-                                            <td class="text-right">{{ number_format((float) ($det->value_idr ?? 0), 2, '.', ',') }}</td>
-                                            <td class="text-right">{{ number_format((float) ($det->value_usd ?? 0), 4, '.', ',') }}</td>
-                                            <td class="text-right">{{ number_format($valuePercent, 2, '.', ',') }}%</td>
-                                            <td class="text-right">{{ number_format($qtyBom, 0, '.', ',') }}</td>
-                                            <td class="text-right">{{ number_format($totalValue, 2, '.', ',') }}</td>
+                                            <td class="text-right">{{ number_format($allowance, 2, ',', '.') }}%</td>
+                                            <td class="text-right">{{ number_format((float) ($det->value_idr ?? 0), 2, ',', '.') }}</td>
+                                            <td class="text-right">{{ number_format((float) ($det->value_usd ?? 0), 4, ',', '.') }}</td>
+                                            <td class="text-right">{{ number_format($valuePercent, 2, ',', '.') }}%</td>
+                                            <td class="text-right">{{ number_format($qtyBom, 0, ',', '.') }}</td>
+                                            <td class="text-right">{{ number_format($totalValue, 2, ',', '.') }}</td>
                                         </tr>
                                     @empty
                                         <tr class="empty-row"><td colspan="18">Belum ada detail {{ $category }}.</td></tr>
@@ -445,11 +448,11 @@
                                 <tfoot>
                                     <tr>
                                         <td colspan="12" class="text-center">TOTAL</td>
-                                        <td class="text-right">{{ number_format($categoryTotals['idr'], 2, '.', ',') }}</td>
-                                        <td class="text-right">{{ number_format($categoryTotals['usd'], 4, '.', ',') }}</td>
+                                        <td class="text-right">{{ number_format($categoryTotals['idr'], 2, ',', '.') }}</td>
+                                        <td class="text-right">{{ number_format($categoryTotals['usd'], 4, ',', '.') }}</td>
                                         <td></td>
-                                        <td class="text-right">{{ number_format($categoryTotals['qty'], 0, '.', ',') }}</td>
-                                        <td class="text-right">{{ number_format($categoryTotals['value'], 2, '.', ',') }}</td>
+                                        <td class="text-right">{{ number_format($categoryTotals['qty'], 0, ',', '.') }}</td>
+                                        <td class="text-right">{{ number_format($categoryTotals['value'], 2, ',', '.') }}</td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -501,13 +504,13 @@
                                     <tr>
                                         {{-- <td class="text-center"><input type="checkbox" class="row-check" aria-label="Pilih item {{ $loop->iteration }}" disabled></td> --}}
                                         <td class="text-center">{{ $loop->iteration }}</td>
-                                        <td>{{ $det->nama_item ?: '-' }}</td>
-                                        <td>{{ $det->item_desc ?: '-' }}</td>
+                                        <td class="mkt-tc">{{ $det->nama_item ?: '-' }}</td>
+                                        <td class="mkt-tc">{{ $det->item_desc ?: '-' }}</td>
                                         <td class="text-center">{{ $det->unit ?: '-' }}</td>
-                                        <td class="text-right">{{ number_format((float) ($det->allowance ?? 0), 2, '.', ',') }}%</td>
-                                        <td class="text-right">{{ number_format((float) ($det->value_idr ?? 0), 7, '.', ',') }}</td>
-                                        <td class="text-right">{{ number_format($rateToIdr > 0 ? (float) ($det->value_idr ?? 0) / $rateToIdr : 0, 7, '.', ',') }}</td>
-                                        <td class="text-right">{{ number_format($itemPercent, 2, '.', ',') }}%</td>
+                                        <td class="text-right">{{ number_format((float) ($det->allowance ?? 0), 2, ',', '.') }}%</td>
+                                        <td class="text-right">{{ number_format((float) ($det->value_idr ?? 0), 7, ',', '.') }}</td>
+                                        <td class="text-right">{{ number_format($rateToIdr > 0 ? (float) ($det->value_idr ?? 0) / $rateToIdr : 0, 7, ',', '.') }}</td>
+                                        <td class="text-right">{{ number_format($itemPercent, 2, ',', '.') }}%</td>
                                     </tr>
                                 @empty
                                     <tr class="empty-row"><td colspan="9">Belum ada detail Other Cost.</td></tr>
@@ -516,15 +519,15 @@
                             <tfoot>
                                 <tr>
                                     <td colspan="5">TOTAL</td>
-                                    <td class="text-right">{{ number_format($otherTotals['idr'], 7, '.', ',') }}</td>
-                                    <td class="text-right">{{ number_format($otherTotals['usd'], 7, '.', ',') }}</td>
-                                    <td class="text-right">{{ number_format($otherPercent, 2, '.', ',') }}%</td>
+                                    <td class="text-right">{{ number_format($otherTotals['idr'], 7, ',', '.') }}</td>
+                                    <td class="text-right">{{ number_format($otherTotals['usd'], 7, ',', '.') }}</td>
+                                    <td class="text-right">{{ number_format($otherPercent, 2, ',', '.') }}%</td>
                                 </tr>
                                 <tr>
                                     <td colspan="5">G&amp;A</td>
-                                    <td class="text-right">{{ number_format($gaIdr, 7, '.', ',') }}</td>
-                                    <td class="text-right">{{ number_format($rateToIdr > 0 ? $gaIdr / $rateToIdr : 0, 7, '.', ',') }}</td>
-                                    <td class="text-right">{{ number_format($gaPercentOfTotal, 2, '.', ',') }}%</td>
+                                    <td class="text-right">{{ number_format($gaIdr, 7, ',', '.') }}</td>
+                                    <td class="text-right">{{ number_format($rateToIdr > 0 ? $gaIdr / $rateToIdr : 0, 7, ',', '.') }}</td>
+                                    <td class="text-right">{{ number_format($gaPercentOfTotal, 2, ',', '.') }}%</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -555,23 +558,23 @@
                     <tbody>
                         <tr>
                             <td>TOTAL COST</td>
-                            <td>{{ number_format($totalCostIdr, 7, '.', ',') }}</td>
-                            <td>{{ number_format($totalCostUsd, 7, '.', ',') }}</td>
+                            <td>{{ number_format($totalCostIdr, 7, ',', '.') }}</td>
+                            <td>{{ number_format($totalCostUsd, 7, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <td>BALANCE OTHER COST</td>
-                            <td>{{ number_format($balanceOtherIdr, 7, '.', ',') }}</td>
-                            <td>{{ number_format($balanceOtherUsd, 7, '.', ',') }}</td>
+                            <td>{{ number_format($balanceOtherIdr, 7, ',', '.') }}</td>
+                            <td>{{ number_format($balanceOtherUsd, 7, ',', '.') }}</td>
                         </tr>
                         <tr>
-                            <td>VAT <span>{{ number_format($vatPercent, 2, '.', ',') }}%</span></td>
-                            <td>{{ number_format($vatIdr, 7, '.', ',') }}</td>
-                            <td>{{ number_format($vatUsd, 7, '.', ',') }}</td>
+                            <td>VAT <span>{{ number_format($vatPercent, 2, ',', '.') }}%</span></td>
+                            <td>{{ number_format($vatIdr, 7, ',', '.') }}</td>
+                            <td>{{ number_format($vatUsd, 7, ',', '.') }}</td>
                         </tr>
                         <tr>
                             <td>PROFIT <span>6%</span></td>
-                            <td>{{ number_format($profitIdr, 7, '.', ',') }}</td>
-                            <td>{{ number_format($profitUsd, 7, '.', ',') }}</td>
+                            <td>{{ number_format($profitIdr, 7, ',', '.') }}</td>
+                            <td>{{ number_format($profitUsd, 7, ',', '.') }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -599,7 +602,13 @@
 @endif
 
 @push('scripts')
+<script src="{{ asset('dist/js/marketing-title-case.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-title-case.js')) }}"></script>
 <script>
+    // Teks nama (buyer, brand, season, product, item, supplier) tampil Title Case; singkatan PT/CV/LTD tetap kapital.
+    document.querySelectorAll('.mkt-tc').forEach(function (el) {
+        if (el.children.length === 0) el.textContent = window.mktTitleCase(el.textContent);
+    });
+
     (function () {
         document.querySelectorAll('[data-category-table]').forEach(function (section) {
             const body = section.querySelector('.costing-detail-category-body');

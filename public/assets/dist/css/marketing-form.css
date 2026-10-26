@@ -1,0 +1,149 @@
+
+/* Instrument Sans (OFL, file lokal) — dipakai kartu ringkasan No Costing/Worksheet/SO/Delivery Date. */
+@font-face {
+    font-family: "Instrument Sans";
+    src: url(../../fonts/InstrumentSans/InstrumentSans.ttf) format("truetype");
+    font-weight: 400 700;
+    font-stretch: 75% 100%;
+    font-display: swap;
+}
+
+:root {
+    --mkt-field-border: #d9d9d9;
+    --mkt-field-text: #34282c;
+    --mkt-field-muted: #ababab;
+    --mkt-field-active: #284a63;
+    --mkt-field-error: #c8161d;
+    --mkt-field-disabled-bg: #f8f8f8;
+    --mkt-field-disabled-border: #e3e3e3;
+}
+
+/* Label */
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) > label {
+    color: var(--mkt-field-text) !important;
+}
+
+/* ---------- Dropdown: state 1 & 2 (default / terisi) ---------- */
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4 .select2-selection--single {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    padding: 0 44px 0 16px !important;
+    border: 1px solid var(--mkt-field-border) !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+@media (min-width: 768px) {
+    :is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4 .select2-selection--single {
+        height: 59px !important;
+        min-height: 59px !important;
+    }
+}
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+    padding: 0 !important;
+    overflow: hidden;
+    color: var(--mkt-field-text) !important;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4 .select2-selection__placeholder {
+    color: var(--mkt-field-muted) !important;
+}
+/* Chevron tipis */
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
+    top: 50% !important;
+    right: 16px !important;
+    width: 12px !important;
+    height: 12px !important;
+    transform: translateY(-50%);
+}
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b {
+    top: 50% !important;
+    left: 50% !important;
+    width: 9px !important;
+    height: 9px !important;
+    margin: -6px 0 0 -4.5px !important;
+    border: solid var(--mkt-field-text) !important;
+    border-width: 0 1.5px 1.5px 0 !important;
+    transform: rotate(45deg);
+}
+
+/* ---------- State 3: terpilih saat ini (fokus / terbuka) ---------- */
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4:is(.select2-container--focus, .select2-container--open) .select2-selection {
+    border-color: var(--mkt-field-active) !important;
+}
+/* Tanda X tipis (tanpa lingkaran) untuk menghapus pilihan */
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4 .select2-selection__clear {
+    position: absolute !important;
+    top: 50% !important;
+    right: 12px !important;
+    width: 22px !important;
+    height: 22px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--mkt-field-text) !important;
+    font-size: 26px !important;
+    font-weight: 300 !important;
+    line-height: 20px !important;
+    text-align: center;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4 .select2-selection__clear span {
+    color: inherit !important;
+    font: inherit !important;
+}
+
+/* ---------- State 4: disable ---------- */
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group):has(.select2-container--disabled, .form-control:disabled) > label {
+    color: var(--mkt-field-muted) !important;
+}
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4.select2-container--disabled .select2-selection {
+    border-color: var(--mkt-field-disabled-border) !important;
+    background: var(--mkt-field-disabled-bg) !important;
+}
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4.select2-container--disabled .select2-selection__rendered {
+    color: var(--mkt-field-muted) !important;
+}
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) .select2-container--bootstrap4.select2-container--disabled .select2-selection__arrow b {
+    border-color: #c4c4c4 !important;
+}
+
+/* ---------- State 5: error (belum terisi / salah) ---------- */
+:is(.costing-field.is-invalid, .so-edit-grid .form-group.is-invalid, .bom-modal-fields > .is-invalid, .mc-form .form-group.is-invalid) > label {
+    color: var(--mkt-field-error) !important;
+}
+:is(.costing-field.is-invalid, .so-edit-grid .form-group.is-invalid, .bom-modal-fields > .is-invalid, .mc-form .form-group.is-invalid) .select2-container--bootstrap4 .select2-selection {
+    border-color: var(--mkt-field-error) !important;
+}
+:is(.costing-field.is-invalid, .so-edit-grid .form-group.is-invalid, .bom-modal-fields > .is-invalid, .mc-form .form-group.is-invalid) .select2-container--bootstrap4 :is(.select2-selection__rendered, .select2-selection__placeholder) {
+    color: var(--mkt-field-error) !important;
+}
+:is(.costing-field.is-invalid, .so-edit-grid .form-group.is-invalid, .bom-modal-fields > .is-invalid, .mc-form .form-group.is-invalid) .select2-container--bootstrap4 .select2-selection__arrow b {
+    border-color: var(--mkt-field-error) !important;
+}
+
+/* ---------- Isian teks biasa (spesifikasi teks isian sama) ---------- */
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) :is(input.form-control, textarea.form-control) {
+    color: var(--mkt-field-text);
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) :is(input.form-control, textarea.form-control)::placeholder {
+    color: var(--mkt-field-muted) !important;
+}
+:is(.costing-field, .so-edit-grid .form-group, .bom-modal-fields > div, .mc-form .form-group) :is(input.form-control, textarea.form-control):is(:disabled, [readonly]) {
+    color: var(--mkt-field-muted) !important;
+}
+:is(.costing-field.is-invalid, .so-edit-grid .form-group.is-invalid, .bom-modal-fields > .is-invalid, .mc-form .form-group.is-invalid) :is(input.form-control, textarea.form-control) {
+    border-color: var(--mkt-field-error) !important;
+    color: var(--mkt-field-error) !important;
+}

@@ -106,13 +106,16 @@ class Marketing_CostingController extends Controller
 
             foreach ([$data, $statusCounts] as $query) {
                 if (!empty($tgl_awal) && !empty($tgl_akhir)) {
-                    $query->whereDate('a.cost_date', '>=', $tgl_awal)
-                        ->whereDate('a.cost_date', '<=', $tgl_akhir);
+                    $query->whereDate('a.deldate', '>=', $tgl_awal)
+                        ->whereDate('a.deldate', '<=', $tgl_akhir);
                 }
                 if ($request->filled('buyers')) {
                     $query->whereIn('b.Id_Supplier', (array) $request->buyers);
                 }
             }
+
+            // product group dan product item pake ucwords
+
 
             if (in_array($request->approval_status, ['awaiting', 'return', 'cancel', 'approved', 'unlocked'], true)) {
                 $data->whereRaw($statusSql . ' = ?', [$request->approval_status]);
@@ -126,6 +129,14 @@ class Marketing_CostingController extends Controller
                 })
                 ->addColumn('due_date', function ($row) {
                     return $row->deldate ? date('d M Y', strtotime($row->deldate)) : '-';
+                })
+                ->editColumn('product_group_text', function ($row) {
+                    if (!$row->product_group_text) return '-';
+                    return ucwords(strtolower($row->product_group_text), " \t\r\n\f\v-");
+                })
+                ->editColumn('product_item_text', function ($row) {
+                    if (!$row->product_item_text) return '-';
+                    return ucwords(strtolower($row->product_item_text), " \t\r\n\f\v-");
                 })
                 ->make(true);
         }
@@ -242,6 +253,20 @@ class Marketing_CostingController extends Controller
         ]);
     }
 
+    /**
+     * Style masuk ke act_costing.styleno (dan ikut ke SO/BOM): tidak boleh ada spasi di awal/akhir
+     * atau spasi ganda di tengah, karena berpengaruh ke produksi.
+     */
+    private static function styleSpacingRule(): \Closure
+    {
+        return function ($attribute, $value, $fail) {
+            $value = (string) $value;
+            if ($value !== trim($value) || preg_match('/\s{2,}/u', $value) === 1) {
+                $fail('Style tidak boleh ada spasi di awal/akhir atau spasi ganda.');
+            }
+        };
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -253,6 +278,7 @@ class Marketing_CostingController extends Controller
             'qty' => ['required', 'numeric', 'min:0'],
             'smv' => ['required', 'numeric', 'min:0'],
             'deldate' => ['required', 'date'],
+            'style' => ['nullable', 'string', self::styleSpacingRule()],
             'upload_foto' => ['sometimes', 'array'],
             'upload_foto.*' => ['image', 'max:10240'],
         ]);
@@ -339,12 +365,7 @@ class Marketing_CostingController extends Controller
 
             app(MarketingBomService::class)->ensureForCosting($id);
 
-            app(MarketingHistoryService::class)->record(
-                $id,
-                'costing',
-                'created',
-                "Costing {$numbers['cost_no']} dibuat."
-            );
+            app(MarketingHistoryService::class)->costingCreated($id);
 
             return $id;
         });
@@ -731,7 +752,7 @@ class Marketing_CostingController extends Controller
 
         $seasons = $db->table('masterseason')->orderBy('season', 'asc')->get();
 
-        return view('marketing.costing.edit', [
+        return view($viewOnly ? 'marketing.costing.detail' : 'marketing.costing.edit', [
             'costing'        => $costing,
             'buyers'           => $buyers,
             'product_groups'   => $product_groups,
@@ -900,7 +921,7 @@ class Marketing_CostingController extends Controller
     public function getItemContents(Request $request)
     {
         $kategori = $request->kategori;
-        $html = "<option value=''>Choose Contents...</option>";
+        $html = "<option value=''>Choose Content</option>";
 
         if (empty($kategori)) {
             return response()->json($html);
@@ -991,6 +1012,7 @@ class Marketing_CostingController extends Controller
                     'value_idr' => $request->value_idr,
                     'value_usd' => $request->value_usd,
                 ]);
+                app(MarketingHistoryService::class)->costingItemsChanged((int) $request->id_costing, 'items_added', (string) $request->category);
 
                 return $detailId;
             });
@@ -1023,6 +1045,7 @@ class Marketing_CostingController extends Controller
             'qty' => ['required', 'numeric', 'min:0'],
             'smv' => ['required', 'numeric', 'min:0'],
             'deldate' => ['required', 'date'],
+            'style' => ['nullable', 'string', self::styleSpacingRule()],
             'upload_foto' => ['sometimes', 'array'],
             'upload_foto.*' => ['image', 'max:10240'],
             'clear_existing_pictures' => ['sometimes', 'boolean'],
@@ -1088,13 +1111,7 @@ class Marketing_CostingController extends Controller
             $db->transaction(function () use ($db, $id, $request, $updateData) {
                 $db->table('act_costing')->where('id', $id)->update($updateData);
                 $this->updateStyle($id, $request->style, $request->product_item);
-                $costNo = $db->table('act_costing')->where('id', $id)->value('cost_no');
-                app(MarketingHistoryService::class)->record(
-                    (int) $id,
-                    'costing',
-                    'updated',
-                    "Costing {$costNo} diperbarui."
-                );
+                app(MarketingHistoryService::class)->costingUpdated((int) $id);
             });
 
             if ($request->boolean('lock_after_save')) {
@@ -1296,13 +1313,7 @@ class Marketing_CostingController extends Controller
                 if (!$deleted) {
                     return false;
                 }
-                app(MarketingHistoryService::class)->record(
-                    (int) $request->id_costing,
-                    'costing_item',
-                    'item_deleted',
-                    "Item kategori {$request->category} dihapus dari Costing.",
-                    (int) $id
-                );
+                app(MarketingHistoryService::class)->costingItemsChanged((int) $request->id_costing, 'items_deleted', (string) $request->category);
 
                 return true;
             });
@@ -1524,10 +1535,27 @@ class Marketing_CostingController extends Controller
         if ($table !== 'act_costing_mat') {
             $updateData['smv'] = null;
         }
-        $db->table($table)
-            ->where('id', $request->id_detail)
-            ->where('id_act_cost', $request->id_costing)
-            ->update($updateData);
+        // Histori hanya kalau ada nilai yang benar-benar berubah (Save tabel bisa mengirim ulang baris yang sama).
+        $changed = collect($updateData)->contains(function ($value, $column) use ($detail) {
+            if (!property_exists($detail, $column)) {
+                return false;
+            }
+            $old = $detail->{$column};
+            if (is_numeric($old) && is_numeric($value)) {
+                return round((float) $old, 7) !== round((float) $value, 7);
+            }
+            return trim((string) $old) !== trim((string) $value);
+        });
+
+        $db->transaction(function () use ($db, $table, $request, $updateData, $changed) {
+            $db->table($table)
+                ->where('id', $request->id_detail)
+                ->where('id_act_cost', $request->id_costing)
+                ->update($updateData);
+            if ($changed) {
+                app(MarketingHistoryService::class)->costingItemsChanged((int) $request->id_costing, 'items_updated', (string) $request->category);
+            }
+        });
 
         return response()->json(['status' => 200, 'message' => 'Success']);
     }
@@ -2439,12 +2467,7 @@ class Marketing_CostingController extends Controller
                         'app1_date' => now(),
                         'app1_by' => Auth::user()->name
                     ]);
-                app(MarketingHistoryService::class)->record(
-                    (int) $id,
-                    'costing',
-                    'approved',
-                    "Costing {$costing->cost_no} disetujui."
-                );
+                app(MarketingHistoryService::class)->approved('costing', (int) $id, (int) $id, (string) $costing->cost_no);
             });
 
             return response()->json(['status' => 200, 'message' => 'Costing berhasil di Approve.']);

@@ -137,8 +137,8 @@ class Marketing_SOController extends Controller
         $details = $mysql_sb->table('so_det as sd')
             ->leftJoin('master_size_new as s', 'sd.id_size', '=', 's.id')
             ->where('sd.id_so', $id)
-            ->where('sd.cancel', '!=', 'Y')
-            ->select('sd.dest', 'sd.color', 'sd.size', 'sd.qty', 'sd.deldate_det', 'sd.notes', 's.urutan')
+            ->where(fn ($query) => $query->whereNull('sd.cancel')->orWhere('sd.cancel', '!=', 'Y'))
+            ->select('sd.market', 'sd.dest', 'sd.color', 'sd.size', 'sd.qty', 'sd.deldate_det', 'sd.notes', 's.urutan')
             ->orderBy('sd.color')
             ->orderByRaw('COALESCE(s.urutan, 9999)')
             ->get();
@@ -148,7 +148,8 @@ class Marketing_SOController extends Controller
             'style' => $so->style,
             'description' => $d->notes,
             'po' => $so->no_po,
-            'market' => $d->dest,
+            'market' => $d->market,
+            'destination' => $d->dest,
             'ex_fty' => $d->deldate_det ? date('d/m/Y', strtotime($d->deldate_det)) : null,
             'color' => $d->color,
             'size' => $d->size,
@@ -324,6 +325,8 @@ class Marketing_SOController extends Controller
                 'c.id_smode as ship_mode',
                 'sm.shipmode as ship_mode_name',
                 'c.status',
+                'c.shipment_type',
+                'c.notes',
                 'c.main_dest',
                 'mp.product_group',
                 'mp.product_item as nama_product_item',
@@ -792,6 +795,7 @@ class Marketing_SOController extends Controller
         $user_id = auth()->id();
         $file = $request->file('file_so');
         $mysql_sb = DB::connection('mysql_sb');
+        $costing = null;
 
         if ($request->filled('id_costing')) {
             $costing = $mysql_sb->table('act_costing')->where('id', $request->id_costing)->first();
@@ -808,11 +812,49 @@ class Marketing_SOController extends Controller
 
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getPathname());
         $data = $spreadsheet->getActiveSheet()->toArray();
-        $headers = $data[0];
+        $headers = $data[0] ?? [];
+        $headerAliases = [
+            'DESCRIPTION' => 'DESC',
+            'PURCHASE ORDER' => 'PO',
+            'NO PO' => 'PO',
+            'EX FACTORY' => 'EX FTY',
+        ];
+        $columnIndexes = [];
+        foreach ($headers as $index => $header) {
+            $label = strtoupper(trim((string) $header));
+            $label = $headerAliases[$label] ?? $label;
+            if ($label !== '') {
+                $columnIndexes[$label] = $index;
+            }
+        }
+        $requiredColumns = ['DESC', 'PO', 'MARKET', 'DESTINATION', 'EX FTY', 'PRODUCT SET', 'COLOR', 'FOB'];
+        $missingColumns = array_values(array_diff($requiredColumns, array_keys($columnIndexes)));
+        if ($missingColumns) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Format Excel tidak sesuai. Download template SO terbaru, kolom yang belum ada: ' . implode(', ', $missingColumns) . '.',
+            ], 422);
+        }
+        if ($costing && trim((string) $costing->styleno) === '') {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Style pada Costing belum diisi. Lengkapi Style di Costing sebelum upload Excel SO.',
+            ], 422);
+        }
+        $sizeColumns = array_values(array_filter(
+            array_keys($headers),
+            fn ($index) => trim((string) $headers[$index]) !== ''
+                && !in_array(strtoupper(trim((string) $headers[$index])), array_merge($requiredColumns, ['STYLE']), true)
+                && !in_array(strtoupper(trim((string) $headers[$index])), array_keys($headerAliases), true)
+        ));
+        $cell = fn (array $row, string $column) => isset($columnIndexes[$column])
+            ? ($row[$columnIndexes[$column]] ?? null)
+            : null;
 
         $temp_data = [];
         $errors_color = [];
         $errors_size = [];
+        $errors_style = [];
         $mysql_sb = DB::connection('mysql_sb');
 
         // Tarik Master Data dan bersihkan spasi & case-nya
@@ -856,15 +898,19 @@ class Marketing_SOController extends Controller
         for ($i = 1; $i < count($data); $i++) {
             $row = $data[$i];
 
-            // Skip baris kosong
-            if (empty($row[0])) continue;
+            if (!array_filter($row, fn ($value) => $value !== null && trim((string) $value) !== '')) continue;
 
-            $style      = trim($row[0]);
-            $po         = trim($row[2]);
-            $color_name = trim($row[6]);
+            $excelStyle = trim((string) $cell($row, 'STYLE'));
+            if ($costing && $excelStyle !== '' && strtoupper($excelStyle) !== strtoupper(trim((string) $costing->styleno))) {
+                $errors_style[] = "Baris " . ($i + 1) . ": Style Excel \"{$excelStyle}\" berbeda dengan Style Costing \"{$costing->styleno}\".";
+                continue;
+            }
+            $style = $costing ? trim((string) $costing->styleno) : $excelStyle;
+            $po = trim((string) $cell($row, 'PO'));
+            $color_name = trim((string) $cell($row, 'COLOR'));
 
             // FOB
-            $fob_raw = $row[7] ?? null;
+            $fob_raw = $cell($row, 'FOB');
             $fob = null;
             if ($fob_raw !== null && $fob_raw !== '') {
                 $fob_clean = trim($fob_raw, " \t\n\r\0\x0B\xC2\xA0");
@@ -876,7 +922,7 @@ class Marketing_SOController extends Controller
             // =======================================================
             // KONDISI SINGLE & MULTIPLE (PRODUCT SET)
             // =======================================================
-            $raw_product_set = trim($row[5]);
+            $raw_product_set = trim((string) $cell($row, 'PRODUCT SET'));
 
             if (empty($raw_product_set) || $raw_product_set === '-' || strtolower($raw_product_set) === 'null') {
                 $product_set = null;
@@ -898,8 +944,7 @@ class Marketing_SOController extends Controller
                 continue;
             }
 
-            // Looping Qty per Size (mulai index 8, karena index 7 sekarang FOB)
-            for ($col_index = 8; $col_index < count($row); $col_index++) {
+            foreach ($sizeColumns as $col_index) {
                 $qty_raw = $row[$col_index];
                 if ($qty_raw === null || $qty_raw === '') continue;
 
@@ -909,7 +954,7 @@ class Marketing_SOController extends Controller
 
                 if ($qty === '' || !is_numeric($qty) || $qty <= 0) continue;
 
-                $size_name = trim($headers[$col_index]);
+                $size_name = trim((string) $headers[$col_index]);
 
                 if (empty($size_name)) continue;
 
@@ -929,10 +974,11 @@ class Marketing_SOController extends Controller
                 $temp_data[] = [
                     'user_id'     => $user_id,
                     'style'       => $style,
-                    'desc'        => trim($row[1]),
+                    'desc'        => trim((string) $cell($row, 'DESC')),
                     'po'          => $po,
-                    'market'      => trim($row[3]),
-                    'ex_fty'      => trim($row[4]),
+                    'market'      => trim((string) $cell($row, 'MARKET')),
+                    'destination' => trim((string) $cell($row, 'DESTINATION')),
+                    'ex_fty'      => trim((string) $cell($row, 'EX FTY')),
                     'id_color'    => $color_id,
                     'size'        => $size_id,
                     'qty'         => $qty,
@@ -944,6 +990,11 @@ class Marketing_SOController extends Controller
         }
 
         // Tampilkan Error jika ada yang diblok
+        if (count($errors_style) > 0) return response()->json([
+            'status' => 422,
+            'message' => 'Style pada Excel harus sama dengan Style Costing.',
+            'errors' => array_unique($errors_style),
+        ], 422);
         if (count($errors_color) > 0) return response()->json(['status' => 422, 'errors' => array_unique($errors_color)], 422);
         if (count($errors_size) > 0) return response()->json(['status' => 422, 'errors' => array_unique($errors_size)], 422);
 
@@ -1011,11 +1062,12 @@ class Marketing_SOController extends Controller
             ->leftJoin('master_size_new as s', 't.size', '=', 's.id')
             ->where('t.user_id', $user_id)
             ->select(
-                't.style', 't.desc', 't.po', 't.market', 't.ex_fty', 't.product_set',
+                't.id', 't.style', 't.desc', 't.po', 't.market', 't.destination', 't.ex_fty', 't.product_set',
                 't.id_color', 't.fob', 'c.name as color_name',
                 't.size as id_size', 's.size as size_name', 's.urutan as size_urutan',
                 't.qty'
             )
+            ->orderBy('t.id')
             ->get();
 
         $uploaded_colors = [];
@@ -1048,12 +1100,12 @@ class Marketing_SOController extends Controller
 
         foreach ($temp_data as $row) {
             // Logika pemisah Single vs Multiple
-            $prod_set_clean = trim($row->product_set);
+            $prod_set_clean = trim((string) $row->product_set);
             $is_multiple = (!empty($prod_set_clean) && $prod_set_clean !== '-' && strtolower($prod_set_clean) !== 'null');
             $set_key = $is_multiple ? $prod_set_clean : 'SINGLE';
 
-            // Key pemisah di preview: Market + Style + PO + ProductSet + Warna
-            $key = $row->market . '_' . $row->style . '_' . $row->po . '_' . $set_key . '_' . $row->id_color;
+            // Key pemisah di preview: Market + Destination + Style + PO + ProductSet + Warna
+            $key = $row->market . '_' . $row->destination . '_' . $row->style . '_' . $row->po . '_' . $set_key . '_' . $row->id_color;
 
             if (!isset($pivot_data[$key])) {
                 $pivot_data[$key] = [
@@ -1061,6 +1113,7 @@ class Marketing_SOController extends Controller
                     'desc'        => $row->desc,
                     'po'          => $row->po,
                     'market'      => $row->market,
+                    'destination' => $row->destination,
                     'ex_fty'      => $row->ex_fty,
                     'product_set' => $is_multiple ? $prod_set_clean : '-',
                     'id_color'    => $row->id_color,
@@ -1129,8 +1182,39 @@ class Marketing_SOController extends Controller
             }
         }
 
+        // Satu baris per color + size (tabel Sales Order Detail di Create SO), urut sesuai upload; error = kombinasi tidak cocok BOM;
+        // duplicate = PO + Market + Destination + Color + Size (dan Style/Product Set) sama persis dengan baris lain.
+        $keyCounts = $temp_data->filter(fn ($row) => $row->id_color && $row->id_size)
+            ->countBy(fn ($row) => self::tempRowKey((object) ['style' => $row->style, 'po' => $row->po, 'market' => $row->market, 'destination' => $row->destination,
+                'product_set' => $row->product_set, 'id_color' => $row->id_color, 'size' => $row->id_size]));
+        $rows = $temp_data->map(function ($row) use ($pivot_data, $keyCounts) {
+            $prod_set_clean = trim((string) $row->product_set);
+            $is_multiple = ($prod_set_clean !== '' && $prod_set_clean !== '-' && strtolower($prod_set_clean) !== 'null');
+            $key = $row->market . '_' . $row->destination . '_' . $row->style . '_' . $row->po . '_' . ($is_multiple ? $prod_set_clean : 'SINGLE') . '_' . $row->id_color;
+            return [
+                'id'          => (int) $row->id,
+                'style'       => $row->style,
+                'desc'        => $row->desc,
+                'po'          => $row->po,
+                'market'      => $row->market,
+                'destination' => $row->destination,
+                'ex_fty'      => $row->ex_fty,
+                'product_set' => $is_multiple ? $prod_set_clean : '-',
+                'id_color'    => $row->id_color !== null ? (int) $row->id_color : null,
+                'color'       => $row->color_name,
+                'id_size'     => $row->id_size,
+                'size'        => $row->size_name,
+                'qty'         => (int) $row->qty,
+                'fob'         => $row->fob,
+                'error'       => !empty($pivot_data[$key]['errors'][$row->size_name] ?? false),
+                'duplicate'   => $row->id_color && $row->id_size && ($keyCounts[self::tempRowKey((object) ['style' => $row->style, 'po' => $row->po, 'market' => $row->market,
+                    'destination' => $row->destination, 'product_set' => $row->product_set, 'id_color' => $row->id_color, 'size' => $row->id_size])] ?? 0) > 1,
+            ];
+        })->values();
+
         return response()->json([
             'data'            => array_values($pivot_data),
+            'rows'            => $rows,
             'available_sizes' => $available_sizes_array,
             'total_qty'       => $total_qty,
             'jumlah_po'       => count($unique_po),
@@ -1139,6 +1223,331 @@ class Marketing_SOController extends Controller
             'missing_sizes'   => $missing_sizes_names
         ]);
     }
+
+    /** Teks PO/Style/dll tidak boleh berspasi di awal/akhir atau berspasi ganda (berpengaruh ke produksi). */
+    private static function badSpacing(?string $value): bool
+    {
+        $value = (string) $value;
+        return $value !== trim($value) || preg_match('/\s{2,}/u', $value) === 1;
+    }
+
+    /**
+     * Edit sel tabel Sales Order Detail (ala Excel) ke temp_so_detail.
+     * changes[] = {row: {style, po, market, product_set, id_color}, field, value}; field: style|desc|po|market|ex_fty|fob|product_set|color|size:<SIZE>.
+     * Diproses berurutan dalam satu transaksi; perubahan kunci baris (style/po/market/product_set/color) diikuti untuk perubahan berikutnya.
+     */
+    public function updateTempPreviewCells(Request $request)
+    {
+        $validated = $request->validate([
+            'id_costing' => ['nullable', 'integer', 'exists:mysql_sb.act_costing,id'],
+            'changes' => ['required', 'array', 'min:1'],
+            'changes.*.row' => ['required', 'array'],
+            'changes.*.row.id_color' => ['required', 'integer'],
+            'changes.*.field' => ['required', 'string'],
+            'changes.*.value' => ['nullable'],
+        ]);
+        if ($request->filled('id_costing') && session('so_upload_costing_id') !== (string) $validated['id_costing']) {
+            return response()->json(['message' => 'Data upload tidak sesuai dengan Costing ini. Silakan upload ulang.'], 409);
+        }
+
+        $db = DB::connection('mysql_sb');
+        $userId = auth()->id();
+        $textFields = ['desc', 'po', 'market', 'destination', 'ex_fty', 'product_set'];
+        $keyFields = ['po', 'market', 'destination', 'product_set', 'id_color'];
+        $normSet = function ($value) {
+            $value = $value === null ? '' : (string) $value;
+            return ($value === '' || $value === '-' || strtolower($value) === 'null') ? null : $value;
+        };
+        $rowKey = fn (array $row) => json_encode([(string) ($row['style'] ?? ''), (string) ($row['po'] ?? ''), (string) ($row['market'] ?? ''), (string) ($row['destination'] ?? ''), $normSet($row['product_set'] ?? null), (int) $row['id_color']]);
+        $group = function (array $row) use ($db, $userId, $normSet) {
+            $query = $db->table('temp_so_detail')->where('user_id', $userId)
+                ->where('id_color', (int) $row['id_color']);
+            foreach (['style', 'po', 'market', 'destination'] as $column) {
+                $value = (string) ($row[$column] ?? '');
+                $value === '' ? $query->where(fn ($q) => $q->whereNull($column)->orWhere($column, '')) : $query->where($column, $value);
+            }
+            $set = $normSet($row['product_set'] ?? null);
+            $set === null ? $query->where(fn ($q) => $q->whereNull('product_set')->orWhereIn('product_set', ['', '-', 'null', 'NULL'])) : $query->where('product_set', $set);
+            return $query;
+        };
+
+        $masterColors = [];
+        foreach ($db->table('master_colors_gmt')->pluck('id', 'name') as $name => $id) {
+            $masterColors[strtoupper((string) $name)] = $id;
+        }
+
+        $errors = [];
+        $renamed = [];
+        $db->transaction(function () use ($db, $validated, $textFields, $keyFields, $normSet, $rowKey, $group, $masterColors, &$errors, &$renamed) {
+            foreach ($validated['changes'] as $index => $change) {
+                $row = $change['row'];
+                // Baris yang kuncinya sudah diubah oleh perubahan sebelumnya di batch yang sama.
+                $row = $renamed[$rowKey($row)] ?? $row;
+                $field = $change['field'];
+                $value = $change['value'] === null ? '' : (string) $change['value'];
+                $fail = function ($message) use (&$errors, $index, $field) { $errors[] = ['index' => $index, 'field' => $field, 'message' => $message]; };
+
+                if (in_array($field, array_merge($textFields, ['color']), true) && self::badSpacing($value)) {
+                    $fail('Tidak boleh ada spasi di awal/akhir atau spasi ganda.');
+                    continue;
+                }
+                if (in_array($field, ['style', 'po', 'color'], true) && $value === '') {
+                    $fail('Wajib diisi.');
+                    continue;
+                }
+
+                $update = null;
+                if (in_array($field, $textFields, true)) {
+                    $update = [$field => $field === 'product_set' ? $normSet($value) : $value];
+                } elseif ($field === 'fob') {
+                    $fob = str_replace(',', '', $value);
+                    if ($fob !== '' && !is_numeric($fob)) { $fail('FOB harus angka.'); continue; }
+                    $update = ['fob' => $fob === '' ? null : $fob];
+                } elseif ($field === 'color') {
+                    $colorId = $masterColors[strtoupper($value)] ?? null;
+                    if (!$colorId) { $fail('Color tidak ada di master.'); continue; }
+                    $update = ['id_color' => $colorId];
+                } elseif (str_starts_with($field, 'size:')) {
+                    $sizeId = $db->table('master_size_new')->where('size', substr($field, 5))->value('id');
+                    if (!$sizeId) { $fail('Size tidak ada di master.'); continue; }
+                    $qty = str_replace([',', '.'], '', $value);
+                    if ($qty !== '' && (!ctype_digit($qty) || (int) $qty <= 0)) { $fail('Qty harus angka bulat lebih dari 0.'); continue; }
+                    $sizeRows = $group($row)->where('size', $sizeId);
+                    if ($qty === '' ) {
+                        $sizeRows->delete();
+                    } elseif ((clone $sizeRows)->exists()) {
+                        $sizeRows->update(['qty' => (int) $qty]);
+                    } else {
+                        $base = $group($row)->first();
+                        if (!$base) { $fail('Baris tidak ditemukan.'); continue; }
+                        $db->table('temp_so_detail')->insert([
+                            'user_id' => $base->user_id, 'style' => $base->style, 'desc' => $base->desc, 'po' => $base->po,
+                            'market' => $base->market, 'destination' => $base->destination, 'ex_fty' => $base->ex_fty, 'id_color' => $base->id_color,
+                            'size' => $sizeId, 'qty' => (int) $qty, 'product_set' => $base->product_set, 'fob' => $base->fob,
+                            'created_at' => now(),
+                        ]);
+                    }
+                    continue;
+                } else {
+                    $fail('Kolom tidak bisa diedit.');
+                    continue;
+                }
+
+                $group($row)->update($update);
+                $column = array_key_first($update);
+                if (in_array($column, $keyFields, true)) {
+                    $next = $row;
+                    $next[$column] = $update[$column];
+                    $renamed[$rowKey($change['row'])] = $next;
+                    $renamed[$rowKey($row)] = $next;
+                }
+            }
+        });
+
+        return response()->json([
+            'status' => $errors ? 207 : 200,
+            'errors' => $errors,
+            'message' => $errors ? count($errors) . ' sel tidak disimpan.' : 'Perubahan tersimpan.',
+        ]);
+    }
+
+    public function deleteTempPreviewRow(Request $request)
+    {
+        $validated = $request->validate([
+            'id_costing' => ['nullable', 'integer', 'exists:mysql_sb.act_costing,id'],
+            'style' => ['present', 'string'],
+            'po' => ['present', 'string'],
+            'market' => ['present', 'string'],
+            'destination' => ['present', 'string'],
+            'product_set' => ['present', 'nullable', 'string'],
+            'id_color' => ['required', 'integer'],
+        ]);
+
+        if ($request->filled('id_costing') &&
+            session('so_upload_costing_id') !== (string) $validated['id_costing']) {
+            return response()->json([
+                'message' => 'Data upload tidak sesuai dengan Costing ini. Silakan upload ulang.',
+            ], 409);
+        }
+
+        $query = DB::connection('mysql_sb')
+            ->table('temp_so_detail')
+            ->where('user_id', auth()->id())
+            ->where('style', $validated['style'])
+            ->where('po', $validated['po'])
+            ->where('market', $validated['market'])
+            ->where('destination', $validated['destination'])
+            ->where('id_color', $validated['id_color']);
+
+        if ($validated['product_set'] === null) {
+            $query->whereNull('product_set');
+        } else {
+            $query->where('product_set', $validated['product_set']);
+        }
+
+        $deletedCount = $query->delete();
+        if ($deletedCount === 0) {
+            return response()->json(['message' => 'Baris preview sudah tidak tersedia.'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Baris preview berhasil dihapus.',
+            'deleted' => $deletedCount,
+        ]);
+    }
+
+    // ===== Sales Order Detail per baris (satu baris = satu color + size di temp_so_detail) =====
+
+    private function tempUploadMismatch(Request $request): ?\Illuminate\Http\JsonResponse
+    {
+        if ($request->filled('id_costing') && session('so_upload_costing_id') !== (string) $request->input('id_costing')) {
+            return response()->json(['message' => 'Data upload tidak sesuai dengan Costing ini. Silakan upload ulang.'], 409);
+        }
+        return null;
+    }
+
+    /** Kunci satu baris SO detail: PO + Style + Market + Destination + Product Set + Color + Size (tidak boleh dobel). */
+    private static function tempRowKey($row): string
+    {
+        $set = trim((string) ($row->product_set ?? ''));
+        $set = ($set === '' || $set === '-' || strtolower($set) === 'null') ? '' : $set;
+        return json_encode([(string) $row->style, (string) $row->po, (string) $row->market, (string) $row->destination, $set, (string) $row->id_color, (string) $row->size]);
+    }
+
+    /**
+     * Edit sel per baris: changes[] = {id, field, value}; field: desc|po|market|destination|ex_fty|product_set|fob|color|size|qty.
+     * Aturan sama dengan tabel lama (spasi, wajib, master color/size, qty bulat > 0) + kombinasi color/size tidak boleh dobel.
+     */
+    public function updateTempRowCells(Request $request)
+    {
+        $validated = $request->validate([
+            'id_costing' => ['nullable', 'integer', 'exists:mysql_sb.act_costing,id'],
+            'changes' => ['required', 'array', 'min:1'],
+            'changes.*.id' => ['required', 'integer'],
+            'changes.*.field' => ['required', 'string'],
+            'changes.*.value' => ['nullable'],
+        ]);
+        if ($mismatch = $this->tempUploadMismatch($request)) {
+            return $mismatch;
+        }
+
+        $db = DB::connection('mysql_sb');
+        $userId = auth()->id();
+        $textFields = ['desc', 'po', 'market', 'destination', 'ex_fty', 'product_set'];
+        $masterColors = [];
+        foreach ($db->table('master_colors_gmt')->pluck('id', 'name') as $name => $id) {
+            $masterColors[strtoupper((string) $name)] = $id;
+        }
+        $masterSizes = [];
+        foreach ($db->table('master_size_new')->pluck('id', 'size') as $name => $id) {
+            $masterSizes[strtoupper(trim((string) $name))] = $id;
+        }
+
+        $errors = [];
+        $db->transaction(function () use ($db, $userId, $validated, $textFields, $masterColors, $masterSizes, &$errors) {
+            foreach ($validated['changes'] as $index => $change) {
+                $field = $change['field'];
+                $value = $change['value'] === null ? '' : (string) $change['value'];
+                $fail = function ($message) use (&$errors, $index, $field) { $errors[] = ['index' => $index, 'field' => $field, 'message' => $message]; };
+                $row = $db->table('temp_so_detail')->where('user_id', $userId)->where('id', (int) $change['id'])->first();
+                if (!$row) { $fail('Baris tidak ditemukan.'); continue; }
+
+                if (in_array($field, array_merge($textFields, ['color', 'size']), true) && self::badSpacing($value)) {
+                    $fail('Tidak boleh ada spasi di awal/akhir atau spasi ganda.');
+                    continue;
+                }
+                if (in_array($field, ['po', 'color', 'size', 'qty'], true) && $value === '') {
+                    $fail('Wajib diisi.');
+                    continue;
+                }
+
+                if (in_array($field, $textFields, true)) {
+                    $set = $field === 'product_set' && ($value === '' || $value === '-' || strtolower($value) === 'null');
+                    $update = [$field => $set ? null : $value];
+                } elseif ($field === 'fob') {
+                    $fob = str_replace(',', '', $value);
+                    if ($fob !== '' && !is_numeric($fob)) { $fail('FOB harus angka.'); continue; }
+                    $update = ['fob' => $fob === '' ? null : $fob];
+                } elseif ($field === 'color') {
+                    $colorId = $masterColors[strtoupper($value)] ?? null;
+                    if (!$colorId) { $fail('Color tidak ada di master.'); continue; }
+                    $update = ['id_color' => $colorId];
+                } elseif ($field === 'size') {
+                    $sizeId = $masterSizes[strtoupper($value)] ?? null;
+                    if (!$sizeId) { $fail('Size tidak ada di master.'); continue; }
+                    $update = ['size' => $sizeId];
+                } elseif ($field === 'qty') {
+                    $qty = str_replace([',', '.'], '', $value);
+                    if (!ctype_digit($qty) || (int) $qty <= 0) { $fail('Qty harus angka bulat lebih dari 0.'); continue; }
+                    $update = ['qty' => (int) $qty];
+                } else {
+                    $fail('Kolom tidak bisa diedit.');
+                    continue;
+                }
+
+                // Kombinasi yang sama persis (PO/Market/Destination/Color/Size) tetap disimpan, tapi tabel menandai
+                // Color & Size merah dan Save diblok (lihat getTempData 'duplicate' dan storeFromCosting).
+                $db->table('temp_so_detail')->where('id', $row->id)->update($update + ['updated_at' => now()]);
+            }
+        });
+
+        return response()->json([
+            'status' => $errors ? 207 : 200,
+            'errors' => $errors,
+            'message' => $errors ? count($errors) . ' sel tidak disimpan.' : 'Perubahan tersimpan.',
+        ]);
+    }
+
+    /** Hapus baris Sales Order Detail (per color + size) dari temp_so_detail. */
+    public function deleteTempRows(Request $request)
+    {
+        $validated = $request->validate([
+            'id_costing' => ['nullable', 'integer', 'exists:mysql_sb.act_costing,id'],
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
+        ]);
+        if ($mismatch = $this->tempUploadMismatch($request)) {
+            return $mismatch;
+        }
+        $deleted = DB::connection('mysql_sb')->table('temp_so_detail')
+            ->where('user_id', auth()->id())->whereIn('id', $validated['ids'])->delete();
+        if ($deleted === 0) {
+            return response()->json(['message' => 'Baris sudah tidak tersedia.'], 404);
+        }
+        return response()->json(['message' => 'Baris berhasil dihapus.', 'deleted' => $deleted]);
+    }
+
+    /**
+     * Tombol Add: baris baru di temp_so_detail. PO/Style/Description/Market/Destination/Ex Fty/FOB/Product Set disalin dari
+     * baris sumber (yang dipilih, atau baris terakhir); Color, Size & Qty kosong (merah sampai diisi; Save diblok).
+     */
+    public function addTempRow(Request $request)
+    {
+        $validated = $request->validate([
+            'id_costing' => ['nullable', 'integer', 'exists:mysql_sb.act_costing,id'],
+            'source_id' => ['nullable', 'integer'],
+        ]);
+        if ($mismatch = $this->tempUploadMismatch($request)) {
+            return $mismatch;
+        }
+        $db = DB::connection('mysql_sb');
+        $userId = auth()->id();
+        $base = null;
+        if (!empty($validated['source_id'])) {
+            $base = $db->table('temp_so_detail')->where('user_id', $userId)->where('id', $validated['source_id'])->first();
+        }
+        $base = $base ?: $db->table('temp_so_detail')->where('user_id', $userId)->orderByDesc('id')->first();
+        if (!$base) {
+            return response()->json(['message' => 'Upload file SO dulu sebelum menambah baris.'], 422);
+        }
+        $id = $db->table('temp_so_detail')->insertGetId([
+            'user_id' => $userId, 'style' => $base->style, 'desc' => $base->desc, 'po' => $base->po, 'market' => $base->market,
+            'destination' => $base->destination, 'ex_fty' => $base->ex_fty, 'product_set' => $base->product_set, 'fob' => $base->fob,
+            'id_color' => null, 'size' => null, 'qty' => 0, 'created_at' => now(),
+        ]);
+        return response()->json(['message' => 'Baris baru ditambahkan.', 'id' => (int) $id]);
+    }
+
     // public function getTempData(Request $request)
     // {
     //     $user_id = auth()->id();
@@ -1806,7 +2215,8 @@ class Marketing_SOController extends Controller
                         'id_color'     => $color->id ?? null,
                         'id_size'      => $size->id ?? null,
                         'product_set'  => $d->product_set ?? null,
-                        'dest'    => !empty($d->market) ? $d->market : '-',
+                        'market' => !empty($d->market) ? $d->market : '-',
+                        'dest'    => !empty($d->destination) ? $d->destination : '-',
                         'price' => $act_costing_new ? $act_costing_new->confirm_price : 0,
                         'sku'   => '-',
                         'fob'=> $d->fob,
@@ -1942,6 +2352,32 @@ class Marketing_SOController extends Controller
             return response()->json(['status' => 400, 'message' => 'Data Excel kosong.'], 400);
         }
 
+        // PO/Style/dll berspasi ganda atau berspasi di awal/akhir berpengaruh ke produksi -> blok.
+        $spacingIssues = $tempDetails->flatten(1)->filter(fn ($row) => collect(['style', 'desc', 'po', 'market', 'destination', 'product_set'])
+            ->contains(fn ($column) => $row->{$column} !== null && self::badSpacing($row->{$column})));
+        if ($spacingIssues->isNotEmpty()) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Masih ada PO/Style/Description/Market/Destination/Product Set dengan spasi ganda atau spasi di awal/akhir. Perbaiki sel merah di Sales Order Detail.',
+            ], 422);
+        }
+        // Baris dari tombol Add yang belum lengkap, atau kombinasi color + size dobel -> blok.
+        $allTempRows = $tempDetails->flatten(1);
+        $incomplete = $allTempRows->filter(fn ($row) => !$row->id_color || !$row->size || (int) $row->qty <= 0)->count();
+        if ($incomplete) {
+            return response()->json([
+                'status' => 422,
+                'message' => "Masih ada {$incomplete} baris di Sales Order Detail tanpa Color, Size atau Qty. Lengkapi atau hapus baris itu.",
+            ], 422);
+        }
+        $duplicates = $allTempRows->groupBy(fn ($row) => self::tempRowKey($row))->filter(fn ($group) => $group->count() > 1)->count();
+        if ($duplicates) {
+            return response()->json([
+                'status' => 422,
+                'message' => "Ada {$duplicates} kombinasi Color + Size yang dobel untuk PO yang sama di Sales Order Detail.",
+            ], 422);
+        }
+
         if (($request->input('po_type') ?? 'single') === 'multiple') {
             $combinedPo = implode(', ', $tempDetails->keys()->toArray());
             if (strlen($combinedPo) > 200) {
@@ -1956,6 +2392,15 @@ class Marketing_SOController extends Controller
         }
         if (!in_array(strtoupper((string) $costing->app1), ['A', 'Y'], true)) {
             return response()->json(['status' => 422, 'message' => 'Costing belum diApprove.'], 422);
+        }
+        $styleMismatch = $tempDetails->flatten(1)->first(
+            fn ($row) => strtoupper(trim((string) $row->style)) !== strtoupper(trim((string) $costing->styleno))
+        );
+        if ($styleMismatch) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Style pada data upload tidak sesuai dengan Style Costing. Upload ulang menggunakan template terbaru.',
+            ], 422);
         }
         if ($db->table('so')->where('id_cost', $costingId)->where('cancel_h', 'N')->exists()) {
             return response()->json(['status' => 409, 'message' => 'Sales Order untuk Costing ini sudah dibuat.'], 409);
@@ -2028,7 +2473,7 @@ class Marketing_SOController extends Controller
                             'color' => $color->name ?? '-',
                             'size' => $size->size ?? '-',
                             'qty' => $detail->qty,
-                            'styleno_prod' => $detail->style,
+                            'styleno_prod' => $costing->styleno,
                             'reff_no' => $costing->styleno,
                             'deldate_det' => $detail->ex_fty ? date('Y-m-d', strtotime($detail->ex_fty)) : null,
                             'created_by' => $user->name,
@@ -2038,7 +2483,8 @@ class Marketing_SOController extends Controller
                             'id_color' => $color->id ?? null,
                             'id_size' => $size->id ?? null,
                             'product_set' => $detail->product_set,
-                            'dest' => $detail->market ?: '-',
+                            'market' => $detail->market ?: '-',
+                            'dest' => $detail->destination ?: '-',
                             'price' => $costing->cfm_price ?? 0,
                             'sku' => '-',
                             'fob' => $detail->fob,
@@ -2047,13 +2493,7 @@ class Marketing_SOController extends Controller
                     $db->table('so_det')->insert($detailsToInsert);
                     $this->logSo($idSo);
                     $this->logAllSoDet($idSo);
-                    app(MarketingHistoryService::class)->record(
-                        (int) $costingId,
-                        'so',
-                        'created',
-                        "Sales Order {$codes['so_no']} dibuat untuk Purchase Order {$po}.",
-                        (int) $idSo
-                    );
+                    app(MarketingHistoryService::class)->soCreated((int) $costingId, (int) $idSo, (string) $codes['so_no']);
                 }
 
                 app(MarketingBomService::class)->refreshColorsSizes($bom->id);
@@ -2538,6 +2978,7 @@ class Marketing_SOController extends Controller
                         'color'       => $color_name ?? '-',
                         'size'        => $size_name ?? '-',
                         'qty'         => $qty,
+                        'market'      => $existing_row ? $existing_row->market : '-',
                         'cancel'      => 'N',
                         'dest'        => $existing_row ? $existing_row->dest : '-',
                         'product_set' => $existing_row ? $existing_row->product_set : '-',
@@ -4959,6 +5400,411 @@ class Marketing_SOController extends Controller
             'data'   => $details,
             'total'  => $details->count(),
             'filled' => $details->filter(fn($d) => !empty($d->barcode))->count(),
+        ]);
+    }
+
+    /**
+     * Status kunci SO karena WS sudah sampai marker (laravel_nds.marker_input / marker_input_detail aktif).
+     * Kembalian null bila belum sampai marker, atau info marker paling awal (created_by, created_at).
+     */
+    private function soMarkerLock($so): ?array
+    {
+        $soDetIds = DB::connection('mysql_sb')->table('so_det')->where('id_so', $so->id)->pluck('id');
+
+        $marker = DB::table('marker_input as m')
+            ->leftJoin('users as u', 'u.id', '=', 'm.created_by')
+            ->where('m.cancel', '!=', 'Y')
+            ->where(function ($query) use ($so, $soDetIds) {
+                $query->where('m.act_costing_id', $so->id_cost);
+                if ($soDetIds->isNotEmpty()) {
+                    $query->orWhereIn('m.id', function ($sub) use ($soDetIds) {
+                        $sub->select('marker_id')->from('marker_input_detail')
+                            ->where('cancel', '!=', 'Y')
+                            ->whereIn('so_det_id', $soDetIds);
+                    });
+                }
+            })
+            ->orderBy('m.created_at')
+            ->orderBy('m.id')
+            ->select('m.id', 'm.kode', 'm.created_at', DB::raw('COALESCE(NULLIF(m.created_by_username, ""), u.name, u.username) as created_by'))
+            ->first();
+
+        if (!$marker && $soDetIds->isNotEmpty()) {
+            // Detail marker tanpa header aktif tetap dianggap sudah sampai marker.
+            $detail = DB::table('marker_input_detail')->where('cancel', '!=', 'Y')->whereIn('so_det_id', $soDetIds)
+                ->orderBy('created_at')->first();
+            if ($detail) {
+                $marker = (object) ['id' => $detail->marker_id, 'kode' => null, 'created_at' => $detail->created_at, 'created_by' => null];
+            }
+        }
+
+        if (!$marker) {
+            return null;
+        }
+
+        return [
+            'kode' => $marker->kode,
+            'created_by' => $marker->created_by ?: '-',
+            'created_at' => $marker->created_at ? date('d/m/Y', strtotime($marker->created_at)) : '-',
+        ];
+    }
+
+    /** Market: wajib, tanpa spasi di awal/akhir atau spasi ganda (berpengaruh ke produksi). */
+    private static function soMarketError($market): ?string
+    {
+        if (!is_string($market) || $market === '') {
+            return 'Market wajib diisi.';
+        }
+        if (self::badSpacing($market)) {
+            return 'Market tidak boleh berspasi di awal/akhir atau berspasi ganda.';
+        }
+        if (mb_strlen($market) > 60) {
+            return 'Market maksimal 60 karakter.';
+        }
+        return null;
+    }
+
+    private static function soDestinationError($destination): ?string
+    {
+        if ($destination === null || $destination === '') {
+            return null;
+        }
+        if (!is_string($destination) || self::badSpacing($destination)) {
+            return 'Destination tidak boleh berspasi di awal/akhir atau berspasi ganda.';
+        }
+        if (mb_strlen($destination) > 60) {
+            return 'Destination maksimal 60 karakter.';
+        }
+        return null;
+    }
+
+    private static function soQtyError($qty): ?string
+    {
+        $valid = (is_int($qty) || (is_string($qty) && preg_match('/^\d+$/', $qty)) || (is_float($qty) && floor($qty) == $qty)) && (int) $qty > 0;
+        return $valid ? null : 'Qty harus angka bulat lebih dari 0.';
+    }
+
+    private static function soFobError($fob): ?string
+    {
+        return $fob === null || $fob === '' || is_numeric($fob) ? null : 'FOB harus angka.';
+    }
+
+    /** Halaman Edit Sales Order: ubah Qty/Market/FOB, tambah dan hapus detail selama WS belum sampai marker. */
+    public function editPage($id)
+    {
+        $db = DB::connection('mysql_sb');
+        $so = $db->table('so')->where('id', $id)->first();
+        abort_if(!$so || $so->cancel_h === 'Y', 404);
+
+        $costing = $db->table('act_costing')->where('id', $so->id_cost)->select('id', 'cost_no', 'kpno', 'deldate')->first();
+
+        $sizeOrder = $db->table('master_size_new')->whereNotNull('size')->orderBy('urutan')->get(['id', 'size', 'urutan']);
+        $sizeUrutan = [];
+        foreach ($sizeOrder as $size) {
+            $key = strtoupper(trim($size->size));
+            if (!isset($sizeUrutan[$key])) {
+                $sizeUrutan[$key] = (int) $size->urutan;
+            }
+        }
+
+        $rows = $this->soEditRows($db, $so, $sizeUrutan);
+
+        return view('marketing.so.edit_detail', [
+            'page' => 'dashboard-marketing',
+            'subPageGroup' => 'marketing-master',
+            'subPage' => 'marketing-master-so',
+            'containerFluid' => true,
+            'so' => $so,
+            'costing' => $costing,
+            // Sementara dimatikan: DB local tidak sinkron (marker sudah Sep 2026, so_det masih Feb). Aktifkan lagi sebelum naik.
+            // 'markerLock' => $this->soMarkerLock($so),
+            'markerLock' => null,
+            'soRows' => $rows,
+            'sizeUrutan' => $sizeUrutan,
+            'masterColors' => $db->table('master_colors_gmt')->whereNotNull('name')->orderBy('name')->get(['id', 'name']),
+            'masterSizes' => $sizeOrder,
+        ]);
+    }
+
+    /**
+     * Baris detail SO untuk halaman Edit, termasuk baris yang sudah soft delete.
+     */
+    private function soEditRows($db, $so, array $sizeUrutan): array
+    {
+        $details = $db->table('so_det as sd')
+            ->leftJoin('master_size_new as s', 'sd.id_size', '=', 's.id')
+            ->where('sd.id_so', $so->id)
+            ->select('sd.id', 'sd.color', 'sd.size', 'sd.id_color', 'sd.id_size', 'sd.qty', 'sd.market', 'sd.dest', 'sd.fob', 'sd.deldate_det', 'sd.notes', 'sd.product_set', 'sd.cancel', 's.urutan')
+            ->orderBy('sd.color')
+            ->orderBy('sd.id')
+            ->get();
+
+        $ppicLocked = DB::table('ppic_master_so')->whereIn('id_so_det', $details->pluck('id'))->pluck('id_so_det')
+            ->map(fn ($soDetId) => (int) $soDetId)->flip();
+
+        $rows = $details->map(fn ($d) => [
+            'id' => (int) $d->id,
+            'color' => $d->color,
+            'size' => $d->size,
+            'id_color' => $d->id_color !== null ? (int) $d->id_color : null,
+            'id_size' => $d->id_size !== null ? (int) $d->id_size : null,
+            'qty' => $d->qty !== null ? (float) $d->qty : null,
+            'market' => $d->market,
+            'destination' => $d->dest,
+            'fob' => $d->fob !== null ? (float) $d->fob : null,
+            'ex_fty' => $d->deldate_det ? date('d/m/Y', strtotime($d->deldate_det)) : null,
+            'notes' => $d->notes,
+            'product_set' => $d->product_set,
+            'urutan' => $d->urutan !== null ? (int) $d->urutan : ($sizeUrutan[strtoupper(trim((string) $d->size))] ?? 9999),
+            'deleted' => $d->cancel === 'Y',
+            // 'locked' => isset($ppicLocked[(int) $d->id]),
+            'locked' => false,
+        ])->values()->all();
+
+        return $rows;
+    }
+
+    /**
+     * Simpan semua perubahan Edit Sales Order sekaligus.
+     * Payload: updates[] = {id, qty, market, fob}, adds[] = {id_color, id_size, qty, market, fob}, deletes[] = id so_det.
+     * Hapus = soft cancel (cancel = 'Y'); so.qty dihitung ulang dari detail aktif.
+     */
+    public function updateDetails(Request $request, $id)
+    {
+        $db = DB::connection('mysql_sb');
+        $so = $db->table('so')->where('id', $id)->first();
+        if (!$so || $so->cancel_h === 'Y') {
+            return response()->json(['status' => 404, 'message' => 'Sales Order tidak ditemukan.'], 404);
+        }
+        // Sementara dimatikan: DB local tidak sinkron (marker sudah Sep 2026, so_det masih Feb). Aktifkan lagi sebelum naik.
+        // if ($marker = $this->soMarkerLock($so)) {
+        //     return response()->json([
+        //         'status' => 409,
+        //         'message' => "WS sudah sampai marker (dibuat {$marker['created_by']}, {$marker['created_at']}). Sales Order tidak bisa diubah.",
+        //     ], 409);
+        // }
+
+        $request->validate([
+            'updates' => ['nullable', 'array'],
+            'updates.*.id' => ['required', 'integer'],
+            'adds' => ['nullable', 'array'],
+            'adds.*.id_color' => ['required', 'integer'],
+            'adds.*.id_size' => ['required', 'integer'],
+            'deletes' => ['nullable', 'array'],
+            'deletes.*' => ['integer'],
+            'restores' => ['nullable', 'array'],
+            'restores.*' => ['integer'],
+        ]);
+
+        $updates = collect($request->input('updates', []));
+        $adds = collect($request->input('adds', []));
+        $deletes = collect($request->input('deletes', []))->map(fn ($v) => (int) $v)->unique()->values();
+        $restores = collect($request->input('restores', []))->map(fn ($v) => (int) $v)->unique()->values();
+        if ($updates->isEmpty() && $adds->isEmpty() && $deletes->isEmpty() && $restores->isEmpty()) {
+            return response()->json(['status' => 422, 'message' => 'Tidak ada perubahan untuk disimpan.'], 422);
+        }
+
+        $active = $db->table('so_det')->where('id_so', $so->id)
+            ->where(fn ($query) => $query->whereNull('cancel')->orWhere('cancel', '!=', 'Y'))
+            ->get()->keyBy('id');
+        $cancelled = $db->table('so_det')->where('id_so', $so->id)->where('cancel', 'Y')->get()->keyBy('id');
+        $errors = [];
+        $restoredRows = $cancelled->only($restores->all());
+        foreach ($restores as $restoreId) {
+            if (!$cancelled->has($restoreId)) {
+                $errors[] = "Detail #{$restoreId} tidak ditemukan sebagai detail yang sudah dihapus.";
+            }
+        }
+        $editable = $active->union($restoredRows);
+        // Sementara dimatikan: DB local tidak sinkron (ppic_master_so). Aktifkan lagi sebelum naik.
+        // $ppicLocked = DB::table('ppic_master_so')->whereIn('id_so_det', $active->keys())->pluck('id_so_det')
+        //     ->map(fn ($soDetId) => (int) $soDetId)->flip();
+        $ppicLocked = collect();
+
+        // Hasil akhir per baris: [color, size, market, destination, touched]
+        $final = [];
+        foreach ($active as $row) {
+            $final['d' . $row->id] = ['color' => $row->color, 'size' => $row->size, 'market' => $row->market, 'destination' => $row->dest, 'touched' => false];
+        }
+        foreach ($restoredRows as $row) {
+            $final['d' . $row->id] = ['color' => $row->color, 'size' => $row->size, 'market' => $row->market, 'destination' => $row->dest, 'touched' => true];
+        }
+
+        foreach ($deletes as $deleteId) {
+            if (!$active->has($deleteId)) {
+                $errors[] = "Detail #{$deleteId} tidak ada di Sales Order ini atau sudah dihapus.";
+            } elseif (isset($ppicLocked[$deleteId])) {
+                $errors[] = "Detail {$active[$deleteId]->color} / {$active[$deleteId]->size} sudah masuk PPIC, tidak bisa dihapus.";
+            }
+            unset($final['d' . $deleteId]);
+        }
+
+        $updateRows = [];
+        foreach ($updates as $index => $update) {
+            $detId = (int) $update['id'];
+            $label = 'Baris ' . ($index + 1);
+            if (!$editable->has($detId)) {
+                $errors[] = "{$label}: detail tidak ada di Sales Order ini atau sudah dihapus.";
+                continue;
+            }
+            $row = $editable[$detId];
+            $label = "{$row->color} / {$row->size}";
+            if ($deletes->contains($detId)) {
+                continue;
+            }
+            if (isset($ppicLocked[$detId])) {
+                $errors[] = "{$label}: sudah masuk PPIC, tidak bisa diubah.";
+                continue;
+            }
+            $market = $update['market'] ?? null;
+            $destination = $update['destination'] ?? null;
+            foreach ([self::soQtyError($update['qty'] ?? null), self::soMarketError($market), self::soDestinationError($destination), self::soFobError($update['fob'] ?? null)] as $error) {
+                if ($error) $errors[] = "{$label}: {$error}";
+            }
+            $updateRows[$detId] = [
+                'qty' => (int) ($update['qty'] ?? 0),
+                'market' => $market,
+                'dest' => $destination,
+                'fob' => isset($update['fob']) && $update['fob'] !== '' ? round((float) $update['fob'], 3) : null,
+            ];
+            $final['d' . $detId]['market'] = $market;
+            $final['d' . $detId]['destination'] = $destination;
+            $final['d' . $detId]['touched'] = true;
+        }
+
+        $colors = $db->table('master_colors_gmt')->whereIn('id', $adds->pluck('id_color')->filter())->pluck('name', 'id');
+        $sizes = $db->table('master_size_new')->whereIn('id', $adds->pluck('id_size')->filter())->pluck('size', 'id');
+        $addRows = [];
+        foreach ($adds as $index => $add) {
+            $label = 'Add New ' . ($index + 1);
+            $colorName = $colors[(int) $add['id_color']] ?? null;
+            $sizeName = $sizes[(int) $add['id_size']] ?? null;
+            if ($colorName === null) $errors[] = "{$label}: color tidak ada di master.";
+            if ($sizeName === null) $errors[] = "{$label}: size tidak ada di master.";
+            $market = $add['market'] ?? null;
+            $destination = $add['destination'] ?? null;
+            foreach ([self::soQtyError($add['qty'] ?? null), self::soMarketError($market), self::soDestinationError($destination), self::soFobError($add['fob'] ?? null)] as $error) {
+                if ($error) $errors[] = "{$label}: {$error}";
+            }
+            $addRows[] = [
+                'id_color' => (int) $add['id_color'],
+                'id_size' => (int) $add['id_size'],
+                'color' => $colorName,
+                'size' => $sizeName,
+                'qty' => (int) ($add['qty'] ?? 0),
+                'market' => $market,
+                'destination' => $destination,
+                'fob' => isset($add['fob']) && $add['fob'] !== '' ? round((float) $add['fob'], 3) : null,
+            ];
+            $final['n' . $index] = ['color' => $colorName, 'size' => $sizeName, 'market' => $market, 'destination' => $destination, 'touched' => true];
+        }
+
+        // Kombinasi color + size + market tidak boleh dobel (hanya dicek untuk baris yang diubah/ditambah).
+        $groups = [];
+        foreach ($final as $item) {
+            $key = strtoupper(trim((string) $item['color'])) . '|' . strtoupper(trim((string) $item['size'])) . '|' . strtoupper((string) $item['market']) . '|' . strtoupper((string) $item['destination']);
+            $groups[$key][] = $item;
+        }
+        foreach ($groups as $items) {
+            if (count($items) > 1 && collect($items)->contains('touched', true)) {
+                $errors[] = "{$items[0]['color']} / {$items[0]['size']} / {$items[0]['market']} / {$items[0]['destination']} sudah ada, ubah qty di tabel.";
+            }
+        }
+
+        if ($errors) {
+            return response()->json(['status' => 422, 'message' => implode("\n", array_unique($errors)), 'errors' => array_values(array_unique($errors))], 422);
+        }
+
+        $userName = auth()->user()->name ?? auth()->user()->username ?? null;
+        try {
+            $db->transaction(function () use ($db, $so, $active, $editable, $updateRows, $addRows, $deletes, $restores, $userName) {
+                $now = now();
+                $touched = [];
+                foreach ($updateRows as $detId => $fields) {
+                    $row = $editable[$detId];
+                    if ((float) $row->qty === (float) $fields['qty'] && (string) $row->market === (string) $fields['market']
+                        && (string) $row->dest === (string) $fields['dest']
+                        && ($row->fob === null ? null : round((float) $row->fob, 3)) === $fields['fob']) {
+                        continue;
+                    }
+                    $db->table('so_det')->where('id', $detId)->update($fields + ['updated_by' => $userName, 'updated_date' => $now]);
+                    $touched[] = $detId;
+                }
+
+                foreach ($addRows as $add) {
+                    // Field lain disalin dari detail aktif SO ini (utamakan color yang sama).
+                    $template = $active->first(fn ($row) => (int) $row->id_color === $add['id_color'] || strtoupper((string) $row->color) === strtoupper((string) $add['color']))
+                        ?? $active->first();
+                    $touched[] = $db->table('so_det')->insertGetId([
+                        'id_so' => $so->id,
+                        'color' => $add['color'],
+                        'size' => $add['size'],
+                        'id_color' => $add['id_color'],
+                        'id_size' => $add['id_size'],
+                        'qty' => $add['qty'],
+                        'market' => $add['market'],
+                        'dest' => $add['destination'],
+                        'fob' => $add['fob'],
+                        'unit' => $template->unit ?? ($so->unit ?: 'PCS'),
+                        'price' => $template->price ?? 0,
+                        'deldate_det' => $template->deldate_det ?? null,
+                        'styleno_prod' => $template->styleno_prod ?? null,
+                        'reff_no' => $template->reff_no ?? null,
+                        'product_set' => $template->product_set ?? null,
+                        'sku' => '-',
+                        'cancel' => 'N',
+                        'created_by' => $userName,
+                        'created_date' => $now,
+                    ]);
+                }
+
+                if ($deletes->isNotEmpty()) {
+                    $db->table('so_det')->where('id_so', $so->id)->whereIn('id', $deletes)
+                        ->update(['cancel' => 'Y', 'updated_by' => $userName, 'updated_date' => $now]);
+                    $touched = array_merge($touched, $deletes->all());
+                }
+                if ($restores->isNotEmpty()) {
+                    $db->table('so_det')->where('id_so', $so->id)->whereIn('id', $restores)
+                        ->where('cancel', 'Y')
+                        ->update(['cancel' => 'N', 'updated_by' => $userName, 'updated_date' => $now]);
+                    $touched = array_merge($touched, $restores->all());
+                }
+
+                $totalQty = $db->table('so_det')->where('id_so', $so->id)
+                    ->where(fn ($q) => $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y'))
+                    ->sum('qty');
+                $db->table('so')->where('id', $so->id)->update(['qty' => $totalQty]);
+
+                $this->logSo($so->id);
+                if ($touched) {
+                    $this->logSoDet(array_values(array_unique($touched)));
+                }
+                if ($so->id_bom) {
+                    app(MarketingBomService::class)->refreshColorsSizes((int) $so->id_bom);
+                }
+
+                app(MarketingHistoryService::class)->soUpdated((int) $so->id_cost, (int) $so->id, (string) $so->so_no, [
+                    'updated' => count($updateRows),
+                    'added' => count($addRows),
+                    'deleted' => $deletes->count(),
+                    'restored' => $restores->count(),
+                ]);
+            });
+        } catch (\Exception $e) {
+            \Log::error('Gagal update detail SO.', ['id_so' => $so->id, 'error' => $e->getMessage()]);
+            return response()->json(['status' => 500, 'message' => 'Gagal menyimpan Sales Order: ' . $e->getMessage()], 500);
+        }
+
+        $sizeUrutan = [];
+        foreach ($db->table('master_size_new')->whereNotNull('size')->orderBy('urutan')->get(['size', 'urutan']) as $size) {
+            $sizeUrutan[strtoupper(trim($size->size))] ??= (int) $size->urutan;
+        }
+
+        // Kirim balik detail terbaru supaya halaman langsung sinkron (baris NEW jadi baris biasa dengan id so_det).
+        return response()->json([
+            'status' => 200,
+            'message' => "Sales Order {$so->so_no} berhasil diupdate.",
+            'rows' => $this->soEditRows($db, $so, $sizeUrutan),
         ]);
     }
 

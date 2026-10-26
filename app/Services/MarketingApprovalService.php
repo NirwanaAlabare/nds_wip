@@ -239,6 +239,11 @@ class MarketingApprovalService
             }
 
             foreach ($eligible as $id) {
+                if ($action === 'approve') {
+                    // Kalimat approval + "ready to be created as ..." (lihat MarketingHistoryService::approved).
+                    app(MarketingHistoryService::class)->approved($type, $this->costingId($type, $id), (int) $id, $this->number($type, $id));
+                    continue;
+                }
                 $description = $action === 'approve'
                     ? "{$config['label']} {$this->number($type, $id)} " . self::ACTION_LABELS[$action] . '.'
                     : $note;

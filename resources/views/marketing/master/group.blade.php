@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
     <style>
         .mg-page { padding: 10px 14px 28px; background: #f8fafc; min-height: calc(100vh - 56px); color: #1e293b; }
-        .mg-crumb { padding: 9px 12px; border-radius: 4px; background: #1e293b; color: #cbd5e1; font-size: 12px; letter-spacing: .2px; margin-bottom: 12px; }
+        .mg-crumb { padding: 9px 12px; border-radius: 4px; background: #284A63; color: #cbd5e1; font-size: 12px; letter-spacing: .2px; margin-bottom: 12px; }
         .mg-crumb b { color: #fff; }
         .mg-back { display: inline-flex; align-items: center; gap: 10px; margin: 12px 0 14px; color: #334155; font-size: 14px; font-weight: 700; text-decoration: none !important; }
         .mg-back i { padding: 4px 6px; border-radius: 5px; background: #e2e8f0; font-size: 11px; }
@@ -45,6 +45,19 @@
         .mg-btn.is-cancel { background: #e11d48; box-shadow: 0 3px 8px rgba(225, 29, 72, .3); }
         .mg-btn.is-save { background: #15803d; box-shadow: 0 3px 8px rgba(21, 128, 61, .3); }
         .mg-btn:disabled { opacity: .6; }
+
+        @media (max-width: 575.98px) {
+            .mg-page { padding: 8px 4px 20px; }
+            .mg-card { padding: 14px 12px 16px; }
+            .mg-title { font-size: 20px; }
+            .mg-shell { padding: 6px 6px 10px; }
+            .mg-table { font-size: 13px; }
+            .mg-table thead th, .mg-table tbody td { padding: 6px; }
+            .mg-table thead th { white-space: normal; }
+            .mg-table td:last-child { white-space: nowrap; }
+            .mg-action { width: 26px; height: 26px; margin-right: 2px; }
+            .mg-modal .modal-dialog { margin-left: auto; margin-right: auto; padding: 0 12px; }
+        }
     </style>
 @endsection
 

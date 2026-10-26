@@ -59,6 +59,12 @@
         .md-refresh-menu { min-width: 90px; padding: 4px 0; }
         .md-refresh-menu button { display: block; width: 100%; padding: 6px 12px; border: 0; background: none; font-size: 13px; text-align: left; }
         .md-refresh-menu button:hover, .md-refresh-menu button.active { background: #eef2f7; }
+        @media (max-width: 767.98px) {
+            /* Toolbar turun ke bawah judul: picker diposisikan dari kiri header supaya tidak keluar layar. */
+            .md-head { position: relative; }
+            #md-time-group { position: static; }
+            .md-head .md-picker { left: 0; right: auto; max-width: 100%; }
+        }
         @media (max-width: 575.98px) {
             .md-picker-body { grid-template-columns: minmax(0, 1fr); }
             .md-picker-abs { border-right: 0; border-bottom: 1px solid #e5e7eb; }
@@ -101,6 +107,8 @@
         @media (max-width: 575.98px) {
             .md-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .md-kpi strong { font-size: 28px; }
+            .md-kpi-hero strong { font-size: 32px; }
+            .md-table { font-size: 13px; }
         }
     </style>
 @endsection
@@ -505,7 +513,9 @@
                     legend: { show: true, position: 'right', horizontalAlign: 'center', showForSingleSeries: true },
                     xaxis: { categories: res.top_buyers.map(row => row.buyer), tickAmount: 2, labels: { formatter: v => number(v) } },
                     yaxis: { labels: { maxWidth: 220, style: { fontSize: '11px' } } },
-                    tooltip: { y: { formatter: v => number(v) + ' pcs' } }
+                    tooltip: { y: { formatter: v => number(v) + ' pcs' } },
+                    // Layar sempit: nama buyer dipendekkan & legend tunggal disembunyikan supaya batang tetap terlihat.
+                    responsive: [{ breakpoint: 576, options: { legend: { show: false }, yaxis: { labels: { maxWidth: 120, style: { fontSize: '10px' } } } } }]
                 });
                 draw('chart-value-usd', timeChart({
                     chart: { type: 'area', height: 200 },

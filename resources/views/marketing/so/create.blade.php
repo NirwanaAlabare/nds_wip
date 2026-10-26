@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-form.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-form.css')) }}">
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
@@ -86,12 +87,22 @@
         box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07);
     }
     #card-preview .card-header { background: #294d68 !important; }
+    #card-preview.so-preview-section { margin: 0 1.4rem 1.4rem; width: auto; border: 0; border-radius: 8px; background: #fff; box-shadow: 0 4px 8px -2px rgba(30, 41, 59, .16), 0 1px 2px rgba(30, 41, 59, .06); }
+    .so-preview-body { padding: 12px; border-radius: 0; background: #fff; box-shadow: none; }
+    .so-preview-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 4px 2px; font-family: Inter, sans-serif; font-size: 12px; color: #1e293b; }
+    .so-preview-pager .dataTables_length label { display: inline-flex; align-items: center; gap: 10px; margin: 0; font-weight: 400; }
+    .so-preview-pager .dataTables_length select { width: auto; height: 32px; min-width: 64px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 13px; }
+    .so-preview-pager .pagination { margin: 0; gap: 6px; }
+    .so-preview-pager .page-link { min-width: 28px; height: 28px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #64748b; font-size: 13px; line-height: 28px; text-align: center; }
+    .so-preview-pager .page-item.active .page-link { background: #274b63; color: #fff; font-weight: 700; }
+    .so-preview-pager .page-item.disabled .page-link { opacity: .35; }
     #card-preview .card-body {
         max-height: none;
         overflow: visible;
         padding: 0 1rem 1rem;
     }
     #card-preview .table-responsive { overflow: visible; }
+    #card-preview .so-preview-table-wrap { overflow-x: auto; padding: 8px 10px 0; border: 1px solid #edf1f5; border-radius: 8px; background: #fff; }
 
     /* ============ FORM & INPUT STYLING ============ */
     .form-section-title {
@@ -218,7 +229,7 @@
     /* ============ CUSTOM COMPONENTS / SO LAYOUT ============ */
     .so-page-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 14px; }
     .so-create-body { font-family: 'Poppins', sans-serif; }
-    .so-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #294d68; color: #b4b4b4; font-size: 16px; font-weight: 500; }
+    .so-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #284A63; color: #b4b4b4; font-size: 16px; font-weight: 500; }
     .so-breadcrumb a { color: #b4b4b4; text-decoration: none; }
     .so-breadcrumb a:hover { color: #fff; text-decoration: underline; }
     .so-breadcrumb strong { color: #fff; font-weight: 500; }
@@ -231,8 +242,8 @@
     .so-source-fields { display: none !important; }
     .so-summary-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0 0 16px; }
     .so-summary-card { min-width: 0; min-height: 76px; padding: 10px 14px; border: 1px solid #e1e7ef; border-radius: 10px; background: #fff; box-shadow: 0 3px 8px rgba(30, 41, 59, .10); }
-    .so-summary-card > span { display: block; margin-bottom: 4px; color: #9e9e9e; font-size: 20px; }
-    .so-summary-card > strong { display: block; overflow: hidden; color: #284a63; font-size: 24px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .so-summary-card > span { display: block; margin-bottom: 4px; color: #9e9e9e; font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: 0.2px; }
+    .so-summary-card > strong { display: block; overflow: hidden; color: #284a63; font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: 0.05em; text-overflow: ellipsis; white-space: nowrap; }
     .so-summary-card.is-navy { border-color: #294d68; background: #294d68; color: #fff; }
     .so-summary-card.is-navy > span, .so-summary-card.is-navy > strong { color: #fff; }
     .so-summary-card.is-orange { border-color: #ffad2f; background: #ffad2f; }
@@ -242,13 +253,32 @@
     .so-top-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: stretch; margin-bottom: 14px; }
     .so-info-column { display: flex; min-width: 0; flex-direction: column; gap: 12px; }
     .so-overview-section { min-width: 0; overflow: hidden; border: 1px solid #e1e7ef; border-radius: 10px; background: #fff; box-shadow: 0 3px 8px rgba(30, 41, 59, .10); }
+    .so-create-body .so-overview-title,
+    .so-create-body .so-summary-item,
+    .so-create-body .so-summary-item > span,
+    .so-create-body .so-summary-item strong,
+    .so-create-body .so-image-caption,
+    .so-create-body .so-image-counter { font-family: 'Poppins', sans-serif; }
     .so-overview-title { margin: 0 12px; padding: 9px 0 7px; border-bottom: 1px solid #dce4ec; color: #616161; font-size: 16px; font-weight: 500; }
+    #so-information-title, .so-information-title { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.05em; }
     .so-overview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 22px; padding: 8px 12px 10px; }
-    .so-summary-item { display: flex; min-width: 0; min-height: 33px; flex-direction: column; justify-content: center; gap: 2px; padding: 3px 0; border-bottom: 1px solid #e7e7e7; color: #3b3336; font-size: 12px; }
+    .so-summary-item { display: flex; min-width: 0; min-height: 69px; flex-direction: column; justify-content: center; gap: 9px; padding: 3px 0; border-bottom: 1px solid #e7e7e7; color: #3b3336; font-size: 12px; }
     .so-summary-item > span { overflow: hidden; color: #9e9e9e; font-size: 18px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
     .so-summary-item strong { overflow: hidden; color: #284a63; font-size: 18px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
     .so-review-section { display: flex; min-height: 100%; flex-direction: column; }
     .so-review-section .so-image-review { flex: 1; }
+    .so-image-thumbs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 12px; }
+    .so-image-thumbs:empty { display: none; }
+    .so-image-thumbs button { width: 76px; height: 97px; padding: 3px; border: 1px solid #dce4ec; border-radius: 6px; background: #fff; cursor: pointer; }
+    .so-image-thumbs button.is-active { border: 2px solid #1d6fd8; }
+    .so-image-thumbs img { width: 100%; height: 100%; object-fit: contain; }
+    .so-image-caption { margin: 6px 0 12px; color: #9aa5ad; font-size: 12px; text-align: center; }
+    .so-image-caption:empty { display: none; }
+    /* Shipping & Destinations selebar penuh, 6 kolom dalam satu baris. */
+    .so-shipping-section { margin-bottom: 14px; }
+    .so-overview-grid.so-shipping-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    @media (max-width: 1199.98px) { .so-overview-grid.so-shipping-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 575.98px) { .so-overview-grid.so-shipping-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .so-section {
         margin-bottom: 14px;
         overflow: hidden;
@@ -261,10 +291,13 @@
     .so-section-toggle {
         display: flex; align-items: center; justify-content: space-between; width: 100%;
         padding: 8px 16px; border: 0; border-radius: 0;
-        background: #fff; color: #284a63; text-align: left; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 500;
+        background: #fff; color: #284a63; text-align: left; font-family: 'Poppins', sans-serif; font-size: 25px; font-weight: 500;
     }
     .so-section-toggle:focus { outline: 0; box-shadow: 0 0 0 2px rgba(48, 133, 214, .12); }
     .so-section > .collapse.show { border-top: 1px solid #edf1f5; }
+    .so-section.so-heading-only { overflow: hidden; border: 0; border-radius: 8px; background: #fff; box-shadow: 0 4px 8px -2px rgba(30, 41, 59, .16), 0 1px 2px rgba(30, 41, 59, .06); }
+    .so-section.so-heading-only .so-section-toggle { border: 1px solid #284a63; border-radius: 6px; }
+    .so-section.so-heading-only > .collapse.show { border-top: 0; }
 
     .so-chevron { display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 5px; background: #aabac5; color: #fff; font-size: 10px; }
     .so-chevron i { transition: transform .2s ease; }
@@ -277,8 +310,6 @@
     .so-edit-grid .form-group { min-width: 0; margin-bottom: 12px; }
     .so-edit-grid label { display: block; min-height: 27px; margin-bottom: 5px; color: #34282c; font-size: 16px; }
     .so-create-body .so-edit-grid label:not(.form-check-label):not(.custom-file-label) { font-weight: 400; }
-    /* Dropdown & input sesuai mockup: tinggi 59, radius 12, border 1px, padding 16, gap teks–panah 16,
-       teks Poppins Medium 14 (placeholder #ABABAB, terisi hitam), focus border #284A63. */
     .so-edit-grid .form-control,
     .so-edit-grid .select2-container--bootstrap4 .select2-selection { height: 59px; min-height: 59px; border: 1px solid #e1e5e9; border-radius: 12px; box-shadow: none; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; line-height: 1; color: #000; }
     .so-edit-grid .form-control { padding: 0 16px; }
@@ -400,8 +431,6 @@
     .so-detail-pages button:disabled { opacity: .35; }
     @media (max-width: 991.98px) { .so-summary-cards.is-four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 575.98px) { .so-summary-cards.is-four { grid-template-columns: 1fr; } }
-        /* Checkbox sesuai mockup: 16x16, radius 4. Kosong = putih border abu (hover: centang samar),
-           checked/indeterminate = #284A63 + ikon putih, focus = cincin biru muda. */
         input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
         input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
         input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
@@ -413,16 +442,194 @@
     /* Carousel gambar (coverflow): semua gambar dirender sekali di satu panggung. Pindah gambar hanya mengubah posisi &
        skala dengan transition CSS (gambar benar-benar bergeser, tanpa ganti src), jadi gerakannya halus.
        Aktif = besar di tengah, sebelum/sesudah = kecil di samping (klik untuk pindah), titik aktif memanjang. */
-    .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 260px; overflow: hidden; }
+    .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 288px; overflow: hidden; }
     .mkt-cf-stage > .mkt-cf-main, .mkt-cf-stage > .mkt-cf-side { display: none !important; }
-    .mkt-cf-stage > img.mkt-cf-item { position: absolute; top: 50%; left: 50%; max-width: 46%; max-height: 100%; object-fit: contain; cursor: pointer; will-change: transform, opacity; transition: transform .55s cubic-bezier(.22, .61, .36, 1), opacity .55s ease; }
+    .mkt-cf-stage > img.mkt-cf-item { position: absolute; top: 50%; left: 50%; width: 182px; height: 256px; max-width: 46%; max-height: 256px; object-fit: contain; cursor: pointer; will-change: transform, opacity; transition: transform .55s cubic-bezier(.22, .61, .36, 1), opacity .55s ease; }
     .mkt-cf-stage > img.mkt-cf-item.is-active { cursor: default; }
+    /* Gambar samping (sebelum/sesudah): 90x192, sejajar tengah dengan gambar aktif 182x256. */
+    .mkt-cf-stage > img.mkt-cf-item.is-side { width: 90px; height: 192px; max-height: 192px; }
+    .mkt-cf-stage > img.mkt-cf-item { transition-property: transform, opacity, width, height; }
     .mkt-cf-stage > img.mkt-cf-item.is-far { opacity: 0 !important; pointer-events: none; }
     .mkt-cf-dots { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 10px; min-height: 4px; }
     .mkt-cf-dot { width: 6px; height: 4px; padding: 0; border: 0; border-radius: 2px; background: #d9dee5; cursor: pointer; transition: width .3s ease, background-color .3s ease; }
     .mkt-cf-dot.is-active { width: 16px; background: #1d6fd8; }
     @media (prefers-reduced-motion: reduce) { .mkt-cf-stage > img.mkt-cf-item { transition: none; } }
     .so-image-review .mkt-cf-stage { flex: 1; min-width: 0; }
+
+    /* ============ RESPONSIVE (tablet & HP) — desktop >= 1200px tidak berubah ============ */
+    @media (max-width: 1199.98px) {
+        .so-summary-card > span { font-size: 16px; }
+        .so-summary-card > strong { font-size: 18px; }
+        .so-summary-item > span, .so-summary-item strong { font-size: 16px; }
+        .so-edit-grid { column-gap: 14px; }
+        .so-edit-grid label { font-size: 15px; }
+    }
+    @media (max-width: 991.98px) {
+        /* 5 kartu: 3 di atas + 2 di bawah; 4 kartu (Detail SO): 2 per baris. */
+        .so-summary-cards { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+        .so-summary-cards > .so-summary-card { grid-column: span 2; }
+        .so-summary-cards > .so-summary-card:nth-child(n+4) { grid-column: span 3; }
+        .so-summary-cards.is-four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .so-summary-cards.is-four > .so-summary-card { grid-column: auto; }
+        .so-summary-card { min-height: 0; }
+        .so-summary-card > span { font-size: 14px; }
+        .so-summary-card > strong { font-size: 18px; overflow-wrap: anywhere; white-space: normal; }
+        .so-top-layout { grid-template-columns: 1fr; }
+        .so-review-section { min-height: 0; }
+        .so-image-review { min-height: 0; }
+        .so-summary-item > span { font-size: 14px; }
+        .so-summary-item strong { font-size: 15px; white-space: normal; overflow-wrap: anywhere; }
+        .so-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .so-edit-grid label { min-height: 0; font-size: 14px; }
+        .so-edit-grid .form-control,
+        .so-edit-grid .select2-container--bootstrap4 .select2-selection { height: 48px; min-height: 48px; }
+        .so-upload-toolbar .btn { font-size: 15px; }
+    }
+    @media (max-width: 575.98px) {
+        .so-create-body.card-body { padding: .9rem .8rem 1rem; }
+        .so-breadcrumb { font-size: 13px; }
+        .so-page-heading h1 { font-size: 24px; }
+        .so-summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .so-summary-cards > .so-summary-card, .so-summary-cards > .so-summary-card:nth-child(n+4) { grid-column: auto; }
+        .so-summary-cards:not(.is-four) > .so-summary-card:last-child { grid-column: 1 / -1; }
+        .so-summary-cards.is-four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .so-summary-card { padding: 8px 10px; }
+        .so-summary-card > span { font-size: 13px; }
+        .so-summary-card > strong { font-size: 16px; }
+        .so-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; }
+        .so-overview-title, .so-section-toggle { font-size: 15px; }
+        .so-summary-item > span { font-size: 13px; }
+        .so-summary-item strong { font-size: 14px; }
+        .so-image-review { gap: 8px; padding: 10px 6px; }
+        .so-edit-grid { grid-template-columns: 1fr; }
+        .so-notes-field { grid-column: auto; }
+        .so-upload-toolbar { justify-content: stretch; }
+        .so-template-btn { width: 100%; }
+        .so-upload-toolbar .btn { padding: 8px 14px; font-size: 14px; }
+        .so-lock-alert { flex-wrap: wrap; }
+        .so-lock-alert > span { flex-basis: calc(100% - 30px); }
+        .card-footer.text-right { padding: .9rem .8rem; }
+        #card-preview { margin: 0 .8rem 1rem; width: calc(100% - 1.6rem); }
+    }
+    #so-information .so-summary-item:first-child > span { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.2px; }
+    #so-information .so-summary-item:first-child > strong { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.05em; }
+    #so-product-title, #so-shipping-title { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.05em; }
+    #so-product .so-summary-item > span, #so-shipping .so-summary-item > span { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.2px; }
+    #so-product .so-summary-item > strong, #so-shipping .so-summary-item > strong { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.05em; }
+    @media (max-width: 359.98px) {
+        .so-summary-cards, .so-summary-cards.is-four, .so-overview-grid { grid-template-columns: 1fr; }
+    }
+    #table-preview-so { margin: 0 !important; font-family: Inter, sans-serif; }
+    #table-preview-so thead th { padding: 9px 8px; border: 0 !important; background: #cfe2ff !important; color: #1e293b !important; font-size: 11px !important; font-weight: 600; text-transform: uppercase; white-space: nowrap; }
+    #table-preview-so tbody td { padding: 8px; border: 0; border-bottom: 1px solid #edf1f5; color: #1e293b; font-size: 12px !important; background: #fff !important; box-shadow: none !important; }
+    #table-preview-so tfoot th { padding: 9px 8px; border: 0 !important; background: #ffd6dc !important; color: #1e293b; font-size: 12px !important; font-weight: 700; }
+    #table-preview-so thead th.preview-col-total { background: #cfe2ff !important; color: #1e293b !important; }
+    #table-preview-so tfoot th.preview-col-total { background: #ffd6dc !important; color: #1e293b !important; }
+    #table-preview-so tbody td.preview-col-total { background: #fff !important; color: #1e293b !important; font-weight: 700; }
+    #table-preview-so .preview-col-action { width: 56px; text-align: center; }
+    #table-preview-so .preview-row-delete { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: #ff0000; color: #fff; font-size: 11px; box-shadow: 0 3px 6px rgba(255, 0, 0, .3); }
+    #table-preview-so .preview-row-delete:hover { background: #d9dbe3; color: #ff0000; }
+    #table-preview-so tbody tr:last-child td { border-bottom: 0; }
+    #card-preview .so-preview-table-wrap::after { display: block; height: 4px; border-radius: 4px; background: #284a63; content: ''; }
+    .so-preview-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 4px 0; color: #64748b; font-family: Inter, sans-serif; font-size: 10px; }
+    .so-preview-legend > span { display: inline-flex; align-items: center; gap: 4px; }
+    .so-preview-legend i { width: 9px; height: 9px; border: 1px solid #cbd5e1; border-radius: 2px; background: #fff; }
+    .so-preview-legend .is-auto { background: #f1f4f8; }
+    .so-preview-legend .is-pasted { border-color: #93c5fd; background: #dbeafe; }
+    .so-preview-legend .is-error { border-color: #fca5a5; background: #ffe4e6; }
+
+    #so-header-fields .so-edit-grid {
+        grid-template-columns: repeat(24, minmax(0, 1fr));
+        column-gap: 16px;
+        row-gap: 16px;
+        padding: 16px;
+    }
+    #so-header-fields .so-edit-grid .form-group { margin-bottom: 0; }
+    #so-header-fields .so-edit-grid .form-group:first-child { grid-column: span 3; }
+    #so-header-fields .so-edit-grid .form-group:nth-child(n+2):nth-child(-n+4) { grid-column: span 7; }
+    #so-header-fields .so-edit-grid .form-group:nth-child(n+5) { grid-column: span 8; }
+    #so-header-fields .so-edit-grid label {
+        min-height: 0;
+        margin-bottom: 8px;
+        color: #34282c;
+        font-family: 'Poppins', sans-serif;
+        font-size: 16px;
+        font-weight: 500;
+    }
+    #so-header-fields .so-edit-grid .form-control,
+    #so-header-fields .so-edit-grid .select2-container--bootstrap4 .select2-selection {
+        height: 59px;
+        min-height: 59px;
+        border: 1px solid #e1e5e9;
+        border-radius: 12px;
+        padding-left: 16px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+    }
+    #so-header-fields .so-edit-grid .form-control { padding-right: 16px; }
+    #so-header-fields .so-edit-grid .select2-container--bootstrap4 .select2-selection--single { padding-right: 44px; }
+    @media (max-width: 991.98px) {
+        #so-header-fields .so-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        #so-header-fields .so-edit-grid .form-group:nth-child(n) { grid-column: auto; }
+    }
+    @media (max-width: 575.98px) {
+        #so-header-fields .so-edit-grid { grid-template-columns: 1fr; }
+    }
+    /* Sales Order Detail ala Excel: putih = bisa diedit, abu = otomatis, biru = baru di-paste, merah = salah. */
+    #table-preview-so tbody td.so-cell { cursor: cell; white-space: pre; }  /* pre: spasi ganda tetap terlihat */
+    #table-preview-so tbody td.so-cell:focus { outline: none; }
+    #table-preview-so tbody td.so-cell-auto { background: #f1f4f8 !important; color: #475569 !important; }
+    #table-preview-so tbody td.so-cell-active { box-shadow: inset 0 0 0 2px #1d6fd8 !important; }
+    #table-preview-so tbody td.so-cell-pasted { background: #dbeafe !important; }
+    #table-preview-so tbody td.so-cell-error { background: #ffe4e6 !important; box-shadow: inset 0 0 0 2px #ef4444 !important; color: #b91c1c !important; }
+    #table-preview-so tbody td.so-cell-error.so-cell-active { box-shadow: inset 0 0 0 2px #1d6fd8, inset 0 0 0 4px #ef4444 !important; }
+    #table-preview-so tbody td.so-cell-editing { padding: 0 !important; overflow: visible !important; }
+    #table-preview-so .so-cell-input { width: 100%; min-height: 34px; padding: 4px 8px; border: 0; outline: 2px solid #1d6fd8; background: #fff; color: #1e293b; font: inherit; }
+    .so-preview-toolbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+    /* Fill handle ala Excel: kotak biru di pojok sel aktif, tarik ke atas/bawah untuk copy nilai (sama dengan tabel costing). */
+    #table-preview-so tbody td.so-cell { position: relative; }
+    #table-preview-so .so-fill-handle { position: absolute; right: 0; bottom: 0; z-index: 6; width: 8px; height: 8px; border: 1px solid #fff; background: #1a73e8; cursor: crosshair; }    #table-preview-so tbody td.so-fill-preview { background: #fff3c4 !important; box-shadow: inset 0 0 0 1px #e0a800 !important; }
+    body.so-filling, body.so-filling * { cursor: crosshair !important; user-select: none; }
+    .so-create-body .mkt-btn, .so-create-body .mkt-icon-btn, .card-footer .mkt-btn { font-family: 'Poppins', sans-serif; font-weight: 600; }
+    .so-summary-item > span { font-family: 'Poppins', sans-serif; font-weight: 500 !important; }
+    .so-summary-item strong { font-weight: 700 !important; }
+    #table-preview-so, #table-preview-so th, #table-preview-so td, .so-preview-pager, .so-preview-pager .page-link, .so-preview-legend { font-family: 'Poppins', sans-serif !important; }
+    #table-preview-so thead th { font-size: 12px !important; font-weight: 500 !important; }
+    #table-preview-so tbody td { font-size: 13px !important; font-weight: 500 !important; }
+    #table-preview-so tfoot th, #table-preview-so tbody td.preview-col-total { font-size: 13px !important; font-weight: 600 !important; }
+    .so-preview-pager, .so-preview-pager .page-link { font-weight: 500; }
+    .so-preview-pager .page-item.active .page-link { font-weight: 600; }
+    .so-preview-legend { font-size: 11px; font-weight: 500; }
+    .so-file-dropzone span { font-size: 14px; font-weight: 500; }
+    .so-file-dropzone strong { font-weight: 600; }
+    .so-file-dropzone small { font-size: 12px; font-weight: 500; }
+    .so-image-caption { font-weight: 500; }
+    #so-header-fields .so-edit-grid { grid-template-columns: repeat(24, minmax(0, 1fr)); }
+    #so-header-fields .so-edit-grid > .form-group { grid-column: span 8; }
+    #so-header-fields .so-edit-grid > .form-group:nth-child(1) { grid-column: span 3; }
+    #so-header-fields .so-edit-grid > .form-group:nth-child(2),
+    #so-header-fields .so-edit-grid > .form-group:nth-child(3),
+    #so-header-fields .so-edit-grid > .form-group:nth-child(4) { grid-column: span 7; }
+    @media (max-width: 991.98px) {
+        #so-header-fields .so-edit-grid > .form-group,
+        #so-header-fields .so-edit-grid > .form-group:nth-child(n) { grid-column: span 12 !important; }
+    }
+    @media (max-width: 575.98px) {
+        #so-header-fields .so-edit-grid > .form-group:nth-child(n) { grid-column: 1 / -1 !important; }
+        .so-file-dropzone span { font-size: 13px; }
+    }
+    .so-preview-pager label, .so-preview-pager .dataTables_length label { font-weight: 500 !important; }
+    /* Label & nilai info seragam di tablet/HP (menimpa aturan per-ID). */
+    @media (max-width: 991.98px) {
+        .so-overview-section .so-summary-item > span { font-size: 14px !important; }
+        .so-overview-section .so-summary-item strong { font-size: 15px !important; }
+        .so-overview-section .so-overview-title { font-size: 16px !important; }
+    }
+    @media (max-width: 575.98px) {
+        .so-overview-section .so-summary-item > span { font-size: 13px !important; }
+        .so-overview-section .so-summary-item strong { font-size: 14px !important; }
+        .so-overview-section .so-overview-title { font-size: 15px !important; }
+    }
 </style>
 @endsection
 
@@ -441,7 +648,7 @@
                         <p><i class="fas fa-cog"></i>Untuk Melihat Detail SO</p>
                     @else
                         <h1>Create Sales Order <i class="far fa-question-circle"></i></h1>
-                        <p><i class="fas fa-cog"></i>Untuk Menambah Data SO</p>
+                        <p><i class="fa-solid fa-circle-info"></i>Untuk Menambah Data SO</p>
                     @endif
                 </div>
             </div>
@@ -525,7 +732,7 @@
                 </div>
                 <div class="so-summary-card is-navy">
                     <span>QTY Planned</span>
-                    <strong id="summary-planned-qty">-</strong>
+                    <strong id="summary-planned-qty" class="text-center">-</strong>
                 </div>
                 <div class="so-summary-card is-orange">
                     <span>Delivery Date</span>
@@ -541,7 +748,7 @@
             <div class="so-top-layout">
                 <div class="so-info-column">
                     <section class="so-overview-section">
-                        <h2 class="so-overview-title">Information Buyer</h2>
+                        <h2 id="so-information-title" class="so-overview-title">Information Buyer</h2>
                         <div id="so-information" class="so-overview-grid">
                             <div class="so-summary-item"><span>Buyer Name</span><strong id="summary-buyer">-</strong></div>
                             <div class="so-summary-item"><span>Kode Buyer</span><strong id="summary-buyer-code">-</strong></div>
@@ -552,7 +759,7 @@
                     </section>
 
                     <section class="so-overview-section">
-                        <h2 class="so-overview-title">Product &amp; Type</h2>
+                        <h2 id="so-product-title" class="so-overview-title">Product &amp; Type</h2>
                         <div id="so-product" class="so-overview-grid">
                             <div class="so-summary-item"><span>Product Group</span><strong id="summary-product-group">-</strong></div>
                             <div class="so-summary-item"><span>Product Items</span><strong id="summary-product-item">-</strong></div>
@@ -562,20 +769,10 @@
                             <div class="so-summary-item"><span>Worksheet Type</span><strong id="summary-worksheet-type">-</strong></div>
                         </div>
                     </section>
-
-                    <section class="so-overview-section">
-                        <h2 class="so-overview-title">Shipping &amp; Destinations</h2>
-                        <div id="so-shipping" class="so-overview-grid">
-                            <div class="so-summary-item"><span>Ship Mode</span><strong id="summary-ship-mode">-</strong></div>
-                            <div class="so-summary-item"><span>Market</span><strong id="summary-market">-</strong></div>
-                            <div class="so-summary-item"><span>Destination</span><strong id="summary-destination">-</strong></div>
-                            <div class="so-summary-item"><span>Status</span><strong id="summary-status">-</strong></div>
-                        </div>
-                    </section>
                 </div>
 
                 <section class="so-overview-section so-review-section">
-                    <h2 class="so-overview-title">Review Image</h2>
+                    <h2 class="so-overview-title so-information-title">Review Image</h2>
                     <div class="so-image-review">
                         <button type="button" class="so-image-nav" disabled aria-label="Previous image"><i class="fas fa-chevron-left"></i></button>
                         <div class="so-image-preview mkt-cf-stage">
@@ -587,10 +784,24 @@
                         <button type="button" class="so-image-nav" disabled aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
                     </div>
                     <div id="so-image-counter" class="so-image-counter mkt-cf-dots"></div>
+                    <div id="so-image-thumbs" class="so-image-thumbs"></div>
+                    <div id="so-image-caption" class="so-image-caption"></div>
                 </section>
             </div>
 
-            <section class="so-section">
+            <section class="so-overview-section so-shipping-section">
+                <h2 id="so-shipping-title" class="so-overview-title">Shipping &amp; Destinations</h2>
+                <div id="so-shipping" class="so-overview-grid so-shipping-grid">
+                    <div class="so-summary-item"><span>Ship Mode</span><strong id="summary-ship-mode">-</strong></div>
+                    <div class="so-summary-item"><span>Main Destination</span><strong id="summary-destination">-</strong></div>
+                    <div class="so-summary-item"><span>Shipment Type</span><strong id="summary-shipment-type">-</strong></div>
+                    <div class="so-summary-item"><span>Market</span><strong id="summary-market">-</strong></div>
+                    <div class="so-summary-item"><span>Marketing Order</span><strong id="summary-marketing-order">-</strong></div>
+                    <div class="so-summary-item"><span>Notes</span><strong id="summary-notes">-</strong></div>
+                </div>
+            </section>
+
+            <section class="so-section so-heading-only">
                 <button type="button" class="so-section-toggle" data-target="#so-header-fields" aria-expanded="true">
                     <span>Sales Order &amp; Purchase Order<span class="text-danger">*</span></span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
                 </button>
@@ -619,12 +830,8 @@
                         <div class="form-group so-notes-field">
                             <label>Notes</label><input type="text" name="notes" id="notes" class="form-control" placeholder="Notes">
                         </div>
-                        <div class="form-group">
-                            <label>Total (PCS)</label><input type="text" name="total_qty" id="total_qty" class="form-control bg-light input-decimal" placeholder="QTY (PCS)" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label>Total Purchase Order</label><input type="text" name="jumlah_po" id="jumlah_po" class="form-control bg-light input-decimal" placeholder="Total Purchase Order" readonly>
-                        </div>
+                        <input type="hidden" name="total_qty" id="total_qty">
+                        <input type="hidden" name="jumlah_po" id="jumlah_po">
                         <div class="form-group">
                             <label>PO System</label>
                             <select name="po_type" id="po_type" class="form-control select2bs4" required>
@@ -648,6 +855,7 @@
                                 <th>Description</th>
                                 <th>No Purchase Order</th>
                                 <th>Market</th>
+                                <th>Destination</th>
                                 <th>Ex Fty</th>
                                 <th>Color</th>
                                 <th>Size</th>
@@ -658,7 +866,7 @@
                         <tfoot>
                             <tr>
                                 <td colspan="2"></td>
-                                <td colspan="7">TOTAL</td>
+                                <td colspan="8">TOTAL</td>
                                 <td class="text-right">{{ number_format(collect($soRows)->sum('qty'), 0, ',', '.') }}</td>
                             </tr>
                         </tfoot>
@@ -679,7 +887,7 @@
                 </div>
             </section>
             @else
-            <section class="so-section">
+            <section class="so-section so-heading-only">
                 <button type="button" class="so-section-toggle" data-target="#so-upload-file" aria-expanded="true">
                     <span>Upload File<span class="text-danger">*</span></span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
                 </button>
@@ -706,32 +914,49 @@
         </div>
 
         @unless ($viewOnly ?? false)
-        <div class="card card-sb" id="card-preview">
-            <div class="card-header bg-warning">
-                <h3 class="card-title" style="font-size: 1.1rem;"><i class="fas fa-table"></i> Preview Data Upload</h3>
-            </div>
-            <div class="card-body">
+        <section class="so-section so-heading-only so-preview-section" id="card-preview">
+            <button type="button" class="so-section-toggle" data-target="#so-preview-body" aria-expanded="true">
+                <span>Sales Order Detail</span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div id="so-preview-body" class="collapse show">
+            <div class="so-preview-body">
                 {{-- <button type="button" id="btn-reload-preview" class="btn btn-info mb-2" onclick="loadPreviewUpload()"><i class="fas fa-refresh"></i> Reload Table</button> --}}
+                @unless ($viewOnly ?? false)
+                <div class="so-preview-toolbar">
+                    <button type="button" class="mkt-btn mkt-btn--navy mkt-btn--sm" id="so-add-row" title="Tambah baris (Color, Size, Qty diisi di tabel)"><i class="fas fa-plus"></i> Add</button>
+                </div>
+                @endunless
                 <div class="table-responsive">
+                    <div class="so-preview-table-wrap">
                     <table class="table table-sm table-striped text-nowrap w-100" id="table-preview-so">
                         <thead class="bg-sb text-white text-center">
                             <tr>
                                 <th class="preview-col-style">Style</th>
                                 <th class="preview-col-desc">Description</th>
-                                <th class="preview-col-po">Purchase Order</th>
+                                <th class="preview-col-po">No PO</th>
                                 <th class="preview-col-market">Market</th>
+                                <th class="preview-col-destination">Destination</th>
                                 <th class="preview-col-exfty">Ex Fty</th>
                                 <th class="preview-col-fob">FOB</th>
                                 <th class="preview-col-set">Product Set</th>
                                 <th class="preview-col-color">Color</th>
                                 <th class="preview-col-total">Total</th>
+                                <th class="preview-col-action">Action</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
                     </table>
+                    </div>
+                </div>
+                <div class="so-preview-legend" aria-label="Keterangan tabel">
+                    <span><i></i>Editable</span>
+                    <span><i class="is-auto"></i>Auto calculated</span>
+                    <span><i class="is-pasted"></i>Just Pasted</span>
+                    <span><i class="is-error"></i>Error</span>
                 </div>
             </div>
-        </div>
+            </div>
+        </section>
 
         @endunless
 
@@ -739,20 +964,17 @@
             @include('marketing.costing.unlock_request_modal')
         @endif
 
+        @unless ($viewOnly ?? false)
         <div class="card-footer text-right">
-            @if ($viewOnly ?? false)
-                <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('master-costing') }}" class="mkt-btn mkt-btn--gray">
-                    <i class="fas fa-arrow-left"></i> Kembali
-                </a>
-            @else
             <button type="button" id="btn-back" class="mkt-btn mkt-btn--red mkt-btn--cancel">
-                <i class="fas fa-times"></i> Batal
+                Cancel
             </button>
             <button type="submit" class="mkt-btn mkt-btn--green">Save</button>
-            @endif
         </div>
+        @endunless
     </form>
 </div>
+
 @endsection
 
 @section('custom-script')
@@ -763,7 +985,9 @@
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script>
     let previewTable = null;
+    let previewUploadRows = [];
     let soFileUploaded = false;
+    let soUploadedPos = [];   // daftar No PO dari file upload (untuk cek kecocokan PO System)
 
     function formatSummaryDate(value) {
         if (!value) return '-';
@@ -772,8 +996,9 @@
     }
 
     function loadPreviewUpload() {
+        // Dipanggil setelah Apply di Preview Changes: tampilkan data yang tersimpan di section Preview Data Upload.
         $('#card-preview').show();
-        $('#table-preview-so tbody').html('<tr><td colspan="15" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
+        $('#table-preview-so tbody').html('<tr><td colspan="12" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
         $('#summary-exfty-date').text('-');
 
         $.ajax({
@@ -784,86 +1009,78 @@
                 if ($.fn.DataTable.isDataTable('#table-preview-so')) {
                     $('#table-preview-so').DataTable().destroy();
                 }
+                // Satu baris = satu color + size (temp_so_detail per id), urut sesuai upload.
+                previewUploadRows = res.rows || [];
+                soDupRows = soDuplicateRows();
+                soSizes = res.available_sizes || [];
 
-                // Header: 8 kolom non-size (Style, Desc, PO, Market, Ex Fty, FOB, Product Set, Color) + size + Total
-                let headerHtml = `<tr>
+                $('#table-preview-so thead').html(`<tr>
+                    <th class="preview-col-no">No</th>
                     <th class="preview-col-style">Style</th>
                     <th class="preview-col-desc">Description</th>
-                    <th class="preview-col-po">Purchase Order</th>
+                    <th class="preview-col-po">No PO</th>
                     <th class="preview-col-market">Market</th>
+                    <th class="preview-col-destination">Destination</th>
                     <th class="preview-col-exfty">Ex Fty</th>
                     <th class="preview-col-fob">FOB</th>
                     <th class="preview-col-set">Product Set</th>
-                    <th class="preview-col-color">Color</th>`;
-
-                res.available_sizes.forEach(size => {
-                    headerHtml += `<th class="preview-col-size">${size}</th>`;
-                });
-
-                headerHtml += `<th class="preview-col-total">Total</th>
-                </tr>`;
-
-                $('#table-preview-so thead').html(headerHtml);
+                    <th class="preview-col-color">Color</th>
+                    <th class="preview-col-size">Size</th>
+                    <th class="preview-col-qty">Qty</th>
+                    <th class="preview-col-action">Action</th>
+                </tr>`);
 
                 let bodyHtml = '';
-                if (res.data && res.data.length > 0) {
-                    const exFactoryDate = res.data.find(row => row.ex_fty);
+                if (previewUploadRows.length > 0) {
+                    const exFactoryDate = previewUploadRows.find(row => row.ex_fty);
                     $('#summary-exfty-date').text(formatSummaryDate(exFactoryDate ? exFactoryDate.ex_fty : null));
-                    res.data.forEach(row => {
-                        let colorErrorClass = row.color_error ? 'bg-danger text-white font-weight-bold' : '';
-
-                        bodyHtml += `<tr>
-                            <td class="preview-col-style" title="${row.style || '-'}">${row.style || '-'}</td>
-                            <td class="preview-col-desc" title="${row.desc || '-'}">${row.desc || '-'}</td>
-                            <td class="preview-col-po" title="${row.po || '-'}">${row.po || '-'}</td>
-                            <td class="preview-col-market" title="${row.market || '-'}">${row.market || '-'}</td>
-                            <td class="preview-col-exfty">${row.ex_fty || '-'}</td>
-                            <td class="preview-col-fob text-right">${row.fob || '-'}</td>
-                            <td class="preview-col-set" title="${row.product_set || '-'}">${row.product_set || '-'}</td>
-                            <td class="preview-col-color ${colorErrorClass}" title="${row.color || '-'}">${row.color || '-'}</td>`;
-
-                        let rowTotal = 0;
-                        res.available_sizes.forEach(size => {
-                            let val = row[size];
-                            let qty = val ? Number(val).toLocaleString('id-ID') : '-';
-                            let isError = (row.errors && row.errors[size]) ? 'bg-danger text-white font-weight-bold' : '';
-                            bodyHtml += `<td class="preview-col-size preview-col-qty ${isError}">${qty}</td>`;
-
-                            if (val && !isNaN(val)) {
-                                rowTotal += Number(val);
-                            }
-                        });
-                        let rowTotalFormatted = rowTotal > 0 ? rowTotal.toLocaleString('id-ID') : '-';
-                        bodyHtml += `<td class="preview-col-total fw-bold">${rowTotalFormatted}</td></tr>`;
+                    previewUploadRows.forEach((row, rowIndex) => {
+                        bodyHtml += `<tr data-id="${row.id}">
+                            <td class="preview-col-no so-cell-auto">${rowIndex + 1}</td>
+                            ${soCell(rowIndex, 'style', 'preview-col-style')}
+                            ${soCell(rowIndex, 'desc', 'preview-col-desc')}
+                            ${soCell(rowIndex, 'po', 'preview-col-po')}
+                            ${soCell(rowIndex, 'market', 'preview-col-market')}
+                            ${soCell(rowIndex, 'destination', 'preview-col-destination')}
+                            ${soCell(rowIndex, 'ex_fty', 'preview-col-exfty')}
+                            ${soCell(rowIndex, 'fob', 'preview-col-fob text-right')}
+                            ${soCell(rowIndex, 'product_set', 'preview-col-set')}
+                            ${soCell(rowIndex, 'color', 'preview-col-color')}
+                            ${soCell(rowIndex, 'size', 'preview-col-size' + (row.error ? ' so-cell-error' : ''))}
+                            ${soCell(rowIndex, 'qty', 'preview-col-qty text-right')}
+                            <td class="preview-col-action">
+                                <button type="button" class="preview-row-delete" data-row-index="${rowIndex}" aria-label="Hapus baris" title="Hapus baris">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td></tr>`;
                     });
                 } else {
-                    let colCount = 9 + (res.available_sizes ? res.available_sizes.length : 0);
-                    bodyHtml = `<tr><td colspan="${colCount}" class="text-center">Belum ada data di-upload.</td></tr>`;
+                    bodyHtml = '<tr><td colspan="13" class="text-center">Belum ada data di-upload.</td></tr>';
                 }
                 $('#table-preview-so tbody').html(bodyHtml);
 
                 if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
-
-                let footerHtml = `<tr>
-                    <th class="text-left fw-bold">TOTAL</th>
-                    <th></th><th></th><th></th><th></th><th></th><th></th><th></th>`;
-
-                res.available_sizes.forEach(size => {
-                    footerHtml += `<th class="preview-col-size preview-col-qty fw-bold">0</th>`;
-                });
-
-                footerHtml += `<th class="preview-col-total fw-bold">0</th>
-                </tr>`;
-
-                $('#table-preview-so tfoot').html(footerHtml);
+                const grandTotal = previewUploadRows.reduce((sum, row) => sum + (Number(row.qty) || 0), 0);
+                $('#table-preview-so tfoot').html(`<tr>
+                    <th></th>
+                    <th class="text-left fw-bold">GRAND TOTAL</th>
+                    <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
+                    <th class="preview-col-qty fw-bold">${grandTotal.toLocaleString('id-ID')}</th>
+                    <th class="preview-col-action"></th>
+                </tr>`);
 
                 $('#total_qty').val(res.total_qty || 0);
                 if (Number(res.total_qty) > 0) { $('#so-file-dropzone').removeClass('is-invalid'); refreshSoErrorAlert(); }
                 $('#jumlah_po').val(res.jumlah_po || 0);
+                soUploadedPos = [...new Set(previewUploadRows.map(row => row.po).filter(Boolean))];
 
-                if (res.data && res.data.length > 0) {
+                if (previewUploadRows.length > 0) {
                     previewTable = $('#table-preview-so').DataTable({
-                        "paging": false,
+                        "paging": true,
+                        "pageLength": 10,
+                        "lengthMenu": [5, 10, 25, 50, 100],
+                        "dom": 't<"so-preview-pager"lp>',
+                        "language": { "lengthMenu": "Item Per Page _MENU_", "paginate": { "previous": "‹", "next": "›" } },
                         "info": true,
                         "searching": true,
                         "ordering": false,
@@ -871,51 +1088,28 @@
                         "responsive": false,
                         "scrollX": false,
                         "columnDefs": [
-                            { targets: 0, width: '145px' },
-                            { targets: 1, width: '155px' },
-                            { targets: 2, width: '135px' },
-                            { targets: 3, width: '95px' },
-                            { targets: 4, width: '105px' },
-                            { targets: 5, width: '85px' },
-                            { targets: 6, width: '115px' },
-                            { targets: 7, width: '125px' },
+                            { targets: 0, width: '40px' },
+                            { targets: 1, width: '145px' },
+                            { targets: 2, width: '155px' },
+                            { targets: 3, width: '135px' },
+                            { targets: 4, width: '95px' },
+                            { targets: 5, width: '125px' },
+                            { targets: 6, width: '105px' },
+                            { targets: 7, width: '85px' },
+                            { targets: 8, width: '115px' },
+                            { targets: 9, width: '150px' },
+                            { targets: 10, width: '80px' },
+                            { targets: 11, width: '90px' },
                             { targets: '_all', className: 'text-center' }
                         ],
-                        "footerCallback": function (row, data, start, end, display) {
-                            let api = this.api();
-                            let intVal = function (i) {
-                                if (typeof i === 'string') {
-                                    let val = i.replace(/\./g, '');
-                                    return val === '-' ? 0 : val * 1;
-                                }
-                                return typeof i === 'number' ? i : 0;
-                            };
-
-                            // Kolom non-size = 8 (Style, Desc, PO, Market, Ex Fty, FOB, Product Set, Color)
-                            let startColIndex = 8;
-                            let numSizes = res.available_sizes.length;
-                            for (let i = 0; i < numSizes; i++) {
-                                let colIndex = startColIndex + i;
-                                let colData = api.column(colIndex, { search: 'applied' }).data();
-                                let colTotal = colData.length
-                                    ? colData.toArray().reduce((sum, v) => sum + intVal(v), 0)
-                                    : 0;
-                                $(api.column(colIndex).footer()).html(colTotal.toLocaleString('id-ID'));
-                            }
-
-                            let grandTotalColIndex = startColIndex + numSizes;
-                            let gtData = api.column(grandTotalColIndex, { search: 'applied' }).data();
-                            let grandTotalValue = gtData.length
-                                ? gtData.toArray().reduce((sum, v) => sum + intVal(v), 0)
-                                : 0;
-                            $(api.column(grandTotalColIndex).footer()).html(grandTotalValue.toLocaleString('id-ID'));
-                        },
                         "drawCallback": function(settings) {
                             let api = this.api();
                             setTimeout(function() { api.columns.adjust(); }, 10);
                         }
                     });
                 }
+
+                soAfterRender();
 
                 let btnSubmit = $('#form-create-so button[type="submit"]');
 
@@ -943,10 +1137,384 @@
                 }
             },
             error: function(xhr) {
-                $('#table-preview-so tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
+                $('#table-preview-so tbody').html('<tr><td colspan="11" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
             }
         });
     }
+
+    $(document).on('click', '.preview-row-delete', function() {
+        const row = previewUploadRows[Number($(this).attr('data-row-index'))];
+        if (!row) return;
+        const label = [row.color, row.size].filter(Boolean).join(' / ') || 'baris baru';
+
+        Swal.fire({
+            icon: 'warning',
+            title: 'Hapus baris?',
+            text: label + ' (PO ' + (row.po || '-') + ') akan dihapus dari data upload sementara.',
+            showCancelButton: true,
+            confirmButtonText: 'Hapus',
+            cancelButtonText: 'Batal'
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+            $.ajax({
+                url: "{{ route('so-delete-temp-rows') }}",
+                type: 'POST',
+                data: { _token: '{{ csrf_token() }}', id_costing: $('#id_costing').val(), ids: [row.id] },
+                success: function() { loadPreviewUpload(); },
+                error: function(xhr) {
+                    Swal.fire('Gagal', xhr.responseJSON?.message || 'Baris gagal dihapus.', 'error');
+                }
+            });
+        });
+    });
+
+    // Tombol Add: baris baru menyalin PO/Style/Market/dll dari baris yang dipilih (atau baris terakhir);
+    // Color, Size & Qty diisi di tabel (merah sampai lengkap, Save diblok).
+    $(document).on('click', '#so-add-row', function() {
+        const source = soActive ? previewUploadRows[soActive.row] : null;
+        const $button = $(this).prop('disabled', true);
+        $.ajax({
+            url: "{{ route('so-add-temp-row') }}",
+            type: 'POST',
+            data: { _token: '{{ csrf_token() }}', id_costing: $('#id_costing').val(), source_id: source ? source.id : null }
+        }).done(function(res) {
+            soReloadState = { page: 'last', focusId: res.id, focusField: 'color', move: null, pasted: [], active: null };
+            loadPreviewUpload();
+        }).fail(function(xhr) {
+            Swal.fire('Gagal', xhr.responseJSON?.message || 'Baris gagal ditambahkan.', 'error');
+        }).always(function() {
+            $button.prop('disabled', false);
+        });
+    });
+
+
+    // ===== Sales Order Detail: edit ala Excel (mirip grid Costing/BOM) =====
+    // Klik sel = pilih; ketik / Enter / F2 = edit; panah, Tab, Enter = pindah; Delete = kosongkan; Ctrl+V = paste (biru sebentar).
+    // Teks tidak boleh berspasi di awal/akhir atau berspasi ganda; qty angka bulat > 0; color harus ada di master. Sel salah merah dan Save diblok.
+    const SO_TEXT_FIELDS = ['desc', 'po', 'market', 'destination', 'ex_fty', 'product_set', 'color', 'size'];
+    const SO_REQUIRED_FIELDS = ['po', 'color', 'size'];
+    const SO_MASTER_COLORS = new Set(@json(collect($master_colors ?? [])->map(fn ($color) => strtoupper((string) $color->name))->values()));
+    const SO_MASTER_SIZES = new Set(@json(collect($master_sizes ?? [])->map(fn ($size) => strtoupper(trim((string) $size->size)))->values()));
+    let soSizes = [];
+    let soInvalidEdits = {};      // nilai salah yang belum dikirim ke server (tetap merah sampai diperbaiki)
+    let soActive = null;          // { row, field }
+    let soReloadState = null;     // posisi halaman, sel aktif & sel hasil paste setelah tabel dimuat ulang
+
+    function soEsc(value) { return $('<div>').text(value === null || value === undefined ? '' : String(value)).html(); }
+    // Urutan kolom yang bisa diedit (untuk paste dari Excel): satu baris = satu color + size.
+    function soFieldOrder() { return ['desc', 'po', 'market', 'destination', 'ex_fty', 'fob', 'product_set', 'color', 'size', 'qty']; }
+    function soRowSig(index) {
+        const row = previewUploadRows[index] || {};
+        return 'id:' + row.id;
+    }
+    function soCellKey(index, field) { return soRowSig(index) + '|' + field; }
+
+    function soRawValue(index, field) {
+        const row = previewUploadRows[index] || {};
+        if (field === 'qty') return Number(row.qty) > 0 ? String(row.qty) : '';
+        if (field === 'product_set') return !row.product_set || row.product_set === '-' ? '' : String(row.product_set);
+        const value = row[field];
+        return value === null || value === undefined ? '' : String(value);
+    }
+    function soCurrentValue(index, field) {
+        const key = soCellKey(index, field);
+        return Object.prototype.hasOwnProperty.call(soInvalidEdits, key) ? soInvalidEdits[key] : soRawValue(index, field);
+    }
+
+    // Angka format Indonesia (titik ribuan, koma desimal); "1.500,25" -> 1500.25, "0.5" -> 0.5, "1.500" -> 1500.
+    function soParseNumber(value) {
+        let text = String(value === null || value === undefined ? '' : value).trim().replace(/\s/g, '');
+        if (text === '') return NaN;
+        const lastDot = text.lastIndexOf('.'), lastComma = text.lastIndexOf(',');
+        if (lastDot > -1 && lastComma > -1) {
+            text = lastComma > lastDot ? text.replace(/\./g, '').replace(',', '.') : text.replace(/,/g, '');
+        } else if (lastComma > -1) {
+            text = text.replace(/\./g, '').replace(',', '.');
+        } else if (/^-?\d{1,3}(\.\d{3})+$/.test(text)) {
+            text = text.replace(/\./g, '');
+        }
+        return /^-?\d*\.?\d+$/.test(text) ? Number(text) : NaN;
+    }
+
+    function soCellError(field, value) {
+        value = value === null || value === undefined ? '' : String(value);
+        if (SO_TEXT_FIELDS.includes(field)) {
+            if (value !== value.trim() || /\s{2,}/.test(value)) return 'Tidak boleh ada spasi di awal/akhir atau spasi ganda.';
+            if (SO_REQUIRED_FIELDS.includes(field) && value === '') return 'Wajib diisi.';
+            if (field === 'color' && !SO_MASTER_COLORS.has(value.toUpperCase())) return 'Color tidak ada di master.';
+            if (field === 'size' && !SO_MASTER_SIZES.has(value.toUpperCase())) return 'Size tidak ada di master.';
+            return null;
+        }
+        if (field === 'fob') return value === '' || Number.isFinite(soParseNumber(value)) ? null : 'FOB harus angka.';
+        if (field === 'qty') {
+            const qty = value.replace(/[.,]/g, '');
+            if (value === '') return 'Wajib diisi.';
+            return /^\d+$/.test(qty) && Number(qty) > 0 ? null : 'Qty harus angka bulat lebih dari 0.';
+        }
+        return null;
+    }
+
+    // Baris yang sama persis dengan baris lain: PO + Market + Destination + Color + Size (dan Style / Product Set).
+    // Beda PO, Market atau Destination -> Color/Size sama boleh. Sel Color & Size baris dobel merah, Save diblok.
+    const SO_DUPLICATE_MSG = 'Color + Size sama persis dengan baris lain (PO, Market, Destination sama).';
+    let soDupRows = new Set();
+    function soDuplicateRows() {
+        const groups = {};
+        previewUploadRows.forEach((row, index) => {
+            const color = soCurrentValue(index, 'color').toUpperCase(), size = soCurrentValue(index, 'size').toUpperCase();
+            if (!color || !size) return;
+            const key = [row.style || '', soCurrentValue(index, 'po'), soCurrentValue(index, 'market'), soCurrentValue(index, 'destination'),
+                soCurrentValue(index, 'product_set'), color, size].join('\u0001');
+            (groups[key] = groups[key] || []).push(index);
+        });
+        const rows = new Set();
+        Object.values(groups).forEach(list => { if (list.length > 1) list.forEach(index => rows.add(index)); });
+        return rows;
+    }
+
+    function soCountErrors() {
+        let count = 0;
+        previewUploadRows.forEach((row, index) => {
+            soFieldOrder().forEach(field => { if (soCellError(field, soCurrentValue(index, field))) count++; });
+        });
+        return count + soDuplicateRows().size * 2;   // Color + Size per baris dobel
+    }
+
+    // HTML satu sel yang bisa diedit (dipakai saat render tabel).
+    function soCell(index, field, className) {
+        const value = soCurrentValue(index, field);
+        if (field === 'style') return `<td class="${className} so-cell-auto" title="${soEsc(value)}">${soEsc(value || '-')}</td>`;
+        const error = soCellError(field, value) || ((field === 'color' || field === 'size') && soDupRows.has(index) ? SO_DUPLICATE_MSG : null);
+        let shown = value === '' ? '-' : value;
+        if (field === 'fob' && Number.isFinite(soParseNumber(value))) shown = soParseNumber(value).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+        if (field === 'qty' && /^\d+$/.test(value)) shown = Number(value).toLocaleString('id-ID');
+        return `<td class="${className} so-cell${error ? ' so-cell-error' : ''}" tabindex="-1" data-row="${index}" data-field="${soEsc(field)}" title="${soEsc(error || value)}">${soEsc(shown)}</td>`;
+    }
+
+    function soTd(index, field) {
+        return $('#table-preview-so tbody td.so-cell').filter(function () {
+            return Number(this.dataset.row) === index && this.dataset.field === field;
+        }).first();
+    }
+    function soSelect($td) {
+        if (!$td || !$td.length) return;
+        $('#table-preview-so td.so-cell-active').removeClass('so-cell-active');
+        $('#table-preview-so .so-fill-handle').remove();
+        $td.addClass('so-cell-active').trigger('focus');
+        $td.append('<span class="so-fill-handle" title="Tarik ke atas/bawah untuk copy nilai"></span>');
+        soActive = { row: Number($td.attr('data-row')), field: $td.attr('data-field') };
+    }
+
+    // Sel-sel satu kolom yang tampil (urutan di layar), untuk fill handle & Ctrl+D.
+    function soColumnTds(field) {
+        return $('#table-preview-so tbody td.so-cell').filter(function () { return this.dataset.field === field; });
+    }
+    // Copy nilai sel sumber ke sel-sel target; disimpan seperti paste (biru, sel salah tetap merah).
+    // targets: [{ row, field }] — sel-sel satu kolom (atas/bawah).
+    function soFillCells(sourceRow, sourceField, targets) {
+        if (!targets.length) return;
+        const value = soCurrentValue(sourceRow, sourceField);
+        soCommit(targets.map(target => ({ row: target.row, field: target.field, value: value })), { pasted: true });
+    }
+    function soMove($td, direction) {
+        let $next = $();
+        if (direction === 'left') $next = $td.prevAll('td.so-cell').first();
+        if (direction === 'right') $next = $td.nextAll('td.so-cell').first();
+        if (direction === 'up' || direction === 'down') {
+            const $tr = direction === 'up' ? $td.closest('tr').prev('tr') : $td.closest('tr').next('tr');
+            $next = $tr.children('td.so-cell').filter(function () { return this.dataset.field === $td.attr('data-field'); }).first();
+        }
+        if ($next.length) soSelect($next);
+    }
+
+    function soEdit($td, firstChar) {
+        if (!$td.length || $td.hasClass('so-cell-editing')) return;
+        const index = Number($td.attr('data-row'));
+        const field = $td.attr('data-field');
+        const original = soCurrentValue(index, field);
+        const $input = $('<input type="text" class="so-cell-input" autocomplete="off">').val(firstChar !== undefined ? firstChar : original);
+        $td.addClass('so-cell-editing').empty().append($input);
+        $input.trigger('focus');
+        if (firstChar === undefined) $input[0].select();
+        let done = false;
+        const finish = function (save, move) {
+            if (done) return;
+            done = true;
+            const value = $input.val();
+            $td.removeClass('so-cell-editing');
+            if (save && value !== original) {
+                soCommit([{ row: index, field: field, value: value }], { move: move });
+            } else {
+                $td.replaceWith(soCell(index, field, $td.attr('class').replace(/\s*so-cell(-active|-error|-pasted)?\b/g, '').trim()));
+                const $fresh = soTd(index, field);
+                soSelect($fresh);
+                if (move) soMove($fresh, move);
+            }
+        };
+        $input.on('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); finish(true, 'down'); }
+            else if (e.key === 'Tab') { e.preventDefault(); finish(true, e.shiftKey ? 'left' : 'right'); }
+            else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+            e.stopPropagation();
+        }).on('blur', function () { finish(true); });
+    }
+
+    // Simpan perubahan: yang salah disimpan lokal (merah), yang benar dikirim ke temp_so_detail lalu tabel dimuat ulang.
+    function soCommit(changes, options) {
+        options = options || {};
+        const toSend = [];
+        const sentChanges = [];   // pasangan toSend[i] -> changes, untuk menandai error dari server
+        changes.forEach(change => {
+            const key = soCellKey(change.row, change.field);
+            if (soCellError(change.field, change.value)) {
+                soInvalidEdits[key] = change.value;
+                return;
+            }
+            delete soInvalidEdits[key];
+            // FOB dikirim sebagai angka mesin (1500.25), tampilannya tetap format Indonesia.
+            if (change.field === 'fob' && change.value !== '') change = Object.assign({}, change, { value: String(soParseNumber(change.value)) });
+            if (change.value !== soRawValue(change.row, change.field)) {
+                const row = previewUploadRows[change.row];
+                sentChanges.push(change);
+                toSend.push({ id: row.id, field: change.field, value: change.value });
+            }
+        });
+
+        const active = soActive;
+        soReloadState = {
+            page: previewTable ? previewTable.page() : 0,
+            active: active,
+            move: options.move || null,
+            pasted: options.pasted ? changes.filter(change => !soCellError(change.field, change.value)).map(change => ({ row: change.row, field: change.field })) : []
+        };
+        if (!toSend.length) {
+            loadPreviewUpload();
+            return;
+        }
+        $.ajax({
+            url: "{{ route('so-update-temp-row-cells') }}",
+            type: 'POST',
+            data: { _token: '{{ csrf_token() }}', id_costing: $('#id_costing').val(), changes: toSend }
+        }).done(function (res) {
+            (res.errors || []).forEach(error => {
+                const change = sentChanges[error.index];
+                if (change) soInvalidEdits[soCellKey(change.row, change.field)] = change.value;
+            });
+            if (res.errors && res.errors.length) {
+                Swal.fire({ icon: 'warning', title: 'Sebagian sel tidak disimpan', html: res.errors.map(error => soEsc(error.message)).join('<br>') });
+            }
+        }).fail(function (xhr) {
+            Swal.fire('Gagal!', xhr.responseJSON?.message || 'Perubahan gagal disimpan.', 'error');
+        }).always(function () {
+            loadPreviewUpload();
+        });
+    }
+
+    // Setelah tabel dimuat ulang: kembalikan halaman, sel aktif, dan tandai sel hasil paste (biru 4 detik).
+    function soAfterRender() {
+        const state = soReloadState;
+        soReloadState = null;
+        if (!state) return;
+        if (previewTable && state.page === 'last') previewTable.page('last').draw(false);
+        else if (previewTable && state.page) previewTable.page(Math.min(state.page, previewTable.page.info().pages - 1)).draw(false);
+        if (state.focusId) {
+            const index = previewUploadRows.findIndex(row => row.id === state.focusId);
+            if (index !== -1) state.active = { row: index, field: state.focusField || 'color' };
+        }
+        state.pasted.forEach(cell => soTd(cell.row, cell.field).addClass('so-cell-pasted'));
+        if (state.pasted.length) setTimeout(() => $('#table-preview-so td.so-cell-pasted').removeClass('so-cell-pasted'), 4000);
+        if (state.active) {
+            const $td = soTd(state.active.row, state.active.field);
+            soSelect($td);
+            if (state.move) soMove($td, state.move);
+        }
+    }
+
+    // Fill handle: tekan kotak biru, tarik ke atas/bawah di kolom yang sama (preview kuning), lepas = copy nilai.
+    let soFill = null;   // { row, field, targets: [{ row, field }] }
+    $(document).on('mousedown', '#table-preview-so .so-fill-handle', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!soActive || e.which !== 1) return;
+        soFill = { row: soActive.row, field: soActive.field, targets: [] };
+        $('body').addClass('so-filling');
+    });
+    $(document).on('mouseenter', '#table-preview-so tbody td.so-cell', function () {
+        if (!soFill) return;
+        const $source = soTd(soFill.row, soFill.field);
+        let $line = $(), from = -1, to = -1;
+        if (this.dataset.field === soFill.field) $line = soColumnTds(soFill.field);
+        $('#table-preview-so td.so-fill-preview').removeClass('so-fill-preview');
+        soFill.targets = [];
+        if (!$line.length) return;
+        from = $line.index($source);
+        to = $line.index(this);
+        if (from === -1 || to === from) return;
+        const step = to > from ? 1 : -1;
+        for (let i = from + step; i !== to + step; i += step) {
+            const $cell = $line.eq(i).addClass('so-fill-preview');
+            soFill.targets.push({ row: Number($cell.attr('data-row')), field: $cell.attr('data-field') });
+        }
+    });
+    $(document).on('mouseup', function () {
+        if (!soFill) return;
+        const fill = soFill;
+        soFill = null;
+        $('body').removeClass('so-filling');
+        $('#table-preview-so td.so-fill-preview').removeClass('so-fill-preview');
+        soFillCells(fill.row, fill.field, fill.targets);
+    });
+
+    $(document).on('mousedown', '#table-preview-so td.so-cell', function () {
+        if (!$(this).hasClass('so-cell-editing')) soSelect($(this));
+    });
+    $(document).on('dblclick', '#table-preview-so td.so-cell', function () { soEdit($(this)); });
+    $(document).on('keydown', '#table-preview-so td.so-cell', function (e) {
+        const $td = $(this);
+        if ($td.hasClass('so-cell-editing')) return;
+        const keys = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
+        if (keys[e.key]) { e.preventDefault(); soMove($td, keys[e.key]); return; }
+        if (e.key === 'Tab') { e.preventDefault(); soMove($td, e.shiftKey ? 'left' : 'right'); return; }
+        if (e.key === 'Enter' || e.key === 'F2') { e.preventDefault(); soEdit($td); return; }
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+            e.preventDefault();
+            soCommit([{ row: Number($td.attr('data-row')), field: $td.attr('data-field'), value: '' }]);
+            return;
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+            if (navigator.clipboard) navigator.clipboard.writeText(soCurrentValue(Number($td.attr('data-row')), $td.attr('data-field')));
+            return;
+        }
+        // Ctrl+D: copy nilai dari sel di atasnya (seperti Excel).
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+            e.preventDefault();
+            const $column = soColumnTds($td.attr('data-field'));
+            const $above = $column.eq($column.index($td) - 1);
+            if ($column.index($td) > 0 && $above.length) soFillCells(Number($above.attr('data-row')), $td.attr('data-field'), [{ row: Number($td.attr('data-row')), field: $td.attr('data-field') }]);
+            return;
+        }
+        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); soEdit($td, e.key); }
+    });
+    // Paste dari Excel (tab = kolom, baris baru = baris) mulai dari sel aktif.
+    $(document).on('paste', '#table-preview-so td.so-cell', function (e) {
+        if ($(this).hasClass('so-cell-editing') || !soActive) return;
+        const clipboard = e.originalEvent.clipboardData || window.clipboardData;
+        const text = clipboard ? clipboard.getData('text') : '';
+        if (!text) return;
+        e.preventDefault();
+        const lines = text.replace(/\r/g, '').replace(/\n+$/, '').split('\n');
+        const order = soFieldOrder();
+        const startColumn = order.indexOf(soActive.field);
+        const changes = [];
+        lines.forEach((line, rowOffset) => {
+            line.split('\t').forEach((value, columnOffset) => {
+                const row = soActive.row + rowOffset;
+                const field = order[startColumn + columnOffset];
+                if (row < previewUploadRows.length && field) changes.push({ row: row, field: field, value: value });
+            });
+        });
+        if (changes.length) soCommit(changes, { pasted: true });
+    });
 
     @if ($viewOnly ?? false)
     // Detail SO: isi form dari data SO yang tersimpan lalu kunci semua isian.
@@ -983,12 +1551,13 @@
             <td>${soDetailText(row.description)}</td>
             <td>${soDetailText(row.po)}</td>
             <td>${soDetailText(row.market)}</td>
+            <td>${soDetailText(row.destination)}</td>
             <td>${soDetailText(row.ex_fty)}</td>
             <td>${soDetailText(row.color)}</td>
             <td>${soDetailText(row.size)}</td>
             <td class="text-right">${Number(row.qty || 0).toLocaleString('id-ID')}</td>
         </tr>`).join('');
-        $('#so-detail-body').html(body || '<tr><td colspan="10" class="text-center">Tidak ada detail SO.</td></tr>');
+        $('#so-detail-body').html(body || '<tr><td colspan="11" class="text-center">Tidak ada detail SO.</td></tr>');
         $('#so-detail-check-all').prop('checked', false);
         $('#so-detail-page-count').text('Of ' + pageCount);
 
@@ -1058,16 +1627,17 @@
                 fresh = true;
             }
             $stage.data({ cfGoTo: goTo, cfActive: active, cfUrls: urls });
-            const gap = stage.clientWidth * 0.36;
+            // Jarak tengah gambar aktif ke tengah gambar samping 195px (182/2 + celah 59 + 90/2); menyempit di layar kecil.
+            const gap = Math.min(195, Math.max(0, stage.clientWidth / 2 - 49));
             $items.each(function (index) {
                 const offset = index - active, far = Math.abs(offset) > 1;
                 const x = Math.max(-2, Math.min(2, offset)) * gap;
-                const scale = offset === 0 ? 1 : (far ? 0.4 : 0.55);
+                const scale = far ? 0.8 : 1;   // samping pakai ukuran sendiri (90x192), bukan diskala
                 if (fresh) this.style.transition = 'none'; // posisi awal tanpa animasi
                 this.style.transform = `translate(-50%, -50%) translateX(${x}px) scale(${scale})`;
                 this.style.zIndex = String(10 - Math.min(Math.abs(offset), 9));
                 this.style.opacity = offset === 0 ? '1' : '0.85';
-                $(this).toggleClass('is-active', offset === 0).toggleClass('is-far', far);
+                $(this).toggleClass('is-active', offset === 0).toggleClass('is-side', offset !== 0).toggleClass('is-far', far);
             });
             if (fresh) { void stage.offsetWidth; $items.css('transition', ''); }
             // Hitung ulang posisi saat ukuran panggung berubah (resize, atau bagian yang tadinya tersembunyi dibuka).
@@ -1105,6 +1675,8 @@
                 $('#image_costing_path').val('');
                 paintCoverflow($preview.closest('.mkt-cf-stage'), [], 0, $.noop);
                 paintCoverflowDots($('#so-image-counter'), 0, 0, $.noop);
+                $('#so-image-thumbs').empty();
+                $('#so-image-caption').text('');
                 return;
             }
 
@@ -1114,6 +1686,20 @@
             const goTo = index => { selectedCostingImage = index; renderCostingImage(); };
             paintCoverflow($preview.closest('.mkt-cf-stage'), costingImages, selectedCostingImage, goTo);
             paintCoverflowDots($('#so-image-counter'), costingImages.length, selectedCostingImage, goTo);
+            paintCostingThumbs(goTo);
+        }
+
+        function paintCostingThumbs(goTo) {
+            const $thumbs = $('#so-image-thumbs').empty();
+            $('#so-image-caption').text(costingImages.length ? `Image ${selectedCostingImage + 1} of ${costingImages.length}` : '');
+            if (costingImages.length < 2) return;
+            costingImages.forEach((url, index) => {
+                $('<button type="button">').toggleClass('is-active', index === selectedCostingImage)
+                    .attr('aria-label', `Gambar ${index + 1}`)
+                    .append($('<img alt="">').attr('src', url))
+                    .on('click', () => goTo(index))
+                    .appendTo($thumbs);
+            });
         }
 
         $('.so-image-nav[aria-label="Previous image"]').on('click', function() {
@@ -1264,6 +1850,7 @@
                     if (res.status === 200) {
                         soFileUploaded = true;
                         uploadButton.removeClass('mkt-btn--navy').addClass('mkt-btn--green').text('Uploaded');
+                        $('#so-file-dropzone').removeClass('is-invalid');
                         Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 1500, showConfirmButton: false });
                         loadPreviewUpload();
                     }
@@ -1288,6 +1875,14 @@
         $('#form-create-so').on('submit', function(e) {
             e.preventDefault();
 
+            // Sel merah di Sales Order Detail (spasi ganda/di awal-akhir, qty bukan angka, color tidak ada) -> blok.
+            const gridErrors = soCountErrors();
+            if (gridErrors) {
+                showMktErrorAlert('#so-error-alert', gridErrors, gridErrors + (gridErrors === 1 ? ' cell' : ' cells')
+                    + ' di Sales Order Detail belum valid (spasi ganda/di awal-akhir, Color/Size/Qty kosong atau salah, atau Color + Size dobel untuk PO, Market & Destination yang sama). Perbaiki sel merah, lalu save lagi.');
+                return;
+            }
+
             let empty_input = [];   // data dari Costing (tidak tampil sebagai isian)
             let visibleEmpty = 0;   // isian di form yang kosong -> ditandai merah
 
@@ -1306,7 +1901,6 @@
             checkEmpty('#id_product_item', 'Product Item');
             checkEmpty('#brand', 'Brand');
             checkEmpty('#style', 'Style');
-            checkEmpty('#market', 'Market');
             checkEmpty('#marketing_order', 'Marketing Order');
             checkEmpty('#smv', 'SMV');
             checkEmpty('#id_currency', 'Currency');
@@ -1338,16 +1932,33 @@
             }
 
             let formData = new FormData(this);
-            Swal.fire({
-                title: 'Simpan Sales Order?', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Simpan', cancelButtonText: 'Batal'
-            }).then((result) => {
+
+            // PO System harus sesuai isi file; kalau tidak, Save diblok sampai pilihannya benar.
+            const poCount = soUploadedPos.length || Number($('#jumlah_po').val()) || 0;
+            const poType = $('#po_type').val();
+            const poList = soUploadedPos.map(po => $('<div>').text(po).html()).join(', ');
+            let poWarning = null;
+            if (poType === 'single' && poCount > 1) {
+                poWarning = `PO System <b>1 WS 1 PO</b>, tapi file berisi <b>${poCount} PO</b>${poList ? ' (' + poList + ')' : ''}.<br>Pilih <b>1 WS Beberapa PO</b> atau perbaiki file.`;
+            } else if (poType === 'multiple' && poCount === 1) {
+                poWarning = `PO System <b>1 WS Beberapa PO</b>, tapi file hanya berisi <b>1 PO</b>${poList ? ' (' + poList + ')' : ''}.<br>Pilih <b>1 WS 1 PO</b>.`;
+            }
+
+            $('#po_type').closest('.so-edit-grid .form-group').toggleClass('is-invalid', Boolean(poWarning));
+            if (poWarning) {
+                Swal.fire({ title: 'PO System tidak sesuai file', html: poWarning, icon: 'error', confirmButtonText: 'Perbaiki' });
+                return;
+            }
+
+            Swal.fire({ title: 'Simpan Sales Order?', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Simpan', cancelButtonText: 'Batal' })
+            .then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({ title: 'Sedang Proses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
                     $.ajax({
                         url: "{{ route('so-store') }}", type: "POST", data: formData, processData: false, contentType: false,
                         success: function(res) {
                             Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message })
-                            .then(() => { window.location.href = "{{ route('master-marketing-so') }}"; });
+                            .then(() => { window.location.href = "{{ route('master-costing') }}"; });
                         },
                         error: function(xhr) {
                             Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON.message || 'Error Server' });
@@ -1392,7 +2003,9 @@
                     $('#summary-ship-mode').text(data.ship_mode_name || data.ship_mode || '-');
                     $('#summary-market').text(data.market || '-');
                     $('#summary-destination').text(data.main_dest || '-');
-                    $('#summary-status').text(data.status || '-');
+                    $('#summary-shipment-type').text(data.shipment_type ? String(data.shipment_type).toUpperCase() : '-');
+                    $('#summary-marketing-order').text(data.marketing_order_name || '-');
+                    $('#summary-notes').text(data.notes || '-');
 
                     costingImages = Array.isArray(data.images) && data.images.length
                         ? data.images

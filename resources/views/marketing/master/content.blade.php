@@ -1,15 +1,13 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-form.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-form.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
     <style>
         .mc-page { padding: 0 0 28px; background: #f5f3f3; min-height: calc(100vh - 56px); color: #1e293b; }
-        .mc-crumb { padding: 10px 14px; background: #284a63; color: #cbd5e1; font-size: 12px; letter-spacing: .2px; margin-bottom: 20px; }
-        .mc-crumb b { color: #fff; font-weight: 500; }
-        .mc-back { display: inline-flex; align-items: center; gap: 8px; margin: 12px 14px; color: #1e293b; font-size: 14px; font-weight: 700; text-decoration: none !important; }
-        .mc-back i { padding: 4px 6px; border-radius: 5px; background: #a3b2c7; color: #fff; font-size: 10px; }
-        .mc-card { margin: 0 14px; padding: 18px 20px 24px; border-radius: 8px; background: #fff; box-shadow: 0 5px 12px -3px rgba(15, 23, 42, .18), 0 2px 4px rgba(15, 23, 42, .07); }
+        .mc-crumb { padding: 10px 14px; background: #284A63; color: #cbd5e1; font-size: 12px; letter-spacing: .2px; margin-bottom: 20px; }
+        .mc-crumb b { color: #fff; font-weight: 500; }        .mc-card { margin: 0 14px; padding: 18px 20px 24px; border-radius: 8px; background: #fff; box-shadow: 0 5px 12px -3px rgba(15, 23, 42, .18), 0 2px 4px rgba(15, 23, 42, .07); }
         .mc-title { margin: 0; color: #1e3a5f; font-size: 22px; font-weight: 800; }
         .mc-title i { color: #64748b; font-size: 12px; vertical-align: super; }
         .mc-subtitle { display: flex; align-items: center; gap: 6px; margin: 4px 0 16px; color: #475569; font-size: 10px; font-weight: 600; }
@@ -87,7 +85,18 @@
 
 
         @media (max-width: 991.98px) {
-            .mc-layout { grid-template-columns: 1fr; }
+            /* minmax(0,1fr): tabel lebar tidak boleh melebarkan kolom grid (cukup scroll di dalam kotaknya). */
+            .mc-layout { grid-template-columns: minmax(0, 1fr); }
+            .mc-layout > * { min-width: 0; }
+            .mc-form .select2-container { width: 100% !important; }
+        }
+        @media (max-width: 575.98px) {
+            .mc-card { margin: 0 4px; padding: 14px 12px 18px; }
+            .mc-title { font-size: 19px; }
+            .mc-search { width: 100%; }
+            .mc-form-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+            .mc-form-actions { margin-top: 18px; }
+            .mc-pager { justify-content: center; }
         }
     </style>
 @endsection

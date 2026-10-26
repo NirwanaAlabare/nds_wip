@@ -1394,10 +1394,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-so');
         Route::get('/detail/{id}', 'get_detail')->name('get-detail-so');
         Route::get('/view/{id}', 'show')->name('so-detail-page');
+        Route::get('/edit/{id}', 'editPage')->name('so-edit-page');
+        Route::post('/update-details/{id}', 'updateDetails')->name('so-update-details');
         Route::get('/get-costing-data', 'getCostingData')->name('so-get-costing-data');
         Route::post('/get-product-items', 'getProductItems')->name('get-product-items');
         Route::post('/upload-excel', 'uploadExcelSO')->name('so-upload-excel');
         Route::get('/get-temp-data', 'getTempData')->name('so-get-temp-data');
+        Route::delete('/delete-temp-preview-row', 'deleteTempPreviewRow')->name('so-delete-temp-preview-row');
+        Route::post('/update-temp-preview-cells', 'updateTempPreviewCells')->name('so-update-temp-preview-cells');
+        Route::post('/update-temp-row-cells', 'updateTempRowCells')->name('so-update-temp-row-cells');
+        Route::post('/delete-temp-rows', 'deleteTempRows')->name('so-delete-temp-rows');
+        Route::post('/add-temp-row', 'addTempRow')->name('so-add-temp-row');
         Route::post('/store', 'store')->name('so-store');
         Route::get('/get-detail-material/{id}', 'getDetailMaterialSo')->name('get-detail-material-so');
         Route::get('/export-excel/{id}', 'exportExcelSO')->name('export-excel-so');
