@@ -886,10 +886,15 @@ class SewingToolsController extends Controller
             $deleteUndoIds = [];
 
             foreach ($restoreData as $restore) {
+                $restore = $this->normalizePackingPoUndo($restore);
+
+                // Data undo lama menyimpan id packing po di output_id
+                $packingPoId = $restore->output_rft_id ? $restore->output_rft_id : $restore->output_id;
+
                 // RFT
-                if ($restore->output_rft_id && $restore->keterangan == "rft") {
+                if ($packingPoId && $restore->keterangan == "rft") {
                     array_push($rft, [
-                        "id" => $restore->output_rft_id,
+                        "id" => $packingPoId,
                         "master_plan_id" => $restore->master_plan_id,
                         "so_det_id" => $restore->so_det_id,
                         "po_id" => $restore->po_id,
@@ -908,7 +913,7 @@ class SewingToolsController extends Controller
                         array_push($gudangStok, [
                             "kode_numbering" => $restore->kode_numbering,
                             "so_det_id" => $restore->so_det_id,
-                            "packing_po_id" => $restore->output_rft_id,
+                            "packing_po_id" => $packingPoId,
                             "created_by" => $restore->created_by,
                             "created_by_username" => $restore->created_by_username,
                             "created_by_line" => $restore->created_by_line,
@@ -916,34 +921,16 @@ class SewingToolsController extends Controller
                             "updated_at" => $restore->updated_at,
                         ]);
                     }
+
+                    array_push($deleteUndoIds, $restore->undo_id);
                 }
 
-                // REJECT
+                // REJECT : dikembalikan ke output_rfts_packing_po (type reject)
                 if ($restore->output_reject_id) {
+                    array_push($reject, $this->packingPoRejectRestoreRow($restore));
 
-                    // With REJECT
-                    $currentDefect = null;
-
-                    // Create REJECT
-                    array_push($reject, [
-                        "master_plan_id" => $restore->master_plan_id,
-                        "so_det_id" => $restore->so_det_id,
-                        'defect_id' => $currentDefect ? $currentDefect->id : null,
-                        "kode_numbering" => $restore->kode_numbering,
-                        "no_cut_size" => $restore->kode_numbering,
-                        'status' => "NORMAL",
-                        'reject_status' => $currentDefect ? 'defect' : 'mati',
-                        "reject_type_id" => $restore->defect_type_id,
-                        "reject_area_id" => $restore->defect_area_id,
-                        "reject_area_x" => $restore->defect_area_x,
-                        "reject_area_y" => $restore->defect_area_y,
-                        "created_by" => $restore->created_by,
-                        "created_at" => $restore->created_at,
-                        "updated_at" => $restore->updated_at,
-                    ]);
+                    array_push($deleteUndoIds, $restore->undo_id);
                 }
-
-                array_push($deleteUndoIds, $restore->undo_id);
             }
 
             if (count($rft) > 0) {
@@ -955,7 +942,7 @@ class SewingToolsController extends Controller
             }
 
             if (count($reject) > 0) {
-                DB::connection('mysql_sb')->table('output_rejects_packing_po')->insert($reject);
+                RftPackingPo::insert($reject);
             }
 
             if (count($deleteUndoIds) > 0) {
@@ -3104,10 +3091,10 @@ class SewingToolsController extends Controller
                                 if ($department != '_packing_po') {
                                     $insertArr = ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()];
                                 } else {
-                                    $insertArr = ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()];
+                                    $insertArr = ['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'po_id' => $reject->po_id, 'output_reject_id' => $reject->id, 'rft_id' => $reject->rft_id, 'reject_id' => $reject->reject_id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'alokasi' => $reject->alokasi, 'created_by' => $reject->created_by, 'created_by_username' => $reject->created_by_username, 'created_by_line' => $reject->created_by_line, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()];
                                 }
 
-                                DB::connection("mysql_sb")->table("output_undo".$department)->insert(['master_plan_id' => $reject->master_plan_id, 'so_det_id' => $reject->so_det_id, 'output_reject_id' => $reject->id, 'kode_numbering' => $reject->kode_numbering, 'keterangan' => 'reject', 'defect_type_id' => $reject->reject_type_id, 'defect_area_id' => $reject->reject_area_id, 'defect_area_x' => $reject->reject_area_x, 'defect_area_y' => $reject->reject_area_y, 'created_by' => $reject->created_by, 'created_at' => $reject->created_at, 'updated_at' => $reject->updated_at, 'undo_by_nds' => Auth::user()->id, 'undo_at' => Carbon::now()]);
+                                DB::connection("mysql_sb")->table("output_undo".$department)->insert($insertArr);
 
                                 array_push($result, "REJECT '".$reject->kode_numbering."' -> DELETED");
                             }
@@ -5350,6 +5337,15 @@ class SewingToolsController extends Controller
             $deleteUndoIds = [];
 
             foreach ($restoreData as $restore) {
+                if ($department == "packing_po") {
+                    $restore = $this->normalizePackingPoUndo($restore);
+
+                    // Tidak ada data packing po yang bisa dikembalikan, undo jangan dihapus
+                    if (!$restore->output_rft_id && !$restore->output_reject_id) {
+                        continue;
+                    }
+                }
+
                 // RFT
                 if ($restore->output_rft_id && $restore->keterangan == "rft") {
                     if ($department == "packing_po") {
@@ -5433,10 +5429,12 @@ class SewingToolsController extends Controller
                     $currentDefect = null;
                     if ($restore->output_defect_id) {
                         // Update Defect
-                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
-                        $currentDefect->timestamps = false;
-                        $currentDefect->defect_status = 'reworked';
-                        $currentDefect->save();
+                        $currentDefect = ($department == "packing" ? DefectPacking::where("id", $restore->output_defect_id)->first() : Defect::where("id", $restore->output_defect_id)->first());
+                        if ($currentDefect) {
+                            $currentDefect->timestamps = false;
+                            $currentDefect->defect_status = 'reworked';
+                            $currentDefect->save();
+                        }
                     }
 
                     // No Defect
@@ -5543,11 +5541,19 @@ class SewingToolsController extends Controller
                 // REJECT
                 if ($restore->output_reject_id) {
 
+                    // Packing PO : reject dikembalikan ke output_rfts_packing_po (type reject), bukan ke output_rejects (endline)
+                    if ($department == "packing_po") {
+                        array_push($reject, $this->packingPoRejectRestoreRow($restore));
+                        array_push($deleteUndoIds, $restore->undo_id);
+
+                        continue;
+                    }
+
                     // With REJECT
                     $currentDefect = null;
                     if ($restore->output_defect_id) {
                         // Update REJECT
-                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
+                        $currentDefect = ($department == "packing" ? DefectPacking::where("id", $restore->output_defect_id)->first() : Defect::where("id", $restore->output_defect_id)->first());
 
                         // No REJECT
                         if (!$currentDefect) {
@@ -5643,7 +5649,9 @@ class SewingToolsController extends Controller
             }
 
             if (count($reject) > 0) {
-                if ($department == "packing") {
+                if ($department == "packing_po") {
+                    RftPackingPo::insert($reject);
+                } else if ($department == "packing") {
                     RejectPacking::insert($reject);
                 } else {
                     Reject::insert($reject);
@@ -5655,7 +5663,9 @@ class SewingToolsController extends Controller
             // }
 
             if (count($deleteUndoIds) > 0) {
-                if ($department == "packing") {
+                if ($department == "packing_po") {
+                    UndoPackingPo::whereIn("id", $deleteUndoIds)->delete();
+                } else if ($department == "packing") {
                     UndoPacking::whereIn("id", $deleteUndoIds)->delete();
                 } else {
                     Undo::whereIn("id", $deleteUndoIds)->delete();
@@ -5799,6 +5809,67 @@ class SewingToolsController extends Controller
         return $excel->download($filename);
     }
 
+    // Undo lama dari modify packing po : keterangan berisi status & id packing po selalu di output_rft_id
+    private function normalizePackingPoUndo($restore)
+    {
+        if ($restore->output_rft_id && !in_array($restore->keterangan, ["rft", "reject"])) {
+            if ($restore->reject_id || in_array($restore->keterangan, ["mati", "defect"])) {
+                $restore->restore_status = $restore->keterangan;
+                $restore->output_reject_id = $restore->output_rft_id;
+                $restore->output_rft_id = null;
+                $restore->keterangan = "reject";
+            } else {
+                $restore->keterangan = "rft";
+            }
+        }
+
+        return $restore;
+    }
+
+    // Susun ulang baris reject output_rfts_packing_po dari data undo packing po
+    private function packingPoRejectRestoreRow($restore)
+    {
+        // Department & status tidak tersimpan di undo, ambil dari reject asalnya (packing / qc)
+        $sourceReject = null;
+        $rejectDepartment = "qc_fns_pck_return";
+
+        foreach (["packing" => RejectPacking::class, "qc" => Reject::class] as $sourceDepartment => $sourceModel) {
+            $sourceQuery = $sourceModel::where("kode_numbering", $restore->kode_numbering);
+
+            if ($restore->reject_id) {
+                $sourceQuery->where("id", $restore->reject_id);
+            }
+
+            $sourceReject = $sourceQuery->orderBy("id", "desc")->first();
+
+            if ($sourceReject) {
+                $rejectDepartment = $sourceDepartment;
+
+                break;
+            }
+        }
+
+        return [
+            "id" => $restore->output_reject_id,
+            "master_plan_id" => $restore->master_plan_id,
+            "so_det_id" => $restore->so_det_id,
+            "po_id" => $restore->po_id,
+            "kode_numbering" => $restore->kode_numbering,
+            "no_cut_size" => $restore->kode_numbering,
+            "status" => $restore->restore_status ? $restore->restore_status : ($sourceReject ? $sourceReject->reject_status : "mati"),
+            "alokasi" => $restore->alokasi,
+            "type" => "reject",
+            "rft_id" => $restore->rft_id,
+            "reject_id" => $restore->reject_id ? $restore->reject_id : ($sourceReject ? $sourceReject->id : null),
+            "department" => $rejectDepartment,
+            "created_by" => $restore->created_by,
+            "created_by_username" => $restore->created_by_username,
+            "created_by_line" => $restore->created_by_line,
+            "created_at" => $restore->created_at,
+            "updated_at" => $restore->updated_at,
+        ];
+    }
+
     public function restoreUndoSubmit(Request $request)
     {
         $kodeNumbering = addQuotesAround($request->kode_numbering);
@@ -5833,7 +5904,7 @@ class SewingToolsController extends Controller
 
         if ($kodeNumbering) {
             if ($department == "packing_po") {
-                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.kode_numbering is not null and output_undo_packing_po.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo_packing_po.kode_numbering")->get();
+                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.kode_numbering is not null and output_undo_packing_po.kode_numbering in (".$kodeNumbering.")")->get();
             } else if ($department == "packing") {
                 $restoreData = UndoPacking::selectRaw("*, output_undo_packing.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing.master_plan_id")->whereRaw("output_undo_packing.kode_numbering is not null and output_undo_packing.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo_packing.kode_numbering")->get();
             } else {
@@ -5856,6 +5927,15 @@ class SewingToolsController extends Controller
             $deleteUndoIds = [];
 
             foreach ($restoreData as $restore) {
+                if ($department == "packing_po") {
+                    $restore = $this->normalizePackingPoUndo($restore);
+
+                    // Tidak ada data packing po yang bisa dikembalikan, undo jangan dihapus
+                    if (!$restore->output_rft_id && !$restore->output_reject_id) {
+                        continue;
+                    }
+                }
+
                 // RFT
                 if ($restore->output_rft_id && $restore->keterangan == "rft") {
                     if ($department == "packing_po") {
@@ -5939,10 +6019,12 @@ class SewingToolsController extends Controller
                     $currentDefect = null;
                     if ($restore->output_defect_id) {
                         // Update Defect
-                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
-                        $currentDefect->timestamps = false;
-                        $currentDefect->defect_status = 'reworked';
-                        $currentDefect->save();
+                        $currentDefect = ($department == "packing" ? DefectPacking::where("id", $restore->output_defect_id)->first() : Defect::where("id", $restore->output_defect_id)->first());
+                        if ($currentDefect) {
+                            $currentDefect->timestamps = false;
+                            $currentDefect->defect_status = 'reworked';
+                            $currentDefect->save();
+                        }
                     }
 
                     // No Defect
@@ -6049,11 +6131,19 @@ class SewingToolsController extends Controller
                 // REJECT
                 if ($restore->output_reject_id) {
 
+                    // Packing PO : reject dikembalikan ke output_rfts_packing_po (type reject), bukan ke output_rejects (endline)
+                    if ($department == "packing_po") {
+                        array_push($reject, $this->packingPoRejectRestoreRow($restore));
+                        array_push($deleteUndoIds, $restore->undo_id);
+
+                        continue;
+                    }
+
                     // With REJECT
                     $currentDefect = null;
                     if ($restore->output_defect_id) {
                         // Update REJECT
-                        $currentDefect = Defect::where("id", $restore->output_defect_id)->first();
+                        $currentDefect = ($department == "packing" ? DefectPacking::where("id", $restore->output_defect_id)->first() : Defect::where("id", $restore->output_defect_id)->first());
 
                         // No REJECT
                         if (!$currentDefect) {
@@ -6149,7 +6239,9 @@ class SewingToolsController extends Controller
             }
 
             if (count($reject) > 0) {
-                if ($department == "packing") {
+                if ($department == "packing_po") {
+                    RftPackingPo::insert($reject);
+                } else if ($department == "packing") {
                     RejectPacking::insert($reject);
                 } else {
                     Reject::insert($reject);
@@ -6161,7 +6253,9 @@ class SewingToolsController extends Controller
             // }
 
             if (count($deleteUndoIds) > 0) {
-                if ($department == "packing") {
+                if ($department == "packing_po") {
+                    UndoPackingPo::whereIn("id", $deleteUndoIds)->delete();
+                } else if ($department == "packing") {
                     UndoPacking::whereIn("id", $deleteUndoIds)->delete();
                 } else {
                     Undo::whereIn("id", $deleteUndoIds)->delete();
@@ -6693,11 +6787,11 @@ class SewingToolsController extends Controller
         return Datatables::of($packingPo)->toJson();
     }
 
-    public function modifyPackingPoUpdate(Request $request) 
+    public function modifyPackingPoUpdate(Request $request)
     {
         // Ensure kode_numbering is handled as an array
-        $kodeNumbering = is_array($request->kode_numbering) 
-            ? $request->kode_numbering 
+        $kodeNumbering = is_array($request->kode_numbering)
+            ? $request->kode_numbering
             : array_filter(explode(',', str_replace(["'", '"'], '', $request->kode_numbering)));
 
         if (empty($kodeNumbering) || !$request->edit_packing_po) {
@@ -6752,8 +6846,8 @@ class SewingToolsController extends Controller
 
                 if ($currentPo) {
                     Log::channel('modifyPackingPo')->info([
-                        "update packing po", 
-                        "by " . Auth::user()->id . " - " . Auth::user()->username, 
+                        "update packing po",
+                        "by " . Auth::user()->id . " - " . Auth::user()->username,
                         $packingPo
                     ]);
 
@@ -6789,11 +6883,11 @@ class SewingToolsController extends Controller
         }
     }
 
-    public function modifyPackingPoDelete(Request $request) 
+    public function modifyPackingPoDelete(Request $request)
     {
         // Pastikan kode_numbering dalam bentuk array
-        $kodeNumbering = is_array($request->kode_numbering) 
-            ? $request->kode_numbering 
+        $kodeNumbering = is_array($request->kode_numbering)
+            ? $request->kode_numbering
             : explode(',', $request->kode_numbering);
 
         if (empty($kodeNumbering)) {
@@ -6835,16 +6929,20 @@ class SewingToolsController extends Controller
 
             $undoPackingPoArray = [];
             foreach ($deletePackingPo as $packingPo) {
+                // Format disamakan dengan undoOutputSubmit supaya bisa di-restore (keterangan rft / reject)
+                $isReject = $packingPo->type == "reject";
+
                 $undoPackingPoArray[] = [
                     "so_det_id"           => $packingPo->so_det_id,
                     "po_id"               => $packingPo->po_id,
                     "master_plan_id"      => $packingPo->master_plan_id,
-                    "output_rft_id"       => $packingPo->id,
+                    "output_rft_id"       => $isReject ? null : $packingPo->id,
+                    "output_reject_id"    => $isReject ? $packingPo->id : null,
                     "kode_numbering"      => $packingPo->kode_numbering,
-                    "keterangan"          => $packingPo->status,
+                    "keterangan"          => $isReject ? "reject" : "rft",
                     "rft_id"              => $packingPo->rft_id,
                     "reject_id"           => $packingPo->reject_id,
-                    "alokasi"             => $packingPo->po,
+                    "alokasi"             => $packingPo->alokasi,
                     "created_by"          => $packingPo->created_by,
                     "created_by_username" => $packingPo->created_by_username,
                     "created_by_line"     => $packingPo->created_by_line,
