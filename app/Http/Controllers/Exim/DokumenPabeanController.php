@@ -48,14 +48,30 @@ class DokumenPabeanController extends Controller
             $selectTrx = DB::raw("IF({$tbl}.{$fldno_int} != '', {$tbl}.{$fldno_int}, {$tbl}.{$fldno}) as trx_no");
             $selectBatchMerge = DB::raw("GROUP_CONCAT(DISTINCT {$tbl}.{$fldno} SEPARATOR ',') as no_dokumen_merge");
 
+            // Pasangan baris trx <-> bpb_ceisa sama persis dengan join 4 kondisi OR
+            // (bc.bpbno/bpbno_int = trx no/no_int), tapi dipecah jadi UNION join "="
+            // supaya tiap bagian bisa pakai index (join OR = full scan bpb_ceisa per baris).
+            $ceisaMatch = null;
+            foreach ([
+                ['bpbno', $fldno], ['bpbno', $fldno_int],
+                ['bpbno_int', $fldno_int], ['bpbno_int', $fldno],
+            ] as [$ceisaCol, $trxCol]) {
+                $part = $db->table("{$tbl} as t")
+                    ->join('bpb_ceisa as c', "c.{$ceisaCol}", '=', "t.{$trxCol}")
+                    ->select(
+                        't.id as trx_row_id', 'c.id', 'c.bpbno', 'c.bpbno_int', 'c.nomor_aju',
+                        'c.tanggal_aju', 'c.status', 'c.is_batch', 'c.no_dokumen_merge'
+                    )
+                    ->whereBetween("t.{$fldtgl}", [$tgl_awal, $tgl_akhir]);
+                if (!empty($jenis_bc)) {
+                    $part->where('t.jenis_dok', $jenis_bc);
+                }
+                $ceisaMatch = $ceisaMatch ? $ceisaMatch->union($part) : $part;
+            }
+
             $data = $db->table($tbl)
                 ->join('mastersupplier as ms', "{$tbl}.id_supplier", '=', 'ms.id_supplier')
-                ->leftJoin('bpb_ceisa as bc', function($join) use ($tbl, $fldno, $fldno_int) {
-                    $join->on("bc.bpbno", '=', "{$tbl}.{$fldno}")
-                        ->orOn("bc.bpbno", '=', "{$tbl}.{$fldno_int}")
-                        ->orOn("bc.bpbno_int", '=', "{$tbl}.{$fldno_int}")
-                        ->orOn("bc.bpbno_int", '=', "{$tbl}.{$fldno}");
-                })
+                ->leftJoinSub($ceisaMatch, 'bc', 'bc.trx_row_id', '=', "{$tbl}.id")
                 ->select(
                     "{$tbl}.*",
                     'ms.supplier',
