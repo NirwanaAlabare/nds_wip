@@ -49,7 +49,7 @@ class CuttingSwitchingController extends Controller
         $logFilterBindings = [$start, $end, $start, $end, $start, $end];
 
         $sql = "
-                SELECT 
+                SELECT
                     group_roll,
                     no_form,
                     tanggal_form,
@@ -249,8 +249,8 @@ class CuttingSwitchingController extends Controller
                     a.created_at,
                     a.updated_at,
                     user_app.username as app_by
-                FROM cutting_plan
-                left join form_cut_input a on a.id = cutting_plan.form_cut_id
+                FROM form_cut_input a
+                left join cutting_plan on a.id = cutting_plan.form_cut_id
                 left join (select form_cut_input_detail.form_cut_id, SUM(form_cut_input_detail.lembar_gelaran) total_lembar from form_cut_input_detail group by form_cut_input_detail.form_cut_id) a2 on a2.form_cut_id = a.id
                 left outer join marker_input b on a.id_marker = b.kode and b.cancel = 'N'
                 left outer join marker_input_detail on b.id = marker_input_detail.marker_id and marker_input_detail.ratio > 0
