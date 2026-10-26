@@ -117,7 +117,7 @@ class DashboardWipLineController extends Controller
         $data['datajam15'] = $this->cari_datajam15($lineId);
 
         $data['dashboard_indicators'] = $this->show_chart_dashboard($lineId);
-        $data['dashboard_indicators2'] = $this->show_chart_dashboard2($lineId);
+        $data['dashboard_indicators2'] = $this->show_chart_dashboard2($tanggal, $lineId);
 
         // broadcast(new TriggerWipLine($data, $lineId));
         return response()->json(
@@ -136,9 +136,9 @@ class DashboardWipLineController extends Controller
     function cari_datajam7($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(min_prod / (man_power * 60) * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(min_prod / (man_power * 60) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - 0)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - 0)) target, min_prod, man_power from (
-            select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect, max(man_power) man_power, COALESCE(sum(smv * actual_sekarang),0) min_prod from (select tanggal from dim_date) a left join
-            (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja, man_power, smv from master_plan where sewing_line = '" .
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(min_prod / (man_power * 60) * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(min_prod / (man_power * 60) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT set_target,MOD((set_target - actual_sebelum),(jam_kerja - 0)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((set_target - actual_sebelum)/(jam_kerja - 0)) target, min_prod, man_power from (
+            select COALESCE(sum(set_target),0) set_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect, max(man_power) man_power, COALESCE(sum(smv * actual_sekarang),0) min_prod from (select tanggal from dim_date) a left join
+            (SELECT id,tgl_plan,sewing_line,set_target,jam_kerja, man_power, smv from master_plan where sewing_line = '" .
                 $line .
                 "' and tgl_plan = CURRENT_DATE()) b on b.tgl_plan = a.tanggal left join
             (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 00:00:00') and updated_at < CONCAT(CURRENT_DATE,' 08:00:00')) c on c.master_plan_id = b.id
@@ -158,19 +158,19 @@ class DashboardWipLineController extends Controller
     function cari_datajam8($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(1 > jam,jam,1) jam from (select CASE
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT set_target,MOD((set_target - actual_sebelum),(jam_kerja - (select IF(1 > jam,jam,1) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
 END jam) a)
-)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(1 > jam,jam,1) jam from (select CASE
+)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((set_target - actual_sebelum)/(jam_kerja - (select IF(1 > jam,jam,1) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
 END jam) a)
 )) target from (
-            select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
-            (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
+            select COALESCE(sum(set_target),0) set_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
+            (SELECT id,tgl_plan,sewing_line,set_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
             (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 08:00:00') and updated_at < CONCAT(CURRENT_DATE,' 09:00:00') ) c on c.master_plan_id = b.id
@@ -190,17 +190,17 @@ END jam) a)
     function cari_datajam9($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(2 > jam,jam,2) jam from (select CASE
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT set_target,MOD((set_target - actual_sebelum),(jam_kerja - (select IF(2 > jam,jam,2) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
-END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(2 > jam,jam,2) jam from (select CASE
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((set_target - actual_sebelum)/(jam_kerja - (select IF(2 > jam,jam,2) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
 END jam) a))) target from (
-            select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
-            (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
+            select COALESCE(sum(set_target),0) set_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
+            (SELECT id,tgl_plan,sewing_line,set_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
             (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 09:00:00') and updated_at < CONCAT(CURRENT_DATE,' 10:00:00') ) c on c.master_plan_id = b.id
@@ -220,17 +220,17 @@ END jam) a))) target from (
     function cari_datajam10($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(3 > jam,jam,3) jam from (select CASE
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT set_target,MOD((set_target - actual_sebelum),(jam_kerja - (select IF(3 > jam,jam,3) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
-END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(3 > jam,jam,3) jam from (select CASE
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((set_target - actual_sebelum)/(jam_kerja - (select IF(3 > jam,jam,3) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
 END jam) a))) target from (
-            select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
-            (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
+            select COALESCE(sum(set_target),0) set_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
+            (SELECT id,tgl_plan,sewing_line,set_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
             (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 10:00:00') and updated_at < CONCAT(CURRENT_DATE,' 11:00:00') ) c on c.master_plan_id = b.id
@@ -250,17 +250,17 @@ END jam) a))) target from (
     function cari_datajam11($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(4 > jam,jam,4) jam from (select CASE
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT set_target,MOD((set_target - actual_sebelum),(jam_kerja - (select IF(4 > jam,jam,4) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
-END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(4 > jam,jam,4) jam from (select CASE
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((set_target - actual_sebelum)/(jam_kerja - (select IF(4 > jam,jam,4) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
 END jam) a))) target from (
-            select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
-            (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
+            select COALESCE(sum(set_target),0) set_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
+            (SELECT id,tgl_plan,sewing_line,set_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
             (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 11:00:00') and updated_at < CONCAT(CURRENT_DATE,' 12:00:00') ) c on c.master_plan_id = b.id
@@ -280,17 +280,17 @@ END jam) a))) target from (
     function cari_datajam13($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(5 > jam,jam,5) jam from (select CASE
+            "SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT set_target,MOD((set_target - actual_sebelum),(jam_kerja - (select IF(5 > jam,jam,5) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
-END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(5 > jam,jam,5) jam from (select CASE
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((set_target - actual_sebelum)/(jam_kerja - (select IF(5 > jam,jam,5) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
 END jam) a))) target from (
-            select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
-            (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
+            select COALESCE(sum(set_target),0) set_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
+            (SELECT id,tgl_plan,sewing_line,set_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
             (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 12:00:00') and updated_at < CONCAT(CURRENT_DATE,' 14:00:00') ) c on c.master_plan_id = b.id
@@ -310,17 +310,17 @@ END jam) a))) target from (
     function cari_datajam14($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,GREATEST(target,0) target1, actual_sekarang output, (GREATEST(target,0) - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (GREATEST(target,0) + sisa) target2, ((GREATEST(target,0) + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(6 > jam,jam,6) jam from (select CASE
+            "SELECT jam_kerja,GREATEST(target,0) target1, actual_sekarang output, (GREATEST(target,0) - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (GREATEST(target,0) + sisa) target2, ((GREATEST(target,0) + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT set_target,MOD((set_target - actual_sebelum),(jam_kerja - (select IF(6 > jam,jam,6) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
-END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(6 > jam,jam,6) jam from (select CASE
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((set_target - actual_sebelum)/(jam_kerja - (select IF(6 > jam,jam,6) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
 END jam) a))) target from (
-            select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
-            (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
+            select COALESCE(sum(set_target),0) set_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
+            (SELECT id,tgl_plan,sewing_line,set_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
             (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 14:00:00') and updated_at < CONCAT(CURRENT_DATE,' 15:00:00') ) c on c.master_plan_id = b.id
@@ -340,17 +340,17 @@ END jam) a))) target from (
     function cari_datajam15($line)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT jam_kerja,GREATEST(target,0) target1, actual_sekarang output, (GREATEST(target,0) - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (GREATEST(target,0) + sisa) target2, ((GREATEST(target,0) + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - (select IF(7 > jam,jam,7) jam from (select CASE
+            "SELECT jam_kerja,GREATEST(target,0) target1, actual_sekarang output, (GREATEST(target,0) - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / actual_sekarang * 100,2) defect_rate1, (GREATEST(target,0) + sisa) target2, ((GREATEST(target,0) + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / actual_sekarang * 100,2) defect_rate2 from(SELECT set_target,MOD((set_target - actual_sebelum),(jam_kerja - (select IF(7 > jam,jam,7) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
-END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - (select IF(7 > jam,jam,7) jam from (select CASE
+END jam) a))) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((set_target - actual_sebelum)/(jam_kerja - (select IF(7 > jam,jam,7) jam from (select CASE
     WHEN HOUR(NOW()) = 7 THEN 0
     WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
     ELSE HOUR(NOW()) - 7
 END jam) a))) target from (
-            select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
-            (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
+            select COALESCE(sum(set_target),0) set_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
+            (SELECT id,tgl_plan,sewing_line,set_target,jam_kerja from master_plan where sewing_line = '" .
                 $line .
                 "') b on b.tgl_plan = a.tanggal left join
             (SELECT (SELECT master_plan_id from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan = CURRENT_DATE() limit 1) master_plan_id,count(a.id) actual_sekarang from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.sewing_line = '" . $line . "' and b.tgl_plan >= CURRENT_DATE() -10  and updated_at >= CONCAT(CURRENT_DATE,' 15:00:00') and updated_at < CONCAT(CURRENT_DATE,' 16:00:00') ) c on c.master_plan_id = b.id
@@ -400,17 +400,17 @@ END jam) a))) target from (
     function cari_target_floor($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "select output, IF(jam_kerja = jam_berjalan,target2,target1) target from (select jam_kerja, output, IF(target1 < 0,0,target1) target1, IF(target2 < 0,0,target2) target2 from (SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT plan_target,MOD((plan_target - actual_sebelum),(jam_kerja - CASE
+            "select output, IF(jam_kerja = jam_berjalan,target2,target1) target from (select jam_kerja, output, IF(target1 < 0,0,target1) target1, IF(target2 < 0,0,target2) target2 from (SELECT jam_kerja,target target1, actual_sekarang output, (target - actual_sekarang) variation1,round(actual_sekarang / target * 100,2) efficiency1,round(defect / target * 100,2) defect_rate1, (target + sisa) target2, ((target + sisa) - actual_sekarang) variation2,round(actual_sekarang / (target + sisa) * 100,2) efficiency2,round(defect / (target + sisa) * 100,2) defect_rate2 from(SELECT set_target,MOD((set_target - actual_sebelum),(jam_kerja - CASE
             WHEN HOUR(NOW()) = 7 THEN 0
             WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
             ELSE HOUR(NOW()) - 7
-        END)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((plan_target - actual_sebelum)/(jam_kerja - CASE
+        END)) sisa,actual_sekarang,actual_sebelum,jam_kerja,defect,FLOOR((set_target - actual_sebelum)/(jam_kerja - CASE
         WHEN HOUR(NOW()) = 7 THEN 0
         WHEN HOUR(NOW()) >= 13 THEN HOUR(NOW()) - 8
         ELSE HOUR(NOW()) - 7
     END)) target from (
-                select COALESCE(sum(plan_target),0) plan_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
-                (SELECT id,tgl_plan,sewing_line,plan_target,jam_kerja, man_power, smv from master_plan where sewing_line = '".$lineId."' and tgl_plan = CURRENT_DATE()) b on b.tgl_plan = a.tanggal left join
+                select COALESCE(sum(set_target),0) set_target, COALESCE(sum(jam_kerja),0) jam_kerja, COALESCE(sum(actual_sebelum),0) actual_sebelum,COALESCE(sum(actual_sekarang),0) actual_sekarang, COALESCE(sum(defect),0) defect from (select tanggal from dim_date) a left join
+                (SELECT id,tgl_plan,sewing_line,set_target,jam_kerja, man_power, smv from master_plan where sewing_line = '".$lineId."' and tgl_plan = CURRENT_DATE()) b on b.tgl_plan = a.tanggal left join
                 (SELECT master_plan_id,COUNT(a.id) AS actual_sekarang FROM output_rfts a INNER JOIN master_plan b ON b.id=a.master_plan_id WHERE b.sewing_line='".$lineId."' AND b.tgl_plan >= CURRENT_DATE() -10 AND ((HOUR (NOW())=7 AND DATE_FORMAT(updated_at,'%H:%i') BETWEEN '00:00' AND '07:59') OR (HOUR(NOW()) = 13 AND DATE_FORMAT(updated_at, '%H:%i') >= '12:00' AND DATE_FORMAT(updated_at, '%H:%i') < '14:00')
             OR (HOUR(NOW()) != 7 AND HOUR(NOW()) != 13  AND DATE_FORMAT(updated_at,'%H:%i') BETWEEN CONCAT(LPAD(HOUR (NOW()),2,'0'),':00') AND CONCAT(LPAD(HOUR (NOW())+1,2,'0'),':00'))) and DATE_FORMAT(updated_at,'%Y-%m-%d') = CURRENT_DATE GROUP BY master_plan_id) c on c.master_plan_id = b.id
                 left join
@@ -442,8 +442,8 @@ END jam) a))) target from (
     function cari_target_floordom($tanggal, $lineId)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT (target + sisa) target from (select FLOOR(COALESCE(plan_target,0)/COALESCE(jam_kerja,1)) target, MOD(COALESCE(plan_target,0),COALESCE(jam_kerja,1)) sisa from (select * from (select tanggal from dim_date) a left join
-        (SELECT tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where sewing_line = '" .
+            "SELECT (target + sisa) target from (select FLOOR(COALESCE(set_target,0)/COALESCE(jam_kerja,1)) target, MOD(COALESCE(set_target,0),COALESCE(jam_kerja,1)) sisa from (select * from (select tanggal from dim_date) a left join
+        (SELECT tgl_plan,sewing_line,set_target,jam_kerja from master_plan where sewing_line = '" .
                 $lineId .
                 "') b on b.tgl_plan = a.tanggal where a.tanggal = '" .
                 $tanggal .
@@ -486,7 +486,7 @@ END jam) a))) target from (
 
     function cari_day_target($tanggal, $lineId)
     {
-        $query = DB::connection('mysql_dsb')->select("SELECT COALESCE(sum(plan_target),0) as day_target from master_plan where tgl_plan = '" . $tanggal . "' and sewing_line = '" . $lineId . "' and cancel = 'N'");
+        $query = DB::connection('mysql_dsb')->select("SELECT COALESCE(sum(set_target),0) as day_target from master_plan where tgl_plan = '" . $tanggal . "' and sewing_line = '" . $lineId . "' and cancel = 'N'");
 
         return isset($query[0]) ? $query[0]->day_target : null;
     }
@@ -722,10 +722,10 @@ END jam) a))) target from (
         $query = DB::connection('mysql_dsb')->select(
             "SELECT effi, per_rft, per_defect from (SELECT nama_line,username,COALESCE(effi,0) effi,COALESCE(per_rft,0) per_rft,COALESCE(per_defect,0) per_defect from (select username,SUBSTR(FullName FROM 8) nama_line from userpassword where Groupp = 'sewing' order by username asc
             ) line left join
-            (SELECT sewing_line,effi,per_rft,per_defect from (SELECT a.sewing_line,plan_target,actual,rft,deffect,effi,ROUND((COALESCE(rft,0) / (COALESCE(rft,0) + COALESCE(deffect,0)) * 100),2) per_rft, ROUND((COALESCE(deffect,0) / (COALESCE(rft,0) + COALESCE(deffect,0)) * 100),2) per_defect FROM (select sewing_line,min_prod,(man_power * menit_real) min_tersedia, actual,plan_target, ROUND((min_prod / (man_power * menit_real) * 100),2) effi from (Select a.sewing_line,actual,min_prod,man_power,if(menit_real > (jam_kerja * 60),jam_kerja,jam_real) jam_real, if(menit_real > (jam_kerja * 60),(jam_kerja * 60),menit_real) menit_real, jam_kerja,plan_target from (SELECT a.sewing_line,sum(actual) actual,sum(min_prod) min_prod,man_power,jam_real,menit_real FROM (SELECT id,sewing_line,smv,actual,round(smv * actual,4) min_prod FROM (SELECT sewing_line,id,smv from master_plan where tgl_plan = CURRENT_DATE() ) a inner join
+            (SELECT sewing_line,effi,per_rft,per_defect from (SELECT a.sewing_line,set_target,actual,rft,deffect,effi,ROUND((COALESCE(rft,0) / (COALESCE(rft,0) + COALESCE(deffect,0)) * 100),2) per_rft, ROUND((COALESCE(deffect,0) / (COALESCE(rft,0) + COALESCE(deffect,0)) * 100),2) per_defect FROM (select sewing_line,min_prod,(man_power * menit_real) min_tersedia, actual,set_target, ROUND((min_prod / (man_power * menit_real) * 100),2) effi from (Select a.sewing_line,actual,min_prod,man_power,if(menit_real > (jam_kerja * 60),jam_kerja,jam_real) jam_real, if(menit_real > (jam_kerja * 60),(jam_kerja * 60),menit_real) menit_real, jam_kerja,set_target from (SELECT a.sewing_line,sum(actual) actual,sum(min_prod) min_prod,man_power,jam_real,menit_real FROM (SELECT id,sewing_line,smv,actual,round(smv * actual,4) min_prod FROM (SELECT sewing_line,id,smv from master_plan where tgl_plan = CURRENT_DATE() ) a inner join
             (SELECT master_plan_id, count(a.id) actual from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.tgl_plan = CURRENT_DATE() GROUP BY master_plan_id) b on b.master_plan_id = a.id) a inner join
             (SELECT sewing_line,man_power,jam_masuk,jam_sekarang, if(jam_kerja >= '6',jam_kerja -1,jam_kerja) jam_real, if(jam_kerja >= '6',menit_kerja -60,menit_kerja) menit_real from (SELECT sewing_line, man_power, CONCAT(CURRENT_DATE,' ','07:00:00') jam_masuk,CURRENT_DATE() as jam_sekarang, TIMESTAMPDIFF(hour,CONCAT(CURRENT_DATE,' ','07:00:00'),CURRENT_TIMESTAMP) jam_kerja,TIMESTAMPDIFF(minute,CONCAT(CURRENT_DATE,' ','07:00:00'),CURRENT_TIMESTAMP) menit_kerja from master_plan where tgl_plan = CURRENT_DATE() GROUP BY sewing_line order by sewing_line asc ) a) b on b.sewing_line = a.sewing_line GROUP BY a.sewing_line) a inner join
-            (SELECT sewing_line,COALESCE(sum(jam_kerja),0) as jam_kerja,COALESCE(sum(plan_target),0) as plan_target from master_plan where tgl_plan = CURRENT_DATE() GROUP BY sewing_line) b on b.sewing_line = a.sewing_line) a) a left join
+            (SELECT sewing_line,COALESCE(sum(jam_kerja),0) as jam_kerja,COALESCE(sum(set_target),0) as set_target from master_plan where tgl_plan = CURRENT_DATE() GROUP BY sewing_line) b on b.sewing_line = a.sewing_line) a) a left join
             (SELECT b.sewing_line,count(a.id) deffect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.tgl_plan = CURRENT_DATE() GROUP BY b.sewing_line) b on b.sewing_line = a.sewing_line LEFT JOIN
             (select sewing_line,(rft) rft from (select a.sewing_line,COALESCE(rft,0) rft, COALESCE(deffect,0) deffect from (SELECT b.sewing_line,count(a.id) rft from output_rfts a inner join master_plan b on b.id = a.master_plan_id where b.tgl_plan = CURRENT_DATE() and status = 'NORMAL' GROUP BY b.sewing_line) a left join
             (SELECT b.sewing_line,- count(a.id) deffect from output_defects a inner join master_plan b on b.id = a.master_plan_id where b.tgl_plan = CURRENT_DATE() and a.defect_status = 'defect' GROUP BY b.sewing_line) b on b.sewing_line = a.sewing_line) a) c on c.sewing_line = a.sewing_line) a order by per_rft desc) b on b.sewing_line = line.username order by b.effi desc) a
@@ -735,11 +735,94 @@ END jam) a))) target from (
         return $query;
     }
 
-    function show_chart_dashboard2($lineId)
+    function show_chart_dashboard2($tanggal, $lineId)
     {
-        $query = DB::connection('mysql_dsb')->select(
-            "SELECT round(min_prod / min_avail * 100,2) effi from (select SUM(min_prod) min_prod, man_power, MAX(updated_at) updated_at, (ABS(TIME_TO_SEC(MAX(updated_at)) -TIME_TO_SEC('07:00:00') - if(HOUR(MAX(updated_at)) >= 12,TIME_TO_SEC('01:00:00'),TIME_TO_SEC('00:00:00'))) / 3600) jam_kerja, ((ABS(TIME_TO_SEC(MAX(updated_at)) -TIME_TO_SEC('07:00:00') - if(HOUR(MAX(updated_at)) >= 12,TIME_TO_SEC('01:00:00'),TIME_TO_SEC('00:00:00'))) / 3600) * man_power * 60) min_avail from (SELECT master_plan_id,count(a.id) actual_sekarang, smv, (count(a.id) * smv) min_prod, MAX(man_power) man_power, MAX(updated_at) updated_at from output_rfts a inner join master_plan b on b.id = a.master_plan_id where  b.sewing_line = '" . $lineId ."' and a.updated_at between '".date('Y-m-d')." 00:00:00' and '".date('Y-m-d')." 23:59:59' GROUP BY master_plan_id) a) a",
-        );
+        $query = DB::connection('mysql_dsb')->select("
+            WITH mp AS (
+                SELECT *
+                FROM master_plan
+                WHERE tgl_plan    = :tgl_plan
+                  AND sewing_line = :sewing_line
+                  AND cancel      = 'N'
+            ),
+            o AS (
+                SELECT a.*
+                FROM output_rfts a
+                INNER JOIN mp ON a.master_plan_id = mp.id
+                WHERE a.updated_at >= :tgl_awal
+                  AND a.updated_at <  DATE_ADD(:tgl_akhir, INTERVAL 1 DAY)
+            ),
+            summary AS (
+                SELECT
+                    (SELECT SUM(set_target)     FROM mp) AS target,
+                    (SELECT SUM(jam_kerja)      FROM mp) AS jam_kerja,
+                    (SELECT MIN(jam_kerja_awal) FROM mp) AS jam_kerja_awal,
+                    (SELECT COUNT(id)           FROM o)  AS output
+            ),
+            waktu AS (
+                SELECT
+                    s.*,
+                    TIMESTAMP(:tgl_mulai, s.jam_kerja_awal) AS mulai,
+                    NOW()                                   AS sekarang,
+                    -- istirahat siang: Jumat 11:30-12:30, hari lain 12:00-13:00
+                    TIMESTAMP(:tgl_ist1_mulai,
+                        IF(DAYOFWEEK(:tgl_dow1) = 6, '11:30:00', '12:00:00')) AS ist1_mulai,
+                    TIMESTAMP(:tgl_ist1_selesai,
+                        IF(DAYOFWEEK(:tgl_dow2) = 6, '12:30:00', '13:00:00')) AS ist1_selesai,
+                    -- istirahat sore: 18:00-18:30
+                    TIMESTAMP(:tgl_ist2_mulai, '18:00:00')   AS ist2_mulai,
+                    TIMESTAMP(:tgl_ist2_selesai, '18:30:00') AS ist2_selesai
+                FROM summary s
+            ),
+            calc AS (
+                SELECT
+                    w.*,
+                    CASE
+                        -- sebelum istirahat siang: (a) = t - jam_kerja_awal
+                        WHEN w.sekarang <= w.ist1_mulai
+                            THEN TIMESTAMPDIFF(MINUTE, w.mulai, w.sekarang)
+                        -- istirahat siang: tetap (a)
+                        WHEN w.sekarang <= w.ist1_selesai
+                            THEN TIMESTAMPDIFF(MINUTE, w.mulai, w.ist1_mulai)
+                        -- setelah istirahat siang s/d 18:00: (b) = t - jam_kerja_awal - 60
+                        WHEN w.sekarang <= w.ist2_mulai
+                            THEN TIMESTAMPDIFF(MINUTE, w.mulai, w.sekarang) - 60
+                        -- istirahat sore 18:01-18:30: tetap (b)
+                        WHEN w.sekarang <= w.ist2_selesai
+                            THEN TIMESTAMPDIFF(MINUTE, w.mulai, w.ist2_mulai) - 60
+                        -- setelah 18:30: t - jam_kerja_awal - 90
+                        ELSE TIMESTAMPDIFF(MINUTE, w.mulai, w.sekarang) - 90
+                    END AS menit_berjalan
+                FROM waktu w
+            ),
+            realtime AS (
+                SELECT
+                    c.*,
+                    c.target / NULLIF(c.jam_kerja * 60, 0) * c.menit_berjalan AS realtime_target
+                FROM calc c
+            )
+            SELECT
+                r.target,
+                r.jam_kerja,
+                r.jam_kerja_awal,
+                r.output,
+                r.menit_berjalan,
+                r.realtime_target,
+                ROUND(r.output / NULLIF(r.realtime_target, 0) * 100, 2) AS eff_persen
+            FROM realtime r
+        ", [
+            'tgl_plan' => $tanggal,
+            'sewing_line' => $lineId,
+            'tgl_awal' => $tanggal,
+            'tgl_akhir' => $tanggal,
+            'tgl_mulai' => $tanggal,
+            'tgl_ist1_mulai' => $tanggal,
+            'tgl_dow1' => $tanggal,
+            'tgl_ist1_selesai' => $tanggal,
+            'tgl_dow2' => $tanggal,
+            'tgl_ist2_mulai' => $tanggal,
+            'tgl_ist2_selesai' => $tanggal,
+        ]);
 
         return $query;
     }
@@ -747,8 +830,8 @@ END jam) a))) target from (
     function cari_target_floor_menit($lineId)
     {
         $query = DB::connection('mysql_dsb')->select(
-            "SELECT COALESCE(plan_target,0)/COALESCE((jam_kerja * 60),1) target from (select sum(plan_target) plan_target, sum(jam_kerja) jam_kerja from (select tanggal from dim_date) a left join
-                (SELECT tgl_plan,sewing_line,plan_target,jam_kerja from master_plan where cancel != 'Y' and sewing_line = '" .
+            "SELECT COALESCE(set_target,0)/COALESCE((jam_kerja * 60),1) target from (select sum(set_target) set_target, sum(jam_kerja) jam_kerja from (select tanggal from dim_date) a left join
+                (SELECT tgl_plan,sewing_line,set_target,jam_kerja from master_plan where cancel != 'Y' and sewing_line = '" .
                 $lineId .
                 "') b on b.tgl_plan = a.tanggal where a.tanggal = CURRENT_DATE()) a",
         );
@@ -1807,7 +1890,7 @@ END jam) a))) target from (
                                 master_plan.man_power,
                                 master_plan.jam_kerja,
                                 master_plan.smv,
-                                master_plan.plan_target,
+                                master_plan.set_target,
                                 master_plan.target_effy,
                                 97 as target_rft
                             FROM

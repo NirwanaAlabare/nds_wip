@@ -131,6 +131,13 @@
         /* object-fit: cover; */
     }
 
+    /* AUTO ZOOM: konten didesain di lebar 1300px lalu di-zoom mengikuti layar */
+    .wip-scale {
+        width: 1300px;
+        flex: 0 0 auto;
+        transform-origin: center center;
+    }
+
     #chartdiv-efficiency {
         width: 100%;
         height: 220px;
@@ -237,9 +244,9 @@
     <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30"
         centered-slides="true">
         <swiper-slide>
-            <div class="p-1 d-flex justify-content-center align-items-start"
-                style="max-width: 1300px; width: 100%;height: 100vh; background-color: #ffffff;">
-                <div class="row">
+            <div class="p-1 d-flex justify-content-center align-items-center"
+                style="width: 100%; height: 100vh; background-color: #ffffff;">
+                <div class="row wip-scale">
                     <div class="col-md-1">
                         <div class="card"
                             style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
@@ -517,9 +524,9 @@
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="p-1 d-flex justify-content-center align-items-start"
-                style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
-                <div class="row">
+            <div class="p-1 d-flex justify-content-center align-items-center"
+                style="width: 100%; height: 100vh; background-color: #ffffff;">
+                <div class="row wip-scale">
                     <div class="col-md-1">
                         <div class="card"
                             style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
@@ -733,9 +740,9 @@
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="p-1 d-flex justify-content-center align-items-start"
-                style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
-                <div class="row">
+            <div class="p-1 d-flex justify-content-center align-items-center"
+                style="width: 100%; height: 100vh; background-color: #ffffff;">
+                <div class="row wip-scale">
                     <div class="col-md-1">
                         <div class="card"
                             style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
@@ -823,9 +830,6 @@
 
 </html>
 
-<link rel="stylesheet" href="{{ asset('plugins/swiper/css/swiper-bundle.min.css') }}" />
-
-<script src="{{ asset('plugins/swiper/js/swiper-bundle.min.js') }}"></script>
 <script src="{{ asset('plugins/swiper/js/swiper-element-bundle.min.js') }}"></script>
 
 <!-- JSC CHART-->
@@ -843,23 +847,22 @@
 <script>
     const currentDate = new Date().toISOString().split('T')[0];
 
-    const swiper = new Swiper('.swiper', {
-        direction: 'vertical',
-        loop: true,
+    // simpan instance gauge supaya bisa di-destroy sebelum dibuat ulang (hindari memory leak)
+    const gaugeCharts = {};
 
-        pagination: {
-            el: '.swiper-pagination',
-        },
+    // signature data carousel defect terakhir
+    let lastCarouselSignature = null;
 
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-
-        scrollbar: {
-            el: '.swiper-scrollbar',
-        },
-    });
+    function renderGauge(key, elementId, options) {
+        if (gaugeCharts[key]) {
+            gaugeCharts[key].destroy();
+        }
+        // ukuran eksplisit dari layout asli; tanpa ini JSC mengukur ukuran yang sudah di-scale (auto zoom)
+        const el = document.getElementById(elementId);
+        options.width = el.offsetWidth;
+        options.height = el.offsetHeight;
+        gaugeCharts[key] = JSC.chart(elementId, options);
+    }
 
     function updateTable1(data) {
         const data_table = data.datajam7[0];
@@ -1235,7 +1238,7 @@
         const efficiencySum = (actuall1 / dayTarget1) * 100;
         const roundedEfficiency = efficiencySum.toFixed(2); // Membulatkan hasilnya ke 2 desimal
         // const eff_data = data.dashboard_indicators[0].effi || 0;
-        const eff_data = data.dashboard_indicators2[0].effi || 0;
+        const eff_data = data.dashboard_indicators2[0].eff_persen || 0;
 
         // Menampilkan hasilnya pada elemen #efficiency1
         $("#efficiency1").html(`
@@ -1316,7 +1319,6 @@
         const variance = day_target - actual;
         const varianceDisplay = Math.abs(variance);
         const varianceDisplayHour = Math.abs(variation_hour_now);
-        console.log(variance);
         $("#variation-page-2").html(`
             ${varianceDisplay}
            <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
@@ -1414,32 +1416,36 @@
         const linkGambar1 = data.link_gambar1;
         const positionDefect = data.positiondefect || [];
 
-        carouselContainer.empty();
-        linkGambar1.forEach((gambar1, index) => {
-            const isActive = index === 0 ? 'active' : ''; // Set item pertama sebagai active
-            const defectPoints = positionDefect
-                .filter(posdef => posdef.image === gambar1.image)
-                .map(posdef => `
-                                        <div class="defect-area-img-point"
-                                            data-defect-type="${posdef.defect_type_id}"
-                                            data-x="${parseFloat(posdef.defect_area_x)}"
-                                            data-y="${parseFloat(posdef.defect_area_y)}">
-                                        </div>`).join('');
-            console.log(location.protocol);
-            let link = location.protocol !== 'https:' ? 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' : 'https://10.10.5.62:8143/erp/pages/prod_new/upload_files/';
-            // Add carousel item
-            const carouselItem = `
-                                    <div class="carousel-item ${isActive}" data-bs-interval="4500">
-                                        <div class="defect-area-img-container mx-auto overflow-hidden" style="height: 420px; padding-bottom: 20px;">
-                                            ${defectPoints}
-                                            <img style="opacity: .8; width: auto; height: 420px;"
-                                                src="${link}${gambar1.image}"
-                                                class="img-fluid defect-area-img">
-                                        </div>
-                                    </div>`;
+        // bangun ulang carousel hanya kalau gambar / titik defect berubah
+        const carouselSignature = JSON.stringify([linkGambar1, positionDefect]);
+        if (carouselSignature !== lastCarouselSignature) {
+            lastCarouselSignature = carouselSignature;
+            carouselContainer.empty();
+            linkGambar1.forEach((gambar1, index) => {
+                const isActive = index === 0 ? 'active' : ''; // Set item pertama sebagai active
+                const defectPoints = positionDefect
+                    .filter(posdef => posdef.image === gambar1.image)
+                    .map(posdef => `
+                                            <div class="defect-area-img-point"
+                                                data-defect-type="${posdef.defect_type_id}"
+                                                data-x="${parseFloat(posdef.defect_area_x)}"
+                                                data-y="${parseFloat(posdef.defect_area_y)}">
+                                            </div>`).join('');
+                let link = location.protocol !== 'https:' ? 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' : 'https://10.10.5.62:8143/erp/pages/prod_new/upload_files/';
+                // Add carousel item
+                const carouselItem = `
+                                        <div class="carousel-item ${isActive}" data-bs-interval="4500">
+                                            <div class="defect-area-img-container mx-auto overflow-hidden" style="height: 420px; padding-bottom: 20px;">
+                                                ${defectPoints}
+                                                <img style="opacity: .8; width: auto; height: 420px;"
+                                                    src="${link}${gambar1.image}"
+                                                    class="img-fluid defect-area-img">
+                                            </div>
+                                        </div>`;
 
-            carouselContainer.append(carouselItem);
-        });
+                carouselContainer.append(carouselItem);
+            });
+        }
 
         let defectAreaImage = document.getElementsByClassName('defect-area-img');
         let defectAreaImagePoint = document.getElementsByClassName('defect-area-img-point');
@@ -1502,6 +1508,9 @@
         showChartEfficiency(data);
         showChartRFT(data);
         showChartDeffect(data);
+
+        // konten (tabel, nama buyer, dll) bisa berubah setelah data masuk
+        fitDashboard();
     }
 
     $(document).ready(async function() {
@@ -1593,7 +1602,6 @@
 
     var time = setInterval(function() {
         updateJakartaTime();
-        console.log("This runs every 1 second");
     }, 1000); // 1000 milliseconds = 1 second
 
 
@@ -1642,19 +1650,17 @@
 
     var timeDiff = setInterval(function() {
         updateRealtimeDiff();
-
-        console.log("This runs every 1 minute");
     }, 60000);
 
 
     function showChartEfficiency(data) {
     // Ambil nilai asli dari data
-    const eff_data = data.dashboard_indicators2[0].effi || 0;
+    const eff_data = data.dashboard_indicators2[0].eff_persen || 0;
 
     // Batasi nilai bar hanya sampai 100 (rentang 0–100)
     const eff_data_clamped = Math.min(Math.max(eff_data, 0), 100);
 
-    var chart = JSC.chart('chartdiv-efficiency', {
+    renderGauge('efficiency', 'chartdiv-efficiency', {
         debug: false,
         legend_visible: false,
         defaultTooltip_enabled: false,
@@ -1720,7 +1726,7 @@
 
     function showChartRFT(data) {
         const per_rft = Number(data.dashboard_indicators[0].per_rft || 0, 10);
-        var chart = JSC.chart('chartdiv-rft', {
+        renderGauge('rft', 'chartdiv-rft', {
             debug: false,
             legend_visible: false,
             defaultTooltip_enabled: false,
@@ -1789,7 +1795,7 @@
 
     function showChartDeffect(data) {
         const per_defect = Number(data.dashboard_indicators[0].per_defect || 0, 10);
-        var chart = JSC.chart('chartdiv-deffect', {
+        renderGauge('deffect', 'chartdiv-deffect', {
             debug: false,
             legend_visible: false,
             defaultTooltip_enabled: false,
@@ -1855,4 +1861,31 @@
             }, ]
         });
     }
+
+    // AUTO ZOOM: skala konten agar pas lebar & tinggi layar (PC, laptop, TV)
+    const DESIGN_WIDTH = 1300;
+
+    function fitDashboard() {
+        const rows = document.querySelectorAll('.wip-scale');
+        if (!rows.length) return;
+
+        // tinggi asli konten (offsetHeight tidak terpengaruh transform)
+        let designHeight = 0;
+        rows.forEach(row => designHeight = Math.max(designHeight, row.offsetHeight));
+        if (!designHeight) return;
+
+        const availWidth = window.innerWidth - 8; // padding p-1 kiri-kanan
+        const availHeight = window.innerHeight - 8; // padding p-1 atas-bawah
+        const scale = Math.min(availWidth / DESIGN_WIDTH, availHeight / designHeight);
+
+        // pakai transform, bukan zoom: chart JSC salah ukur di dalam elemen yang di-zoom
+        rows.forEach(row => row.style.transform = `scale(${scale})`);
+    }
+
+    let fitTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(fitTimer);
+        fitTimer = setTimeout(fitDashboard, 150);
+    });
+    window.addEventListener('load', fitDashboard);
 </script>
