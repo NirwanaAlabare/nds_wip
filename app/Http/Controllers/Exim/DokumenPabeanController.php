@@ -48,14 +48,31 @@ class DokumenPabeanController extends Controller
             $selectTrx = DB::raw("IF({$tbl}.{$fldno_int} != '', {$tbl}.{$fldno_int}, {$tbl}.{$fldno}) as trx_no");
             $selectBatchMerge = DB::raw("GROUP_CONCAT(DISTINCT {$tbl}.{$fldno} SEPARATOR ',') as no_dokumen_merge");
 
+            // Pasangan baris trx <-> bpb_ceisa sama persis dengan join 4 kondisi OR
+            // (bc.bpbno/bpbno_int = trx no/no_int), tapi dipecah jadi UNION join "="
+            // supaya tiap bagian bisa pakai index (join OR = full scan bpb_ceisa per baris).
+            // Nomor dari bpb_ceisa (utf8mb4) di-CONVERT ke latin1 agar index bpb/bppb (latin1) terpakai.
+            $ceisaMatch = null;
+            foreach ([
+                ['bpbno', $fldno], ['bpbno', $fldno_int],
+                ['bpbno_int', $fldno_int], ['bpbno_int', $fldno],
+            ] as [$ceisaCol, $trxCol]) {
+                $part = $db->table("{$tbl} as t")
+                    ->join('bpb_ceisa as c', "c.{$ceisaCol}", '=', "t.{$trxCol}")
+                    ->select(
+                        't.id as trx_row_id', 'c.id', 'c.bpbno', 'c.bpbno_int', 'c.nomor_aju',
+                        'c.tanggal_aju', 'c.status', 'c.is_batch', 'c.no_dokumen_merge'
+                    )
+                    ->whereBetween("t.{$fldtgl}", [$tgl_awal, $tgl_akhir]);
+                if (!empty($jenis_bc)) {
+                    $part->where('t.jenis_dok', $jenis_bc);
+                }
+                $ceisaMatch = $ceisaMatch ? $ceisaMatch->union($part) : $part;
+            }
+
             $data = $db->table($tbl)
                 ->join('mastersupplier as ms', "{$tbl}.id_supplier", '=', 'ms.id_supplier')
-                ->leftJoin('bpb_ceisa as bc', function($join) use ($tbl, $fldno, $fldno_int) {
-                    $join->on("bc.bpbno", '=', "{$tbl}.{$fldno}")
-                        ->orOn("bc.bpbno", '=', "{$tbl}.{$fldno_int}")
-                        ->orOn("bc.bpbno_int", '=', "{$tbl}.{$fldno_int}")
-                        ->orOn("bc.bpbno_int", '=', "{$tbl}.{$fldno}");
-                })
+                ->leftJoinSub($ceisaMatch, 'bc', 'bc.trx_row_id', '=', "{$tbl}.id")
                 ->select(
                     "{$tbl}.*",
                     'ms.supplier',
@@ -580,7 +597,7 @@ class DokumenPabeanController extends Controller
                 "idPlatform"           => config('ceisa.id_platform_live', ''),
                 "asalData"             => "S",
                 "asuransi"             => (float) ($draft['asuransi'] ?? 0.00),
-                "bruto"                => max((float) ($draft['bruto'] ?? $header->berat_kotor ?? 0.00), (float) ($draft['netto'] ?? $header->berat_bersih ?? 0.00)),
+                "bruto"                => (float) ($draft['bruto'] ?? $header->berat_kotor ?? 0.00),
                 "cif"                  => (float) ($draft['cif'] ?? 0.00),
                 "kodeJenisTpb"         => $draft['jenisTpb'] ?? "1",
                 "freight"              => (float) ($draft['freight'] ?? 0.00),
@@ -1069,6 +1086,14 @@ class DokumenPabeanController extends Controller
             );
 
             DB::connection('mysql_sb')->commit();
+
+            // Form disimpan via AJAX: redirect ke index ikut di-follow XHR dan memicu query listing penuh.
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Data draft dokumen CEISA berhasil disimpan!'
+                ]);
+            }
 
             return redirect()->route('dokumen-pabean-index')
                              ->with('success', 'Data draft dokumen CEISA berhasil disimpan!');

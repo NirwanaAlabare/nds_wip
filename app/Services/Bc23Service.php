@@ -174,6 +174,14 @@ class Bc23Service
 
             DB::connection('mysql_sb')->commit();
 
+            // Form disimpan via AJAX: redirect ke index ikut di-follow XHR dan memicu query listing penuh.
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Data draft BC 2.3 berhasil disimpan!'
+                ]);
+            }
+
             return redirect()->route('dokumen-pabean-index')
                              ->with('success', 'Data draft BC 2.3 berhasil disimpan!');
 
