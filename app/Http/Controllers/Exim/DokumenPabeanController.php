@@ -580,7 +580,7 @@ class DokumenPabeanController extends Controller
                 "idPlatform"           => config('ceisa.id_platform_live', ''),
                 "asalData"             => "S",
                 "asuransi"             => (float) ($draft['asuransi'] ?? 0.00),
-                "bruto"                => max((float) ($draft['bruto'] ?? $header->berat_kotor ?? 0.00), (float) ($draft['netto'] ?? $header->berat_bersih ?? 0.00)),
+                "bruto"                => (float) ($draft['bruto'] ?? $header->berat_kotor ?? 0.00),
                 "cif"                  => (float) ($draft['cif'] ?? 0.00),
                 "kodeJenisTpb"         => $draft['jenisTpb'] ?? "1",
                 "freight"              => (float) ($draft['freight'] ?? 0.00),

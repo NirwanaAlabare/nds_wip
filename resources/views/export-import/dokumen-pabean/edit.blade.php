@@ -2756,7 +2756,7 @@
                 '7': 0  // Sudah Dilunasi
             };
 
-            $('#accordionBarang .card').each(function(index) {
+            $('#accordionBarang > .card').each(function(index) {
                 let row = $(this);
 
                 // Sum Harga Penyerahan
