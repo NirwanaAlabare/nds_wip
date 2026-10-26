@@ -168,12 +168,12 @@
                         Mutasi Fabric Proporsional <i class="fa fa-list"></i>
                     </a>
                 </li>
-                {{-- <li>
+                <li>
                     <a href="{{ route('report-mutasi-fabric-barcode') }}"
                         class="dropdown-item {{ $routeName == 'report-mutasi-fabric-barcode' ? 'active' : '' }}">
                         Mutasi Fabric Barcode <i class="fa fa-list"></i>
                     </a>
-                </li> --}}
+                </li>
                 <li>
                     <a href="{{ route('roll_fabric_cutting_in') }}"
                         class="dropdown-item {{ $subPage == 'roll_fabric_cutting_in' ? 'active' : '' }}">
