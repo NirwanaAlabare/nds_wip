@@ -51,13 +51,14 @@ class DokumenPabeanController extends Controller
             // Pasangan baris trx <-> bpb_ceisa sama persis dengan join 4 kondisi OR
             // (bc.bpbno/bpbno_int = trx no/no_int), tapi dipecah jadi UNION join "="
             // supaya tiap bagian bisa pakai index (join OR = full scan bpb_ceisa per baris).
+            // Nomor dari bpb_ceisa (utf8mb4) di-CONVERT ke latin1 agar index bpb/bppb (latin1) terpakai.
             $ceisaMatch = null;
             foreach ([
                 ['bpbno', $fldno], ['bpbno', $fldno_int],
                 ['bpbno_int', $fldno_int], ['bpbno_int', $fldno],
             ] as [$ceisaCol, $trxCol]) {
-                $part = $db->table("{$tbl} as t")
-                    ->join('bpb_ceisa as c', "c.{$ceisaCol}", '=', "t.{$trxCol}")
+                $part = $db->table('bpb_ceisa as c')
+                    ->join("{$tbl} as t", "t.{$trxCol}", '=', DB::raw("CONVERT(c.{$ceisaCol} USING latin1) COLLATE latin1_swedish_ci"))
                     ->select(
                         't.id as trx_row_id', 'c.id', 'c.bpbno', 'c.bpbno_int', 'c.nomor_aju',
                         'c.tanggal_aju', 'c.status', 'c.is_batch', 'c.no_dokumen_merge'
@@ -1086,6 +1087,14 @@ class DokumenPabeanController extends Controller
 
             DB::connection('mysql_sb')->commit();
 
+            // Form disimpan via AJAX: redirect ke index ikut di-follow XHR dan memicu query listing penuh.
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Data draft dokumen CEISA berhasil disimpan!'
+                ]);
+            }
+
             return redirect()->route('dokumen-pabean-index')
                              ->with('success', 'Data draft dokumen CEISA berhasil disimpan!');
 
@@ -1659,6 +1668,14 @@ class DokumenPabeanController extends Controller
             );
 
             DB::connection('mysql_sb')->commit();
+
+            // Form disimpan via AJAX: redirect ke index ikut di-follow XHR dan memicu query listing penuh.
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Data draft BC 2.3 berhasil disimpan!'
+                ]);
+            }
 
             return redirect()->route('dokumen-pabean-index')
                              ->with('success', 'Data draft BC 2.3 berhasil disimpan!');
