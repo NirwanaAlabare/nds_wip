@@ -5003,9 +5003,9 @@ class ReportCuttingController extends Controller
             $groupBy = 'id_item, ws';
         }
 
-        $mutasiFabriPropQuery = $this->buildMutasiFabricProporsionalQuery($start_date, $end_date, $tipe);
+        $mutasiFabricPropQuery = $this->buildMutasiFabricProporsionalQuery($start_date, $end_date, $tipe);
 
-        $data = DB::select($mutasiFabriPropQuery, [$start_date, $end_date, $prev_date]);
+        $data = DB::select($mutasiFabricPropQuery, [$start_date, $end_date, $prev_date]);
 
         $fileName = 'report-mutasi-fabric-proporsional';
 
@@ -5106,7 +5106,8 @@ class ReportCuttingController extends Controller
         return $excel->download();
     }
 
-    public function buildMutasiFabricBarcodeQuery($startDate, $endDate, $type)
+    // Backup query mutasi fabric barcode sebelum disamakan dengan proporsional
+    public function buildMutasiFabricBarcodeQueryOld($startDate, $endDate, $type)
     {
         $start_date = $startDate;
         $end_date   = $endDate;
@@ -5583,7 +5584,7 @@ class ReportCuttingController extends Controller
                     0 qty_pakai_before,
                     0 sr_before,
                     0 qty_retur_before,
-                    type
+                    GROUP_CONCAT(type) type
                 FROM wip_adjustment_fabric
                 WHERE
                     wip_adjustment_fabric.tgl_saldo <= '{$end_date}'
@@ -5727,6 +5728,47 @@ class ReportCuttingController extends Controller
             )
 
             " . $finalSelect;
+
+        return $query;
+    }
+
+    public function buildMutasiFabricBarcodeQuery($startDate, $endDate, $type)
+    {
+        // Mutasi diambil dari query proporsional dengan tipe yang sama supaya totalnya selalu sama,
+        // lalu dirangkum tanpa ws : tipe Barcode per roll + item, tipe Item per item
+        $mutasiQuery = $this->buildMutasiFabricProporsionalQuery($startDate, $endDate, $type);
+
+        if ($type == 'Barcode') {
+            $barcode = 'barcode';
+            $groupBy = 'barcode, id_item';
+            $orderBy = 'barcode ASC, id_item ASC';
+        } else {
+            $barcode = 'NULL AS barcode';
+            $groupBy = 'id_item, satuan';
+            $orderBy = 'id_item ASC, satuan ASC';
+        }
+
+        $query = "
+            SELECT
+                $barcode,
+                id_item,
+                MAX(itemdesc) AS itemdesc,
+                ROUND(SUM(saldo_awal), 2) AS saldo_awal,
+                ROUND(SUM(penerimaan), 2) AS penerimaan,
+                ROUND(SUM(pemakaian), 2) AS pemakaian,
+                ROUND(SUM(short_roll), 2) AS short_roll,
+                ROUND(SUM(gr_panel), 2) AS gr_panel,
+                ROUND(SUM(gr_set), 2) AS gr_set,
+                ROUND(SUM(retur), 2) AS retur,
+                ROUND(SUM(adjustment), 2) AS adjustment,
+                ROUND(SUM(saldo_akhir), 2) AS saldo_akhir,
+                MAX(satuan) AS satuan
+            FROM (
+                " . $mutasiQuery . "
+            ) mutasi_proporsional
+            GROUP BY $groupBy
+            ORDER BY $orderBy
+        ";
 
         return $query;
     }
