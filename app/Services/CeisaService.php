@@ -681,7 +681,7 @@ class CeisaService
 
     public function kirimDokumenBatch262($payload, $isFinal = 'false')
     {
-        $this->setEnv('dev');
+        $this->setEnv('live');
         $this->useUserCredential();
 
         if (is_array($payload) && !empty($this->idPlatform)) {
