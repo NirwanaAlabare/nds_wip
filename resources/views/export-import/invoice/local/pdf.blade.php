@@ -243,11 +243,11 @@
         </tr>
         <tr>
             <td>&nbsp;</td>
-            <td class="tengah garis">Yus Yulius</td>
+            <td class="tengah garis">{{ $penanda['nama'] }}</td>
         </tr>
         <tr>
             <td>&nbsp;</td>
-            <td class="tengah">Exim Manager</td>
+            <td class="tengah">{{ $penanda['jabatan'] }}</td>
         </tr>
     </table>
 
