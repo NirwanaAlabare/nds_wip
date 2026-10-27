@@ -1315,6 +1315,9 @@
                         if (res) {
                             status = "PENGERJAAN FORM CUTTING";
                         }
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -1349,6 +1352,9 @@
                             console.log(res);
                             status = "PENGERJAAN FORM CUTTING DETAIL";
                         }
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -1445,6 +1451,8 @@
                                 i++;
                             }
                         };
+
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -2653,6 +2661,9 @@
 
                             getItemByWsColorPanel();
                         }
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -2688,7 +2699,7 @@
                         }
                     },
                     error: function(jqXHR) {
-                        console.error(jqXHR);
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -3019,6 +3030,9 @@
                             })
                         }
                     },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                    }
                 });
 
                 $("#select_item").prop("disabled", false);
@@ -3126,6 +3140,9 @@
                                 $('#spreading-form-card').CardWidget('collapse');
                             }
                         }
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -3427,6 +3444,9 @@
                                 summaryData = res;
                                 setSummary(summaryData);
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -3901,6 +3921,9 @@
                         if (res.count > 0) {
                             setTimeRecordLap(res.data);
                         }
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -4198,6 +4221,9 @@
                             if (res.count > 0) {
                                 setLostTime(res.data);
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -4336,6 +4362,9 @@
                             if (res) {
                                 console.log(res);
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -4481,6 +4510,9 @@
 
                             sumNewSambungan();
                         }
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }

@@ -477,6 +477,9 @@
                         document.getElementById('style').value = res.styleno;
                     }
                 },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                }
             });
         }
 
@@ -509,6 +512,9 @@
                         document.getElementById('cons_ws_marker').value = null;
                     }
                 },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                }
             });
         }
 
@@ -535,6 +541,9 @@
                         document.getElementById('cons_ws_marker').value = null;
                     }
                 },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                }
             });
         }
 
@@ -645,6 +654,9 @@
                     if (res) {
                         document.getElementById('urutan_marker').value = res;
                     }
+                },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
                 }
             });
         }
@@ -668,8 +680,8 @@
                         document.getElementById('cons_ws').value = res.cons_ws;
                     }
                 },
-                error: function (jqXHR) {
-                    console.log(jqXHR);
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
                 }
             });
         }
@@ -805,6 +817,8 @@
                             }
                         }
                     };
+
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
                 }
             });
         }
@@ -903,6 +917,9 @@
                                 if (res) {
                                     window.location = res.redirect;
                                 }
+                            },
+                            error: function(jqXHR) {
+                                showAjaxError(jqXHR, 'Terjadi kesalahan.');
                             }
                         })
                     }
@@ -954,6 +971,9 @@
                                 }
                             }
                         }
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -1058,6 +1078,7 @@
                                 i++;
                             }
                         };
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
