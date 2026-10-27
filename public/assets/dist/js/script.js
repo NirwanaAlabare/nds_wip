@@ -762,7 +762,7 @@ function deleteData(e, type = null, additionalMessage = '') {
 }
 
 // Restore data confirmation
-function restoreData(e, type = null) {
+function restoreData(e, type = null, additionalMessage = null) {
     console.log(e, e.getAttribute('data'));
 
     let data = JSON.parse(e.getAttribute('data'));
@@ -771,6 +771,7 @@ function restoreData(e, type = null) {
         Swal.fire({
             icon: 'info',
             title: type === 'cancel' ? 'Aktifkan data?' : 'Pulihkan data?',
+            html: additionalMessage,
             showCancelButton: true,
             showConfirmButton: true,
             confirmButtonText: type === 'cancel' ? 'Aktifkan' : 'Pulihkan',

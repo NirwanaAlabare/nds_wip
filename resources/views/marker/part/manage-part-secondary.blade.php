@@ -801,9 +801,9 @@
 
                             <!-- Action Buttons -->
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
-                                <a href="{{ asset('example/contoh-import-part-custom.xlsx') }}" 
-                                id="btn-download-template-custom" 
-                                class="btn btn-outline-success btn-sm px-3 flex-shrink-0" 
+                                <a href="{{ asset('example/contoh-import-part-custom.xlsx') }}"
+                                id="btn-download-template-custom"
+                                class="btn btn-outline-success btn-sm px-3 flex-shrink-0"
                                 download="Contoh_Import_Part_Custom.xlsx">
                                     <i class="fa fa-download me-1"></i> Download Template Excel
                                 </a>
@@ -1327,13 +1327,13 @@
                                 `+ (
                                     row['status'] == 'inactive' ?
                                     `
-                                        <button class='btn btn-info btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('uncancel-part-detail') }}/`+row['id']+`' onclick='restoreData(this, "cancel")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                        <button class='btn btn-info btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('uncancel-part-detail') }}/`+row['id']+`' onclick='restoreData(this, "cancel", "Part ini akan muncul lagi")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                             <i class='fa fa-check'></i>
                                         </button>
                                     `
                                     :
                                     `
-                                        <button class='btn btn-warning btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('cancel-part-detail') }}/`+row['id']+`' onclick='deleteData(this, "cancel")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                        <button class='btn btn-warning btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('cancel-part-detail') }}/`+row['id']+`' onclick='cancelPartDetail(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                             <i class='fa fa-ban'></i>
                                         </button>
                                     `
@@ -1588,13 +1588,13 @@
                                 `+ (
                                     row['status'] == 'inactive' ?
                                     `
-                                        <button class='btn btn-info btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('uncancel-part-detail') }}/`+row['com_id']+`' onclick='restoreData(this, "cancel", "Kedepannya part ini tidak akan muncul jika di-cancel")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                        <button class='btn btn-info btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('uncancel-part-detail') }}/`+row['com_id']+`' onclick='restoreData(this, "cancel", "Kedepannya part ini akan muncul lagi")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                             <i class='fa fa-check'></i>
                                         </button>
                                     `
                                     :
                                     `
-                                        <button class='btn btn-warning btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('cancel-part-detail') }}/`+row['com_id']+`' onclick='deleteData(this, "cancel", "Kedepannya part ini tidak akan muncul jika di-cancel")' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
+                                        <button class='btn btn-warning btn-sm mb-1' data='`+JSON.stringify(row)+`' data-url='{{ route('cancel-part-detail') }}/`+row['com_id']+`' onclick='cancelPartDetail(this)' {{ Auth::user()->roles->whereIn("nama_role", ["admin", "superadmin"])->count() > 0 ? '' : '`+(disableDelete)+`'}}>
                                             <i class='fa fa-ban'></i>
                                         </button>
                                     `
@@ -2413,5 +2413,72 @@
                 $(this).empty();
             }
         });
+        // Cancel part detail, dengan pilihan ikut cancel stocker yang sudah di-print atau tidak
+        function cancelPartDetail(e) {
+            let data = parseData(e.getAttribute('data'));
+
+            if (!data.hasOwnProperty('id')) {
+                return;
+            }
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Batalkan part detail?',
+                html: "Kedepannya part ini tidak akan muncul jika di-cancel.<br>" + (data.total_stocker > 0 ? "<b>Part ini sudah memiliki " + data.total_stocker + " stocker.</b>" : ""),
+                input: 'radio',
+                inputOptions: {
+                    'cancel_stocker': 'Cancel stocker yang sudah di-print',
+                    'keep_stocker': 'Jangan cancel stocker yang sudah di-print',
+                },
+                inputValue: 'keep_stocker',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Pilih salah satu opsi';
+                    }
+                },
+                showCancelButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Batalkan',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#fa4456',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("loading").classList.remove("d-none");
+
+                    $.ajax({
+                        url: e.getAttribute('data-url'),
+                        type: 'POST',
+                        data: {
+                            _method: 'DELETE',
+                            cancel_stocker: result.value == 'cancel_stocker' ? 1 : 0,
+                        },
+                        success: function (res) {
+                            document.getElementById("loading").classList.add("d-none");
+
+                            if (res.status == 200) {
+                                iziToast.success({
+                                    title: 'Success',
+                                    message: res.message,
+                                    position: 'topCenter'
+                                });
+                            } else {
+                                iziToast.error({
+                                    title: 'Error',
+                                    message: res.message,
+                                    position: 'topCenter'
+                                });
+                            }
+
+                            if (res.table) {
+                                $('#' + res.table).DataTable().ajax.reload();
+                            }
+                        },
+                        error: function (jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                        }
+                    });
+                }
+            });
+        }
     </script>
 @endsection
