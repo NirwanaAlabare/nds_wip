@@ -252,11 +252,11 @@
             {{-- Penandatangan sama dengan PDF rinci (local/pdf.blade.php). --}}
             <tr>
                 <td>&nbsp;</td>
-                <td class="tengah" style="font-size:11px;border-bottom:1px solid #000000">Yus Yulius</td>
+                <td class="tengah" style="font-size:11px;border-bottom:1px solid #000000">{{ $penanda['nama'] }}</td>
             </tr>
             <tr>
                 <td>&nbsp;</td>
-                <td class="tengah" style="font-size:11px">Exim Manager</td>
+                <td class="tengah" style="font-size:11px">{{ $penanda['jabatan'] }}</td>
             </tr>
         </table>
     </div>
