@@ -9,6 +9,7 @@ Route::get('/dashboard-track', [DashboardController::class, 'track'])->middlewar
 Route::get('/dashboard-marker', [DashboardController::class, 'marker'])->middleware('auth')->name('dashboard-marker');
 Route::get('/dashboard-wip', [DashboardWipLineController::class, 'index'])->middleware('auth')->name('dashboard-wip');
 Route::get('/dashboard-wip/wip-line/{id?}', [DashboardWipLineController::class, 'show_wip_line'])->name('show_wip_line');
+Route::get('/dashboard-wip/wip-line-smart/{id?}', [DashboardWipLineController::class, 'show_wip_line_smart'])->name('show_wip_line_smart');
 // Factory
 Route::get('/dashboard-wip/factory-performance/{year?}/{month?}', [DashboardWipLineController::class, 'factoryPerformance'])->name('dashboard-factory-performance');
 // Chief
