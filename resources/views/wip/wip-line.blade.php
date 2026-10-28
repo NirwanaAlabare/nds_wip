@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NDS - WIP</title>
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('dist/img/tabicon.png') }}">
-    {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"> --}}
-    @include('layouts.link')
-
-    @yield('custom-link')
+    {{-- dashboard TV: hanya muat yang dipakai, bukan layouts.link (jquery-ui, sweetalert, livewire, dll) --}}
+    <link rel="stylesheet" href="{{ asset('plugins/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/fontawesome-free-6.4.2/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/adminlte.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/style.css') }}">
 
 </head>
 
@@ -71,8 +71,42 @@
         font-weight: bold !important;
     }
 
-    .bg-linear {
-        background: linear-gradient(to bottom right, #1A5CD8, #007aff);
+    /* tabel per jam mengisi penuh tinggi card, sisa tinggi dibagi rata ke tiap baris */
+    .hourly-table {
+        flex: 1 1 auto;
+        height: 100%;
+    }
+
+    .hourly-table td {
+        vertical-align: middle !important;
+    }
+
+    /* baris jam berjalan */
+    .hourly-table tr.hourly-current td {
+        background-color: #1a56b8 !important;
+        border-top: 3px solid #ffc107 !important;
+        border-bottom: 3px solid #ffc107 !important;
+    }
+
+    .hourly-table tr.hourly-current td:first-child {
+        border-left: 3px solid #ffc107 !important;
+    }
+
+    .hourly-table tr.hourly-current td:last-child {
+        border-right: 3px solid #ffc107 !important;
+    }
+
+    .hourly-variation {
+        position: relative;
+    }
+
+    .hourly-variation i {
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 6px;
+        line-height: 1;
     }
 
 
@@ -129,6 +163,13 @@
         width: 100%;
         height: 100%;
         /* object-fit: cover; */
+    }
+
+    /* AUTO ZOOM: konten didesain di lebar 1300px lalu di-zoom mengikuti layar */
+    .wip-scale {
+        width: 1300px;
+        flex: 0 0 auto;
+        transform-origin: center center;
     }
 
     #chartdiv-efficiency {
@@ -237,9 +278,9 @@
     <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30"
         centered-slides="true">
         <swiper-slide>
-            <div class="p-1 d-flex justify-content-center align-items-start"
-                style="max-width: 1300px; width: 100%;height: 100vh; background-color: #ffffff;">
-                <div class="row">
+            <div class="p-1 d-flex justify-content-center align-items-center"
+                style="width: 100%; height: 100vh; background-color: #ffffff;">
+                <div class="row wip-scale">
                     <div class="col-md-1">
                         <div class="card"
                             style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
@@ -283,10 +324,9 @@
 
                     <div class="col-lg-9">
                         <div class="h-100 card">
-                            <div class="card-body">
-                                <table class="table border-collapse"
-                                    style="background-color: #072c66; text-align: center;border-radius: 10px;"
-                                    style="max-height: 10vh !important;">
+                            <div class="card-body d-flex flex-column">
+                                <table class="table border-collapse hourly-table mb-0"
+                                    style="background-color: #072c66; text-align: center;border-radius: 10px;">
                                     <thead class="thead-custom">
                                         <tr>
                                             <th scope="col"
@@ -305,132 +345,7 @@
                                                 Defect Rate</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="tbody-custom">
-                                        <tr style="line-height: 10px;">
-                                            <td scope="row" style="border-color: lightgray;font-size: 13px;"
-                                                id="hour-1">07:00 - 08:00</td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="target-1"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="output-1"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="variation-1"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="efficiency-1"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="deffect-rate-1">
-                                            </td>
-                                        </tr>
-                                        <tr style="line-height: 10px;">
-                                            <td scope="row" style="border-color: lightgray;font-size: 13px;"
-                                                id="hour-2">08:00 - 09:00</td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="target-2"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="output-2"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="variation-2"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="efficiency-2"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="deffect-rate-2">
-                                            </td>
-                                        </tr>
-                                        <tr style="line-height: 10px;">
-                                            <td scope="row" style="border-color: lightgray;font-size: 13px;"
-                                                id="hour-3">09:00 - 10:00</td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="target-3"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="output-3"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="variation-3">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="efficiency-3">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="deffect-rate-3">
-                                            </td>
-                                        </tr>
-                                        <tr style="line-height: 10px;">
-                                            <td scope="row" style="border-color: lightgray;font-size: 13px;"
-                                                id="hour-4">10:00 - 11:00</td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="target-4"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="output-4"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="variation-4">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="efficiency-4">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="deffect-rate-4">
-                                            </td>
-                                        </tr>
-                                        <tr style="line-height: 10px;">
-                                            <td scope="row" style="border-color: lightgray;font-size: 13px;"
-                                                id="hour-5">11:00 - 12:00</td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="target-5"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="output-5"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="variation-5">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="efficiency-5">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="deffect-rate-5">
-                                            </td>
-                                        </tr>
-
-                                        <tr style="line-height: 10px;" class="bg-danger">
-                                            <td scope="row"
-                                                style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">
-                                                12:00 - 13:00</td>
-                                            <td
-                                                style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">
-                                                0</td>
-                                            <td
-                                                style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">
-                                                0</td>
-                                            <td
-                                                style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">
-                                                0</td>
-                                            <td
-                                                style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">
-                                                0%</td>
-                                            <td
-                                                style="border-color: lightgray;font-size: 13px; background-color: #ff0000 !important;">
-                                                0%</td>
-                                        </tr>
-                                        <tr style="line-height: 10px;">
-                                            <td scope="row" style="border-color: lightgray;font-size: 13px;"
-                                                id="hour-7">13:00 - 14:00</td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="target-7"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="output-7"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="variation-7">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="efficiency-7">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="deffect-rate-7">
-                                            </td>
-                                        </tr>
-                                        <tr style="line-height: 10px;">
-                                            <td scope="row" style="border-color: lightgray;font-size: 13px;"
-                                                id="hour-8">14:00 - 15:00</td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="target-8"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="output-8"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="variation-8">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="efficiency-8">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="deffect-rate-8">
-                                            </td>
-                                        </tr>
-                                        <tr style="line-height: 10px;">
-                                            <td scope="row" style="border-color: lightgray;font-size: 13px;"
-                                                id="hour-9">15:00 - 16:00</td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="target-9"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="output-9"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="variation-9">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="efficiency-9">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="deffect-rate-9">
-                                            </td>
-                                        </tr>
-                                        <tr style="line-height: 10px;">
-                                            <td scope="row" style="border-color: lightgray;font-size: 13px;"
-                                                id="hour-10">16:00 - 17:00</td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="target-10"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="output-10"></td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="variation-10">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="efficiency-10">
-                                            </td>
-                                            <td style="border-color: lightgray;font-size: 13px;" id="deffect-rate-10">
-                                            </td>
-                                        </tr>
+                                    <tbody class="tbody-custom" id="hourly-table-body">
                                     </tbody>
                                 </table>
                             </div>
@@ -517,9 +432,9 @@
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="p-1 d-flex justify-content-center align-items-start"
-                style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
-                <div class="row">
+            <div class="p-1 d-flex justify-content-center align-items-center"
+                style="width: 100%; height: 100vh; background-color: #ffffff;">
+                <div class="row wip-scale">
                     <div class="col-md-1">
                         <div class="card"
                             style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
@@ -733,9 +648,9 @@
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="p-1 d-flex justify-content-center align-items-start"
-                style="max-width: 1300px; width: 100%; height: 100vh; background-color: #ffffff;">
-                <div class="row">
+            <div class="p-1 d-flex justify-content-center align-items-center"
+                style="width: 100%; height: 100vh; background-color: #ffffff;">
+                <div class="row wip-scale">
                     <div class="col-md-1">
                         <div class="card"
                             style="height: 100px; background-color: #FFFFFF; display: flex; align-items: center; justify-content: center;">
@@ -816,511 +731,125 @@
         </swiper-slide>
     </swiper-container>
 
-    @include('layouts.script')
-
-    @stack('scripts')
+    <script src="{{ asset('plugins/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 </body>
 
 </html>
 
-<link rel="stylesheet" href="{{ asset('plugins/swiper/css/swiper-bundle.min.css') }}" />
-
-<script src="{{ asset('plugins/swiper/js/swiper-bundle.min.js') }}"></script>
 <script src="{{ asset('plugins/swiper/js/swiper-element-bundle.min.js') }}"></script>
 
 <!-- JSC CHART-->
 <script src="{{ asset('plugins/jscharting/JSC/jscharting.js') }}"></script>
 
-<!-- SOCKET.IO configuration -->
-{{-- <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
-    crossorigin="anonymous"></script>
 <script>
-    window.laravel_echo_port = '{{ env('LARAVEL_ECHO_PORT') }}';
-</script>
-<script src="http://{{ Request::getHost() }}:{{ config('redis.echo_port') }}/socket.io/socket.io.js"></script>
-<script src="{{ config('redis.redis_url_public') }}/js/laravel-echo-setup.js" type="text/javascript"></script> --}}
+    // instance gauge dibuat sekali lalu nilainya di-update; destroy + buat ulang tiap refresh bikin memori bocor
+    const gaugeCharts = {};
 
-<script>
-    const currentDate = new Date().toISOString().split('T')[0];
+    // signature data carousel defect terakhir
+    let lastCarouselSignature = null;
 
-    const swiper = new Swiper('.swiper', {
-        direction: 'vertical',
-        loop: true,
-
-        pagination: {
-            el: '.swiper-pagination',
-        },
-
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-
-        scrollbar: {
-            el: '.swiper-scrollbar',
-        },
-    });
-
-    function updateTable1(data) {
-        const data_table = data.datajam7[0];
-        const jamKer = data_table.jam_kerja || 0;
-        const output = data_table.output || 0;
-
-        const target = jamKer < 1 ?
-            0 :
-            jamKer > 1 ?
-            data_table.target1 :
-            data_table.target2;
-
-
-        const variance = jamKer < 1 ?
-            0 :
-            jamKer > 1 ?
-            data_table.variation1 :
-            data_table.variation2;
-
-
-        const efficiency = target === 0 ? 0 : (output / target) * 100;
-
-        const defectRate = jamKer < 1 ?
-            0 :
-            jamKer > 1 ?
-            data_table.defect_rate1 :
-            data_table.defect_rate2;
-
-        $("#hour-1").text('07:00 - 08:00');
-        $("#target-1").text(target);
-        $("#output-1").text(output);
-        $("#variation-1").html(`
-            ${Math.abs(variance)}
-            <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
-        `);
-        $("#efficiency-1").text(`${efficiency.toFixed(2)} %`);
-        $("#deffect-rate-1").text(`${defectRate || 0.00} %`);
+    function renderGauge(key, elementId, value, label, buildOptions) {
+        const chart = gaugeCharts[key];
+        if (chart) {
+            if (chart.lastValue === value && chart.lastLabel === label) return;
+            chart.series(0).points(0).options({ y: [0, value] });
+            if (label !== chart.lastLabel) {
+                chart.options({ defaultSeries: { shape: { label: { text: label } } } });
+            }
+        } else {
+            const options = buildOptions();
+            // ukuran eksplisit dari layout asli; tanpa ini JSC mengukur ukuran yang sudah di-scale (auto zoom)
+            const el = document.getElementById(elementId);
+            options.width = el.offsetWidth;
+            options.height = el.offsetHeight;
+            options.defaultSeries.shape.label.text = label;
+            options.series[0].points = [['x', [0, value]]];
+            gaugeCharts[key] = JSC.chart(elementId, options);
+        }
+        gaugeCharts[key].lastValue = value;
+        gaugeCharts[key].lastLabel = label;
     }
 
-    function updateTable2(data) {
-        const data_table = data.datajam8[0];
-        const jamKer = data_table.jam_kerja || 0;
-        const output = data_table.output || 0;
+    function hourlyTable1(data) {
+        const rows = data.hourly || [];
+        // jam istirahat = slot tanpa menit kerja yang masih diikuti jam kerja berikutnya
+        const lastWorkIndex = rows.map(r => Number(r.menit_kerja) > 0).lastIndexOf(true);
+        const cell = 'border-color: lightgray;font-size: 13px;';
+        const breakCell = cell + ' background-color: #ff0000 !important;';
 
-        const target = jamKer < 2 ?
-            0 :
-            jamKer > 2 ?
-            data_table.target1 :
-            data_table.target2;
+        // jam berjalan ikut periode_jam summary (istirahat -> jam kerja berikutnya, setelah shift -> 1 jam setelah shift);
+        // kalau baris setelah shift tidak tampil karena belum ada output, tandai baris terakhir
+        const currentStart = ((data.summary || {}).periode_jam || '').slice(0, 5);
+        let currentIndex = currentStart ? rows.findIndex(r => r.hours.slice(0, 5) === currentStart) : -1;
+        if (currentStart && currentIndex < 0) currentIndex = rows.length - 1;
 
+        const html = rows.map((row, index) => {
+            const isBreak = Number(row.menit_kerja) === 0 && index < lastWorkIndex;
+            const rowClass = isBreak ? 'bg-danger' : (index === currentIndex ? 'hourly-current' : '');
+            const style = isBreak ? breakCell : cell;
+            const variation = Number(row.variation || 0);
+            // angka tetap di tengah kolom & sejajar kolom lain, ikon menggantung di kanan tanpa menambah tinggi baris
+            const variationHtml = isBreak ? '0' :
+                `<span class="hourly-variation">${Math.abs(variation)}<i class="fa ${variation < 0 ? 'fa-caret-down' : 'fa-caret-up'}"
+                    style="color: ${variation < 0 ? 'red' : 'green'};"></i></span>`;
 
-        const variance = jamKer < 2 ?
-            0 :
-            jamKer > 2 ?
-            data_table.variation1 :
-            data_table.variation2;
+            return `
+                <tr style="line-height: 10px;" class="${rowClass}">
+                    <td scope="row" style="${style}">${row.hours}</td>
+                    <td style="${style}">${row.target || 0}</td>
+                    <td style="${style}">${row.output || 0}</td>
+                    <td style="${style}">${variationHtml}</td>
+                    <td style="${style}">${Number(row.efficiency || 0).toFixed(2)} %</td>
+                    <td style="${style}">${Number(row.defect_rate || 0).toFixed(2)} %</td>
+                </tr>`;
+        }).join('');
 
-
-        const efficiency = target === 0 ? 0 : (output / target) * 100;
-
-        const defectRate = jamKer < 2 ?
-            0 :
-            jamKer > 2 ?
-            data_table.defect_rate1 :
-            data_table.defect_rate2;
-
-        $("#hour-2").text("08:00 - 09:00");
-        $("#target-2").text(target);
-        $("#output-2").text(output);
-        $("#variation-2").html(`
-            ${Math.abs(variance)}
-             <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
-        `);
-        $("#efficiency-2").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-2").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
+        $("#hourly-table-body").html(html);
     }
 
-    function updateTable3(data) {
-        const data_table = data.datajam9[0];
-        const jamKer = data_table.jam_kerja || 0;
-        const output = data_table.output || 0;
+    function summaryCard1(data) {
+        const summary = data.summary || {};
 
-        const target = jamKer < 3 ?
-            0 :
-            jamKer > 3 ?
-            data_table.target1 :
-            data_table.target2;
+        $("#day_target1").text(summary.target || 0);
+        $("#actuall1").text(summary.tot_output || 0);
 
+        // Menentukan ikon berdasarkan nilai variation
+        const variation = Number(summary.variation || 0);
+        const icon = variation > 0 ?
+            '<i class="fa fa-caret-down" style="color: red;"></i>' :
+            '<i class="fa fa-caret-up" style="color: green;"></i>';
 
-        const variance = jamKer < 3 ?
-            0 :
-            jamKer > 3 ?
-            data_table.variation1 :
-            data_table.variation2;
-
-
-        const efficiency = target === 0 ? 0 : (output / target) * 100;
-
-        const defectRate = jamKer < 3 ?
-            0 :
-            jamKer > 3 ?
-            data_table.defect_rate1 :
-            data_table.defect_rate2;
-
-        $("#hour-3").text("09:00 - 10:00");
-        $("#target-3").text(target);
-        $("#output-3").text(output);
-        $("#variation-3").html(`
-            ${Math.abs(variance)}
-            <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
-        `);
-        $("#efficiency-3").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-3").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
-    }
-
-    function updateTable4(data) {
-        const data_table = data.datajam10[0];
-        const jamKer = data_table.jam_kerja || 0;
-        const output = data_table.output || 0;
-
-        const target = jamKer < 4 ?
-            0 :
-            jamKer > 4 ?
-            data_table.target1 :
-            data_table.target2;
-
-
-        const variance = jamKer < 4 ?
-            0 :
-            jamKer > 4 ?
-            data_table.variation1 :
-            data_table.variation2;
-
-
-        const efficiency = target === 0 ? 0 : (output / target) * 100;
-
-        const defectRate = jamKer < 4 ?
-            0 :
-            jamKer > 4 ?
-            data_table.defect_rate1 :
-            data_table.defect_rate2;
-
-        $("#hour-4").text("10:00 - 11:00");
-        $("#target-4").text(target);
-        $("#output-4").text(output);
-        $("#variation-4").html(`
-            ${Math.abs(variance)}
-            <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
-        `);
-        $("#efficiency-4").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-4").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
-    }
-
-    function updateTable5(data) {
-        const data_table = data.datajam11[0];
-        const jamKer = data_table.jam_kerja || 0;
-        const output = data_table.output || 0;
-
-        const target = jamKer < 5 ?
-            0 :
-            jamKer > 5 ?
-            data_table.target1 :
-            data_table.target2;
-
-
-        const variance = jamKer < 5 ?
-            0 :
-            jamKer > 5 ?
-            data_table.variation1 :
-            data_table.variation2;
-
-
-        const efficiency = target === 0 ? 0 : (output / target) * 100;
-
-        const defectRate = jamKer < 5 ?
-            0 :
-            jamKer > 5 ?
-            data_table.defect_rate1 :
-            data_table.defect_rate2;
-
-        $("#hour-5").text("11:00 - 12:00");
-        $("#target-5").text(target);
-        $("#output-5").text(output);
-        $("#variation-5").html(`
-            ${Math.abs(variance)}
-            <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
-        `);
-        $("#efficiency-5").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-5").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
-    }
-
-    function updateTable7(data) {
-        const data_table = data.datajam13[0];
-        const jamKer = data_table.jam_kerja || 0;
-        const output = data_table.output || 0;
-
-        const target = jamKer < 6 ?
-            0 :
-            jamKer > 6 ?
-            data_table.target1 :
-            data_table.target2;
-
-
-        const variance = jamKer < 6 ?
-            0 :
-            jamKer > 6 ?
-            data_table.variation1 :
-            data_table.variation2;
-
-
-        const efficiency = target === 0 ? 0 : (output / target) * 100;
-
-        const defectRate = jamKer < 6 ?
-            0 :
-            jamKer > 6 ?
-            data_table.defect_rate1 :
-            data_table.defect_rate2;
-
-        $("#hour-7").text("13:00 - 14:00");
-        $("#target-7").text(target);
-        $("#output-7").text(output);
-        $("#variation-7").html(`
-            ${Math.abs(variance)}
-            <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
-        `);
-        $("#efficiency-7").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-7").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
-    }
-
-    function updateTable8(data) {
-        const data_table = data.datajam14[0];
-        const jamKer = data_table.jam_kerja || 0;
-        const output = data_table.output || 0;
-
-        const target = jamKer < 7 ?
-            0 :
-            jamKer > 7 ?
-            data_table.target1 :
-            data_table.target2;
-
-
-        const variance = jamKer < 7 ?
-            0 :
-            jamKer > 7 ?
-            data_table.variation1 :
-            data_table.variation2;
-
-
-        const efficiency = target === 0 ? 0 : (output / target) * 100;
-
-        const defectRate = jamKer < 7 ?
-            0 :
-            jamKer > 7 ?
-            data_table.defect_rate1 :
-            data_table.defect_rate2;
-
-        $("#hour-8").text("14:00 - 15:00");
-        $("#target-8").text(target);
-        $("#output-8").text(output);
-        $("#variation-8").html(`
-            ${Math.abs(variance)}
-            <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
-        `);
-        $("#efficiency-8").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-8").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
-    }
-
-    function updateTable9(data) {
-        const data_table = data.datajam15[0];
-        const jamKer = data_table.jam_kerja || 0;
-        const output = data_table.output || 0;
-
-        const target = jamKer < 8 ?
-            0 :
-            jamKer > 8 ?
-            data_table.target1 :
-            data_table.target2;
-
-
-        const variance = jamKer < 8 ?
-            0 :
-            jamKer > 8 ?
-            data_table.variation1 :
-            data_table.variation2;
-
-
-        const efficiency = target === 0 ? 0 : (output / target) * 100;
-
-        const defectRate = jamKer < 8 ?
-            0 :
-            jamKer > 8 ?
-            data_table.defect_rate1 :
-            data_table.defect_rate2;
-
-        $("#hour-9").text("15:00 - 16:00");
-        $("#target-9").text(target);
-        $("#output-9").text(output);
-        $("#variation-9").html(`
-            ${Math.abs(variance)}
-            <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
-        `);
-        $("#efficiency-9").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-9").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
-    }
-
-    function updateTable10(data) {
-        const jamKer = data.jamkerl1 || 0;
-        const targetFloor = data.target_floor || 0;
-        const targetFloorDom = data.target_floordom || 0;
-        const output = data.output16 || 0;
-        const defect = data.deffect16 || 0;
-
-        const target = jamKer < 9 ?
-            0 :
-            jamKer > 9 ?
-            targetFloor :
-            targetFloorDom;
-
-        const variance = target - output;
-        const varianceDisplay = Math.abs(variance);
-
-        const efficiency = target === 0 ? 0 : (output / target) * 100;
-
-        const defectRate = target === 0 ? 0 : (defect / target) * 100;
-
-        $("#hour-10").text("16:00 - 17:00");
-        $("#target-10").text(target);
-        $("#output-10").text(output);
-        $("#variation-10").html(`
-            ${varianceDisplay}
-         <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variance > 0 ? 'red' : 'green'};"></ion-icon>
-        `);
-        $("#efficiency-10").text(`${parseFloat(efficiency).toFixed(2)} %`);
-        $("#deffect-rate-10").text(`${parseFloat(defectRate || 0).toFixed(2)} %`);
-    }
-
-    function variation1(data) {
-        $("#day_target1").text(data.day_target1 || "");
-        $("#actuall1").text(data.actuall1 || "");
-
-        const dayTarget1 = data.day_target1 || 0;
-        const actuall1 = data.actuall1 || 0;
-
-        // Menghitung variance_sum dan varianc_sum
-        const varianceSum = dayTarget1 - actuall1;
-        const varianceDisplay = Math.abs(varianceSum);
-
-        // Menentukan ikon berdasarkan nilai varianceSum
-        const icon = varianceSum > 0 ?
-            '<ion-icon name="caret-down-outline" style="color: red;"></ion-icon>' :
-            '<ion-icon name="caret-up-outline" style="color: green;"></ion-icon>';
-
-        // Menampilkan hasilnya pada elemen #variation1
         $("#variation1").html(`
-            ${varianceDisplay} ${icon}
+            ${Math.abs(variation)} ${icon}
         `);
-    }
-
-    function efficiency1(data) {
-        const dayTarget1 = data.day_target1 || 1; // Default ke 1 jika day_target1 0 atau undefined
-        const actuall1 = data.actuall1 || 0;
-
-        // Menghitung efficiency_sum
-        const efficiencySum = (actuall1 / dayTarget1) * 100;
-        const roundedEfficiency = efficiencySum.toFixed(2); // Membulatkan hasilnya ke 2 desimal
-        // const eff_data = data.dashboard_indicators[0].effi || 0;
-        const eff_data = data.dashboard_indicators2[0].effi || 0;
-
-        // Menampilkan hasilnya pada elemen #efficiency1
         $("#efficiency1").html(`
-            ${eff_data}%
+            ${summary.eff || 0}%
         `);
-    }
-
-    function deffect1(data) {
-        const dayTarget1 = data.day_target1 || 1; // Default ke 1 jika day_target1 0 atau undefined
-        const deffectl1 = data.deffectl1 || 0;
-
-        // Menghitung deffect_sum
-        const deffectSum = (deffectl1 / dayTarget1) * 100;
-        const roundedDeffect = deffectSum.toFixed(2); // Membulatkan hasilnya ke 2 desimal
-        const deffect_data = data.dashboard_indicators[0].per_defect || 0;
-
-        // Menampilkan hasilnya pada elemen #deffect1
         $("#deffect1").html(`
-            ${deffect_data}%
+            ${summary.def_rate || 0}%
         `);
     }
 
-    function commulation2(data) {
-        const target_menit = data.target_menit || 0;
-        const actual_now = data.current_actual || 0;
-        const targetnya = data.day_target1  || 0;
-        const jamker = data.jamkerl1 || 0;
+    function summaryCard2(data) {
+        const summary = data.summary || {};
 
-        const datelog = new Date();
-        datelog.setHours(7, 0, 0, 0);
-        const datenow = new Date();
+        $("#actual-2").text(summary.tot_output || 0);
+        $("#day-target-2").text(summary.target || 0);
+        $("#cumulative-target-2").text(summary.target_skrg || 0);
+        $("#actual-hour-now").text(summary.output_jam_ini || 0);
+        $("#req-hour-target-2").text(summary.req_hour_target || 0);
+        $("#deffect-garment-qty-2").text(summary.tot_defect || 0);
+        $("#rework-balance-2").text(summary.tot_reworked || 0);
 
-        const diff = (datenow - datelog) / 1000;
-        const minutes = Math.floor(diff / 60);
-        const jam = Math.floor(minutes / 60);
-
-        let min = minutes;
-
-        if (jam >= 6) {
-            min = minutes - 60;
-        }
-
-        const cumulative = Math.round(min * target_menit, 0);
-        var val_cumulative = 0;
-        if(cumulative > targetnya){
-             val_cumulative = targetnya;
-        }else{
-             val_cumulative = cumulative;
-        }
-        document.getElementById("cumulative-target-2").textContent = val_cumulative;
-        document.getElementById("actual-hour-now").textContent = actual_now;
-
-    }
-
-
-    function variance2(data) {
-        const target_menit = data.target_menit || 0;
-        const day_target = data.day_target1 || 0;
-        const current_actual = data.current_actual || 0;
-        const target_hour = data.target_floor || 0;
-        const variation_hour_now = target_hour - current_actual;
-        const actual = data.actuall1 || 0;
-        const datelog = new Date();
-        datelog.setHours(7, 0, 0, 0);
-        const datenow = new Date();
-
-        const diff = (datenow - datelog) / 1000;
-        const minutes = Math.floor(diff / 60);
-        const jam = Math.floor(minutes / 60);
-
-        let min = minutes;
-
-        if (jam >= 6) {
-            min = minutes - 60;
-        }
-
-        const cumulative = Math.round(min * target_menit, 0);
-        const variance = day_target - actual;
+        const variance = Number(summary.variation || 0);
+        const variation_hour_now = Number(summary.req_hour_target || 0) - Number(summary.output_jam_ini || 0);
         const varianceDisplay = Math.abs(variance);
         const varianceDisplayHour = Math.abs(variation_hour_now);
-        console.log(variance);
         $("#variation-page-2").html(`
             ${varianceDisplay}
            <i class="fa ${variance > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variance > 0 ? 'red' : '#3ee706'};"></ion-icon>
+                    style="color: ${variance > 0 ? 'red' : '#3ee706'};"></i>
         `);
 
         $("#variation-box").css('border', variance > 0 ? '1px solid red' : '1px solid #3ee706');
@@ -1328,7 +857,7 @@
         $("#variation-hour-now").html(`
             ${varianceDisplayHour}
            <i class="fa ${variation_hour_now > 0 ? 'fa-caret-down' : 'fa-caret-up'}"
-                    style="color: ${variation_hour_now > 0 ? 'red' : '#3ee706'};"></ion-icon>
+                    style="color: ${variation_hour_now > 0 ? 'red' : '#3ee706'};"></i>
         `);
 
         $("#variation-box2").css('border', variation_hour_now > 0 ? '1px solid red' : '1px solid #3ee706');
@@ -1353,30 +882,14 @@
         $("#user-name").text((data.user || "Line").replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()));
         $("#buyer-name").text(data.buyer || "0");
         $("#buyer-id").text(data.no_ws || "0");
-        updateTable1(data);
-        updateTable2(data);
-        updateTable3(data);
-        updateTable4(data);
-        updateTable5(data);
-        updateTable7(data);
-        updateTable8(data);
-        updateTable9(data);
-        updateTable10(data);
-        variation1(data);
-        efficiency1(data);
-        deffect1(data);
+        hourlyTable1(data);
+        summaryCard1(data);
 
         // PAGES 2
         $("#user-name-2").text((data.user || "Line").replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()));
         $("#buyer-name-2").text(data.buyer || "0");
         $("#buyer-id-2").text(data.no_ws || "0");
-        $("#actual-2").text(data.actuall1 || "0");
-        $("#day-target-2").text(data.day_target1 || "0");
-        $("#req-hour-target-2").text(data.target_floor || "0");
-        $("#deffect-garment-qty-2").text(data.deffectl1 - data.rework || "0");
-        $("#rework-balance-2").text(data.rework || "0");
-        commulation2(data);
-        variance2(data);
+        summaryCard2(data);
 
         // PAGES 3
         $("#user-name-3").text((data.user || "Line").replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()));
@@ -1414,32 +927,36 @@
         const linkGambar1 = data.link_gambar1;
         const positionDefect = data.positiondefect || [];
 
-        carouselContainer.empty();
-        linkGambar1.forEach((gambar1, index) => {
-            const isActive = index === 0 ? 'active' : ''; // Set item pertama sebagai active
-            const defectPoints = positionDefect
-                .filter(posdef => posdef.image === gambar1.image)
-                .map(posdef => `
-                                        <div class="defect-area-img-point"
-                                            data-defect-type="${posdef.defect_type_id}"
-                                            data-x="${parseFloat(posdef.defect_area_x)}"
-                                            data-y="${parseFloat(posdef.defect_area_y)}">
-                                        </div>`).join('');
-            console.log(location.protocol);
-            let link = location.protocol !== 'https:' ? 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' : 'https://10.10.5.62:8143/erp/pages/prod_new/upload_files/';
-            // Add carousel item
-            const carouselItem = `
-                                    <div class="carousel-item ${isActive}" data-bs-interval="4500">
-                                        <div class="defect-area-img-container mx-auto overflow-hidden" style="height: 420px; padding-bottom: 20px;">
-                                            ${defectPoints}
-                                            <img style="opacity: .8; width: auto; height: 420px;"
-                                                src="${link}${gambar1.image}"
-                                                class="img-fluid defect-area-img">
-                                        </div>
-                                    </div>`;
+        // bangun ulang carousel hanya kalau gambar / titik defect berubah
+        const carouselSignature = JSON.stringify([linkGambar1, positionDefect]);
+        if (carouselSignature !== lastCarouselSignature) {
+            lastCarouselSignature = carouselSignature;
+            carouselContainer.empty();
+            linkGambar1.forEach((gambar1, index) => {
+                const isActive = index === 0 ? 'active' : ''; // Set item pertama sebagai active
+                const defectPoints = positionDefect
+                    .filter(posdef => posdef.image === gambar1.image)
+                    .map(posdef => `
+                                            <div class="defect-area-img-point"
+                                                data-defect-type="${posdef.defect_type_id}"
+                                                data-x="${parseFloat(posdef.defect_area_x)}"
+                                                data-y="${parseFloat(posdef.defect_area_y)}">
+                                            </div>`).join('');
+                let link = location.protocol !== 'https:' ? 'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' : 'https://10.10.5.62:8143/erp/pages/prod_new/upload_files/';
+                // Add carousel item
+                const carouselItem = `
+                                        <div class="carousel-item ${isActive}" data-bs-interval="4500">
+                                            <div class="defect-area-img-container mx-auto overflow-hidden" style="height: 420px; padding-bottom: 20px;">
+                                                ${defectPoints}
+                                                <img style="opacity: .8; width: auto; height: 420px;"
+                                                    src="${link}${gambar1.image}"
+                                                    class="img-fluid defect-area-img">
+                                            </div>
+                                        </div>`;
 
-            carouselContainer.append(carouselItem);
-        });
+                carouselContainer.append(carouselItem);
+            });
+        }
 
         let defectAreaImage = document.getElementsByClassName('defect-area-img');
         let defectAreaImagePoint = document.getElementsByClassName('defect-area-img-point');
@@ -1502,16 +1019,12 @@
         showChartEfficiency(data);
         showChartRFT(data);
         showChartDeffect(data);
+
+        // konten (tabel, nama buyer, dll) bisa berubah setelah data masuk
+        fitDashboard();
     }
 
-    $(document).ready(async function() {
-        // window.Echo.channel("dashboard-wip-line-channel-" + lineId)
-        //     .listen('.UpdatedDashboardWipLineEvent', (event) => {
-        //         if (event && event.data) {
-        //             const data = event.data;
-        //             showingalldata(data);
-        //         }
-        //     });
+    $(document).ready(function() {
         getData();
     });
 
@@ -1519,52 +1032,58 @@
         getData();
     }, 60000);
 
-    // var intervalPage = setInterval(() => {
-    //     location.reload()
-    // }, 900000);
+    const lineId = @json($id);
+    const testJam = new URLSearchParams(location.search).get('jam'); // TEST JAM: hapus setelah selesai cek
+    let isFetching = false;
 
     async function getData() {
+        // jangan tumpuk request kalau server/jaringan lambat
+        if (isFetching) return;
+        isFetching = true;
+
+        // tanggal lokal, bukan toISOString() (UTC): sebelum jam 07:00 WIB toISOString() masih tanggal kemarin
         const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        var lineId = @json($id);
-        const data = {
-            "tanggal": formattedDate,
-            "line_id": lineId
-        };
+        const formattedDate = [
+            today.getFullYear(),
+            String(today.getMonth() + 1).padStart(2, '0'),
+            String(today.getDate()).padStart(2, '0'),
+        ].join('-');
 
         try {
             const response = await $.ajax({
                 url: '/nds_wip/public/index.php/api/trigger-wip-line/dashboard-line/wip-line-sign',
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify(data),
-                success: function(result) {},
-                error: function(xhr, status, error) {}
+                timeout: 30000,
+                data: JSON.stringify({
+                    "tanggal": formattedDate,
+                    "line_id": lineId,
+                    "jam": testJam // TEST JAM
+                }),
             });
 
             showingalldata(response.data.data);
         } catch (error) {
             console.error('Request failed:', error);
+        } finally {
+            isFetching = false;
         }
     }
 
+    // Format waktu ke zona waktu Jakarta (Asia/Jakarta), dibuat sekali saja
+    const jakartaFormatter = new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    });
+
     function updateJakartaTime() {
-        // Buat objek waktu sekarang
-        const now = new Date();
-
-        // Format waktu ke zona waktu Jakarta (Asia/Jakarta)
-        const formatter = new Intl.DateTimeFormat("id-ID", {
-            timeZone: "Asia/Jakarta",
-            year: "numeric",
-            month: "short",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        });
-
         // Format waktu menjadi array parts
-        const parts = formatter.formatToParts(now);
+        const parts = jakartaFormatter.formatToParts(new Date());
 
         // Ambil bagian tanggal dengan format: 25 Jan 2025
         const day = parts.find(part => part.type === "day").value;
@@ -1584,16 +1103,12 @@
         document.getElementById("current-time").textContent = `${formattedDate} - ${formattedTime}`;
         document.getElementById("current-time-2").textContent = `${formattedDate} - ${formattedTime}`;
         document.getElementById("current-time-3").textContent = `${formattedDate} - ${formattedTime}`;
-
-        // Meminta frame berikutnya
-        // requestAnimationFrame(updateJakartaTime);
     }
 
     updateJakartaTime();
 
     var time = setInterval(function() {
         updateJakartaTime();
-        console.log("This runs every 1 second");
     }, 1000); // 1000 milliseconds = 1 second
 
 
@@ -1634,27 +1149,24 @@
         document.getElementById("realtime-diff").textContent = `${hours} Hours ${minutes} Minutes`;
         document.getElementById("realtime-diff-2").textContent = `${hours} Hours ${minutes} Minutes`;
         document.getElementById("realtime-diff-3").textContent = `${hours} Hours ${minutes} Minutes`;
-
-        // requestAnimationFrame(updateRealtimeDiff);
     }
 
     updateRealtimeDiff();
 
     var timeDiff = setInterval(function() {
         updateRealtimeDiff();
-
-        console.log("This runs every 1 minute");
     }, 60000);
 
 
     function showChartEfficiency(data) {
     // Ambil nilai asli dari data
-    const eff_data = data.dashboard_indicators2[0].effi || 0;
+    const eff_data = Number((data.summary || {}).eff || 0);
 
     // Batasi nilai bar hanya sampai 100 (rentang 0–100)
     const eff_data_clamped = Math.min(Math.max(eff_data, 0), 100);
 
-    var chart = JSC.chart('chartdiv-efficiency', {
+    // label tetap tampilkan nilai asli (contoh: 383%), bar dibatasi 0-100
+    renderGauge('efficiency', 'chartdiv-efficiency', eff_data_clamped, `${eff_data}`, () => ({
         debug: false,
         legend_visible: false,
         defaultTooltip_enabled: false,
@@ -1677,8 +1189,6 @@
             type: 'gauge column roundcaps',
             shape: {
                 label: {
-                    // Tetap tampilkan nilai asli (contoh: 383%)
-                    text: `${eff_data}`,
                     align: 'center',
                     verticalAlign: 'middle',
                     style_fontSize: 28
@@ -1709,18 +1219,15 @@
                         color: '#21D683'
                     }
                 ]
-            },
-            points: [
-                ['x', [0, eff_data_clamped]] // Nilai bar dibatasi dalam 0-100
-            ]
+            }
         }]
-    });
+    }));
 }
 
 
     function showChartRFT(data) {
-        const per_rft = Number(data.dashboard_indicators[0].per_rft || 0, 10);
-        var chart = JSC.chart('chartdiv-rft', {
+        const per_rft = Number((data.summary || {}).rft_pct || 0);
+        renderGauge('rft', 'chartdiv-rft', per_rft, '%max', () => ({
             debug: false,
             legend_visible: false,
             defaultTooltip_enabled: false,
@@ -1779,17 +1286,14 @@
                             color: '#21D683'
                         }
                     ]
-                },
-                points: [
-                    ['x', [0, per_rft]]
-                ]
+                }
             }, ]
-        });
+        }));
     }
 
     function showChartDeffect(data) {
-        const per_defect = Number(data.dashboard_indicators[0].per_defect || 0, 10);
-        var chart = JSC.chart('chartdiv-deffect', {
+        const per_defect = Number((data.summary || {}).def_rate || 0);
+        renderGauge('deffect', 'chartdiv-deffect', per_defect, '%max', () => ({
             debug: false,
             legend_visible: false,
             defaultTooltip_enabled: false,
@@ -1848,11 +1352,35 @@
                             color: '#FF5353'
                         }
                     ]
-                },
-                points: [
-                    ['x', [0, per_defect]]
-                ]
+                }
             }, ]
-        });
+        }));
     }
+
+    // AUTO ZOOM: skala konten agar pas lebar & tinggi layar (PC, laptop, TV)
+    const DESIGN_WIDTH = 1300;
+
+    function fitDashboard() {
+        const rows = document.querySelectorAll('.wip-scale');
+        if (!rows.length) return;
+
+        // tinggi asli konten (offsetHeight tidak terpengaruh transform)
+        let designHeight = 0;
+        rows.forEach(row => designHeight = Math.max(designHeight, row.offsetHeight));
+        if (!designHeight) return;
+
+        const availWidth = window.innerWidth - 8; // padding p-1 kiri-kanan
+        const availHeight = window.innerHeight - 8; // padding p-1 atas-bawah
+        const scale = Math.min(availWidth / DESIGN_WIDTH, availHeight / designHeight);
+
+        // pakai transform, bukan zoom: chart JSC salah ukur di dalam elemen yang di-zoom
+        rows.forEach(row => row.style.transform = `scale(${scale})`);
+    }
+
+    let fitTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(fitTimer);
+        fitTimer = setTimeout(fitDashboard, 150);
+    });
+    window.addEventListener('load', fitDashboard);
 </script>
