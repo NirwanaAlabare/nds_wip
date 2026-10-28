@@ -443,8 +443,12 @@
         }
 
         async function setFixedColumn() {
+            document.getElementById("loadingOrderOutput").classList.remove("hidden");
+
             if ($.fn.dataTable.isDataTable('#trackdatatable')) {
                 console.log("datatable initialized");
+
+                document.getElementById("loadingOrderOutput").classList.add("hidden");
             } else {
                 // Initialize DataTable again
                 var datatable = $('#trackdatatable').DataTable({
@@ -471,6 +475,8 @@
 
                 setTimeout(function () {
                     $('#trackdatatable').DataTable().columns.adjust();
+
+                    document.getElementById("loadingOrderOutput").classList.add("hidden");
                 }, 1000);
             }
         }

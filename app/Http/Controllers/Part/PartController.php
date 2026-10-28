@@ -2120,9 +2120,25 @@ class PartController extends Controller
             ]);
 
             if ($partDetailUpdate) {
+                $cancelledStocker = Stocker::where('part_detail_id', $partDetail->id)
+                    ->where(function ($query) {
+                        $query->where('cancel', '=', 'y');
+                    });
+
+                Log::channel('deletePartDetail')->info([
+                    "Cancel Part Detail With Printed Stocker",
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    $partDetail,
+                    (clone $cancelledStocker)->get(),
+                ]);
+
+                $uncancelStocker = $cancelledStocker->update(["cancel" => "n"]);
+
+                $uncancelStockerMessage = '<br>'.$uncancelStocker.' stocker ikut di restore.';
+
                 return array(
                     'status' => 200,
-                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil diupdate menjadi Active. <br> "'.$partDetail->id.'"',
+                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil diupdate menjadi Active. <br> "'.$partDetail->id.'" <br> '.$uncancelStockerMessage,
                     'redirect' => '',
                     'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
                     'additional' => [],

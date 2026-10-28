@@ -169,7 +169,7 @@
     .wip-scale {
         width: 1300px;
         flex: 0 0 auto;
-        transform-origin: center center;
+        transform-origin: top center;
     }
 
     #chartdiv-efficiency {
@@ -278,7 +278,7 @@
     <swiper-container class="mySwiper" autoplay-delay="15000" autoplay-disable-on-interaction="false" space-between="30"
         centered-slides="true">
         <swiper-slide>
-            <div class="p-1 d-flex justify-content-center align-items-center"
+            <div class="p-1 d-flex justify-content-center align-items-start"
                 style="width: 100%; height: 100vh; background-color: #ffffff;">
                 <div class="row wip-scale">
                     <div class="col-md-1">
@@ -432,7 +432,7 @@
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="p-1 d-flex justify-content-center align-items-center"
+            <div class="p-1 d-flex justify-content-center align-items-start"
                 style="width: 100%; height: 100vh; background-color: #ffffff;">
                 <div class="row wip-scale">
                     <div class="col-md-1">
@@ -648,7 +648,7 @@
             </div>
         </swiper-slide>
         <swiper-slide>
-            <div class="p-1 d-flex justify-content-center align-items-center"
+            <div class="p-1 d-flex justify-content-center align-items-start"
                 style="width: 100%; height: 100vh; background-color: #ffffff;">
                 <div class="row wip-scale">
                     <div class="col-md-1">
