@@ -508,6 +508,8 @@
         }
 
         async function setFixedColumn() {
+            document.getElementById("loadingOrderOutput").classList.remove("hidden");
+
             if ( !$.fn.dataTable.isDataTable('#trackdatatable') ) {
                 setTimeout(function () {
                     // Initialize DataTable again
@@ -534,6 +536,8 @@
 
                 setTimeout(function () {
                     $('#trackdatatable').DataTable().columns.adjust();
+
+                    document.getElementById("loadingOrderOutput").classList.add("hidden");
                 }, 1000);
             }
 
