@@ -1414,7 +1414,7 @@
                                                 <td><input type='text' class='form-control' value='`+item.so_det_id+`' id='`+prefix+`so_det_id_`+i+`' data-index='`+i+`' name='`+prefix+`so_det_id[`+i+`]' readonly /></td>
                                                 <td><input type='text' class='form-control' value='`+(item.size ?? item.master_sb_ws.size)+`' id='`+prefix+`size_`+i+`' data-index='`+i+`' name='`+prefix+`size[`+i+`]' readonly /></td>
                                                 <td><input type='number' class='form-control' value='`+item.ratio+`' id='`+prefix+`ratio_`+i+`' data-index='`+i+`' name='`+prefix+`ratio[`+i+`]' onkeyup='calculateRatio(this)' onchange='calculateRatio(this)'/></td>
-                                                <td><input type='number' class='form-control' value='`+item.cut_qty+`' id='`+prefix+`cut_qty_`+i+`' data-index='`+i+`' name='`+prefix+`cut_qty[`+i+`]' readonly /></td>
+                                                <td><input type='number' class='form-control' value='`+(item.ratio * res.qty_ply)+`' id='`+prefix+`cut_qty_`+i+`' data-index='`+i+`' name='`+prefix+`cut_qty[`+i+`]' readonly /></td>
                                             </tr>
                                         `;
                                     });
@@ -1616,8 +1616,8 @@
                     let qtyPly = document.getElementById("modify_ratio_qty_ply").value;
                     let qtyCut = qtyPly * ratio;
 
-                    if (qtyCut) {
-                        return document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = qtyCut;
+                    if (qtyCut > 0) {
+                        document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = qtyCut;
                     } else {
                         document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = 0;
                     }
