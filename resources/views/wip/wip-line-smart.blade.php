@@ -11,10 +11,14 @@
 
     <style>
         :root {
-            --bg: #f4f7fb;
-            --panel: #ffffff;
-            --row: #f5f8fc;
-            --edge: rgba(14, 165, 233, .22);
+            /* putih lembut: latar abu-biru & kartu putih redup supaya tidak silau di TV */
+            --bg: #e6ecf4;
+            --panel: #f7f9fc;
+            --row: #edf2f8;
+            --edge: rgba(15, 31, 61, .08);
+            /* warna aksen kartu (garis atas + ikon judul), diganti per kartu di bagian AKSEN KARTU */
+            --accent: #2563eb;
+            --accent-soft: rgba(37, 99, 235, .12);
             /* teks: hitam pekat untuk angka, biru tua untuk label supaya kontras di layar TV */
             --ink: #0a1128;
             --muted: #1e3a6e;
@@ -42,8 +46,8 @@
             font-variant-numeric: tabular-nums;
             /* latar statis (tanpa animasi) supaya ringan di TV */
             background:
-                radial-gradient(1200px 600px at 15% 0%, rgba(6, 182, 212, .08), transparent 60%),
-                radial-gradient(900px 500px at 100% 100%, rgba(37, 99, 235, .07), transparent 60%),
+                radial-gradient(1200px 600px at 15% 0%, rgba(6, 182, 212, .07), transparent 60%),
+                radial-gradient(900px 500px at 100% 100%, rgba(124, 58, 237, .06), transparent 60%),
                 var(--bg);
         }
 
@@ -65,8 +69,63 @@
             position: relative;
             background: var(--panel);
             border: 1px solid var(--edge);
+            border-top: 4px solid var(--accent);
             border-radius: var(--radius);
-            box-shadow: 0 1px 2px rgba(15, 31, 61, .05), 0 10px 28px rgba(14, 116, 144, .08);
+            box-shadow: 0 1px 2px rgba(15, 31, 61, .06), 0 8px 22px rgba(15, 31, 61, .07);
+        }
+
+        /* ---------- AKSEN KARTU: warna garis atas & ikon judul per kartu ---------- */
+        .brand {
+            --accent: #0891b2;
+            --accent-soft: rgba(8, 145, 178, .12);
+        }
+
+        .clock {
+            --accent: #7c3aed;
+            --accent-soft: rgba(124, 58, 237, .12);
+        }
+
+        .s2 .row3:first-child .big-card:nth-child(1),
+        .defect-img-card {
+            --accent: #0891b2;
+            --accent-soft: rgba(8, 145, 178, .12);
+        }
+
+        .s2 .row3:first-child .big-card:nth-child(3),
+        .proj-card:nth-child(3) {
+            --accent: #d97706;
+            --accent-soft: rgba(217, 119, 6, .12);
+        }
+
+        .s2 .gauge-card:nth-child(1),
+        .proj-card:nth-child(2) {
+            --accent: #16a34a;
+            --accent-soft: rgba(22, 163, 74, .12);
+        }
+
+        .s2 .gauge-card:nth-child(3),
+        .defect-list-card {
+            --accent: #dc2626;
+            --accent-soft: rgba(220, 38, 38, .12);
+        }
+
+        .proj-card:nth-child(1) {
+            --accent: #7c3aed;
+            --accent-soft: rgba(124, 58, 237, .12);
+        }
+
+        /* ikon judul kartu di dalam tile berwarna lembut */
+        .section-title>i:first-child {
+            flex: 0 0 auto;
+            width: 36px;
+            height: 36px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            font-size: 17px;
+            color: var(--accent);
+            background: var(--accent-soft);
+            filter: none;
         }
 
         /* siku dekorasi ala HUD */
@@ -76,7 +135,7 @@
             position: absolute;
             width: 22px;
             height: 22px;
-            border: 2px solid var(--cyan);
+            border: 2px solid var(--accent);
             opacity: .7;
             pointer-events: none;
         }
@@ -223,17 +282,16 @@
             white-space: nowrap;
         }
 
+        /* kartu putih seperti header lain, aksen hijau di garis atas & bar progres shift */
         .worktime {
-            background: linear-gradient(135deg, #1d4ed8, #2563eb 45%, #06b6d4) !important;
-            border-color: rgba(103, 232, 249, .6) !important;
-            box-shadow: 0 0 24px rgba(34, 211, 238, .35), inset 0 1px 0 rgba(255, 255, 255, .2) !important;
+            --accent: #16a34a;
+            --accent-soft: rgba(22, 163, 74, .15);
             flex-direction: column;
             align-items: flex-start !important;
             justify-content: center;
         }
 
         .worktime .eyebrow {
-            color: rgba(255, 255, 255, .85);
             position: relative;
         }
 
@@ -246,8 +304,8 @@
 
         .worktime .value small {
             font-size: 18px;
-            font-weight: 600;
-            opacity: .85;
+            font-weight: 700;
+            color: var(--muted);
             margin: 0 6px 0 2px;
         }
 
@@ -258,7 +316,7 @@
             height: 5px;
             margin-top: 8px;
             border-radius: 99px;
-            background: rgba(255, 255, 255, .25);
+            background: var(--accent-soft);
         }
 
         .shift-bar i {
@@ -266,8 +324,8 @@
             height: 100%;
             width: 0;
             border-radius: 99px;
-            background: #fff;
-            box-shadow: 0 0 8px #fff;
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent-soft);
             transition: width .8s ease;
         }
 
@@ -424,14 +482,8 @@
             background: linear-gradient(90deg, #dff7fc, #ecfbfe);
             outline: 2px solid var(--cyan);
             outline-offset: -2px;
-            box-shadow: 0 0 18px rgba(6, 182, 212, .35);
-            animation: glow 2.4s ease-in-out infinite;
-        }
-
-        @keyframes glow {
-            50% {
-                box-shadow: 0 0 6px rgba(6, 182, 212, .15);
-            }
+            /* pendar statis: animasi box-shadow menggambar ulang baris tiap frame, berat di TV spek rendah */
+            box-shadow: 0 0 14px rgba(6, 182, 212, .3);
         }
 
         .hourly tr.current td {
@@ -464,9 +516,12 @@
             height: 14px;
         }
 
+        /* animasi pakai transform (scaleY), bukan height, supaya tidak menghitung ulang layout tiap frame */
         .eq i {
             width: 2px;
+            height: 100%;
             background: var(--cyan);
+            transform-origin: bottom;
             animation: eq 1s ease-in-out infinite;
         }
 
@@ -490,11 +545,11 @@
 
             0%,
             100% {
-                height: 30%;
+                transform: scaleY(.3);
             }
 
             50% {
-                height: 100%;
+                transform: scaleY(1);
             }
         }
 
@@ -584,6 +639,7 @@
         .kpi {
             color: #fff;
             border-color: transparent !important;
+            border-top-width: 1px;
         }
 
         .kpi .label {
@@ -817,6 +873,37 @@
             border-radius: 2px;
             background: var(--ink);
             transition: left .8s ease;
+        }
+
+        /* legend warna bar progress */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 16px;
+            margin-top: -4px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend i {
+            display: inline-block;
+            width: 14px;
+            height: 8px;
+            border-radius: 99px;
+        }
+
+        .legend i.mk {
+            width: 3px;
+            height: 14px;
+            border-radius: 2px;
+            background: var(--ink);
         }
 
         .split {
@@ -1083,6 +1170,95 @@
             width: 100%;
         }
 
+        /* ---------- SLIDE 4: projection ---------- */
+        .s4 {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 16px;
+        }
+
+        .proj-chart-card {
+            padding: 18px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .proj-chart {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
+        .proj-chart svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .legend i.line-dash {
+            height: 4px;
+            background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px);
+        }
+
+        .proj-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .proj-card {
+            flex: 1 1 0;
+            padding: 18px 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .proj-card .k {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .proj-card .v {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.05;
+        }
+
+        .proj-card .v small {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-left: 4px;
+        }
+
+        .proj-card .f {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dim);
+        }
+
+        .proj-card .note {
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .t-good {
+            color: var(--good);
+        }
+
+        .t-bad {
+            color: var(--bad);
+        }
+
         /* ---------- STATUS (di sebelah jam) ---------- */
         .status {
             display: inline-flex;
@@ -1098,13 +1274,21 @@
             color: var(--bad);
         }
 
+        /* jam data terakhir di bawah tulisan OFFLINE */
+        .status small {
+            display: block;
+            font-size: 12px;
+            letter-spacing: .02em;
+            line-height: 1.1;
+        }
+
+        /* lampu berdenyut pakai opacity (ringan), bukan box-shadow yang digambar ulang tiap frame */
         .status .led {
             width: 10px;
             height: 10px;
             border-radius: 50%;
             background: var(--good);
-            box-shadow: 0 0 0 0 rgba(34, 197, 94, .5);
-            animation: pulse 2s infinite;
+            animation: pulse 2s ease-in-out infinite;
         }
 
         .status.offline .led {
@@ -1113,13 +1297,28 @@
         }
 
         @keyframes pulse {
-            70% {
-                box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+            50% {
+                opacity: .35;
             }
+        }
 
-            100% {
-                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-            }
+        /* ---------- MODE LITE (?lite=1): untuk TV spek rendah, semua animasi & efek cahaya/bayangan dimatikan ---------- */
+        .lite *,
+        .lite *::before,
+        .lite *::after {
+            animation: none !important;
+            transition: none !important;
+            box-shadow: none !important;
+            filter: none !important;
+        }
+
+        .lite .card {
+            box-shadow: 0 1px 2px rgba(15, 31, 61, .08) !important;
+        }
+
+        /* tanpa animasi, teks panjang tidak berjalan: tampil dari kiri & terpotong di ujung kartu */
+        .lite .scroll-text.marquee {
+            padding-left: 0;
         }
     </style>
 </head>
@@ -1246,6 +1445,11 @@
                             <i id="b-actual-bar" style="width:0"></i>
                             <span class="marker" id="b-realtime-marker" style="left:0"></span>
                         </div>
+                        <div class="legend">
+                            <span><i class="tone-good"></i>&ge; Realtime</span>
+                            <span><i class="tone-bad"></i>&lt; Realtime</span>
+                            <span><i class="mk"></i>Realtime target</span>
+                        </div>
                         <div class="split">
                             <div>
                                 <div class="k">Day target</div>
@@ -1272,6 +1476,11 @@
                             </div>
                         </div>
                         <div class="progress"><i id="b-hour-bar" style="width:0"></i></div>
+                        <div class="legend">
+                            <span><i class="tone-good"></i>&ge; 85%</span>
+                            <span><i class="tone-warn"></i>75 – 84%</span>
+                            <span><i class="tone-bad"></i>&lt; 75%</span>
+                        </div>
                         <div class="split">
                             <div>
                                 <div class="k">Req hour target</div>
@@ -1288,17 +1497,26 @@
                             <div class="section-title"><i class="fa-solid fa-shield-halved"></i> Kualitas</div>
                         </div>
                         <div class="hero">
-                            <div class="ico c-amber"><i class="fa-solid fa-bug"></i></div>
+                            <div class="ico c-amber"><i class="fa-solid fa-shirt"></i></div>
                             <div>
                                 <div class="num" id="b-defect-qty">0</div>
                                 <div class="cap">Defect garment qty</div>
                             </div>
                         </div>
-                        <div class="hero">
-                            <div class="ico c-green"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                        <div class="progress" title="defect rate (skala 0 - 5%)"><i id="b-defect-bar" style="width:0"></i></div>
+                        <div class="legend">
+                            <span><i class="tone-good"></i>&lt; 2%</span>
+                            <span><i class="tone-warn"></i>2 – 3%</span>
+                            <span><i class="tone-bad"></i>&ge; 3%</span>
+                        </div>
+                        <div class="split">
                             <div>
-                                <div class="num" id="b-rework">0</div>
-                                <div class="cap">Rework output</div>
+                                <div class="k">Rework output</div>
+                                <div class="v" id="b-rework">0</div>
+                            </div>
+                            <div>
+                                <div class="k">Defect rate</div>
+                                <div class="v" id="b-defrate">0<small style="font-size:20px">%</small></div>
                             </div>
                         </div>
                     </div>
@@ -1344,6 +1562,38 @@
                     <div class="defect-list" id="defect-list"></div>
                 </div>
             </section>
+
+            {{-- SLIDE 4: projection akhir shift --}}
+            <section class="slide s4">
+                <div class="card hud proj-chart-card">
+                    <div class="section-title"><i class="fa-solid fa-chart-line"></i> Projection akhir shift
+                        <span class="meta legend" style="margin-top:0">
+                            <span style="color:var(--brand)"><i style="background:currentColor"></i>Output aktual</span>
+                            <span id="proj-legend-color"><i class="line-dash"></i>Projection</span>
+                            <span style="color:var(--dim)"><i class="line-dash"></i>Target</span>
+                        </span>
+                    </div>
+                    <div class="proj-chart" id="proj-chart"></div>
+                </div>
+                <div class="proj-stack">
+                    <div class="card proj-card">
+                        <div class="k">Projection <span class="pill" id="proj-gap"></span></div>
+                        <div class="v" id="proj-value">-</div>
+                        <div class="f">Output ÷ menit kerja berjalan × total menit kerja</div>
+                    </div>
+                    <div class="card proj-card">
+                        <div class="k">Kecepatan sekarang</div>
+                        <div class="v" id="proj-rate-now">-</div>
+                        <div class="f">Output ÷ jam kerja berjalan</div>
+                    </div>
+                    <div class="card proj-card">
+                        <div class="k">Kecepatan dibutuhkan</div>
+                        <div class="v" id="proj-rate-need">-</div>
+                        <div class="note" id="proj-rate-note"></div>
+                        <div class="f" id="proj-rate-formula">(Target − output) ÷ sisa jam kerja</div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -1351,10 +1601,12 @@
         const lineId = @json($id);
         const params = new URLSearchParams(location.search);
         const testJam = params.get('jam'); // TEST JAM: ?jam=HH:MM menggantikan jam server
+        // ?lite=1 untuk TV spek rendah: matikan semua animasi & efek cahaya/bayangan (lihat CSS MODE LITE)
+        if (params.has('lite')) document.documentElement.classList.add('lite');
         const SLIDE_MS = 15000;
         const REFRESH_MS = 60000;
-        const DEFECT_COLORS = ['#ec3032', '#fd8024', '#fffb45', '#2bff6b', 'whitesmoke'];
-        const DEFECT_BORDERS = ['#b50204', '#da5d02', '#d0cb02', '#00c43b', 'gray'];
+        const DEFECT_COLORS = ['#ec3032', '#fd8024', '#fffb45', '#2bff6b', '#c084fc'];
+        const DEFECT_BORDERS = ['#b50204', '#da5d02', '#d0cb02', '#00c43b', '#9333ea'];
         const IMG_BASE = location.protocol !== 'https:' ?
             'http://10.10.5.62:8080/erp/pages/prod_new/upload_files/' :
             'https://10.10.5.62:8143/erp/pages/prod_new/upload_files/';
@@ -1370,6 +1622,15 @@
             "'": '&#39;'
         })[c]);
         const effTone = v => v >= 85 ? 'good' : (v >= 75 ? 'warn' : 'bad');
+        let shift = null; // jam mulai & total menit kerja dari summary, untuk renderWorktime()
+        let lastWorktime = null; // menit terakhir yang sudah ditampilkan
+        const worktimeFmt = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Jakarta',
+            weekday: 'short',
+            hour: 'numeric',
+            minute: 'numeric',
+            hourCycle: 'h23'
+        });
 
         // ---------- skala kanvas ----------
         function fitStage() {
@@ -1402,13 +1663,14 @@
             const now = new Date();
             $('clock-time').textContent = timeFmt.format(now).replace(/\./g, ':');
             $('clock-date').textContent = dateFmt.format(now);
+            renderWorktime();
         }
         tick();
         setInterval(tick, 1000);
 
         // ---------- slide ----------
         const slides = [...document.querySelectorAll('.slide')];
-        // ?slide=1..3 mengunci slide (untuk cek tampilan)
+        // ?slide=1..4 mengunci slide (untuk cek tampilan)
         const lockedSlide = params.has('slide') ? Math.min(Math.max(parseInt(params.get('slide'), 10) - 1 || 0, 0), slides.length - 1) : null;
         let slideIndex = lockedSlide ?? 0;
 
@@ -1449,26 +1711,40 @@
         addEventListener('pointercancel', () => dragX = null);
 
         // ---------- mini chart SVG (data asli dari tabel per jam) ----------
-        function sparkPath(values, w, h, pad = 4) {
-            if (values.length < 2) return '';
-            const min = Math.min(...values),
-                max = Math.max(...values),
-                span = max - min || 1;
-            return values.map((v, i) => {
-                const x = pad + i * (w - pad * 2) / (values.length - 1);
-                const y = h - pad - (v - min) / span * (h - pad * 2);
-                return `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`;
-            }).join(' ');
+        // posisi "sekarang" dalam satuan slot jam (mis. 3.07 = jam ke-4 baru berjalan 7%),
+        // bagian jam berjalan diambil dari realtime target yang dihitung per menit
+        function nowSlotX(slots, done, realtime) {
+            if (!done) return 0;
+            const cur = done - 1,
+                before = slots.slice(0, cur).reduce((a, r) => a + num(r.target), 0),
+                tgt = num(slots[cur].target);
+            return cur + (tgt > 0 ? Math.min(Math.max((realtime - before) / tgt, 0), 1) : 1);
         }
 
-        function sparkline(el, values, color, fill) {
+        // bar +/- per jam dengan garis nol putus-putus: ke atas = lebih dari target, ke bawah = kurang
+        // values = semua slot jam kerja, doneCount = jumlah jam yang sudah terjadi (sisanya tampil tipis)
+        function zeroBars(el, values, doneCount, color) {
             const w = el.viewBox.baseVal.width,
-                h = el.viewBox.baseVal.height;
-            const d = sparkPath(values, w, h);
-            if (!d) return el.innerHTML = '';
-            const area = fill ? `<path d="${d} L${w - 4} ${h} L4 ${h} Z" fill="${color}" opacity=".18"/>` : '';
-            el.innerHTML = `${area}<path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"
-                stroke-linecap="round" style="filter:drop-shadow(0 0 4px ${color})"/>`;
+                h = el.viewBox.baseVal.height,
+                pad = 4;
+            if (!values.length) return el.innerHTML = '';
+            const done = values.slice(0, doneCount),
+                min = Math.min(0, ...done),
+                max = Math.max(0, ...done),
+                span = (max - min) || 1;
+            const Y = v => h - pad - (v - min) / span * (h - pad * 2);
+            const y0 = Y(0),
+                gap = 4,
+                bw = (w - gap * (values.length - 1)) / values.length;
+            el.innerHTML = values.map((v, i) => {
+                const future = i >= doneCount;
+                const top = future ? y0 - 1.5 : Math.min(Y(v), y0 - 1.5),
+                    bh = future ? 3 : Math.max(3, Math.abs(Y(v) - y0));
+                const op = future ? .2 : (i === doneCount - 1 ? 1 : .6);
+                return `<rect x="${(i * (bw + gap)).toFixed(1)}" y="${(v < 0 && !future ? y0 : top).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}"
+                    rx="2" fill="${color}" opacity="${op}"/>`;
+            }).join('') + `<line x1="0" x2="${w}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".8"/>
+                <text x="${w + 3}" y="${y0.toFixed(1)}" dy="4" font-size="11" font-weight="700" fill="${color}">0</text>`;
         }
 
         // doneCount = jumlah jam yang sudah terjadi; bar terakhir yang terjadi paling terang
@@ -1602,10 +1878,10 @@
             return `<span class="var ${up ? 'up' : 'down'}">${fmt(Math.abs(diff))}<i class="fa-solid ${up ? 'fa-caret-up' : 'fa-caret-down'}"></i></span>`;
         }
 
-        function setPill(el, diff, label) {
+        function setPill(el, diff) {
             const up = diff >= 0;
             el.className = `pill ${up ? 'good' : 'bad'}`;
-            el.innerHTML = `<i class="fa-solid ${up ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down'}"></i> ${up ? 'Lebih' : 'Kurang'} ${fmt(Math.abs(diff))}${label ? ' ' + label : ''}`;
+            el.innerHTML = `<i class="fa-solid ${up ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> ${fmt(Math.abs(diff))}`;
         }
 
         function setScrollText(el, text) {
@@ -1631,10 +1907,34 @@
             if ($('buyer').textContent !== buyer) setScrollText($('buyer'), buyer);
             if ($('ws').textContent !== ws) setScrollText($('ws'), ws);
 
-            const menit = num((data.summary || {}).menit_kerja);
+            const s = data.summary || {};
+            const [h, m] = String(s.jam_kerja_awal || '').split(':').map(Number);
+            shift = {
+                menit: num(s.menit_kerja),
+                startM: s.jam_kerja_awal ? h * 60 + m : null,
+                totalM: Math.round(num(s.jam_kerja) * 60)
+            };
+            lastWorktime = null; // data baru (mis. total jam kerja berubah) -> tulis ulang
+            renderWorktime();
+        }
+
+        // jam kerja berjalan dihitung tiap detik dari jam browser (rumus sama dengan menit_kerja di cari_summary_line),
+        // supaya tidak tertinggal sampai 1 menit menunggu refresh data
+        function renderWorktime() {
+            if (!shift) return;
+            let menit = shift.menit;
+            if (!testJam && shift.startM !== null) {
+                const p = Object.fromEntries(worktimeFmt.formatToParts(new Date()).map(x => [x.type, x.value]));
+                const nowM = Number(p.hour) * 60 + Number(p.minute);
+                const friday = p.weekday === 'Fri';
+                const cut = (s, e) => Math.max(0, Math.min(nowM, e) - Math.max(shift.startM, s));
+                menit = Math.min(Math.max(0, Math.max(0, nowM - shift.startM) - cut(friday ? 690 : 720, friday ? 750 : 780) - cut(1080, 1110)), shift.totalM);
+            }
+            // dipanggil tiap detik, tapi DOM hanya ditulis saat menitnya berubah
+            if (menit === lastWorktime) return;
+            lastWorktime = menit;
             $('worktime').innerHTML = `${Math.floor(menit / 60)}<small>jam</small>${menit % 60}<small>menit</small>`;
-            const totalMenit = num((data.summary || {}).jam_kerja) * 60;
-            $('worktime-bar').style.width = (totalMenit ? Math.min(menit / totalMenit * 100, 100) : 0) + '%';
+            $('worktime-bar').style.width = (shift.totalM ? Math.min(menit / shift.totalM * 100, 100) : 0) + '%';
         }
 
         function renderHourly(data) {
@@ -1655,7 +1955,7 @@
 
                 if (isBreak) {
                     return `<tr class="break"><td><span class="dot" style="background:var(--bad);box-shadow:0 0 8px var(--bad)"></span>${row.hours}</td>
-                        <td colspan="5" style="letter-spacing:.2em;font-size:18px"><i class="fa-solid fa-mug-hot"></i>&nbsp; ISTIRAHAT</td></tr>`;
+                        <td colspan="5" style="letter-spacing:.2em;font-size:18px"><i class="fa-solid fa-circle-pause"></i>&nbsp; ISTIRAHAT</td></tr>`;
                 }
                 const future = cls === 'future';
                 const dot = future ? '' : (num(row.output) >= num(row.target) ? 'good' : 'bad');
@@ -1673,42 +1973,48 @@
             $('hourly-meta').textContent = rows.length ? `${rows[0].hours.slice(0, 5)} – ${rows[rows.length - 1].hours.slice(-5)}` : 'Belum ada plan';
         }
 
+        // proyeksi akhir shift = laju output sejauh ini x total menit kerja plan; null kalau belum ada menit kerja
+        function projection(s) {
+            const menit = num(s.menit_kerja),
+                totalMenit = num(s.jam_kerja) * 60;
+            if (!(menit > 0 && totalMenit > 0)) return null;
+            const proj = Math.round(num(s.tot_output) / menit * totalMenit);
+            return {
+                proj,
+                gap: proj - num(s.target)
+            };
+        }
+
         function renderKpi(data) {
             const s = data.summary || {};
-            const variation = num(s.variation); // target - output, positif = kurang
+            const target = num(s.target),
+                actual = num(s.tot_output),
+                realtime = num(s.target_skrg);
+            const variation = num(s.variation); // day target - output, positif = kurang
             $('k-target').textContent = fmt(s.target);
             $('k-output').textContent = fmt(s.tot_output);
-            $('k-variation').innerHTML = varHtml(-variation);
             $('k-eff').innerHTML = `${num(s.eff).toFixed(2)}<small>%</small>`;
             $('k-defrate').innerHTML = `${num(s.def_rate).toFixed(2)}<small>%</small>`;
 
-            // proyeksi akhir shift = laju output sejauh ini x total menit kerja plan
-            const menit = num(s.menit_kerja),
-                totalMenit = num(s.jam_kerja) * 60;
-            if (menit > 0 && totalMenit > 0) {
-                const proj = Math.round(num(s.tot_output) / menit * totalMenit);
-                const gap = proj - num(s.target);
-                $('k-proj').innerHTML = `PROJECTION: <b>${fmt(proj)}</b> <span class="${gap < 0 ? 'neg' : 'pos'}">(${gap < 0 ? 'SHORTFALL' : 'SURPLUS'} ${gap < 0 ? '-' : '+'}${fmt(Math.abs(gap))})</span>`;
-            } else {
-                $('k-proj').textContent = '';
-            }
+            const p = projection(s);
+            $('k-proj').innerHTML = p ?
+                `PROJECTION: <b>${fmt(p.proj)}</b> <span class="${p.gap < 0 ? 'neg' : 'pos'}">(${p.gap < 0 ? 'SHORTFALL' : 'SURPLUS'} ${p.gap < 0 ? '-' : '+'}${fmt(Math.abs(p.gap))})</span>` : '';
 
             // visual kartu dari data per jam: bar selalu selebar semua jam kerja (jam yang belum terjadi tampil tipis)
             const past = pastRows(data);
             const slots = (data.hourly || []).filter(r => num(r.menit_kerja) > 0 || num(r.output) > 0);
             bars($('k-output-viz'), slots.map(r => num(r.output)), '#ffffff', past.length);
-            let cum = 0;
-            sparkline($('k-variation-viz'), [0, ...past.map(r => cum += num(r.variation))], '#ffffff', true);
+            // angka kartu = day target - output; bar = kolom Variation tabel per jam (jam berjalan juga vs target jam penuh)
+            $('k-variation').innerHTML = varHtml(-variation);
+            const varDone = past.map(r => num(r.variation));
+            zeroBars($('k-variation-viz'), slots.map((r, i) => varDone[i] ?? 0), past.length, '#ffffff');
             ring($('k-eff-viz'), num(s.eff), '#ffffff');
 
             // slide 2
-            const target = num(s.target),
-                actual = num(s.tot_output),
-                realtime = num(s.target_skrg);
             $('b-actual').textContent = fmt(actual);
             $('b-day-target').textContent = fmt(target);
             $('b-realtime-target').textContent = fmt(realtime);
-            setPill($('p-variation'), -variation, 'dari target');
+            setPill($('p-variation'), -variation);
             const bar = $('b-actual-bar');
             bar.style.width = (target ? Math.min(actual / target * 100, 100) : 0) + '%';
             bar.className = actual >= realtime ? 'tone-good' : 'tone-bad';
@@ -1719,7 +2025,7 @@
             $('b-periode').textContent = s.periode_jam || '';
             $('b-hour-output').textContent = fmt(hourOut);
             $('b-req-hour').textContent = fmt(req);
-            setPill($('p-hour'), hourOut - req, '');
+            setPill($('p-hour'), hourOut - req);
             const hourPct = req ? hourOut / req * 100 : 0;
             $('b-hour-pct').innerHTML = `${req ? hourPct.toFixed(0) : '-'}<small style="font-size:20px">%</small>`;
             const hbar = $('b-hour-bar');
@@ -1728,10 +2034,153 @@
 
             $('b-defect-qty').textContent = fmt(s.tot_defect);
             $('b-rework').textContent = fmt(s.tot_reworked);
+            // bar defect rate skala 0 - 5%, warna sama dengan gauge defect
+            const defRate = num(s.def_rate);
+            $('b-defrate').innerHTML = `${defRate.toFixed(2)}<small style="font-size:20px">%</small>`;
+            const dbar = $('b-defect-bar');
+            dbar.style.width = Math.min(defRate / 5 * 100, 100) + '%';
+            dbar.className = 'tone-' + (defRate < 2 ? 'good' : (defRate < 3 ? 'warn' : 'bad'));
 
             setGauge(gauges.eff, num(s.eff));
             setGauge(gauges.rft, num(s.rft_pct));
             setGauge(gauges.defect, num(s.def_rate));
+        }
+
+        // slide 4: grafik kumulatif output aktual vs target, disambung garis projection sampai akhir shift
+        function renderProjection(data) {
+            const s = data.summary || {};
+            const target = num(s.target),
+                actual = num(s.tot_output);
+            const menit = num(s.menit_kerja),
+                totalMenit = num(s.jam_kerja) * 60,
+                sisa = Math.max(totalMenit - menit, 0);
+            const p = projection(s);
+            const good = p ? p.gap >= 0 : actual >= target;
+            const projColor = good ? 'var(--good)' : 'var(--bad)';
+
+            $('proj-value').innerHTML = p ? `${fmt(p.proj)}<small>pcs</small>` : '-';
+            if (p) {
+                setPill($('proj-gap'), p.gap);
+            } else {
+                $('proj-gap').className = 'pill';
+                $('proj-gap').innerHTML = '';
+            }
+            $('proj-value').className = 'v ' + (good ? 't-good' : 't-bad');
+            $('proj-legend-color').style.color = projColor;
+
+            const rateNow = menit > 0 ? actual / menit * 60 : 0;
+            $('proj-rate-now').innerHTML = menit > 0 ? `${fmt(Math.round(rateNow))}<small>pcs/jam</small>` : '-';
+
+            const sisaTarget = Math.max(target - actual, 0);
+            const need = sisa > 0 ? sisaTarget / sisa * 60 : null;
+            $('proj-rate-formula').textContent = `(Target − output) ÷ sisa jam kerja (${Math.floor(sisa / 60)} jam ${Math.round(sisa % 60)} menit)`;
+            const note = $('proj-rate-note');
+            if (sisaTarget === 0) {
+                $('proj-rate-need').innerHTML = '0<small>pcs/jam</small>';
+                note.className = 'note t-good';
+                note.textContent = 'Day target sudah tercapai';
+            } else if (need === null) {
+                $('proj-rate-need').textContent = '-';
+                note.className = 'note t-bad';
+                note.textContent = 'Jam kerja sudah habis';
+            } else {
+                $('proj-rate-need').innerHTML = `${fmt(Math.ceil(need))}<small>pcs/jam</small>`;
+                const diff = Math.ceil(need) - Math.round(rateNow);
+                note.className = 'note ' + (diff > 0 ? 't-bad' : 't-good');
+                note.textContent = diff > 0 ? `Perlu +${fmt(diff)} pcs/jam dari kecepatan sekarang` : 'Kecepatan sekarang sudah cukup';
+            }
+
+            lastProj = [data, p, projColor];
+            drawProjChart($('proj-chart'), ...lastProj);
+        }
+
+        // ukuran SVG ikut ukuran kartu, jadi gambar ulang saat layar di-resize
+        let lastProj = null;
+        addEventListener('resize', () => lastProj && drawProjChart($('proj-chart'), ...lastProj));
+
+        // sumbu X = slot jam kerja (lebar sama), posisi "sekarang" di dalam jam berjalan dari realtime target
+        function drawProjChart(el, data, p, projColor) {
+            const s = data.summary || {};
+            const slots = (data.hourly || []).filter(r => num(r.menit_kerja) > 0 || num(r.output) > 0);
+            const done = pastRows(data).length;
+            const W = el.clientWidth,
+                H = el.clientHeight;
+            if (!slots.length || !W || !H) return el.innerHTML = '';
+
+            const N = slots.length,
+                actual = num(s.tot_output),
+                realtime = num(s.target_skrg);
+            const cumTarget = [0];
+            slots.forEach(r => cumTarget.push(cumTarget[cumTarget.length - 1] + num(r.target)));
+
+            const actualPts = [[0, 0]];
+            let cumOut = 0;
+            for (let i = 0; i < done - 1; i++) actualPts.push([i + 1, cumOut += num(slots[i].output)]);
+            const nowX = nowSlotX(slots, done, realtime);
+            if (done > 0) actualPts.push([nowX, actual]);
+
+            const top = Math.max(cumTarget[N], num(s.target), actual, p ? p.proj : 0, 1) * 1.08;
+            const mag = Math.pow(10, Math.floor(Math.log10(top / 5)));
+            const step = [1, 2, 5, 10].map(m => m * mag).find(v => top / v <= 6);
+            const yMax = Math.ceil(top / step) * step;
+
+            const L = 64,
+                R = 130,
+                T = 16,
+                B = 40;
+            const X = x => L + x / N * (W - L - R),
+                Y = y => T + (1 - y / yMax) * (H - T - B);
+            const path = pts => pts.map((pt, i) => `${i ? 'L' : 'M'}${X(pt[0]).toFixed(1)} ${Y(pt[1]).toFixed(1)}`).join(' ');
+
+            let svg = '';
+            // grid + label sumbu Y
+            for (let v = 0; v <= yMax; v += step) {
+                svg += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(15,31,61,.08)"/>
+                    <text x="${L - 10}" y="${Y(v)}" dy="5" text-anchor="end" font-size="15" font-weight="700" fill="var(--muted)">${fmt(v)}</text>`;
+            }
+            // area jam yang belum terjadi
+            svg += `<rect x="${X(nowX)}" y="${T}" width="${X(N) - X(nowX)}" height="${H - T - B}" fill="rgba(15,31,61,.035)"/>`;
+            // label jam di sumbu X
+            slots.forEach((r, i) => {
+                svg += `<text x="${X(i)}" y="${H - B + 24}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--muted)">${esc(r.hours.slice(0, 5))}</text>`;
+            });
+            svg += `<text x="${X(N)}" y="${H - B + 24}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--muted)">${esc(slots[N - 1].hours.slice(-5))}</text>`;
+
+            // target kumulatif
+            const targetPts = cumTarget.map((v, i) => [i, v]);
+            svg += `<path d="${path(targetPts)}" fill="none" stroke="var(--dim)" stroke-width="3" stroke-dasharray="3 6" stroke-linecap="round"/>`;
+            // projection
+            if (p && done > 0) {
+                svg += `<path d="${path([[nowX, actual], [N, p.proj]])}" fill="none" stroke="${projColor}" stroke-width="4" stroke-dasharray="10 8" stroke-linecap="round"/>
+                    <circle cx="${X(N)}" cy="${Y(p.proj)}" r="6" fill="${projColor}"/>`;
+            }
+            // output aktual + area
+            svg += `<path d="${path(actualPts)} L${X(nowX)} ${Y(0)} L${X(0)} ${Y(0)} Z" fill="var(--brand)" opacity=".1"/>
+                <path d="${path(actualPts)}" fill="none" stroke="var(--brand)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"
+                    style="filter:drop-shadow(0 0 5px rgba(37,99,235,.45))"/>`;
+            if (done > 0) {
+                svg += `<line x1="${X(nowX)}" x2="${X(nowX)}" y1="${T}" y2="${H - B}" stroke="var(--brand)" stroke-width="1.5" stroke-dasharray="4 4" opacity=".6"/>
+                    <circle cx="${X(nowX)}" cy="${Y(actual)}" r="8" fill="#fff" stroke="var(--brand)" stroke-width="4"/>
+                    <text x="${X(nowX)}" y="${Y(actual) - 18}" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink)">${fmt(actual)}</text>`;
+            }
+
+            // label ujung kanan; digeser kalau target & projection terlalu dekat
+            let yT = Y(cumTarget[N]),
+                yP = p ? Y(p.proj) : null;
+            if (p && Math.abs(yT - yP) < 46) {
+                const mid = (yT + yP) / 2,
+                    dir = yP > yT ? 1 : -1;
+                yP = mid + dir * 23;
+                yT = mid - dir * 23;
+            }
+            svg += `<text x="${X(N) + 14}" y="${yT}" font-size="14" font-weight="700" fill="var(--dim)">TARGET
+                    <tspan x="${X(N) + 14}" dy="20" font-size="20" font-weight="800" fill="var(--ink)">${fmt(cumTarget[N])}</tspan></text>`;
+            if (p) {
+                svg += `<text x="${X(N) + 14}" y="${yP}" font-size="14" font-weight="700" fill="${projColor}">PROJECTION
+                    <tspan x="${X(N) + 14}" dy="20" font-size="20" font-weight="800">${fmt(p.proj)}</tspan></text>`;
+            }
+
+            el.innerHTML = `<svg viewBox="0 0 ${W} ${H}">${svg}</svg>`;
         }
 
         let lastDefectSignature = null;
@@ -1773,11 +2222,10 @@
                 return;
             }
             stage.innerHTML = images.map((g, i) => {
-                const dots = points.filter(p => p.image === g.image).map(p => {
+                // hanya titik dari 5 defect teratas, supaya gambar selalu cocok dengan daftar
+                const dots = points.filter(p => p.image === g.image && rankOf[String(p.defect_type_id)] < 5).map(p => {
                     const r = rankOf[String(p.defect_type_id)];
-                    const c = r === undefined ? 'whitesmoke' : DEFECT_COLORS[r];
-                    const b = r === undefined ? 'gray' : DEFECT_BORDERS[r];
-                    return `<span class="defect-point" style="left:${parseFloat(p.defect_area_x)}%;top:${parseFloat(p.defect_area_y)}%;background:${c};border:1px solid ${b}"></span>`;
+                    return `<span class="defect-point" style="left:${parseFloat(p.defect_area_x)}%;top:${parseFloat(p.defect_area_y)}%;background:${DEFECT_COLORS[r]};border:1px solid ${DEFECT_BORDERS[r]}"></span>`;
                 }).join('');
                 return `<div class="defect-frame ${i === 0 ? 'active' : ''}"><div class="holder">
                     <img src="${IMG_BASE}${encodeURI(g.image)}" alt="">${dots}</div></div>`;
@@ -1800,6 +2248,7 @@
 
         // ---------- data ----------
         let isFetching = false;
+        let lastUpdate = null; // jam (HH:MM:SS) data terakhir berhasil diambil
 
         async function getData() {
             if (isFetching) return;
@@ -1832,14 +2281,17 @@
                 renderHourly(data);
                 renderKpi(data);
                 renderDefect(data);
+                renderProjection(data);
 
+                lastUpdate = timeFmt.format(new Date()).replace(/\./g, ':');
                 $('status').classList.remove('offline');
                 $('status-text').textContent = testJam ? `TEST ${testJam}` : 'LIVE';
-                $('status').title = 'Update terakhir ' + timeFmt.format(new Date()).replace(/\./g, ':');
+                $('status').title = 'Update terakhir ' + lastUpdate;
             } catch (e) {
                 console.error('Request failed:', e);
                 $('status').classList.add('offline');
-                $('status-text').textContent = 'OFFLINE';
+                // tampilkan jam data terakhir supaya yang melihat TV tahu datanya sudah lama
+                $('status-text').innerHTML = lastUpdate ? `OFFLINE<small>data ${lastUpdate.slice(0, 5)}</small>` : 'OFFLINE';
             } finally {
                 clearTimeout(timeout);
                 isFetching = false;
