@@ -4,7 +4,7 @@ use App\Models\ActivityLogHistory;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-function is_decimal($val)
+function is_dec($val)
 {
     return is_numeric($val) && floor($val) != $val;
 }
@@ -12,7 +12,7 @@ function is_decimal($val)
 function curr($num)
 {
     if (is_numeric($num)) {
-        if (is_decimal($num)) {
+        if (is_dec($num)) {
             $hasil_rupiah = number_format($num, 2, ',', '.');
         } else {
             $hasil_rupiah = number_format($num, 0, ',', '.');
