@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-fonts.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-fonts.css')) }}">
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <style>
         .costing-detail-page { min-height: calc(100vh - 56px); padding: 10px 14px 24px; background: #f5f5f5; color: #263746; font-family: 'Poppins', sans-serif; }
@@ -170,6 +171,34 @@
         .costing-detail-alert > span, .costing-detail-image-count, .costing-detail-auto, .costing-detail-pages button, .costing-detail-page-size span { font-weight: 500; }
         .costing-detail-page .costing-detail-page-size { font-weight: 500 !important; }
         .costing-detail-pages button[aria-current="page"] { font-weight: 600; }
+        /* ===== Font sesuai Figma (QA Detail Costing) ===== */
+        .costing-detail-page .costing-detail-title { font-family: 'Poppins', sans-serif; font-size: 32px; font-weight: 700; }
+        .costing-detail-alert > span { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 400; }
+        .costing-detail-alert .mkt-btn { font-family: 'SF Pro Rounded', ui-rounded, 'MKT Rounded', sans-serif; font-size: 12px; font-weight: 700; }
+        .costing-detail-stat span, .costing-detail-field span { font-family: 'Instrument Sans', sans-serif; font-weight: 500; }
+        .costing-detail-image-count { font-family: 'Instrument Sans', sans-serif; font-size: 12px; font-weight: 500; }
+        .costing-detail-legend-top { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 400; }
+        .costing-detail-table th { font-family: 'Inter', sans-serif; font-size: 12px !important; font-weight: 500; }
+        .costing-detail-table tbody td, .costing-detail-table .empty-row td { font-family: 'Inter', sans-serif; font-size: 14px !important; font-weight: 400; }
+        .costing-detail-table tfoot td, .costing-detail-summary-table td { font-family: 'Inter', sans-serif; font-size: 14px !important; font-weight: 700 !important; }
+        .costing-detail-page .costing-detail-page-size, .costing-detail-page .costing-detail-page-size span { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 400 !important; }
+        .costing-detail-page-size select { font-family: 'Poppins', sans-serif; font-size: 17px; font-weight: 400; }
+        .costing-detail-pages button { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 400; }
+        .costing-detail-pages button[aria-current="page"] { font-size: 16px; font-weight: 700; }
+        .costing-detail-auto { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 400; }
+        @media (min-width: 992px) {
+            .costing-detail-stat span { font-size: 20px; }
+            .costing-detail-stat strong { font-size: 24px; }
+            .costing-detail-field span, .costing-detail-field strong { font-size: 18px; }
+        }
+        @media (max-width: 767.98px) {
+            .costing-detail-page .costing-detail-title { font-size: 26px; }
+            .costing-detail-table tbody td, .costing-detail-table .empty-row td, .costing-detail-table tfoot td { font-size: 13px !important; }
+            .costing-detail-page .costing-detail-page-size, .costing-detail-page-size select, .costing-detail-pages button { font-size: 14px; }
+        }
+        @media (max-width: 575.98px) {
+            .costing-detail-page .costing-detail-title { font-size: 24px; }
+        }
     </style>
 @endsection
 
@@ -232,7 +261,7 @@
         ['No Costing', $costing->no_costing ?: '-'],
         ['DELIVERY DATE', $costing->deldate ? \Carbon\Carbon::parse($costing->deldate)->format('d/m/Y') : '-'],
         ['Qty Planned', $costing->qty_planned?: 0],
-        ['SMV (MINUTES)', number_format((float) ($costing->smv ?? 0), 0, ',', '.')],
+        ['SMV (MINUTES)', rtrim(rtrim(number_format((float) ($costing->smv ?? 0), 3, ',', '.'), '0'), ',')],
         ['CONFIRM PRICE', number_format($confirmPrice, 2, ',', '.')],
     ];
 @endphp

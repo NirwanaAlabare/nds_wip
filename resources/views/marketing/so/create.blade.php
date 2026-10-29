@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-fonts.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-fonts.css')) }}">
 
 <style>
     :root {
@@ -579,6 +580,7 @@
     #table-preview-so tbody td.so-cell { cursor: cell; white-space: pre; }  /* pre: spasi ganda tetap terlihat */
     #table-preview-so tbody td.so-cell:focus { outline: none; }
     #table-preview-so tbody td.so-cell-auto { background: #f1f4f8 !important; color: #475569 !important; }
+    #table-preview-so tbody td.so-cell-selected { background: #e8f0fe !important; }
     #table-preview-so tbody td.so-cell-active { box-shadow: inset 0 0 0 2px #1d6fd8 !important; }
     #table-preview-so tbody td.so-cell-pasted { background: #dbeafe !important; }
     #table-preview-so tbody td.so-cell-error { background: #ffe4e6 !important; box-shadow: inset 0 0 0 2px #ef4444 !important; color: #b91c1c !important; }
@@ -590,6 +592,7 @@
     #table-preview-so tbody td.so-cell { position: relative; }
     #table-preview-so .so-fill-handle { position: absolute; right: 0; bottom: 0; z-index: 6; width: 8px; height: 8px; border: 1px solid #fff; background: #1a73e8; cursor: crosshair; }    #table-preview-so tbody td.so-fill-preview { background: #fff3c4 !important; box-shadow: inset 0 0 0 1px #e0a800 !important; }
     body.so-filling, body.so-filling * { cursor: crosshair !important; user-select: none; }
+    body.so-selecting, body.so-selecting * { user-select: none; }
     .so-create-body .mkt-btn, .so-create-body .mkt-icon-btn, .card-footer .mkt-btn { font-family: 'Poppins', sans-serif; font-weight: 600; }
     .so-summary-item > span { font-family: 'Poppins', sans-serif; font-weight: 500 !important; }
     .so-summary-item strong { font-weight: 700 !important; }
@@ -604,18 +607,24 @@
     .so-file-dropzone strong { font-weight: 600; }
     .so-file-dropzone small { font-size: 12px; font-weight: 500; }
     .so-image-caption { font-weight: 500; }
-    #so-header-fields .so-edit-grid { grid-template-columns: repeat(24, minmax(0, 1fr)); }
-    #so-header-fields .so-edit-grid > .form-group { grid-column: span 8; }
-    #so-header-fields .so-edit-grid > .form-group:nth-child(1) { grid-column: span 3; }
-    #so-header-fields .so-edit-grid > .form-group:nth-child(2),
-    #so-header-fields .so-edit-grid > .form-group:nth-child(3),
-    #so-header-fields .so-edit-grid > .form-group:nth-child(4) { grid-column: span 7; }
+    /* Section Sales Order & Purchase Order: satu baris, lebar per class (menyusut proporsional kalau layar sempit).
+       so-field-sm = Currency 162px, so-field-lg = Sales Order Type / FOB / PO System / Notes 368.4px; jarak 16px.
+       Field 59px, radius 12, border 1, padding 16. */
+    #so-header-fields .so-edit-grid { display: flex !important; flex-wrap: nowrap; column-gap: 16px; }
+    #so-header-fields .so-edit-grid > .form-group { min-width: 0; grid-column: auto !important; }
+    #so-header-fields .so-edit-grid > .so-field-sm { flex: 162 1 0; max-width: 162px; }
+    #so-header-fields .so-edit-grid > .so-field-lg { flex: 368.4 1 0; max-width: 368.4px; }
+    #so-header-fields .so-edit-grid .form-control,
+    #so-header-fields .so-edit-grid .select2-container--bootstrap4 .select2-selection { height: 59px; min-height: 59px; border-width: 1px; border-radius: 12px; }
     @media (max-width: 991.98px) {
-        #so-header-fields .so-edit-grid > .form-group,
-        #so-header-fields .so-edit-grid > .form-group:nth-child(n) { grid-column: span 12 !important; }
+        /* Tablet: 2 field per baris. */
+        #so-header-fields .so-edit-grid { flex-wrap: wrap; row-gap: 16px; }
+        #so-header-fields .so-edit-grid > .so-field-sm,
+        #so-header-fields .so-edit-grid > .so-field-lg { flex: 1 1 calc(50% - 8px); max-width: calc(50% - 8px); }
     }
     @media (max-width: 575.98px) {
-        #so-header-fields .so-edit-grid > .form-group:nth-child(n) { grid-column: 1 / -1 !important; }
+        #so-header-fields .so-edit-grid > .so-field-sm,
+        #so-header-fields .so-edit-grid > .so-field-lg { flex-basis: 100%; max-width: 100%; }
         .so-file-dropzone span { font-size: 13px; }
     }
     .so-preview-pager label, .so-preview-pager .dataTables_length label { font-weight: 500 !important; }
@@ -630,6 +639,25 @@
         .so-overview-section .so-summary-item strong { font-size: 14px !important; }
         .so-overview-section .so-overview-title { font-size: 15px !important; }
     }
+    /* Font sesuai Figma (catatan QA) untuk desktop & tablet; HP (< 576px) tetap pakai ukuran kecil di atas. */
+    @media (min-width: 576px) {
+        .so-summary-card > span { font-family: 'Instrument Sans', sans-serif !important; font-size: 20px !important; font-weight: 500 !important; }
+        .so-summary-card > strong { font-family: 'Poppins', sans-serif !important; font-size: 24px !important; font-weight: 700 !important; }
+        .so-overview-section .so-summary-item > span { font-family: 'Instrument Sans', sans-serif !important; font-size: 18px !important; font-weight: 500 !important; }
+        .so-overview-section .so-summary-item strong { font-family: 'Poppins', sans-serif !important; font-size: 18px !important; font-weight: 700 !important; }
+        .so-section-toggle .text-danger { font-size: 26px; font-weight: 500; }
+        #so-header-fields .so-edit-grid .select2-selection__placeholder { font-size: 15px; font-weight: 500; }
+        #so-header-fields .so-edit-grid .form-control::placeholder { font-size: 16px; font-weight: 500; }
+    }
+    .so-template-btn, .card-footer .mkt-btn { font-family: 'SF Pro Rounded', ui-rounded, 'MKT Rounded', sans-serif !important; font-weight: 700 !important; font-size: 18px; }
+    .card-footer .mkt-btn--green { font-size: 19px; }
+    .so-file-dropzone span, .so-file-dropzone small { font-family: Inter, sans-serif; font-size: 14px; font-weight: 400; }
+    .so-file-dropzone strong { font-family: Inter, sans-serif; font-weight: 700; }
+    #btn-upload-so { font-family: Inter, sans-serif !important; font-size: 16px; font-weight: 700 !important; }
+    @media (max-width: 575.98px) {
+        .so-template-btn, .card-footer .mkt-btn { font-size: 14px; }
+        .so-file-dropzone span, .so-file-dropzone small { font-size: 13px; }
+    }
 </style>
 @endsection
 
@@ -640,7 +668,7 @@
         <div class="card-body so-create-body{{ ($viewOnly ?? false) ? ' so-view' : '' }}">
             {{-- <div class="so-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <a href="{{ route('master-marketing-so') }}">Sales Order</a> &nbsp;›&nbsp; <strong>Create Sales Order</strong></div>
              --}}
-            <div class="so-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <strong>{{ ($viewOnly ?? false) ? 'Detail Sales Order' : 'Create Sales Order' }}</strong></div>
+            <div class="so-breadcrumb">Marketing &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Proses</a>  &nbsp;›&nbsp; Sales Order &nbsp;›&nbsp; <strong>{{ ($viewOnly ?? false) ? 'Detail Sales Order' : 'Create Sales Order' }}</strong></div>
             <div class="so-page-heading">
                 <div>
                     @if ($viewOnly ?? false)
@@ -807,7 +835,7 @@
                 </button>
                 <div id="so-header-fields" class="collapse show">
                     <div class="so-edit-grid">
-                        <div class="form-group">
+                        <div class="form-group so-field-sm">
                             <label>Currency</label>
                             <select name="id_currency" id="id_currency" class="form-control select2bs4">
                                 <option value="">Choose Curr</option>
@@ -816,7 +844,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group so-field-lg">
                             <label>Sales Order Type</label>
                             <select name="jns_so" id="jns_so" class="form-control select2bs4" required>
                                 <option value="">Choose Sales Order Type</option>
@@ -824,21 +852,21 @@
                                 <option value="CMT">CMT</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group so-field-lg">
                             <label>FOB</label><input type="text" name="fob" id="fob" class="form-control input-decimal" placeholder="FOB" required>
                         </div>
-                        <div class="form-group so-notes-field">
-                            <label>Notes</label><input type="text" name="notes" id="notes" class="form-control" placeholder="Notes">
-                        </div>
-                        <input type="hidden" name="total_qty" id="total_qty">
-                        <input type="hidden" name="jumlah_po" id="jumlah_po">
-                        <div class="form-group">
+                        <div class="form-group so-field-lg">
                             <label>PO System</label>
                             <select name="po_type" id="po_type" class="form-control select2bs4" required>
                                 <option value="single">1 WS 1 PO</option>
                                 <option value="multiple">1 WS Beberapa PO</option>
                             </select>
                         </div>
+                        <div class="form-group so-field-lg so-notes-field">
+                            <label>Notes</label><input type="text" name="notes" id="notes" class="form-control" placeholder="Notes">
+                        </div>
+                        <input type="hidden" name="total_qty" id="total_qty">
+                        <input type="hidden" name="jumlah_po" id="jumlah_po">
                     </div>
                 </div>
             </section>
@@ -1197,7 +1225,10 @@
     const SO_MASTER_SIZES = new Set(@json(collect($master_sizes ?? [])->map(fn ($size) => strtoupper(trim((string) $size->size)))->values()));
     let soSizes = [];
     let soInvalidEdits = {};      // nilai salah yang belum dikirim ke server (tetap merah sampai diperbaiki)
-    let soActive = null;          // { row, field }
+    let soActive = null;          // { row, field } sel aktif (fokus)
+    let soSel = null;             // { anchor: { row, field }, focus: { row, field } } kotak pilihan
+    let soDrag = null;            // 'select' (drag pilih) | 'fill' (tarik fill handle)
+    let soFillTo = null;          // posisi baris tujuan fill handle
     let soReloadState = null;     // posisi halaman, sel aktif & sel hasil paste setelah tabel dimuat ulang
 
     function soEsc(value) { return $('<div>').text(value === null || value === undefined ? '' : String(value)).html(); }
@@ -1296,37 +1327,76 @@
             return Number(this.dataset.row) === index && this.dataset.field === field;
         }).first();
     }
-    function soSelect($td) {
-        if (!$td || !$td.length) return;
-        $('#table-preview-so td.so-cell-active').removeClass('so-cell-active');
-        $('#table-preview-so .so-fill-handle').remove();
-        $td.addClass('so-cell-active').trigger('focus');
-        $td.append('<span class="so-fill-handle" title="Tarik ke atas/bawah untuk copy nilai"></span>');
-        soActive = { row: Number($td.attr('data-row')), field: $td.attr('data-field') };
+    // ===== Grid ala Excel (sama dengan tabel costing) =====
+    // Koordinat: baris = urutan baris yang tampil di halaman ini, kolom = urutan kolom yang bisa diedit.
+    function soVisibleRows() {
+        return $('#table-preview-so tbody tr').map(function () {
+            const cell = this.querySelector('td.so-cell');
+            return cell ? Number(cell.dataset.row) : null;
+        }).get();
+    }
+    function soRect() {
+        if (!soSel) return null;
+        const rows = soVisibleRows(), order = soFieldOrder();
+        const ar = rows.indexOf(soSel.anchor.row), fr = rows.indexOf(soSel.focus.row);
+        const ac = order.indexOf(soSel.anchor.field), fc = order.indexOf(soSel.focus.field);
+        if (ar < 0 || fr < 0 || ac < 0 || fc < 0) return null;
+        return { r0: Math.min(ar, fr), r1: Math.max(ar, fr), c0: Math.min(ac, fc), c1: Math.max(ac, fc), rows: rows, order: order };
+    }
+    function soIsMulti() { const R = soRect(); return !!R && (R.r1 > R.r0 || R.c1 > R.c0); }
+    function soRectCells(callback) {
+        const R = soRect();
+        if (!R) return;
+        for (let r = R.r0; r <= R.r1; r++) for (let c = R.c0; c <= R.c1; c++) callback(R.rows[r], R.order[c], r, c);
+    }
+    function soPaint() {
+        const $body = $('#table-preview-so tbody');
+        $body.find('td.so-cell-selected, td.so-cell-active, td.so-fill-preview').removeClass('so-cell-selected so-cell-active so-fill-preview');
+        $body.find('.so-fill-handle').remove();
+        const R = soRect();
+        if (!R) { soSel = null; soActive = null; return; }
+        soRectCells((row, field) => soTd(row, field).addClass('so-cell-selected'));
+        soActive = { row: soSel.focus.row, field: soSel.focus.field };
+        soTd(soActive.row, soActive.field).addClass('so-cell-active');
+        if (soDrag === 'fill') {
+            if (soFillTo === null || soFillTo >= R.r0 && soFillTo <= R.r1) return;
+            const from = soFillTo > R.r1 ? R.r1 + 1 : soFillTo, to = soFillTo > R.r1 ? soFillTo : R.r0 - 1;
+            for (let r = from; r <= to; r++) for (let c = R.c0; c <= R.c1; c++) soTd(R.rows[r], R.order[c]).addClass('so-fill-preview');
+            return;
+        }
+        soTd(R.rows[R.r1], R.order[R.c1]).append('<span class="so-fill-handle" title="Tarik ke atas/bawah untuk copy nilai"></span>');
+    }
+    function soFocusActive() {
+        if (!soActive) return;
+        const el = soTd(soActive.row, soActive.field)[0];
+        if (el && document.activeElement !== el) el.focus({ preventScroll: true });
+    }
+    // Pilih satu sel ($td), atau perluas kotak pilihan sampai $td (extend = Shift).
+    function soSelect($td, extend) {
+        if (!$td || !$td.length || !$td.hasClass('so-cell')) return;
+        const cell = { row: Number($td.attr('data-row')), field: $td.attr('data-field') };
+        soSel = extend && soSel ? { anchor: soSel.anchor, focus: cell } : { anchor: cell, focus: Object.assign({}, cell) };
+        soPaint();
+        $td[0].focus({ preventScroll: true });
     }
 
-    // Sel-sel satu kolom yang tampil (urutan di layar), untuk fill handle & Ctrl+D.
+    // Sel-sel satu kolom yang tampil (urutan di layar).
     function soColumnTds(field) {
         return $('#table-preview-so tbody td.so-cell').filter(function () { return this.dataset.field === field; });
     }
-    // Copy nilai sel sumber ke sel-sel target; disimpan seperti paste (biru, sel salah tetap merah).
-    // targets: [{ row, field }] — sel-sel satu kolom (atas/bawah).
-    function soFillCells(sourceRow, sourceField, targets) {
-        if (!targets.length) return;
-        const value = soCurrentValue(sourceRow, sourceField);
-        soCommit(targets.map(target => ({ row: target.row, field: target.field, value: value })), { pasted: true });
+    // Pindah sel (panah/Enter/Tab); extend = Shift+panah memperluas pilihan. Mengembalikan false bila di ujung.
+    function soMove($td, direction, extend) {
+        const rows = soVisibleRows(), order = soFieldOrder();
+        let r = rows.indexOf(Number($td.attr('data-row'))), c = order.indexOf($td.attr('data-field'));
+        if (r < 0 || c < 0) return false;
+        if (direction === 'up') r--;
+        if (direction === 'down') r++;
+        if (direction === 'left') c--;
+        if (direction === 'right') c++;
+        if (r < 0 || r >= rows.length || c < 0 || c >= order.length) return false;
+        soSelect(soTd(rows[r], order[c]), extend);
+        return true;
     }
-    function soMove($td, direction) {
-        let $next = $();
-        if (direction === 'left') $next = $td.prevAll('td.so-cell').first();
-        if (direction === 'right') $next = $td.nextAll('td.so-cell').first();
-        if (direction === 'up' || direction === 'down') {
-            const $tr = direction === 'up' ? $td.closest('tr').prev('tr') : $td.closest('tr').next('tr');
-            $next = $tr.children('td.so-cell').filter(function () { return this.dataset.field === $td.attr('data-field'); }).first();
-        }
-        if ($next.length) soSelect($next);
-    }
-
     function soEdit($td, firstChar) {
         if (!$td.length || $td.hasClass('so-cell-editing')) return;
         const index = Number($td.attr('data-row'));
@@ -1352,9 +1422,13 @@
             }
         };
         $input.on('keydown', function (e) {
-            if (e.key === 'Enter') { e.preventDefault(); finish(true, 'down'); }
+            const el = this, caretAt = el.selectionStart === el.selectionEnd ? el.selectionStart : -1;
+            if (e.key === 'Enter') { e.preventDefault(); finish(true, e.shiftKey ? 'up' : 'down'); }
             else if (e.key === 'Tab') { e.preventDefault(); finish(true, e.shiftKey ? 'left' : 'right'); }
             else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+            else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); finish(true, e.key === 'ArrowUp' ? 'up' : 'down'); }
+            else if (e.key === 'ArrowLeft' && caretAt === 0) { e.preventDefault(); finish(true, 'left'); }
+            else if (e.key === 'ArrowRight' && caretAt === el.value.length) { e.preventDefault(); finish(true, 'right'); }
             e.stopPropagation();
         }).on('blur', function () { finish(true); });
     }
@@ -1385,6 +1459,7 @@
             page: previewTable ? previewTable.page() : 0,
             active: active,
             move: options.move || null,
+            sel: options.move ? null : (soSel ? { anchor: Object.assign({}, soSel.anchor), focus: Object.assign({}, soSel.focus) } : null),
             pasted: options.pasted ? changes.filter(change => !soCellError(change.field, change.value)).map(change => ({ row: change.row, field: change.field })) : []
         };
         if (!toSend.length) {
@@ -1423,96 +1498,157 @@
         }
         state.pasted.forEach(cell => soTd(cell.row, cell.field).addClass('so-cell-pasted'));
         if (state.pasted.length) setTimeout(() => $('#table-preview-so td.so-cell-pasted').removeClass('so-cell-pasted'), 4000);
-        if (state.active) {
+        if (state.sel && !state.focusId) {
+            soSel = state.sel;
+            soPaint();
+            // Hasil paste melewati halaman ini: cukup pilih sel awal.
+            if (!soSel) soSelect(soTd(state.sel.anchor.row, state.sel.anchor.field));
+            soFocusActive();
+        } else if (state.active) {
             const $td = soTd(state.active.row, state.active.field);
             soSelect($td);
             if (state.move) soMove($td, state.move);
         }
     }
 
-    // Fill handle: tekan kotak biru, tarik ke atas/bawah di kolom yang sama (preview kuning), lepas = copy nilai.
-    let soFill = null;   // { row, field, targets: [{ row, field }] }
+    // Isi sel-sel tujuan dari kotak pilihan (pola berulang bila pilihan > 1 baris), lalu pilih seluruh area.
+    function soFillToRow(t) {
+        const R = soRect();
+        if (!R || t >= R.r0 && t <= R.r1) return;
+        const n = R.r1 - R.r0 + 1;
+        const from = t > R.r1 ? R.r1 + 1 : t, to = t > R.r1 ? t : R.r0 - 1;
+        const changes = [];
+        for (let r = from; r <= to; r++) {
+            const sr = R.r0 + ((((r - R.r0) % n) + n) % n);
+            for (let c = R.c0; c <= R.c1; c++) changes.push({ row: R.rows[r], field: R.order[c], value: soCurrentValue(R.rows[sr], R.order[c]) });
+        }
+        soSel = { anchor: { row: R.rows[Math.min(R.r0, from)], field: R.order[R.c0] }, focus: { row: R.rows[Math.max(R.r1, to)], field: R.order[R.c1] } };
+        soCommit(changes, { pasted: true });
+    }
+    // Ctrl+D: 1 baris dipilih = copy dari baris di atasnya; banyak baris = copy baris teratas ke bawah.
+    function soFillDown() {
+        const R = soRect();
+        if (!R) return;
+        const changes = [];
+        const copyRow = (from, to) => { for (let c = R.c0; c <= R.c1; c++) changes.push({ row: R.rows[to], field: R.order[c], value: soCurrentValue(R.rows[from], R.order[c]) }); };
+        if (R.r0 === R.r1) { if (R.r0 === 0) return; copyRow(R.r0 - 1, R.r0); }
+        else for (let r = R.r0 + 1; r <= R.r1; r++) copyRow(R.r0, r);
+        soCommit(changes, { pasted: true });
+    }
+    function soClearSelection() {
+        const changes = [];
+        soRectCells((row, field) => changes.push({ row: row, field: field, value: '' }));
+        if (changes.length) soCommit(changes);
+    }
+    function soGridHasFocus() {
+        const el = document.activeElement;
+        return !!soSel && !!el && $(el).is('#table-preview-so td.so-cell');
+    }
+
+    // Fill handle: tekan kotak biru, tarik ke atas/bawah (preview kuning), lepas = copy nilai.
     $(document).on('mousedown', '#table-preview-so .so-fill-handle', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        if (!soActive || e.which !== 1) return;
-        soFill = { row: soActive.row, field: soActive.field, targets: [] };
+        if (!soSel || e.which !== 1) return;
+        soDrag = 'fill';
+        soFillTo = null;
         $('body').addClass('so-filling');
     });
+    $(document).on('mousedown', '#table-preview-so tbody td.so-cell', function (e) {
+        if (e.which !== 1 || $(this).hasClass('so-cell-editing') || $(e.target).hasClass('so-fill-handle')) return;
+        e.preventDefault();
+        const $editing = $('#table-preview-so .so-cell-input');
+        if ($editing.length) $editing.trigger('blur');
+        const $td = soTd(Number(this.dataset.row), this.dataset.field);
+        soSelect($td, e.shiftKey);
+        // Editor sebelumnya baru disimpan: setelah tabel dimuat ulang tetap pilih sel yang barusan diklik.
+        if (soReloadState && soSel) { soReloadState.move = null; soReloadState.active = null; soReloadState.sel = { anchor: Object.assign({}, soSel.anchor), focus: Object.assign({}, soSel.focus) }; }
+        if (!e.shiftKey) { soDrag = 'select'; $('body').addClass('so-selecting'); }
+    });
     $(document).on('mouseenter', '#table-preview-so tbody td.so-cell', function () {
-        if (!soFill) return;
-        const $source = soTd(soFill.row, soFill.field);
-        let $line = $(), from = -1, to = -1;
-        if (this.dataset.field === soFill.field) $line = soColumnTds(soFill.field);
-        $('#table-preview-so td.so-fill-preview').removeClass('so-fill-preview');
-        soFill.targets = [];
-        if (!$line.length) return;
-        from = $line.index($source);
-        to = $line.index(this);
-        if (from === -1 || to === from) return;
-        const step = to > from ? 1 : -1;
-        for (let i = from + step; i !== to + step; i += step) {
-            const $cell = $line.eq(i).addClass('so-fill-preview');
-            soFill.targets.push({ row: Number($cell.attr('data-row')), field: $cell.attr('data-field') });
+        if (!soDrag || !soSel) return;
+        if (soDrag === 'select') {
+            soSel.focus = { row: Number(this.dataset.row), field: this.dataset.field };
+        } else {
+            const r = soVisibleRows().indexOf(Number(this.dataset.row));
+            if (r >= 0) soFillTo = r;
         }
+        soPaint();
     });
     $(document).on('mouseup', function () {
-        if (!soFill) return;
-        const fill = soFill;
-        soFill = null;
-        $('body').removeClass('so-filling');
-        $('#table-preview-so td.so-fill-preview').removeClass('so-fill-preview');
-        soFillCells(fill.row, fill.field, fill.targets);
+        if (!soDrag) return;
+        const mode = soDrag, target = soFillTo;
+        soDrag = null;
+        soFillTo = null;
+        $('body').removeClass('so-filling so-selecting');
+        soPaint();
+        if (mode === 'fill' && target !== null) soFillToRow(target);
+        soFocusActive();
     });
-
-    $(document).on('mousedown', '#table-preview-so td.so-cell', function () {
-        if (!$(this).hasClass('so-cell-editing')) soSelect($(this));
+    // Klik di luar tabel = lepas pilihan (tombol Add tetap memakai baris aktif sebagai sumber).
+    $(document).on('mousedown', function (e) {
+        if ($(e.target).closest('#table-preview-so tbody, #so-add-row, .swal2-container').length) return;
+        if (soSel) { soSel = null; soPaint(); }
     });
-    $(document).on('dblclick', '#table-preview-so td.so-cell', function () { soEdit($(this)); });
-    $(document).on('keydown', '#table-preview-so td.so-cell', function (e) {
+    $(document).on('dblclick', '#table-preview-so tbody td.so-cell', function () { soEdit($(this)); });
+    $(document).on('keydown', '#table-preview-so tbody td.so-cell', function (e) {
         const $td = $(this);
-        if ($td.hasClass('so-cell-editing')) return;
-        const keys = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
-        if (keys[e.key]) { e.preventDefault(); soMove($td, keys[e.key]); return; }
-        if (e.key === 'Tab') { e.preventDefault(); soMove($td, e.shiftKey ? 'left' : 'right'); return; }
-        if (e.key === 'Enter' || e.key === 'F2') { e.preventDefault(); soEdit($td); return; }
-        if (e.key === 'Delete' || e.key === 'Backspace') {
-            e.preventDefault();
-            soCommit([{ row: Number($td.attr('data-row')), field: $td.attr('data-field'), value: '' }]);
-            return;
-        }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
-            if (navigator.clipboard) navigator.clipboard.writeText(soCurrentValue(Number($td.attr('data-row')), $td.attr('data-field')));
-            return;
-        }
-        // Ctrl+D: copy nilai dari sel di atasnya (seperti Excel).
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
-            e.preventDefault();
-            const $column = soColumnTds($td.attr('data-field'));
-            const $above = $column.eq($column.index($td) - 1);
-            if ($column.index($td) > 0 && $above.length) soFillCells(Number($above.attr('data-row')), $td.attr('data-field'), [{ row: Number($td.attr('data-row')), field: $td.attr('data-field') }]);
-            return;
-        }
-        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); soEdit($td, e.key); }
+        if ($td.hasClass('so-cell-editing') || e.target !== this) return;
+        const key = e.key, ctrl = e.ctrlKey || e.metaKey;
+        if (ctrl && key.toLowerCase() === 'd') { e.preventDefault(); soFillDown(); return; }
+        if (ctrl || e.altKey) return;   // Ctrl+C / Ctrl+V lewat event copy & paste
+        const arrows = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
+        if (arrows[key]) { e.preventDefault(); soMove($td, arrows[key], e.shiftKey); return; }
+        if (key === 'Enter') { e.preventDefault(); soMove($td, e.shiftKey ? 'up' : 'down'); return; }
+        if (key === 'Tab') { e.preventDefault(); soMove($td, e.shiftKey ? 'left' : 'right'); return; }
+        if (key === 'F2') { e.preventDefault(); soEdit($td); return; }
+        if (key === 'Escape') { soSel = null; soPaint(); return; }
+        if (key === 'Delete') { e.preventDefault(); soClearSelection(); return; }
+        if (key === 'Backspace') { e.preventDefault(); soIsMulti() ? soClearSelection() : soEdit($td, ''); return; }
+        if (key.length === 1) { e.preventDefault(); soEdit($td, key); }
     });
-    // Paste dari Excel (tab = kolom, baris baru = baris) mulai dari sel aktif.
-    $(document).on('paste', '#table-preview-so td.so-cell', function (e) {
-        if ($(this).hasClass('so-cell-editing') || !soActive) return;
+    // Copy (Ctrl+C) satu sel atau kotak pilihan, format tab/baris baru seperti Excel.
+    $(document).on('copy', function (e) {
+        if (!soGridHasFocus()) return;
+        const clipboard = e.originalEvent.clipboardData;
+        if (!clipboard) return;
+        const R = soRect();
+        if (!R) return;
+        const lines = [];
+        for (let r = R.r0; r <= R.r1; r++) {
+            const values = [];
+            for (let c = R.c0; c <= R.c1; c++) values.push(soCurrentValue(R.rows[r], R.order[c]));
+            lines.push(values.join('\t'));
+        }
+        clipboard.setData('text/plain', lines.join('\n'));
+        e.preventDefault();
+    });
+    // Paste dari Excel (tab = kolom, baris baru = baris) mulai dari pojok kiri atas pilihan;
+    // satu nilai ke banyak sel terpilih = isi semua sel itu.
+    $(document).on('paste', function (e) {
+        if (!soGridHasFocus()) return;
         const clipboard = e.originalEvent.clipboardData || window.clipboardData;
         const text = clipboard ? clipboard.getData('text') : '';
         if (!text) return;
         e.preventDefault();
-        const lines = text.replace(/\r/g, '').replace(/\n+$/, '').split('\n');
-        const order = soFieldOrder();
-        const startColumn = order.indexOf(soActive.field);
+        const R = soRect();
+        if (!R) return;
+        const matrix = text.replace(/\r/g, '').replace(/\n+$/, '').split('\n').map(line => line.split('\t'));
         const changes = [];
-        lines.forEach((line, rowOffset) => {
-            line.split('\t').forEach((value, columnOffset) => {
-                const row = soActive.row + rowOffset;
-                const field = order[startColumn + columnOffset];
-                if (row < previewUploadRows.length && field) changes.push({ row: row, field: field, value: value });
-            });
-        });
+        if (matrix.length === 1 && matrix[0].length === 1 && soIsMulti()) {
+            soRectCells((row, field) => changes.push({ row: row, field: field, value: matrix[0][0] }));
+        } else {
+            const startRow = R.rows[R.r0];
+            let lastRow = startRow, lastField = R.order[R.c0];
+            matrix.forEach((cols, i) => cols.forEach((value, j) => {
+                const row = startRow + i, field = R.order[R.c0 + j];
+                if (row >= previewUploadRows.length || !field) return;
+                changes.push({ row: row, field: field, value: value });
+                lastRow = Math.max(lastRow, row);
+                if (R.c0 + j > R.order.indexOf(lastField)) lastField = field;
+            }));
+            soSel = { anchor: { row: startRow, field: R.order[R.c0] }, focus: { row: lastRow, field: lastField } };
+        }
         if (changes.length) soCommit(changes, { pasted: true });
     });
 

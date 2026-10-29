@@ -10,7 +10,7 @@
     </div>
 </div>
 <div class="ac-search-by-wrap">
-    <i class="fas fa-sliders-h ac-input-icon"></i>
+    <i class="fas fa-filter ac-input-icon"></i>
     <select class="form-control ac-search-by" multiple>
         @foreach ($searchColumns as $value => $label)
             <option value="{{ $value }}">{{ $label ?? $numberLabel }}</option>

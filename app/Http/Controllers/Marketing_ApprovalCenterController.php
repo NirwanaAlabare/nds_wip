@@ -100,6 +100,8 @@ class Marketing_ApprovalCenterController extends Controller
                 ->groupBy('approval_status')
                 ->pluck('total', 'approval_status'))
             ->addIndexColumn()
+            // Teks di-escape di browser (escapeHtml); tanpa ini "H&M" tampil "H&amp;amp;M".
+            ->escapeColumns([])
             ->make(true);
     }
 
@@ -114,6 +116,8 @@ class Marketing_ApprovalCenterController extends Controller
 
         return DataTables::of($data)
             ->addIndexColumn()
+            // Teks di-escape di browser (escapeHtml); tanpa ini "H&M" tampil "H&amp;amp;M".
+            ->escapeColumns([])
             ->make(true);
     }
 

@@ -269,6 +269,7 @@ class Marketing_CostingController extends Controller
 
     public function store(Request $request)
     {
+        $this->normalizeMoneyInputs($request);
         $request->validate([
             'buyer' => ['required', 'exists:mysql_sb.mastersupplier,Id_Supplier'],
             'product_item' => ['required', 'exists:mysql_sb.masterproduct,id'],
@@ -276,7 +277,7 @@ class Marketing_CostingController extends Controller
             'curr' => ['required', 'exists:mysql_sb.masterpilihan,id'],
             'qty_planned' => ['required', 'numeric', 'min:0'],
             'qty' => ['required', 'numeric', 'min:0'],
-            'smv' => ['required', 'numeric', 'min:0'],
+            'smv' => ['required', 'numeric', 'min:0', 'regex:/^\d+(\.\d{1,3})?$/'],
             'deldate' => ['required', 'date'],
             'style' => ['nullable', 'string', self::styleSpacingRule()],
             'upload_foto' => ['sometimes', 'array'],
@@ -371,6 +372,17 @@ class Marketing_CostingController extends Controller
         });
 
         return redirect()->route('edit-costing', $insertId)->with('success', 'Costing berhasil dibuat');
+    }
+
+    // Angka header (Confirm Price, Rate, SMV, VAT, G&A) dikirim dalam format Indonesia (1.234.567,89) dari form Create/Edit Costing.
+    private function normalizeMoneyInputs(Request $request): void
+    {
+        foreach (['confirm_price', 'rate_to_idr', 'rate_from_idr', 'smv', 'vat', 'ga_percent'] as $field) {
+            $value = $request->input($field);
+            if (is_string($value) && $value !== '') {
+                $request->merge([$field => str_replace(['.', ','], ['', '.'], trim($value))]);
+            }
+        }
     }
 
     // Costing Approved tidak boleh diubah sebelum di-unlock (lihat MarketingApprovalService).
@@ -484,24 +496,47 @@ class Marketing_CostingController extends Controller
         } elseif ($category === 'Other Cost') {
             $exists = $db->table('masterothers')->where('id', $itemId)->exists();
         } else {
-            $groupKeyword = match ($category) {
-                'Fabric' => 'FABRIC',
-                'Accessories Sewing' => 'SEWING',
-                'Accessories Packing' => 'PACKING',
-                default => '',
-            };
-            $exists = $db->table('mastercontents as c')
-                ->join('mastertype2 as t', 'c.id_type', '=', 't.id')
-                ->join('mastersubgroup as sg', 't.id_sub_group', '=', 'sg.id')
-                ->join('mastergroup as g', 'sg.id_group', '=', 'g.id')
-                ->where('c.id', $itemId)
-                ->whereRaw('UPPER(g.nama_group) LIKE ?', ['%' . $groupKeyword . '%'])
+            $exists = DB::connection('mysql')->table('master_contents')
+                ->where('id', $itemId)
+                ->whereIn('id_group', $this->contentGroupIds($category))
                 ->exists();
         }
 
         if (!$exists) {
             throw new \InvalidArgumentException('Item tidak sesuai dengan kategori Costing.');
         }
+    }
+
+    private function contentGroupIds(string $category): array
+    {
+        $keyword = match ($category) {
+            'Fabric' => 'FABRIC',
+            'Accessories Sewing' => 'SEWING',
+            'Accessories Packing' => 'PACKING',
+            default => null,
+        };
+        if (!$keyword) {
+            return [];
+        }
+
+        return DB::connection('mysql_sb')->table('mastergroup')
+            ->whereRaw('UPPER(nama_group) LIKE ?', ['%' . $keyword . '%'])
+            ->pluck('id')->all();
+    }
+
+    private function contentInfo(array $ids)
+    {
+        $contents = DB::connection('mysql')->table('master_contents')
+            ->whereIn('id', array_unique(array_filter($ids)))
+            ->get(['id', 'id_group', 'nm_contents']);
+        $groups = DB::connection('mysql_sb')->table('mastergroup')
+            ->whereIn('id', $contents->pluck('id_group')->unique()->all())
+            ->pluck('nama_group', 'id');
+
+        return $contents->mapWithKeys(fn ($content) => [$content->id => (object) [
+            'nama_contents' => $content->nm_contents,
+            'nama_group' => $groups[$content->id_group] ?? null,
+        ]]);
     }
 
     public function copyCosting($id)
@@ -768,6 +803,10 @@ class Marketing_CostingController extends Controller
             'set'        => $set,
             'destinations'        => $destinations,
             'seasons'             => $seasons,
+            'shellOptions'        => $viewOnly ? collect() : $db->table('masterpanel')->orderBy('nama_panel')->get(['id', 'nama_panel as name']),
+            'partOptions'         => $viewOnly ? collect() : DB::connection('mysql')->table('master_part')
+                ->where(fn ($q) => $q->whereNull('cancel')->orWhere('cancel', 'N'))
+                ->orderBy('nama_part')->get(['id', 'nama_part as name']),
             'unlock'              => app(MarketingApprovalService::class)->costingUnlockState((int) $id),
             'viewOnly'            => $viewOnly,
             'buyerName'           => $db->table('mastersupplier')->where('Id_Supplier', $costing->id_buyer)->value('Supplier'),
@@ -813,17 +852,21 @@ class Marketing_CostingController extends Controller
         $rateToIdr = (float) $rateToIdr;
 
         $materials = $db->table('act_costing_mat as d')
-            ->leftJoin('mastercontents as c', 'd.id_item', '=', 'c.id')
-            ->leftJoin('mastertype2 as t', 'c.id_type', '=', 't.id')
-            ->leftJoin('mastersubgroup as sg', 't.id_sub_group', '=', 'sg.id')
-            ->leftJoin('mastergroup as g', 'sg.id_group', '=', 'g.id')
             ->leftJoin('mastersupplier as s', 'd.supplier_id', '=', 's.Id_Supplier')
             ->leftJoin('master_set as ms', 'd.set', '=', 'ms.id')
             ->where('d.id_act_cost', $costingId)
-            ->select('d.*', 'c.nama_contents', 'g.nama_group', 'sg.nama_sub_group', 't.nama_type', 's.Supplier as nama_supplier', 'ms.nama as nama_set')
+            ->select('d.*', 's.Supplier as nama_supplier', 'ms.nama as nama_set')
             ->get();
+        $contents = $this->contentInfo($materials->pluck('id_item')->all());
+        $shells = $db->table('masterpanel')->whereIn('id', $materials->pluck('id_panel')->filter()->unique()->all())->pluck('nama_panel', 'id');
+        $parts = DB::connection('mysql')->table('master_part')->whereIn('id', $materials->pluck('id_part')->filter()->unique()->all())->pluck('nama_part', 'id');
 
         foreach ($materials as $detail) {
+            $content = $contents[$detail->id_item] ?? null;
+            $detail->nama_contents = $content->nama_contents ?? null;
+            $detail->nama_group = $content->nama_group ?? null;
+            $detail->shell_name = $detail->id_panel ? ($shells[$detail->id_panel] ?? null) : null;
+            $detail->part_name = $detail->id_part ? ($parts[$detail->id_part] ?? null) : null;
             $groupName = strtoupper((string) $detail->nama_group);
             $category = str_contains($groupName, 'FABRIC')
                 ? 'Fabric'
@@ -839,8 +882,6 @@ class Marketing_CostingController extends Controller
             $detail->nama_item = trim(implode(' ', array_filter([
                 $detail->id_item,
                 $detail->nama_group,
-                $detail->nama_sub_group,
-                $detail->nama_type,
                 $detail->nama_contents,
             ])));
             $detail->item_desc = $detail->item_desc ?? '';
@@ -954,26 +995,16 @@ class Marketing_CostingController extends Controller
 
         } else {
 
-            $db_kategori = strtoupper($kategori);
-
-
-            if ($db_kategori == 'ACCESSORIES SEWING') $db_kategori = 'ACCESORIES SEWING';
-            if ($db_kategori == 'ACCESSORIES PACKING') $db_kategori = 'ACCESORIES PACKING';
-
-            $items = $mysql_sb->table('mastergroup as a')
-                ->join('mastersubgroup as s', 'a.id', '=', 's.id_group')
-                ->join('mastertype2 as d', 's.id', '=', 'd.id_sub_group')
-                ->join('mastercontents as e', 'd.id', '=', 'e.id_type')
-                ->where('e.aktif', 'Y')
-                ->where('a.nama_group', $db_kategori)
-                ->select(
-                    'e.id as isi',
-                    $mysql_sb->raw("CONCAT(e.id, ' ', a.nama_group, ' ', s.nama_sub_group, ' ', d.nama_type, ' ', e.nama_contents) as tampil")
-                )
-                ->get();
+            $groups = $mysql_sb->table('mastergroup')->whereIn('id', $this->contentGroupIds($kategori))->pluck('nama_group', 'id');
+            $items = DB::connection('mysql')->table('master_contents')
+                ->whereIn('id_group', $groups->keys()->all())
+                ->where('cancel', 'N')
+                ->orderBy('nm_contents')
+                ->get(['id', 'id_group', 'nm_contents']);
 
             foreach ($items as $item) {
-                $html .= "<option value='{$item->isi}'>{$item->tampil}</option>";
+                $label = e("{$item->id} {$groups[$item->id_group]} {$item->nm_contents}");
+                $html .= "<option value='{$item->id}'>{$label}</option>";
             }
         }
 
@@ -1031,11 +1062,76 @@ class Marketing_CostingController extends Controller
         }
     }
 
+    /**
+     * Fabric: pecah content ke beberapa shell, atau shell ke beberapa part (multi-select dari modal).
+     * Baris yang belum punya shell/part diisi duluan; sisanya jadi baris act_costing_mat baru
+     * (salinan baris sumber dengan cons & value 0, karena cons tiap shell/part berbeda).
+     */
+    public function storeFabricBreakdown(Request $request)
+    {
+        if ($locked = $this->costingLockedResponse($request, $request->id_costing)) {
+            return $locked;
+        }
+        $isShell = $request->type === 'shell';
+        $request->validate([
+            'id_costing' => ['required', 'exists:mysql_sb.act_costing,id'],
+            'id_detail' => ['required', 'integer'],
+            'type' => ['required', 'in:shell,part'],
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', $isShell ? 'exists:mysql_sb.masterpanel,id' : 'exists:mysql.master_part,id'],
+        ], [], ['ids' => $isShell ? 'Shell' : 'Part']);
+
+        $db = DB::connection('mysql_sb');
+        $source = $db->table('act_costing_mat')->where('id', $request->id_detail)->where('id_act_cost', $request->id_costing)->first();
+        if (!$source) {
+            return response()->json(['status' => 404, 'message' => 'Content tidak ditemukan.']);
+        }
+        if (!$isShell && !$source->id_panel) {
+            return response()->json(['status' => 422, 'message' => 'Pilih shell dulu sebelum menambah part.']);
+        }
+
+        // Satu content = id_item + set; part dikelompokkan lagi per shell.
+        $column = $isShell ? 'id_panel' : 'id_part';
+        $group = $db->table('act_costing_mat')
+            ->where('id_act_cost', $source->id_act_cost)
+            ->where('id_item', $source->id_item)
+            ->when($source->set === null, fn ($q) => $q->whereNull('set'), fn ($q) => $q->where('set', $source->set))
+            ->when(!$isShell, fn ($q) => $q->where('id_panel', $source->id_panel))
+            ->orderByRaw('id = ? DESC', [$source->id])->orderBy('id')
+            ->get();
+        $newIds = array_values(array_diff(array_unique(array_map('intval', $request->ids)), $group->pluck($column)->filter()->map('intval')->all()));
+        if (!$newIds) {
+            return response()->json(['status' => 422, 'message' => ($isShell ? 'Shell' : 'Part') . ' yang dipilih sudah ada semua.']);
+        }
+        $blank = $group->first(fn ($row) => !$row->{$column} && ($isShell ? !$row->id_part : true));
+
+        $db->transaction(function () use ($db, $source, $newIds, $blank, $column, $request) {
+            foreach ($newIds as $id) {
+                if ($blank) {
+                    $db->table('act_costing_mat')->where('id', $blank->id)->update([$column => $id]);
+                    $blank = null;
+                    continue;
+                }
+                $copy = (array) $source;
+                unset($copy['id']);
+                $db->table('act_costing_mat')->insert(array_merge($copy, [
+                    $column => $id,
+                    'id_part' => $column === 'id_part' ? $id : null,
+                    'cons' => 0, 'value_idr' => 0, 'value_usd' => 0,
+                ]));
+            }
+            app(MarketingHistoryService::class)->costingItemsChanged((int) $request->id_costing, 'items_added', 'Fabric');
+        });
+
+        return response()->json(['status' => 200, 'message' => count($newIds) . ' ' . ($isShell ? 'shell' : 'part') . ' ditambahkan.']);
+    }
+
     public function updateHeader(Request $request, $id)
     {
         if ($locked = $this->costingLockedResponse($request, $id)) {
             return $locked;
         }
+        $this->normalizeMoneyInputs($request);
         $request->validate([
             'buyer' => ['required', 'exists:mysql_sb.mastersupplier,Id_Supplier'],
             'product_item' => ['required', 'exists:mysql_sb.masterproduct,id'],
@@ -1043,7 +1139,7 @@ class Marketing_CostingController extends Controller
             'curr' => ['required', 'exists:mysql_sb.masterpilihan,id'],
             'qty_planned' => ['required', 'numeric', 'min:0'],
             'qty' => ['required', 'numeric', 'min:0'],
-            'smv' => ['required', 'numeric', 'min:0'],
+            'smv' => ['required', 'numeric', 'min:0', 'regex:/^\d+(\.\d{1,3})?$/'],
             'deldate' => ['required', 'date'],
             'style' => ['nullable', 'string', self::styleSpacingRule()],
             'upload_foto' => ['sometimes', 'array'],
@@ -1117,7 +1213,7 @@ class Marketing_CostingController extends Controller
             if ($request->boolean('lock_after_save')) {
                 app(MarketingApprovalService::class)->relockCosting((int) $id, true);
 
-                return redirect()->back()->with('success', 'Costing disimpan dan dikunci lagi (Approved).');
+                return redirect()->back()->with('success', 'Costing disimpan dan menunggu approval manager lagi.');
             }
 
             if ($request->ajax()) {

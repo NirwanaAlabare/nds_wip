@@ -134,11 +134,14 @@ class Marketing_SOController extends Controller
         $so = $mysql_sb->table('so')->where('id', $id)->first();
         abort_if(!$so, 404);
 
+        // Destination dari so_destination; so_det lama tanpa so_destination tetap tampil dengan so_det.dest.
         $details = $mysql_sb->table('so_det as sd')
+            ->leftJoin('so_destination as d', fn ($join) => $join->on('d.id_so_det', '=', 'sd.id')->where('d.cancel', 'N'))
             ->leftJoin('master_size_new as s', 'sd.id_size', '=', 's.id')
             ->where('sd.id_so', $id)
             ->where(fn ($query) => $query->whereNull('sd.cancel')->orWhere('sd.cancel', '!=', 'Y'))
-            ->select('sd.market', 'sd.dest', 'sd.color', 'sd.size', 'sd.qty', 'sd.deldate_det', 'sd.notes', 's.urutan')
+            ->whereRaw('(d.id IS NOT NULL OR NOT EXISTS (SELECT 1 FROM so_destination x WHERE x.id_so_det = sd.id))')
+            ->select('sd.market', DB::raw("COALESCE(d.destination, NULLIF(sd.dest, '-')) as dest"), 'sd.color', 'sd.size', DB::raw('COALESCE(d.qty, sd.qty) as qty'), 'sd.deldate_det', 'sd.notes', 's.urutan')
             ->orderBy('sd.color')
             ->orderByRaw('COALESCE(s.urutan, 9999)')
             ->get();
@@ -2191,8 +2194,8 @@ class Marketing_SOController extends Controller
 
                 // save ke so_det
 
-                $details_insert = [];
-                foreach ($details as $d) {
+                // Baris Excel per destination digabung per color + size; qty per destination ke so_destination.
+                $this->insertSoDetailsWithDestinations($mysql_sb, $details, function ($d) use ($mysql_sb, $id_so, $username, $act_costing_new) {
                     $color = $mysql_sb->table('master_colors_gmt')->where('id', $d->id_color)->first();
                     $size  = $mysql_sb->table('master_size_new')->where('id', $d->size)->first();
 
@@ -2200,7 +2203,7 @@ class Marketing_SOController extends Controller
                         $d->market = '-';
                     }
 
-                    $details_insert[] = [
+                    return [
                         'id_so'        => $id_so,
                         'color'        => $color->name ?? '-',
                         'size'         => $size->size ?? '-',
@@ -2216,14 +2219,11 @@ class Marketing_SOController extends Controller
                         'id_size'      => $size->id ?? null,
                         'product_set'  => $d->product_set ?? null,
                         'market' => !empty($d->market) ? $d->market : '-',
-                        'dest'    => !empty($d->destination) ? $d->destination : '-',
                         'price' => $act_costing_new ? $act_costing_new->confirm_price : 0,
                         'sku'   => '-',
                         'fob'=> $d->fob,
                     ];
-                }
-
-                $mysql_sb->table('so_det')->insert($details_insert);
+                }, $username);
 
                 $this->logSo($id_so);
                 $this->logAllSoDet($id_so);
@@ -2464,11 +2464,11 @@ class Marketing_SOController extends Controller
                         'cancel' => 'N',
                     ]);
 
-                    $detailsToInsert = [];
-                    foreach ($details as $detail) {
+                    // Baris Excel per destination digabung per color + size; qty per destination ke so_destination.
+                    $this->insertSoDetailsWithDestinations($db, $details, function ($detail) use ($db, $idSo, $costing, $user, $now) {
                         $color = $db->table('master_colors_gmt')->where('id', $detail->id_color)->first();
                         $size = $db->table('master_size_new')->where('id', $detail->size)->first();
-                        $detailsToInsert[] = [
+                        return [
                             'id_so' => $idSo,
                             'color' => $color->name ?? '-',
                             'size' => $size->size ?? '-',
@@ -2484,13 +2484,11 @@ class Marketing_SOController extends Controller
                             'id_size' => $size->id ?? null,
                             'product_set' => $detail->product_set,
                             'market' => $detail->market ?: '-',
-                            'dest' => $detail->destination ?: '-',
                             'price' => $costing->cfm_price ?? 0,
                             'sku' => '-',
                             'fob' => $detail->fob,
                         ];
-                    }
-                    $db->table('so_det')->insert($detailsToInsert);
+                    }, $user->name);
                     $this->logSo($idSo);
                     $this->logAllSoDet($idSo);
                     app(MarketingHistoryService::class)->soCreated((int) $costingId, (int) $idSo, (string) $codes['so_no']);
@@ -3410,18 +3408,20 @@ class Marketing_SOController extends Controller
         }
 
         $details = $mysql_sb->table('so_det as sd')
+            ->leftJoin('so_destination as d', fn ($join) => $join->on('d.id_so_det', '=', 'sd.id')->where('d.cancel', 'N'))
             ->leftJoin('master_colors_gmt as c', 'sd.id_color', '=', 'c.id')
             ->leftJoin('master_size_new as s', 'sd.id_size', '=', 's.id')
             ->select(
                 'c.name as color',
-                'sd.dest',
+                DB::raw("COALESCE(d.destination, NULLIF(sd.dest, '-')) as dest"),
                 's.size as size',
                 'sd.product_set',
-                'sd.qty',
+                DB::raw('COALESCE(d.qty, sd.qty) as qty'),
                 'sd.deldate_det'
             )
             ->where('sd.id_so', $id)
             ->where('sd.cancel', 'N')
+            ->whereRaw('(d.id IS NOT NULL OR NOT EXISTS (SELECT 1 FROM so_destination x WHERE x.id_so_det = sd.id))')
             ->orderBy('sd.product_set')
             ->orderBy('c.name')
             ->orderBy('s.urutan')
@@ -5531,33 +5531,30 @@ class Marketing_SOController extends Controller
      */
     private function soEditRows($db, $so, array $sizeUrutan): array
     {
-        $details = $db->table('so_det as sd')
-            ->leftJoin('master_size_new as s', 'sd.id_size', '=', 's.id')
-            ->where('sd.id_so', $so->id)
-            ->select('sd.id', 'sd.color', 'sd.size', 'sd.id_color', 'sd.id_size', 'sd.qty', 'sd.market', 'sd.dest', 'sd.fob', 'sd.deldate_det', 'sd.notes', 'sd.product_set', 'sd.cancel', 's.urutan')
-            ->orderBy('sd.color')
-            ->orderBy('sd.id')
-            ->get();
+        // 1 baris = 1 destination (so_destination); qty so_det = jumlah qty destination-nya.
+        $this->ensureSoDestinations($db, (int) $so->id);
+        $details = $this->soDestinationLines($db, (int) $so->id);
 
-        $ppicLocked = DB::table('ppic_master_so')->whereIn('id_so_det', $details->pluck('id'))->pluck('id_so_det')
+        $ppicLocked = DB::table('ppic_master_so')->whereIn('id_so_det', $details->pluck('id_so_det')->unique())->pluck('id_so_det')
             ->map(fn ($soDetId) => (int) $soDetId)->flip();
 
         $rows = $details->map(fn ($d) => [
             'id' => (int) $d->id,
+            'id_so_det' => (int) $d->id_so_det,
             'color' => $d->color,
             'size' => $d->size,
             'id_color' => $d->id_color !== null ? (int) $d->id_color : null,
             'id_size' => $d->id_size !== null ? (int) $d->id_size : null,
             'qty' => $d->qty !== null ? (float) $d->qty : null,
             'market' => $d->market,
-            'destination' => $d->dest,
+            'destination' => $d->destination,
             'fob' => $d->fob !== null ? (float) $d->fob : null,
             'ex_fty' => $d->deldate_det ? date('d/m/Y', strtotime($d->deldate_det)) : null,
             'notes' => $d->notes,
             'product_set' => $d->product_set,
             'urutan' => $d->urutan !== null ? (int) $d->urutan : ($sizeUrutan[strtoupper(trim((string) $d->size))] ?? 9999),
-            'deleted' => $d->cancel === 'Y',
-            // 'locked' => isset($ppicLocked[(int) $d->id]),
+            'deleted' => $d->line_cancel === 'Y' || $d->det_cancel === 'Y',
+            // 'locked' => isset($ppicLocked[(int) $d->id_so_det]),
             'locked' => false,
         ])->values()->all();
 
@@ -5604,10 +5601,15 @@ class Marketing_SOController extends Controller
             return response()->json(['status' => 422, 'message' => 'Tidak ada perubahan untuk disimpan.'], 422);
         }
 
-        $active = $db->table('so_det')->where('id_so', $so->id)
-            ->where(fn ($query) => $query->whereNull('cancel')->orWhere('cancel', '!=', 'Y'))
-            ->get()->keyBy('id');
-        $cancelled = $db->table('so_det')->where('id_so', $so->id)->where('cancel', 'Y')->get()->keyBy('id');
+        // Baris di halaman Edit = 1 baris so_destination (so_det x destination); id di payload = id so_destination.
+        $this->ensureSoDestinations($db, (int) $so->id);
+        $lines = $this->soDestinationLines($db, (int) $so->id)->keyBy('id');
+        $isCancelled = fn ($line) => $line->line_cancel === 'Y' || $line->det_cancel === 'Y';
+        $active = $lines->reject($isCancelled);
+        $cancelled = $lines->filter($isCancelled);
+        $dets = $db->table('so_det')->where('id_so', $so->id)->get()->keyBy('id');
+        $activeDets = $dets->filter(fn ($det) => $det->cancel !== 'Y');
+
         $errors = [];
         $restoredRows = $cancelled->only($restores->all());
         foreach ($restores as $restoreId) {
@@ -5617,42 +5619,48 @@ class Marketing_SOController extends Controller
         }
         $editable = $active->union($restoredRows);
         // Sementara dimatikan: DB local tidak sinkron (ppic_master_so). Aktifkan lagi sebelum naik.
-        // $ppicLocked = DB::table('ppic_master_so')->whereIn('id_so_det', $active->keys())->pluck('id_so_det')
+        // $ppicLocked = DB::table('ppic_master_so')->whereIn('id_so_det', $dets->keys())->pluck('id_so_det')
         //     ->map(fn ($soDetId) => (int) $soDetId)->flip();
         $ppicLocked = collect();
 
-        // Hasil akhir per baris: [color, size, market, destination, touched]
+        $fobOf = fn ($fob) => $fob === null || $fob === '' ? null : round((float) $fob, 3);
+        // Hasil akhir per baris destination.
+        $lineState = fn ($line, bool $touched) => [
+            'line' => (int) $line->id, 'det' => (int) $line->id_so_det, 'template' => (int) $line->id_so_det,
+            'id_color' => $line->id_color, 'id_size' => $line->id_size, 'color' => $line->color, 'size' => $line->size,
+            'market' => $line->market, 'destination' => $line->destination, 'qty' => (float) $line->qty, 'fob' => $fobOf($line->fob),
+            'product_set' => $line->product_set, 'deldate' => $line->deldate_det, 'touched' => $touched,
+        ];
         $final = [];
-        foreach ($active as $row) {
-            $final['d' . $row->id] = ['color' => $row->color, 'size' => $row->size, 'market' => $row->market, 'destination' => $row->dest, 'touched' => false];
+        foreach ($active as $line) {
+            $final['d' . $line->id] = $lineState($line, false);
         }
-        foreach ($restoredRows as $row) {
-            $final['d' . $row->id] = ['color' => $row->color, 'size' => $row->size, 'market' => $row->market, 'destination' => $row->dest, 'touched' => true];
+        foreach ($restoredRows as $line) {
+            $final['d' . $line->id] = $lineState($line, true);
         }
 
         foreach ($deletes as $deleteId) {
             if (!$active->has($deleteId)) {
                 $errors[] = "Detail #{$deleteId} tidak ada di Sales Order ini atau sudah dihapus.";
-            } elseif (isset($ppicLocked[$deleteId])) {
+            } elseif (isset($ppicLocked[(int) $active[$deleteId]->id_so_det])) {
                 $errors[] = "Detail {$active[$deleteId]->color} / {$active[$deleteId]->size} sudah masuk PPIC, tidak bisa dihapus.";
             }
             unset($final['d' . $deleteId]);
         }
 
-        $updateRows = [];
         foreach ($updates as $index => $update) {
-            $detId = (int) $update['id'];
+            $lineId = (int) $update['id'];
             $label = 'Baris ' . ($index + 1);
-            if (!$editable->has($detId)) {
+            if (!$editable->has($lineId)) {
                 $errors[] = "{$label}: detail tidak ada di Sales Order ini atau sudah dihapus.";
                 continue;
             }
-            $row = $editable[$detId];
-            $label = "{$row->color} / {$row->size}";
-            if ($deletes->contains($detId)) {
+            $line = $editable[$lineId];
+            $label = "{$line->color} / {$line->size}";
+            if ($deletes->contains($lineId)) {
                 continue;
             }
-            if (isset($ppicLocked[$detId])) {
+            if (isset($ppicLocked[(int) $line->id_so_det])) {
                 $errors[] = "{$label}: sudah masuk PPIC, tidak bisa diubah.";
                 continue;
             }
@@ -5661,20 +5669,17 @@ class Marketing_SOController extends Controller
             foreach ([self::soQtyError($update['qty'] ?? null), self::soMarketError($market), self::soDestinationError($destination), self::soFobError($update['fob'] ?? null)] as $error) {
                 if ($error) $errors[] = "{$label}: {$error}";
             }
-            $updateRows[$detId] = [
-                'qty' => (int) ($update['qty'] ?? 0),
+            $final['d' . $lineId] = array_merge($final['d' . $lineId], [
+                'qty' => (float) (int) ($update['qty'] ?? 0),
                 'market' => $market,
-                'dest' => $destination,
-                'fob' => isset($update['fob']) && $update['fob'] !== '' ? round((float) $update['fob'], 3) : null,
-            ];
-            $final['d' . $detId]['market'] = $market;
-            $final['d' . $detId]['destination'] = $destination;
-            $final['d' . $detId]['touched'] = true;
+                'destination' => $destination,
+                'fob' => $fobOf($update['fob'] ?? null),
+                'touched' => true,
+            ]);
         }
 
         $colors = $db->table('master_colors_gmt')->whereIn('id', $adds->pluck('id_color')->filter())->pluck('name', 'id');
         $sizes = $db->table('master_size_new')->whereIn('id', $adds->pluck('id_size')->filter())->pluck('size', 'id');
-        $addRows = [];
         foreach ($adds as $index => $add) {
             $label = 'Add New ' . ($index + 1);
             $colorName = $colors[(int) $add['id_color']] ?? null;
@@ -5686,23 +5691,22 @@ class Marketing_SOController extends Controller
             foreach ([self::soQtyError($add['qty'] ?? null), self::soMarketError($market), self::soDestinationError($destination), self::soFobError($add['fob'] ?? null)] as $error) {
                 if ($error) $errors[] = "{$label}: {$error}";
             }
-            $addRows[] = [
-                'id_color' => (int) $add['id_color'],
-                'id_size' => (int) $add['id_size'],
-                'color' => $colorName,
-                'size' => $sizeName,
-                'qty' => (int) ($add['qty'] ?? 0),
-                'market' => $market,
-                'destination' => $destination,
-                'fob' => isset($add['fob']) && $add['fob'] !== '' ? round((float) $add['fob'], 3) : null,
+            // Set & ex fty disalin dari detail aktif SO ini (utamakan color yang sama).
+            $template = $activeDets->first(fn ($det) => (int) $det->id_color === (int) $add['id_color'] || strtoupper((string) $det->color) === strtoupper((string) $colorName))
+                ?? $activeDets->first() ?? $dets->first();
+            $final['n' . $index] = [
+                'line' => null, 'det' => null, 'template' => $template->id ?? null,
+                'id_color' => (int) $add['id_color'], 'id_size' => (int) $add['id_size'], 'color' => $colorName, 'size' => $sizeName,
+                'market' => $market, 'destination' => $destination, 'qty' => (float) (int) ($add['qty'] ?? 0), 'fob' => $fobOf($add['fob'] ?? null),
+                'product_set' => $template->product_set ?? null, 'deldate' => $template->deldate_det ?? null, 'touched' => true,
             ];
-            $final['n' . $index] = ['color' => $colorName, 'size' => $sizeName, 'market' => $market, 'destination' => $destination, 'touched' => true];
         }
 
-        // Kombinasi color + size + market tidak boleh dobel (hanya dicek untuk baris yang diubah/ditambah).
+        // Kombinasi color + size + market + destination (+ set) tidak boleh dobel (hanya dicek untuk baris yang diubah/ditambah).
         $groups = [];
         foreach ($final as $item) {
-            $key = strtoupper(trim((string) $item['color'])) . '|' . strtoupper(trim((string) $item['size'])) . '|' . strtoupper((string) $item['market']) . '|' . strtoupper((string) $item['destination']);
+            $key = strtoupper(trim((string) $item['color'])) . '|' . strtoupper(trim((string) $item['size'])) . '|' . strtoupper((string) $item['market'])
+                . '|' . strtoupper((string) $item['destination']) . '|' . self::soNormSet($item['product_set']);
             $groups[$key][] = $item;
         }
         foreach ($groups as $items) {
@@ -5717,57 +5721,102 @@ class Marketing_SOController extends Controller
 
         $userName = auth()->user()->name ?? auth()->user()->username ?? null;
         try {
-            $db->transaction(function () use ($db, $so, $active, $editable, $updateRows, $addRows, $deletes, $restores, $userName) {
+            $db->transaction(function () use ($db, $so, $lines, $dets, $final, $deletes, $updates, $adds, $restores, $userName) {
                 $now = now();
                 $touched = [];
-                foreach ($updateRows as $detId => $fields) {
-                    $row = $editable[$detId];
-                    if ((float) $row->qty === (float) $fields['qty'] && (string) $row->market === (string) $fields['market']
-                        && (string) $row->dest === (string) $fields['dest']
-                        && ($row->fob === null ? null : round((float) $row->fob, 3)) === $fields['fob']) {
-                        continue;
+
+                // so_det = 1 baris per color + size + market + set + ex fty; qty = jumlah qty semua destination-nya.
+                // FOB disimpan per destination; so_det.fob = rata-rata FOB tertimbang qty.
+                $detKey = fn (array $item) => json_encode([
+                    (int) $item['id_color'], (int) $item['id_size'], strtoupper(trim((string) $item['market'])),
+                    self::soNormSet($item['product_set']), (string) $item['deldate'],
+                ]);
+                $currentKey = fn ($det) => $detKey([
+                    'id_color' => $det->id_color, 'id_size' => $det->id_size, 'market' => $det->market, 'product_set' => $det->product_set,
+                    'deldate' => $det->deldate_det,
+                ]);
+                $groups = collect($final)->groupBy($detKey);
+
+                // Pakai ulang id so_det lama sebisa mungkin (id dipakai marker/PPIC):
+                // 1) so_det yang kuncinya tidak berubah, 2) so_det lama dari baris yang kuncinya berubah (mis. market diganti).
+                $assigned = [];
+                $claimed = [];
+                foreach ([true, false] as $sameKeyOnly) {
+                    foreach ($groups as $key => $items) {
+                        if (isset($assigned[$key])) continue;
+                        foreach ($items as $item) {
+                            $detId = $item['det'];
+                            if ($detId && !isset($claimed[$detId]) && (!$sameKeyOnly || $currentKey($dets[$detId]) === $key)) {
+                                $assigned[$key] = $detId;
+                                $claimed[$detId] = true;
+                                break;
+                            }
+                        }
                     }
-                    $db->table('so_det')->where('id', $detId)->update($fields + ['updated_by' => $userName, 'updated_date' => $now]);
-                    $touched[] = $detId;
                 }
 
-                foreach ($addRows as $add) {
-                    // Field lain disalin dari detail aktif SO ini (utamakan color yang sama).
-                    $template = $active->first(fn ($row) => (int) $row->id_color === $add['id_color'] || strtoupper((string) $row->color) === strtoupper((string) $add['color']))
-                        ?? $active->first();
-                    $touched[] = $db->table('so_det')->insertGetId([
-                        'id_so' => $so->id,
-                        'color' => $add['color'],
-                        'size' => $add['size'],
-                        'id_color' => $add['id_color'],
-                        'id_size' => $add['id_size'],
-                        'qty' => $add['qty'],
-                        'market' => $add['market'],
-                        'dest' => $add['destination'],
-                        'fob' => $add['fob'],
-                        'unit' => $template->unit ?? ($so->unit ?: 'PCS'),
-                        'price' => $template->price ?? 0,
-                        'deldate_det' => $template->deldate_det ?? null,
-                        'styleno_prod' => $template->styleno_prod ?? null,
-                        'reff_no' => $template->reff_no ?? null,
-                        'product_set' => $template->product_set ?? null,
-                        'sku' => '-',
+                foreach ($groups as $key => $items) {
+                    $first = $items->first();
+                    $fields = [
+                        'qty' => $items->sum('qty'),
+                        'market' => $first['market'],
+                        'fob' => self::soAverageFob($items),
+                        'dest' => '-',
                         'cancel' => 'N',
-                        'created_by' => $userName,
-                        'created_date' => $now,
-                    ]);
+                    ];
+                    if (isset($assigned[$key])) {
+                        $detId = $assigned[$key];
+                        $det = $dets[$detId];
+                        if ((float) $det->qty !== (float) $fields['qty'] || (string) $det->market !== (string) $fields['market']
+                            || ($det->fob === null ? null : round((float) $det->fob, 3)) !== $fields['fob']
+                            || (string) $det->dest !== '-' || $det->cancel === 'Y') {
+                            $db->table('so_det')->where('id', $detId)->update($fields + ['updated_by' => $userName, 'updated_date' => $now]);
+                            $touched[] = $detId;
+                        }
+                    } else {
+                        $template = $dets[$first['det'] ?? $first['template']] ?? $dets->first();
+                        $detId = $db->table('so_det')->insertGetId($fields + [
+                            'id_so' => $so->id,
+                            'color' => $first['color'],
+                            'size' => $first['size'],
+                            'id_color' => $first['id_color'],
+                            'id_size' => $first['id_size'],
+                            'unit' => $template->unit ?? ($so->unit ?: 'PCS'),
+                            'price' => $template->price ?? 0,
+                            'deldate_det' => $first['deldate'],
+                            'styleno_prod' => $template->styleno_prod ?? null,
+                            'reff_no' => $template->reff_no ?? null,
+                            'product_set' => $first['product_set'],
+                            'sku' => '-',
+                            'created_by' => $userName,
+                            'created_date' => $now,
+                        ]);
+                        $touched[] = $detId;
+                    }
+
+                    foreach ($items as $item) {
+                        $destRow = ['id_so_det' => $detId, 'destination' => $item['destination'] !== '' ? $item['destination'] : null, 'qty' => $item['qty'], 'fob' => $item['fob'], 'cancel' => 'N'];
+                        if (!$item['line']) {
+                            $db->table('so_destination')->insert($destRow + ['created_by' => $userName, 'created_at' => $now]);
+                            continue;
+                        }
+                        $old = $lines[$item['line']];
+                        if ((int) $old->id_so_det !== (int) $detId || (string) $old->destination !== (string) $destRow['destination']
+                            || (float) $old->qty !== (float) $destRow['qty'] || ($old->line_fob === null ? null : round((float) $old->line_fob, 3)) !== $destRow['fob'] || $old->line_cancel === 'Y') {
+                            $db->table('so_destination')->where('id', $item['line'])->update($destRow + ['updated_by' => $userName, 'updated_at' => $now]);
+                        }
+                    }
                 }
 
                 if ($deletes->isNotEmpty()) {
-                    $db->table('so_det')->where('id_so', $so->id)->whereIn('id', $deletes)
-                        ->update(['cancel' => 'Y', 'updated_by' => $userName, 'updated_date' => $now]);
-                    $touched = array_merge($touched, $deletes->all());
+                    $db->table('so_destination')->whereIn('id', $deletes)->update(['cancel' => 'Y', 'updated_by' => $userName, 'updated_at' => $now]);
                 }
-                if ($restores->isNotEmpty()) {
-                    $db->table('so_det')->where('id_so', $so->id)->whereIn('id', $restores)
-                        ->where('cancel', 'Y')
-                        ->update(['cancel' => 'N', 'updated_by' => $userName, 'updated_date' => $now]);
-                    $touched = array_merge($touched, $restores->all());
+                // so_det yang tidak punya destination aktif lagi = soft delete.
+                foreach ($dets as $detId => $det) {
+                    if ($det->cancel !== 'Y' && !isset($claimed[$detId])) {
+                        $db->table('so_det')->where('id', $detId)->update(['cancel' => 'Y', 'updated_by' => $userName, 'updated_date' => $now]);
+                        $touched[] = $detId;
+                    }
                 }
 
                 $totalQty = $db->table('so_det')->where('id_so', $so->id)
@@ -5784,8 +5833,8 @@ class Marketing_SOController extends Controller
                 }
 
                 app(MarketingHistoryService::class)->soUpdated((int) $so->id_cost, (int) $so->id, (string) $so->so_no, [
-                    'updated' => count($updateRows),
-                    'added' => count($addRows),
+                    'updated' => $updates->count(),
+                    'added' => $adds->count(),
                     'deleted' => $deletes->count(),
                     'restored' => $restores->count(),
                 ]);
@@ -5800,12 +5849,116 @@ class Marketing_SOController extends Controller
             $sizeUrutan[strtoupper(trim($size->size))] ??= (int) $size->urutan;
         }
 
-        // Kirim balik detail terbaru supaya halaman langsung sinkron (baris NEW jadi baris biasa dengan id so_det).
+        // Kirim balik detail terbaru supaya halaman langsung sinkron (baris NEW jadi baris biasa dengan id so_destination).
         return response()->json([
             'status' => 200,
             'message' => "Sales Order {$so->so_no} berhasil diupdate.",
             'rows' => $this->soEditRows($db, $so, $sizeUrutan),
         ]);
+    }
+
+    /** Rata-rata FOB tertimbang qty dari baris destination ({qty, fob}); null kalau semua FOB kosong. */
+    private static function soAverageFob($items): ?float
+    {
+        $items = collect($items)->map(fn ($item) => (array) $item)->filter(fn ($item) => $item['fob'] !== null && $item['fob'] !== '');
+        if ($items->isEmpty()) {
+            return null;
+        }
+        $qty = $items->sum(fn ($item) => (float) $item['qty']);
+        return round($qty > 0
+            ? $items->sum(fn ($item) => (float) $item['qty'] * (float) $item['fob']) / $qty
+            : $items->avg(fn ($item) => (float) $item['fob']), 3);
+    }
+
+    /** Product set kosong / '-' / 'null' dianggap tanpa set. */
+    private static function soNormSet($set): string
+    {
+        $set = trim((string) $set);
+        return ($set === '' || $set === '-' || strtolower($set) === 'null') ? '' : strtoupper($set);
+    }
+
+    /**
+     * Simpan baris upload (1 baris per destination) ke so_det + so_destination.
+     * Baris dengan market + set + color + size + ex fty sama digabung jadi 1 so_det (qty dijumlah),
+     * qty & FOB per destination masuk so_destination; so_det.fob = rata-rata FOB tertimbang qty.
+     * so_det.dest tidak dipakai lagi (diisi '-').
+     */
+    private function insertSoDetailsWithDestinations($db, $lines, callable $soDetRow, ?string $userName): void
+    {
+        $now = now();
+        $groups = collect($lines)->groupBy(fn ($line) => json_encode([
+            strtoupper(trim((string) $line->market)), self::soNormSet($line->product_set ?? null),
+            (string) $line->id_color, (string) $line->size,
+            $line->ex_fty ? date('Y-m-d', strtotime($line->ex_fty)) : '',
+        ]));
+        foreach ($groups as $group) {
+            $idSoDet = $db->table('so_det')->insertGetId(array_merge($soDetRow($group->first()), [
+                'qty' => $group->sum(fn ($line) => (float) $line->qty),
+                'fob' => self::soAverageFob($group->map(fn ($line) => ['qty' => (float) $line->qty, 'fob' => $line->fob])),
+                'dest' => '-',
+            ]));
+            $db->table('so_destination')->insert($group->groupBy(fn ($line) => trim((string) $line->destination))
+                ->map(fn ($items, $dest) => [
+                    'id_so_det' => $idSoDet,
+                    'destination' => $dest !== '' ? $dest : null,
+                    'qty' => $items->sum(fn ($line) => (float) $line->qty),
+                    'fob' => $items->first()->fob === null || $items->first()->fob === '' ? null : round((float) $items->first()->fob, 3),
+                    'cancel' => 'N',
+                    'created_by' => $userName,
+                    'created_at' => $now,
+                ])->values()->all());
+        }
+    }
+
+    /**
+     * so_det lama (sebelum ada so_destination, atau dibuat dari menu lain) diberi 1 baris destination dari so_det.dest.
+     * so_det dengan 1 destination aktif yang qty-nya beda (diubah dari menu lain) disamakan.
+     */
+    private function ensureSoDestinations($db, int $soId): void
+    {
+        $now = now();
+        $missing = $db->table('so_det as sd')->where('sd.id_so', $soId)
+            ->whereNotExists(fn ($query) => $query->select(DB::raw(1))->from('so_destination as x')->whereColumn('x.id_so_det', 'sd.id'))
+            ->get(['sd.id', 'sd.dest', 'sd.qty', 'sd.fob', 'sd.cancel']);
+        if ($missing->isNotEmpty()) {
+            $db->table('so_destination')->insert($missing->map(function ($det) use ($now) {
+                $dest = trim((string) $det->dest);
+                return [
+                    'id_so_det' => $det->id,
+                    'destination' => $dest === '' || $dest === '-' ? null : $dest,
+                    'qty' => (float) $det->qty,
+                    'fob' => $det->fob,
+                    'cancel' => $det->cancel === 'Y' ? 'Y' : 'N',
+                    'created_by' => 'sync',
+                    'created_at' => $now,
+                ];
+            })->all());
+        }
+
+        $single = $db->table('so_destination as d')->join('so_det as sd', 'sd.id', '=', 'd.id_so_det')
+            ->where('sd.id_so', $soId)->where('d.cancel', 'N')
+            ->groupBy('d.id_so_det', 'sd.qty')
+            ->havingRaw('COUNT(*) = 1 AND MAX(d.qty) <> COALESCE(sd.qty, 0)')
+            ->get(['d.id_so_det', 'sd.qty']);
+        foreach ($single as $det) {
+            $db->table('so_destination')->where('id_so_det', $det->id_so_det)->where('cancel', 'N')
+                ->update(['qty' => (float) $det->qty, 'updated_by' => 'sync', 'updated_at' => $now]);
+        }
+    }
+
+    /** Baris so_det x destination untuk satu SO (termasuk yang sudah soft delete). */
+    private function soDestinationLines($db, int $soId)
+    {
+        return $db->table('so_destination as d')
+            ->join('so_det as sd', 'sd.id', '=', 'd.id_so_det')
+            ->leftJoin('master_size_new as s', 'sd.id_size', '=', 's.id')
+            ->where('sd.id_so', $soId)
+            ->select('d.id', 'd.id_so_det', 'd.destination', 'd.qty', 'd.cancel as line_cancel', 'sd.cancel as det_cancel',
+                'sd.color', 'sd.size', 'sd.id_color', 'sd.id_size', 'sd.market', DB::raw('COALESCE(d.fob, sd.fob) as fob'), 'd.fob as line_fob', 'sd.product_set', 'sd.deldate_det', 'sd.notes', 's.urutan')
+            ->orderBy('sd.color')
+            ->orderBy('sd.id')
+            ->orderBy('d.id')
+            ->get();
     }
 
     private function logSo($id_so) {

@@ -1,8 +1,8 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-fonts.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-fonts.css')) }}">
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
     /* Transisi fade antar halaman */
     body { animation: page-enter .3s ease; }

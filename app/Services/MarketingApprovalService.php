@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
  *                     R = ditolak manager, C = dibatalkan peminta, D = selesai (Save and lock / Cancel editing).
  * - Histori (request, unlock, catatan Return/Cancel): mkt_hist.
  * Approved = terkunci. Staff menyimpan perubahan saat return / cancel -> kembali Awaiting.
- * Costing unlocked hanya bisa diedit peminta; Save and lock menutup unlock dan Costing tetap Approved.
+ * Costing unlocked hanya bisa diedit peminta; Save and lock menutup unlock dan Costing kembali Awaiting Approval.
  */
 class MarketingApprovalService
 {
@@ -177,7 +177,7 @@ class MarketingApprovalService
         if (!in_array($status, ['return', 'cancel', 'unlocked'], true)) {
             return;
         }
-        // Costing unlocked tetap Approved; dikunci lagi lewat Save and lock / Cancel editing.
+        // Costing unlocked masih Approved selama diedit; kembali Awaiting saat Save and lock / Cancel editing (lihat relockCosting).
         if ($type === 'costing' && $status === 'unlocked') {
             return;
         }
@@ -410,8 +410,8 @@ class MarketingApprovalService
     }
 
     /**
-     * Mengunci Costing lagi (A -> D). $saved = Save and lock (Costing tetap Approved),
-     * tanpa $saved = Cancel editing.
+     * Mengunci Costing lagi (A -> D). $saved = Save and lock, tanpa $saved = Cancel editing.
+     * Costing yang diubah selama unlock kembali Awaiting Approval supaya dicek ulang manager.
      */
     public function relockCosting(int $costingId, bool $saved): void
     {
@@ -432,12 +432,21 @@ class MarketingApprovalService
                 ->update(['status' => self::UNLOCK_DONE]);
 
             $number = $this->number('costing', $costingId);
-            if (!$saved) {
+            // Cancel editing juga dihitung berubah kalau selama unlock sudah ada simpanan (header / item).
+            $unlockedAt = $state['unlock']->approved_at ?? $state['unlock']->dateinput ?? null;
+            $changed = $saved || $db->table('mkt_hist')
+                ->where('id_act_cost', $costingId)
+                ->whereIn('type', ['costing', 'costing_item'])
+                ->whereIn('action', ['updated', 'items_added', 'items_updated', 'items_deleted'])
+                ->when($unlockedAt, fn ($q) => $q->where('created_at', '>=', $unlockedAt))
+                ->exists();
+            if (!$changed) {
                 $this->history('costing', $costingId, 'relocked', "Edit Costing {$number} dibatalkan, Costing dikunci lagi.");
                 return;
             }
 
-            $this->history('costing', $costingId, 'relocked', "Costing {$number} Rev {$state['rev']} disimpan dan dikunci lagi (Approved).");
+            $db->table('act_costing')->where('id', $costingId)->update(['app1' => self::CONFIG['costing']['awaiting_value']]);
+            $this->history('costing', $costingId, 'resubmitted', "Costing {$number} Rev {$state['rev']} diubah dan menunggu approval manager lagi.");
         });
     }
 

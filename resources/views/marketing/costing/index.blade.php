@@ -8,7 +8,6 @@
 
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <style>
         :root {
@@ -359,7 +358,7 @@
 
         <div class="card card-sb">
             <div class="card-body">
-                <div class="costing-crumb">Marketing &nbsp;›&nbsp; Process &nbsp;›&nbsp; <b>List Marketing</b></div>
+                <div class="costing-crumb">Marketing &nbsp;›&nbsp; Process &nbsp;›&nbsp; <b>Marketing List</b></div>
                 <h1 class="costing-title mt-3">Marketing List</h1>
 
                 <div class="list-shell">
@@ -434,7 +433,7 @@
                         <button type="button" class="costing-status-tab" data-status="approved" title="Sudah di-approve dan terkunci; ajukan Request Unlock untuk mengubah">
                             <span class="costing-status-swatch"></span> Approved <span class="costing-status-count" data-count="approved">0</span>
                         </button>
-                        <button type="button" class="costing-status-tab" data-status="unlocked" title="Dibuka manager untuk diedit peminta; Save and lock mengunci lagi dan tetap Approved">
+                        <button type="button" class="costing-status-tab" data-status="unlocked" title="Dibuka manager untuk diedit peminta; Save and lock mengunci lagi dan kembali ke approval manager">
                             <span class="costing-status-swatch"></span> Unlocked <span class="costing-status-count" data-count="unlocked">0</span>
                         </button>
                     </div>
@@ -509,7 +508,6 @@
     <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         let table;
@@ -530,7 +528,7 @@
             return: { label: 'Return to Staff', desc: 'perlu direvisi sesuai catatan manager' },
             cancel: { label: 'Cancel', desc: 'ditolak manager / dibatalkan' },
             approved: { label: 'Approved', desc: 'terkunci, perlu Request Unlock untuk mengubah' },
-            unlocked: { label: 'Unlocked', desc: 'dibuka untuk diedit peminta, Save and lock mengunci lagi (tetap Approved)' }
+            unlocked: { label: 'Unlocked', desc: 'dibuka untuk diedit peminta, Save and lock mengunci lagi dan kembali ke approval manager' }
         };
 
         $(document).ready(function() {
@@ -639,9 +637,9 @@
                             if (type !== 'display') return data;
                             const value = data !== null && data !== '' ? parseFloat(data) : 0;
                             if (!Number.isFinite(value)) return data;
-                            // Amount format (Table Settings) berlaku untuk Confirm Price: 10.5k atau 10.000,00
+                            // Amount format (Table Settings) berlaku untuk Confirm Price: 10,5k atau 10.000,00
                             return amountFormat === 'compact'
-                                ? new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value).replace(/K$/, 'k')
+                                ? new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(value).replace(/K$/, 'k').replace('.', ',')
                                 : new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
                         }
                     },
@@ -708,7 +706,7 @@
                                     </div>
                                 </div>`;
                             } else if (approved) {
-                                soMenu = `<a href="${soCreateUrl}" class="action-round is-so is-next" data-tip="Create SO" aria-label="Create SO">${AR_SO_ICON}</a>`;
+                                soMenu = `<a href="${soCreateUrl}" class="action-round is-so is-next" title="Create SO" aria-label="Create SO">${AR_SO_ICON}</a>`;
                             } else {
                                 soMenu = `<button class="action-round is-so is-off" disabled title="Belum bisa membuat SO">${AR_SO_ICON}</button>`;
                             }
@@ -731,12 +729,16 @@
                                     </div>
                                 </div>`;
                             } else if (canCreateBom) {
-                                bomMenu = `<a href="${bomCreateUrl}" class="action-round is-bom is-next" data-tip="Create BOM" aria-label="Create BOM"><i class="fas fa-layer-group"></i></a>`;
+                                bomMenu = `<a href="${bomCreateUrl}" class="action-round is-bom is-next" title="Create BOM" aria-label="Create BOM"><i class="fas fa-layer-group"></i></a>`;
                             } else {
                                 bomMenu = `<button class="action-round is-bom is-off" disabled title="Belum bisa membuat BOM"><i class="fas fa-layer-group"></i></button>`;
                             }
 
-                            let extraBtn = `<button type="button" class="action-round is-ws is-off" disabled><i class="fa-solid fa-rectangle-list"></i></button>`;
+                            // Worksheet butuh SO (color / size) dan BOM berisi item (shell).
+                            const wsUrl = "{{ route('marketing-worksheet', ':id') }}".replace(':id', data);
+                            let extraBtn = hasSo && hasBom
+                                ? `<a href="${wsUrl}" class="action-round is-ws" aria-label="Create Worksheet" title="Create Worksheet"><i class="fa-solid fa-rectangle-list" ></i></a>`
+                                : `<button type="button" class="action-round is-ws is-off" disabled title="Butuh Sales Order dan BOM"><i class="fa-solid fa-rectangle-list"></i></button>`;
 
                             return `<div class="costing-actions">${costingBtn}${soMenu}${bomMenu}${extraBtn}</div>`;
                         }

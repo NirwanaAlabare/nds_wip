@@ -400,18 +400,35 @@
         #bom-breakdown-table thead th:nth-child(1) { width: 36px; }
         #bom-breakdown-table thead th:nth-child(2) { width: 90px; }
         #bom-breakdown-table thead th:nth-child(3) { width: 130px; }
-        #section-list-item {
+        /* Tab di atas (latar halaman), kotak putih di bawahnya berisi Summary Detail + legend + tabel. */
+        #section-list-item > #bom-content-tabs { margin: 0 0 14px; }
+        #section-list-item .bom-detail-card {
+            margin: 0;
             overflow: hidden;
             border: 1px solid #e1e7ef;
             border-radius: 8px;
             box-shadow: 0 4px 14px rgba(30, 41, 59, .08);
         }
-        #section-list-item > .card-header {
-            padding: 10px 14px;
-            border-bottom: 1px solid #dce4ec;
+        /* Judul Summary Detail dalam kotak bergaris navy + tombol lipat kotak abu (sama dengan Sales Order Detail di SO). */
+        #section-list-item .bom-detail-card > .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 12px 12px 4px;
+            padding: 8px 16px;
+            border: 1px solid #284a63;
+            border-radius: 6px;
             background: #fff;
         }
-        #section-list-item > .card-body { padding: 8px 12px 12px; background: #fff; }
+        #section-list-item .bom-detail-card > .card-header .card-tools { margin: 0; }
+        #section-list-item .bom-detail-card > .card-header .btn-tool {
+            display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center;
+            padding: 0; border-radius: 5px; background: #aabac5; color: #fff; font-size: 10px;
+        }
+        #section-list-item .bom-detail-card > .card-header .btn-tool:hover { background: #8fa3b1; color: #fff; }
+        #section-list-item .bom-detail-card > .card-header .btn-tool i { transition: transform .2s ease; }
+        #section-list-item .bom-detail-card.collapsed-card > .card-header .btn-tool i { transform: rotate(180deg); }
+        #section-list-item .bom-detail-card > .card-body { padding: 8px 12px 12px; background: #fff; }
         /* Tab kategori sama dengan Edit Costing (.costing-category-tab). */
         #bom-content-tabs {
             flex-wrap: nowrap;
@@ -436,6 +453,17 @@
             border-bottom-color: #284a63;
             background: transparent;
             color: #284a63;
+        }
+        /* Tab dibagi rata selebar layar, tulisan di tengah; tab terakhir "View All Item" menampilkan semua kategori. */
+        #bom-content-tabs > .nav-item { flex: 1 1 0; min-width: 0; }
+        #bom-content-tabs .nav-link { display: block; width: 100%; text-align: center; cursor: pointer; }
+        #bom-content-panels.is-all > .tab-pane { display: block; opacity: 1; }
+        #bom-content-panels.is-all > .tab-pane + .tab-pane { margin-top: 22px; }
+        .bom-pane-title { display: none; margin: 0 0 8px; color: #284a63; font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 600; }
+        #bom-content-panels.is-all .bom-pane-title { display: block; }
+        @media (max-width: 767.98px) {
+            /* Di HP tulisan 25px tidak muat dibagi rata: tab tetap satu baris dan bisa digeser. */
+            #bom-content-tabs > .nav-item { flex: 0 0 auto; }
         }
         .bom-content-table {
             width: 100% !important;
@@ -551,7 +579,7 @@
             cursor: crosshair;
         }
         .bom-auto { background: #f1f5f9; margin: 0 -4px; padding: 2px 4px; }
-        .bom-item-delete:not(.mkt-icon-btn) {
+        .bom-item-delete:not(.mkt-ico) {
             padding: 0 4px;
             border: 0;
             background: transparent;
@@ -559,8 +587,8 @@
             font-size: 10px;
             line-height: 14px;
         }
-        .bom-item-delete:not(.mkt-icon-btn):hover { color: #991b1b; }
-        .bom-item-delete:not(.mkt-icon-btn):disabled { opacity: .4; }
+        .bom-item-delete:not(.mkt-ico):hover { color: #991b1b; }
+        .bom-item-delete:not(.mkt-ico):disabled { opacity: .4; }
         .bom-legend {
             display: flex;
             flex-wrap: wrap;
@@ -660,7 +688,7 @@
         @media (max-width: 800px) {
             .bom-desc-cell, .bom-supplier-cell { min-width: 0; }
             .bom-content-table { font-size: 8.5px; }
-            #section-list-item > .card-body { padding-left: 4px; padding-right: 4px; }
+            #section-list-item .bom-detail-card > .card-body { padding-left: 4px; padding-right: 4px; }
             .bom-content-table thead th, .bom-content-table tbody td { padding-left: 2px; padding-right: 2px; }
         }
         @media (max-width: 991.98px) {
@@ -670,7 +698,7 @@
         }
         @media (max-width: 575.98px) {
             .bom-summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            #section-list-item > .card-body { padding: 6px; }
+            #section-list-item .bom-detail-card > .card-body { padding: 6px; }
             #bom-content-tabs .nav-link { padding: 8px 12px; font-size: 18px; }
         }
 
@@ -694,7 +722,7 @@
         .bom-summary-item { min-height: 33px; }
         .bom-summary-item span { color: #9e9e9e; font-size: 18px; font-weight: 400; }
         .bom-summary-item strong { font-size: 18px; font-weight: 600; }
-        #section-list-item > .card-header .card-title { color: #284a63; font-size: 16px; font-weight: 500; }
+        #section-list-item .bom-detail-card > .card-header .card-title { color: #284a63; font-size: 16px; font-weight: 500; }
         input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
         input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
         input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
@@ -726,6 +754,16 @@
         .mkt-error-alert[hidden] { display: none; }
         .mkt-error-alert > span { flex: 1; }
         .mkt-error-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #fff; font-size: 16px; line-height: 1; }
+        /* Costing tanpa content Fabric/Accessories: alert oranye muda di atas legend + ilustrasi tabel kosong. */
+        .bom-empty-alert { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding: 10px 12px; border-radius: 4px; background: #fff4e8; color: #263746; font-family: Inter, sans-serif; font-size: 13px; }
+        .bom-empty-alert[hidden], .bom-content-add[hidden] { display: none !important; }
+        .bom-empty-alert > i { color: #f59e0b; }
+        .bom-empty-alert > span { flex: 1; }
+        .bom-empty-alert b { font-weight: 700; }
+        .bom-empty-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #475569; font-size: 16px; line-height: 1; }
+        .bom-content-table td.dataTables_empty { padding: 28px 8px !important; border: 0; background: #fff !important; }
+        .bom-empty-table { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #1e293b; font-family: Inter, sans-serif; font-size: 12px; font-weight: 500; }
+        .dataTables_wrapper.is-empty .dataTables_length, .dataTables_wrapper.is-empty .dataTables_info, .dataTables_wrapper.is-empty .dataTables_paginate { display: none; }
         /* Modal Add Items: field kosong merah + "Required" (sama seperti Costing). */
         .bom-modal-fields .is-invalid label { color: #c8161d; }
         .bom-modal-fields .is-invalid .select2-container--bootstrap4 .select2-selection { border-color: #c8161d !important; color: #c8161d; }
@@ -773,7 +811,7 @@
             .bom-summary-card span { font-size: 13px; }
             .bom-summary-card strong { font-size: 16px; }
             .bom-overview-grid { column-gap: 14px; }
-            .bom-overview-title, #section-list-item > .card-header .card-title { font-size: 15px; }
+            .bom-overview-title, #section-list-item .bom-detail-card > .card-header .card-title { font-size: 15px; }
             .bom-summary-item span { font-size: 13px; }
             .bom-summary-item strong { font-size: 14px; }
             .bom-image-review { gap: 8px; padding: 10px 6px; }
@@ -805,7 +843,28 @@
         #bom-content-tabs .nav-link { font-family: 'Poppins', sans-serif !important; font-size: 25px !important; font-weight: 600 !important; }
         .bom-legend > span { font-family: Inter, sans-serif !important; font-size: 12px !important; font-weight: 400 !important; }
         #bom-image-empty, #bom-image-counter { font-family: "Instrument Sans", 'Poppins', sans-serif !important; font-size: 12px !important; font-weight: 500 !important; }
-        #section-list-item > .card-header .card-title { font-family: 'Poppins', sans-serif !important; font-size: 25px !important; font-weight: 500 !important; }
+        #section-list-item .bom-detail-card > .card-header .card-title { font-family: 'Poppins', sans-serif !important; font-size: 25px !important; font-weight: 500 !important; }
+        /* Tabel item tidak dipaksa muat selebar layar: header satu baris, lebar kolom mengikuti isi,
+           kalau tidak muat tabel digeser ke samping di dalam kotak (pager tetap di bawah). Semua kolom tampil di semua layar. */
+        #bom-content-panels .bom-table-scroll { overflow-x: auto; padding-bottom: 4px; scrollbar-color: #284a63 #e2e8f0; }
+        #bom-content-panels .bom-table-scroll::-webkit-scrollbar { height: 8px; }
+        #bom-content-panels .bom-table-scroll::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
+        #bom-content-panels .bom-table-scroll::-webkit-scrollbar-thumb { background: #284a63; border-radius: 4px; }
+        #bom-content-panels .bom-content-table { width: auto !important; min-width: 100%; table-layout: auto !important; }
+        #bom-content-panels .bom-content-table thead th { white-space: nowrap !important; }
+        #bom-content-panels .bom-content-table thead th .bom-column-heading { flex-wrap: nowrap; white-space: nowrap; }
+        #bom-content-panels .bom-content-table tr > :nth-child(n) { display: table-cell; }
+        #bom-content-panels .bom-desc-cell { min-width: 240px; }
+        #bom-content-panels .bom-supplier-cell { min-width: 160px; }
+        /* Legend warna sel di bawah kotak Summary Detail (warna sama dengan sel tabel). */
+        .bom-cell-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 12px 2px 0; color: #616161; font-family: Inter, sans-serif; font-size: 14px; font-weight: 400; }
+        .bom-cell-legend > span { display: inline-flex; align-items: center; gap: 8px; }
+        .bom-cell-legend i { width: 16px; height: 16px; border: 1px solid #cbd5e1; border-radius: 3px; background: #fff; }
+        .bom-cell-legend i.is-auto { border-color: #e2e8f0; background: #f1f5f9; }
+        .bom-cell-legend i.is-pasted { border-color: #3b82f6; background: #e0ecff; }
+        .bom-cell-legend i.is-error { border-color: #ef4444; background: #fee2e2; }
+        /* Clearfix AdminLTE (::after) ikut jadi item flex -> tombol lipat tergeser ke tengah; buang supaya tetap di kanan. */
+        #section-list-item .bom-detail-card > .card-header::after { display: none; }
         /* Tabel (tab konten & Breakdown Order): header Inter Medium 12, isi Inter Regular 14, baris TOTAL Inter Bold 14. */
         .bom-create-page table thead th, #bom-content-panels table thead th, #bom-breakdown-table thead th { font-family: Inter, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; }
         #bom-content-panels table tbody td, #bom-breakdown-table tbody td { font-family: Inter, sans-serif !important; font-size: 14px !important; font-weight: 400 !important; font-variant-numeric: lining-nums tabular-nums; }
@@ -814,6 +873,23 @@
         #bom-content-panels .dataTables_paginate, #bom-content-panels .dataTables_paginate .paginate_button, #bom-content-panels .dataTables_paginate .page-link { font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 500 !important; }
         #bom-content-panels .dataTables_length, #bom-content-panels .dataTables_length label, #bom-content-panels .dataTables_info { font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 400 !important; }
         #bom-content-panels .dataTables_length select { height: 36px; min-width: 70px; font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 400 !important; }
+        /* Frame putih (Figma 1856): judul s/d tombol Save dalam satu frame, padding 16/32, radius 10, jarak 24; breadcrumb di luar frame.
+           Summary Detail = kotak judul + keterangan kolom (tanpa card); card (1792) hanya membungkus tabel + pager:
+           border 0.5px, radius 16, padding 8/20. */
+        #form-bom > .bom-breadcrumb { max-width: 1856px; margin-bottom: 16px; }
+        #form-bom > .card.card-primary { max-width: 1856px; border-radius: 10px; background: #fff; }
+        #form-bom > .card.card-primary > .card-body { padding: 16px 32px; background: #fff; }
+        #section-list-item { margin-top: 24px; }
+        #section-list-item > #bom-content-tabs { margin: 0 0 24px; }
+        #section-list-item .bom-detail-card { margin: 0; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent; overflow: visible; }
+        #section-list-item .bom-detail-card > .card-header { margin: 0 0 8px; }
+        #section-list-item .bom-detail-card > .card-body { padding: 0 !important; background: transparent; }
+        #section-list-item #bom-content-panels { padding: 8px 20px; border: .5px solid #c9d3dd; border-radius: 16px; background: #fff; box-shadow: 0 2px 8px rgba(30, 41, 59, .12); }
+        #form-bom .bom-cell-legend { margin: 12px 0 0; }
+        @media (max-width: 767.98px) {
+            #form-bom > .card.card-primary > .card-body { padding: 12px; }
+            #section-list-item #bom-content-panels { padding: 6px 10px; }
+        }
     </style>
 @endsection
 
@@ -821,10 +897,9 @@
 <form id="form-bom" action="{{ route('store-bom') }}" method="POST">
     @csrf
 
+    <div class="bom-breadcrumb">Marketing &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Proses</a> &nbsp;›&nbsp; Bill of Material &nbsp;›&nbsp; <strong>{{ $isEditBom ? 'Edit BOM' : 'Create BOM' }}</strong></div>
     <div class="card card-primary ">
-        {{-- Breadcrumb + judul di atas body card, sama seperti SO create. --}}
         <div class="card-body">
-            <div class="bom-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <strong>{{ $isEditBom ? 'Edit BOM' : 'Create BOM' }}</strong></div>
             <div class="bom-page-heading">
                 <h1>{{ $isEditBom ? 'Edit Bill of Material' : 'Create Bill of Material' }} <i class="far fa-question-circle"></i></h1>
                 <p><i class="fas fa-cog"></i>{{ $isEditBom ? 'Untuk Mengubah Data BOM' : 'Untuk Menambah Data BOM' }}</p>
@@ -910,47 +985,62 @@
             <input type="hidden" name="market" id="market">
             <div id="bom-selected-colors"></div>
             <div id="bom-selected-sizes"></div>
-        </div>
-    </div>
 
-    <section class="card mt-3" id="section-list-item" style="display: none;">
-        <div class="card-header bg-white d-flex align-items-center justify-content-between">
-            <h5 class="card-title mb-0">Summary Detail</h5>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse" aria-label="Tutup Summary Detail">
-                    <i class="fas fa-chevron-down"></i>
-                </button>
+            <section id="section-list-item" style="display: none;">
+                <ul class="nav nav-tabs" id="bom-content-tabs" role="tablist"></ul>
+                <div class="card bom-detail-card">
+                <div class="card-header bg-white d-flex align-items-center justify-content-between">
+                    <h5 class="card-title mb-0">Summary Detail</h5>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" aria-label="Tutup Summary Detail">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="bom-empty-alert" id="bom-empty-alert" role="alert" hidden>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>BOM cannot be created because this costing does not contain any <b>Fabric</b> or <b>Accessories</b>. Please complete the Costing content before creating the BOM.</span>
+                        <button type="button" class="bom-empty-alert-close" aria-label="Tutup" onclick="this.parentElement.hidden = true"><i class="far fa-times-circle"></i></button>
+                    </div>
+                    <div class="bom-legend mb-2">
+                        <span><i class="bom-column-dot" style="background:#8b5cf6"></i>Costing</span>
+                        <span><i class="bom-column-dot" style="background:#2878ee"></i>SO</span>
+                        <span><i class="bom-column-dot" style="background:#f59e0b"></i>Input</span>
+                        <span><i class="bom-column-dot" style="background:#94a3b8"></i>Auto</span>
+                        <button type="button" class="mkt-btn mkt-btn--red mkt-btn--sm ml-auto" id="bom-delete-selected" disabled>
+                            <i class="fas fa-trash" style="font-size:10px;"></i> Hapus item terpilih <span id="bom-delete-selected-count"></span>
+                        </button>
+                    </div>
+                    <div class="tab-content" id="bom-content-panels"></div>
+                    {{-- <div class="bom-legend mt-2">
+                        <span><i class="bom-legend-box" style="background:#fff"></i>Editable</span>
+                        <span><i class="bom-legend-box" style="background:#f1f5f9"></i>Auto calculated</span>
+                        <span><i class="bom-legend-box" style="background:#fff7e6"></i>Belum disimpan</span>
+                        <span><i class="bom-legend-box" style="background:#e0ecff;border-color:#3b82f6"></i>Just Pasted</span>
+                        <span><i class="bom-legend-box" style="background:#fee2e2;border-color:#ef4444"></i>Error</span>
+                        <span class="ml-auto">Klik sel lalu ketik / double-click untuk edit, Ctrl+C &amp; Ctrl+V dari Excel, tarik kotak biru di pojok sel untuk copy ke bawah.</span>
+                    </div> --}}
+                </div>
+                </div>
+            </section>
+
+            {{-- Keterangan warna sel tabel (di bawah card tabel, masih di dalam frame putih). --}}
+            <div class="bom-cell-legend" id="bom-cell-legend" style="display: none;" aria-label="Keterangan tabel">
+                <span><i class="is-edit"></i>Editable</span>
+                <span><i class="is-auto"></i>Auto calculated</span>
+                <span><i class="is-pasted"></i>Just Pasted</span>
+                <span><i class="is-error"></i>Error</span>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4 mb-2">
+                <a href="{{ route('master-costing') }}" class="mkt-btn mkt-btn--red mkt-btn--cancel">Cancel</a>
+                <span id="bom-pending-sync" class="align-self-center small text-warning mr-2" hidden>
+                    {{-- <i class="fas fa-exclamation-circle"></i> Ada perubahan yang belum disimpan --}}
+                </span>
+                <button type="submit" class="mkt-btn mkt-btn--green ml-2" id="bom-grid-save">Save</button>
             </div>
         </div>
-        <div class="card-body">
-            <div class="bom-legend mb-2">
-                <span><i class="bom-column-dot" style="background:#8b5cf6"></i>Costing</span>
-                <span><i class="bom-column-dot" style="background:#2878ee"></i>SO</span>
-                <span><i class="bom-column-dot" style="background:#f59e0b"></i>Input</span>
-                <span><i class="bom-column-dot" style="background:#94a3b8"></i>Auto</span>
-                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--sm ml-auto" id="bom-delete-selected" disabled>
-                    <i class="fas fa-trash" style="font-size:10px;"></i> Hapus item terpilih <span id="bom-delete-selected-count"></span>
-                </button>
-            </div>
-            <ul class="nav nav-tabs" id="bom-content-tabs" role="tablist"></ul>
-            <div class="tab-content pt-3" id="bom-content-panels"></div>
-            {{-- <div class="bom-legend mt-2">
-                <span><i class="bom-legend-box" style="background:#fff"></i>Editable</span>
-                <span><i class="bom-legend-box" style="background:#f1f5f9"></i>Auto calculated</span>
-                <span><i class="bom-legend-box" style="background:#fff7e6"></i>Belum disimpan</span>
-                <span><i class="bom-legend-box" style="background:#e0ecff;border-color:#3b82f6"></i>Just Pasted</span>
-                <span><i class="bom-legend-box" style="background:#fee2e2;border-color:#ef4444"></i>Error</span>
-                <span class="ml-auto">Klik sel lalu ketik / double-click untuk edit, Ctrl+C &amp; Ctrl+V dari Excel, tarik kotak biru di pojok sel untuk copy ke bawah.</span>
-            </div> --}}
-        </div>
-    </section>
-
-    <div class="d-flex justify-content-end gap-2 mt-4 mb-4">
-        <a href="{{ route('master-costing') }}" class="mkt-btn mkt-btn--red mkt-btn--cancel">Cancel</a>
-        <span id="bom-pending-sync" class="align-self-center small text-warning mr-2" hidden>
-            {{-- <i class="fas fa-exclamation-circle"></i> Ada perubahan yang belum disimpan --}}
-        </span>
-        <button type="submit" class="mkt-btn mkt-btn--green ml-2" id="bom-grid-save">Save</button>
     </div>
 </form>
 
@@ -1037,7 +1127,7 @@
                                 <tr>
                                     <th><input type="checkbox" id="bom-modal-check-all"></th>
                                     <th class="th-costing">NO</th>
-                                    <th class="th-so">ITEMS DESCRIPTION</th>
+                                    <th class="th-so">ITEMS</th>
                                     <th class="th-input">COLOR MATERIALS</th>
                                     <th class="th-auto">SIZE</th>
                                     <th class="th-costing">CONS/PC</th>
@@ -1122,11 +1212,28 @@
         });
         $(document).on('shown.bs.tab', '#bom-content-tabs [data-bs-toggle="tab"]', function(event) {
             const pane = $(event.target).attr('href');
+            // Hanya pane tab ini yang tampil (sesudah View All Item, pane kategori sebelumnya bisa masih aktif).
+            $('#bom-content-panels > .tab-pane').not(pane).removeClass('active show');
             const $table = $(pane).find('.bom-content-table');
-            console.log('Tab shown:', pane, $table.length);
+            initializeBomContentTable($table);   // tabel kategori lain dibuat saat tab-nya pertama kali dibuka
             if ($.fn.DataTable.isDataTable($table)) {
                 $table.DataTable().columns.adjust().draw(false);
             }
+        });
+        // Klik tab kategori biasa saat sedang View All Item -> kembali ke satu kategori.
+        $(document).on('click', '#bom-content-tabs [data-bs-toggle="tab"]', function() {
+            $('#bom-content-panels').removeClass('is-all');
+            $('#bom-content-tabs .bom-view-all').removeClass('active').attr('aria-selected', 'false');
+        });
+        // View All Item: tampilkan semua kategori berurutan.
+        $(document).on('click', '#bom-content-tabs .bom-view-all', function(event) {
+            event.preventDefault();
+            $('#bom-content-tabs .nav-link').removeClass('active').attr('aria-selected', 'false');
+            $(this).addClass('active').attr('aria-selected', 'true');
+            $('#bom-content-panels').addClass('is-all').find('.bom-content-table').each(function() {
+                initializeBomContentTable($(this));
+                if ($.fn.DataTable.isDataTable(this)) $(this).DataTable().columns.adjust().draw(false);
+            });
         });
         $('input[name="bom-modal-rule"]').on('change', renderBomModalRows);
         $('#bom-modal-check-all').on('change', function() {
@@ -1358,7 +1465,7 @@
                 bomSavedItems = [];
                 bomGridState = new Map();
                 renderBomContents(bomCostingContents, bomSavedItems);
-                $('#section-list-item').show();
+                $('#section-list-item, #bom-cell-legend').show();
                 $('#bom-selected-colors').empty();
                 $('#bom-selected-sizes').empty();
                 bomSelectedColors.forEach(function(color) {
@@ -1465,14 +1572,15 @@
     }
 
     function renderBomContents(contents, savedItems) {
+        // Semua tab kategori selalu tampil; alert "BOM cannot be created" hanya kalau Costing tidak punya content sama sekali.
         const categories = ['Fabric', 'Accessories Sewing', 'Accessories Packing'];
+        const filledCategories = categories.filter(category => contents.some(content => content.tab === category));
         bomContentTables.forEach(function(table) {
             if ($.fn.DataTable.isDataTable(table)) $(table).DataTable().destroy();
         });
         bomContentTables = [];
         const $tabs =$('#bom-content-tabs').empty();
         const $panels =$('#bom-content-panels').empty();
-        let hasContents = false;
 
         categories.forEach(function(category, index) {
             const paneId = `bom-content-pane-${index}`;
@@ -1490,6 +1598,7 @@
 
             const $pane =$('<div>').addClass(`tab-pane fade ${index === 0 ? 'show active' : ''}`)
                 .attr({ id: paneId, role: 'tabpanel' });
+            $('<h3 class="bom-pane-title">').text(category).appendTo($pane);   // tampil hanya di View All Item
             const tableId = `bom-content-table-${index}`;
             const $table =$('<table>').attr('id', tableId).addClass('table table-sm table-bordered bom-content-table w-100');
             bomContentTables.push(`#${tableId}`);
@@ -1498,7 +1607,7 @@
                 $('<th>').html('<input type="checkbox" class="bom-content-check-all" aria-label="Pilih semua content">'),
                 createBomColumnHeader('NO', 'th-costing', false),
                 createBomColumnHeader('CONTENT', 'th-costing', false),
-                createBomColumnHeader('ITEMS DESCRIPTION', 'th-so', false),
+                createBomColumnHeader('ITEMS', 'th-so', false),
                 createBomColumnHeader('COLOR MATERIALS', 'th-so', false),
                 createBomColumnHeader('SHELL', 'th-input', true),
                 createBomColumnHeader('ORIG QTY', 'th-so', false),
@@ -1519,7 +1628,6 @@
             const categoryContents = contents.filter(content => content.tab === category);
             let rowNumber = 1;
             if (categoryContents.length) {
-                hasContents = true;
                 categoryContents.forEach(function(content) {
                     const contentItems = (savedItems || []).filter(function(item) {
                         return String(item.id_contents) === String(content.content_id);
@@ -1532,7 +1640,7 @@
                     }).addClass('mkt-icon-btn mkt-btn--navy bom-content-add')
                         .append($('<i>').addClass('fas fa-plus'))
                         .data('content', content);
-                    if (!content.content_id) $button.prop('disabled', true);
+                    if (!content.content_id) $button.prop('disabled', true).prop('hidden', true);   // tanpa content: tombol Add item disembunyikan
 
                     const $description = $('<td>').addClass('bom-desc-cell bom-wrap-cell').text('-');
                     const $colorMaterials = $('<td>').addClass('bom-wrap-cell').text('-');
@@ -1573,7 +1681,7 @@
                                 title: `Hapus item ${item.size_name || 'ALL'} / ${item.color_name || 'ALL'}`,
                                 'data-id': id,
                                 'data-label': `${content.content_name || '-'} (${item.size_name || 'ALL'} / ${item.color_name || 'ALL'})`
-                            }).addClass('mkt-icon-btn mkt-btn--red bom-item-delete').append($('<i>').addClass('fas fa-trash'))
+                            }).addClass('mkt-ico mkt-ico--delete bom-item-delete').attr({ title: 'Delete', 'data-tip': 'Delete' }).append($('<i>').addClass('fas fa-trash'))
                         );
                     });
 
@@ -1612,6 +1720,12 @@
             $panels.append($pane);
         });
 
+        // Tab terakhir: View All Item (semua kategori sekaligus, tiap tabel diberi judul kategori).
+        $('<li>').addClass('nav-item').append(
+            $('<a>').addClass('nav-link bom-view-all').attr({ href: '#bom-view-all', role: 'tab', 'aria-selected': 'false' }).text('View All Item')
+        ).appendTo($tabs);
+        $panels.removeClass('is-all');
+
         bomSelection = null;
         updateBomDeleteSelectedButton();
         updateBomPendingIndicator();
@@ -1619,10 +1733,7 @@
         $panels.find('.bom-auto').each(function() { paintBomAutoCell($(this)); });
         initializeBomContentTable($('#bom-content-pane-0 .bom-content-table'));
 
-        if (!hasContents) {
-            $panels.prepend($('<div>').addClass('alert alert-info')
-                .text('Costing ini belum memiliki content Fabric/Accessories untuk ditambahkan ke BOM.'));
-        }
+        $('#bom-empty-alert').prop('hidden', filledCategories.length > 0);
     }
 
     function appendBomSavedItemValue($cell, value) {
@@ -1650,7 +1761,9 @@
             bomSavedItems = res.data;
             syncBomGridState(bomSavedItems);
             renderBomContents(bomCostingContents, bomSavedItems);
-            if (activeTab) {
+            if (activeTab === '#bom-view-all') {
+                $('#bom-content-tabs .bom-view-all').trigger('click');
+            } else if (activeTab) {
                 $('#bom-content-tabs .nav-link[href="' + activeTab + '"]').tab('show');
             }
         });
@@ -1670,6 +1783,20 @@
         return $('<th>').addClass(typeClass).append($heading);
     }
 
+    // Ilustrasi tabel kosong (folder + kaca pembesar), inline supaya tidak butuh file gambar.
+    const BOM_EMPTY_TABLE_HTML = `<div class="bom-empty-table">
+        <svg viewBox="0 0 120 80" width="120" height="80" aria-hidden="true">
+            <ellipse cx="60" cy="74" rx="44" ry="3" fill="#e2e8f0"/>
+            <path d="M20 22h26l6 7h38a4 4 0 0 1 4 4v37H20z" fill="#9ec3ea"/>
+            <path d="M16 36h80l-6 36H22z" fill="#2f6fc6"/>
+            <circle cx="70" cy="18" r="11" fill="#fff" stroke="#9aa9bb" stroke-width="3"/>
+            <path d="M78 26l10 10" stroke="#475569" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="92" cy="30" r="4" fill="#334155"/>
+            <path d="M92 34l-2 22M92 40l-8-6M90 56l-4 16M90 56l6 16" stroke="#334155" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <span>No Data Available In Table</span>
+    </div>`;
+
     function initializeBomContentTable($table) {
         if (!$table.length || $.fn.DataTable.isDataTable($table)) return;
 
@@ -1681,13 +1808,14 @@
             scrollX: false,
             pageLength: 4,
             lengthMenu: [[4, 10, 25, 50], [4, 10, 25, 50]],
-            dom: 'rt<"d-flex justify-content-between align-items-center flex-wrap"<"d-flex align-items-center"li>p>',
+            // Tabel dibungkus div yang bisa digeser ke samping; pager tetap di bawah (tidak ikut bergeser).
+            dom: '<"bom-table-scroll"rt><"d-flex justify-content-between align-items-center flex-wrap"<"d-flex align-items-center"li>p>',
             language: {
                 lengthMenu: 'Item Per Page _MENU_',
                 info: 'Of _TOTAL_',
                 infoEmpty: 'Of 0',
-                zeroRecords: 'Belum ada content dari Costing.',
-                emptyTable: 'Belum ada content dari Costing.',
+                zeroRecords: BOM_EMPTY_TABLE_HTML,
+                emptyTable: BOM_EMPTY_TABLE_HTML,
                 paginate: {
                     previous: '<i class="fas fa-chevron-left"></i>',
                     next: '<i class="fas fa-chevron-right"></i>'
@@ -1698,15 +1826,18 @@
                 { targets: 0, width: '30px' }
             ]
         }).on('draw.dt', function() {
+            // Tabel kosong: pager (Item Per Page / Of 0) disembunyikan, cukup ilustrasi kosong.
+            $table.closest('.dataTables_wrapper').toggleClass('is-empty', !$table.DataTable().rows().count());
             bomSelection = null;
             paintBomSelection();
             alignBomItemRows($table.find('tbody tr'));
         });
+        $table.closest('.dataTables_wrapper').toggleClass('is-empty', !$table.DataTable().rows().count());
         alignBomItemRows($table.find('tbody tr'));
     }
 
     // Item ditumpuk per sel; samakan tinggi item ke-i di semua kolom supaya garis pemisah tetap lurus
-    // walau ITEMS DESCRIPTION / SUPPLIER turun baris. Hanya bisa mengukur baris yang sedang terlihat.
+    // walau ITEMS / SUPPLIER turun baris. Hanya bisa mengukur baris yang sedang terlihat.
     function alignBomItemRows($rows) {
         $rows.filter(':visible').each(function() {
             const columns = $(this).children('td').get()

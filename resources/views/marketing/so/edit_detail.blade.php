@@ -93,9 +93,6 @@
     #so-grid .so-cell-input { width: 100%; min-height: 34px; padding: 4px 8px; border: 0; outline: 2px solid #1d6fd8; background: #fff; color: #1e293b; font: inherit; }
     #so-grid tr.is-new td.so-col-no::after { content: 'NEW'; margin-left: 6px; padding: 1px 5px; border-radius: 6px; background: #dbeafe; color: #1d4ed8; font-size: 9px; font-weight: 600; }
     #so-grid tr.is-locked td.so-col-no i { margin-left: 4px; color: #94a3b8; font-size: 10px; }
-    .so-row-delete { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: #ff0000; color: #fff; font-size: 11px; box-shadow: 0 3px 6px rgba(255, 0, 0, .3); }
-    .so-row-delete:hover { background: #d9dbe3; color: #ff0000; }
-    .so-row-delete:disabled { background: #e2e8f0; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
     .so-row-restore { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 0 9px; border: 0; border-radius: 14px; background: #e0f2fe; color: #075985; font-size: 11px; font-weight: 600; }
     .so-row-restore:hover { background: #bae6fd; }
     .so-deleted-badge { display: inline-block; margin-left: 4px; padding: 1px 5px; border-radius: 8px; background: #ffe4e6; color: #be123c; font-size: 9px; font-weight: 700; vertical-align: middle; }
@@ -187,7 +184,7 @@
 @endphp
 <div class="card card-sb">
     <div class="card-body so-page">
-        <div class="so-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <strong>Edit Sales Order</strong></div>
+        <div class="so-breadcrumb">Marketing &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Proses</a> &nbsp;›&nbsp; Sales Order &nbsp;›&nbsp; <strong>Edit Sales Order</strong></div>
         <div class="so-page-heading">
             <h1>Edit Sales Order <i class="far fa-question-circle"></i></h1>
             <p><i class="fa-solid fa-circle-info"></i>Untuk Mengubah Detail SO</p>
@@ -492,7 +489,7 @@
         const error = errors[row.key + '|' + field];
         const align = field === 'market' || field === 'destination' ? '' : ' text-right';
         if (row.locked || row.deleted) {
-            const title = row.deleted ? 'Ditandai Deleted, belum disimpan. Klik Rollback jika salah hapus.' : 'Sudah masuk PPIC, tidak bisa diubah';
+            const title = row.deleted ? 'Deleted, belum disimpan. Klik Rollback jika salah hapus.' : 'Sudah masuk PPIC, tidak bisa diubah';
             return `<td class="so-cell-auto${row.deleted ? ' so-cell-deleted' : ''}${align}" title="${title}">${soEsc(soShown(field, value))}</td>`;
         }
         const classes = ['so-cell' + align];
@@ -516,6 +513,7 @@
         const pageCount = Math.max(1, Math.ceil(rows.length / perPage));
         soPage = Math.min(Math.max(1, soPage), pageCount);
         const start = (soPage - 1) * perPage;
+        const hadFocus = !!$(document.activeElement).closest('#so-grid-body').length;
         soVisibleKeys = rows.slice(start, start + perPage).map(row => row.key);
         const body = rows.slice(start, start + perPage).map((row, i) => `<tr data-key="${row.key}" class="${row.isNew ? 'is-new' : ''}${row.locked ? ' is-locked' : ''}${row.deleted ? ' is-deleted' : ''}">
             <td class="so-col-check"><input type="checkbox" class="so-check" data-key="${row.key}" ${soChecked.has(row.key) ? 'checked' : ''} ${row.locked || row.deleted ? 'disabled title="Baris tidak bisa dipilih"' : ''} aria-label="Pilih baris"></td>
@@ -527,8 +525,8 @@
             ${soCell(row, 'destination', errors)}
             ${soCell(row, 'fob', errors)}
             <td class="so-col-action">${row.deleted
-                ? `<button type="button" class="so-row-restore" data-key="${row.key}" title="Batalkan penghapusan"><i class="fas fa-undo"></i></button>`
-                : `<button type="button" class="so-row-delete" data-key="${row.key}" ${row.locked ? 'disabled title="Sudah masuk PPIC, tidak bisa dihapus"' : 'title="Tandai untuk dihapus"'} aria-label="Hapus baris"><i class="fas fa-trash-alt"></i></button>`}</td>
+                ? `<button type="button" class="so-row-restore" data-key="${row.key}" title="Rollback"><i class="fas fa-undo"></i></button>`
+                : `<button type="button" class="mkt-ico mkt-ico--delete so-row-delete" data-tip="Delete" data-key="${row.key}" ${row.locked ? 'disabled title="Sudah masuk PPIC, tidak bisa dihapus"' : 'title="Tandai untuk dihapus"'} aria-label="Hapus baris"><i class="fas fa-trash"></i></button>`}</td>
         </tr>`).join('');
         $('#so-grid-body').html(body || '<tr><td colspan="9" class="so-empty">Belum ada detail. Tambahkan lewat Add New.</td></tr>');
 
@@ -558,6 +556,7 @@
             ? `<button type="button" class="so-bulk-delete" id="so-bulk-delete"><i class="fas fa-trash-alt"></i> Hapus (${soChecked.size})</button>` : '');
 
         soPaintSelection();
+        if (hadFocus && soActive) { const el = soTd(soActive.key, soActive.field)[0]; if (el) el.focus({ preventScroll: true }); }
         soRefreshErrorAlert(errors);
         soRenderPivot();
         // Tombol Update hanya mati selama proses simpan; setiap ada perubahan baru (Add New/edit/hapus) aktif lagi.
@@ -585,8 +584,9 @@
             const sizeKey = String(row.size || '-');
             if (!sizes[sizeKey]) sizes[sizeKey] = row.urutan ?? SO_SIZE_URUTAN[sizeKey.trim().toUpperCase()] ?? 9999;
             const market = row.vals.market;
-            const key = [market, row.ex_fty || '', row.color || '', row.product_set || ''].join('\u0001');
-            if (!groups.has(key)) groups.set(key, { market: market, ex_fty: row.ex_fty, color: row.color, product_set: row.product_set, notes: '', qty: {}, total: 0 });
+            const destination = row.vals.destination;
+            const key = [market, destination, row.ex_fty || '', row.color || '', row.product_set || ''].join('\u0001');
+            if (!groups.has(key)) groups.set(key, { market: market, destination: destination, ex_fty: row.ex_fty, color: row.color, product_set: row.product_set, notes: '', qty: {}, total: 0 });
             const group = groups.get(key);
             if (!group.notes && row.notes) group.notes = row.notes;
             const qty = soParseNumber(row.vals.qty);
@@ -600,11 +600,11 @@
         const text = value => soEsc(value === null || value === undefined || value === '' ? '--' : value);
         const num = value => Number(value || 0).toLocaleString('id-ID');
 
-        $('#so-pivot thead').html(`<tr><th class="so-col-no">No</th><th>Style</th><th>Description</th><th>No PO</th><th>Market</th><th>Ex Fty</th>${hasSet ? '<th>Product Set</th>' : ''}<th>Color</th>`
+        $('#so-pivot thead').html(`<tr><th class="so-col-no">No</th><th>Style</th><th>Description</th><th>No PO</th><th>Market</th><th>Destination</th><th>Ex Fty</th>${hasSet ? '<th>Product Set</th>' : ''}<th>Color</th>`
             + sizeList.map(size => `<th class="text-right">${soEsc(size)}</th>`).join('') + '<th class="text-right">Total Qty</th></tr>');
 
-        const list = Array.from(groups.values()).sort((a, b) => String(a.color).localeCompare(String(b.color)) || String(a.market).localeCompare(String(b.market)));
-        const colCount = 8 + (hasSet ? 1 : 0) + sizeList.length;
+        const list = Array.from(groups.values()).sort((a, b) => String(a.color).localeCompare(String(b.color)) || String(a.market).localeCompare(String(b.market)) || String(a.destination).localeCompare(String(b.destination)));
+        const colCount = 9 + (hasSet ? 1 : 0) + sizeList.length;
         const perPage = Number($('#so-pivot-per-page').val()) || 10;
         const pageCount = Math.max(1, Math.ceil(list.length / perPage));
         soPivotPage = Math.min(Math.max(1, soPivotPage), pageCount);
@@ -617,6 +617,7 @@
             <td>${text(group.notes)}</td>
             <td>${text(SO_DATA.no_po)}</td>
             <td>${text(group.market)}</td>
+            <td>${text(group.destination)}</td>
             <td>${text(group.ex_fty)}</td>
             ${hasSet ? `<td>${text(group.product_set)}</td>` : ''}
             <td>${text(group.color)}</td>
@@ -625,7 +626,7 @@
         </tr>`).join('') : `<tr><td colspan="${colCount}" class="so-empty">Tidak ada detail SO.</td></tr>`);
 
         const sizeTotals = sizeList.map(size => list.reduce((sum, group) => sum + (group.qty[size] || 0), 0));
-        $('#so-pivot tfoot').html(`<tr><td></td><td colspan="${6 + (hasSet ? 1 : 0)}">GRAND TOTAL</td>`
+        $('#so-pivot tfoot').html(`<tr><td></td><td colspan="${7 + (hasSet ? 1 : 0)}">GRAND TOTAL</td>`
             + sizeTotals.map(total => `<td class="text-right">${num(total)}</td>`).join('')
             + `<td class="text-right">${num(list.reduce((sum, group) => sum + group.total, 0))}</td></tr>`);
     }
@@ -738,7 +739,7 @@
                 $next = $tr.children('td.so-cell').filter(function () { return this.dataset.field === $td.attr('data-field'); }).first();
             } while ($tr.length && !$next.length);
         }
-        if (!$next.length) return;
+        if (!$next.length) return false;
         const position = { key: $next.attr('data-key'), field: $next.attr('data-field') };
         if (extend && soSelection) {
             soSelection.focus = position;
@@ -748,6 +749,29 @@
         } else {
             soSelect($next);
         }
+        return true;
+    }
+    function soIsMulti() { const rect = soSelectionRect(); return !!rect && (rect.bottom > rect.top || rect.right > rect.left); }
+    // Ctrl+D: 1 baris dipilih = copy dari baris di atasnya; banyak baris = copy baris teratas ke bawah (sama dengan costing).
+    function soFillDown() {
+        const rect = soSelectionRect();
+        if (!rect) return;
+        const changes = [];
+        const copyRow = (from, to) => {
+            const source = soRow(soVisibleKeys[from]);
+            if (!source) return;
+            for (let col = rect.left; col <= rect.right; col++) changes.push({ key: soVisibleKeys[to], field: SO_FIELDS[col], value: source.vals[SO_FIELDS[col]] });
+        };
+        if (rect.top === rect.bottom) { if (rect.top === 0) return; copyRow(rect.top - 1, rect.top); }
+        else for (let row = rect.top + 1; row <= rect.bottom; row++) copyRow(rect.top, row);
+        soCommit(changes, { pasted: true });
+        soRender();
+    }
+    function soClearSelection() {
+        const changes = [];
+        soSelectionCells((key, field) => changes.push({ key: key, field: field, value: '' }));
+        soCommit(changes);
+        soRender();
     }
 
     function soEdit($td, firstChar) {
@@ -772,9 +796,13 @@
             if (move) soMove($fresh, move);
         };
         $input.on('keydown', function (e) {
-            if (e.key === 'Enter') { e.preventDefault(); finish(true, 'down'); }
+            const el = this, caretAt = el.selectionStart === el.selectionEnd ? el.selectionStart : -1;
+            if (e.key === 'Enter') { e.preventDefault(); finish(true, e.shiftKey ? 'up' : 'down'); }
             else if (e.key === 'Tab') { e.preventDefault(); finish(true, e.shiftKey ? 'left' : 'right'); }
             else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+            else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); finish(true, e.key === 'ArrowUp' ? 'up' : 'down'); }
+            else if (e.key === 'ArrowLeft' && caretAt === 0) { e.preventDefault(); finish(true, 'left'); }
+            else if (e.key === 'ArrowRight' && caretAt === el.value.length) { e.preventDefault(); finish(true, 'right'); }
             e.stopPropagation();
         }).on('blur', function () { finish(true); });
     }
@@ -885,9 +913,9 @@
         const fob = value => value === '' ? null : soParseNumber(value);
         const payload = {
             updates: soRows.filter(row => !row.deleted && !row.isNew && soIsDirty(row))
-                .map(row => ({ id: row.id, qty: soParseNumber(row.vals.qty), market: row.vals.market, fob: fob(row.vals.fob) })),
+                .map(row => ({ id: row.id, qty: soParseNumber(row.vals.qty), market: row.vals.market, destination: row.vals.destination, fob: fob(row.vals.fob) })),
             adds: soRows.filter(row => !row.deleted && row.isNew)
-                .map(row => ({ id_color: row.id_color, id_size: row.id_size, qty: soParseNumber(row.vals.qty), market: row.vals.market, fob: fob(row.vals.fob) })),
+                .map(row => ({ id_color: row.id_color, id_size: row.id_size, qty: soParseNumber(row.vals.qty), market: row.vals.market, destination: row.vals.destination, fob: fob(row.vals.fob) })),
             deletes: soRows.filter(row => row.deleted && !row.isNew && !row.deletedInitially).map(row => row.id),
             restores: soRows.filter(row => !row.deleted && !row.isNew && row.deletedInitially).map(row => row.id)
         };
@@ -967,7 +995,15 @@
             if (event.button !== 0 || $(event.target).closest('.so-fill-handle').length) return;
             if ($(this).hasClass('so-cell-editing')) return;
             const key = $(this).attr('data-key'), field = $(this).attr('data-field');
+            event.preventDefault();
             $('#so-grid .so-cell-input').trigger('blur');
+            if (event.shiftKey && soSelection && soCellPosition(soSelection.anchor.key, soSelection.anchor.field)) {
+                soSelection.focus = { key: key, field: field };
+                soActive = { key: key, field: field };
+                soPaintSelection();
+                soTd(key, field)[0].focus({ preventScroll: true });
+                return;
+            }
             soSelection = { anchor: { key: key, field: field }, focus: { key: key, field: field } };
             soActive = { key: key, field: field };
             soDragMode = 'select';
@@ -978,20 +1014,18 @@
         $('#so-grid-body').on('keydown', 'td.so-cell', function (e) {
             const $td = $(this);
             if ($td.hasClass('so-cell-editing')) return;
+            const ctrl = e.ctrlKey || e.metaKey;
+            if (ctrl && e.key.toLowerCase() === 'd') { e.preventDefault(); soFillDown(); return; }
+            if (ctrl || e.altKey) return;   // Ctrl+C / Ctrl+V lewat event copy & paste
             const keys = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
             if (keys[e.key]) { e.preventDefault(); soMove($td, keys[e.key], e.shiftKey); return; }
+            if (e.key === 'Enter') { e.preventDefault(); soMove($td, e.shiftKey ? 'up' : 'down'); return; }
             if (e.key === 'Tab') { e.preventDefault(); soMove($td, e.shiftKey ? 'left' : 'right'); return; }
-            if (e.key === 'Enter' || e.key === 'F2') { e.preventDefault(); soEdit($td); return; }
-            if (e.key === 'Delete' || e.key === 'Backspace') {
-                e.preventDefault();
-                const changes = [];
-                soSelectionCells((key, field) => changes.push({ key: key, field: field, value: '' }));
-                soCommit(changes);
-                soRender();
-                soPaintSelection();
-                return;
-            }
-            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); soEdit($td, e.key); }
+            if (e.key === 'F2') { e.preventDefault(); soEdit($td); return; }
+            if (e.key === 'Escape') { soSelection = null; soActive = null; soPaintSelection(); return; }
+            if (e.key === 'Delete') { e.preventDefault(); soClearSelection(); return; }
+            if (e.key === 'Backspace') { e.preventDefault(); soIsMulti() ? soClearSelection() : soEdit($td, ''); return; }
+            if (e.key.length === 1) { e.preventDefault(); soEdit($td, e.key); }
         });
 
         $(document).on('mousedown', '.so-fill-handle', function (event) {

@@ -48,6 +48,7 @@ use App\Http\Controllers\MaintainBpbController;
 use App\Http\Controllers\Marketing_AdditionalBomController;
 use App\Http\Controllers\Marketing_BomController;
 use App\Http\Controllers\Marketing_CostingController;
+use App\Http\Controllers\Marketing_WorksheetController;
 use App\Http\Controllers\Marketing_SOController;
 use App\Http\Controllers\MarketingDashboardController;
 use App\Http\Controllers\MasterLokasiController;
@@ -1306,6 +1307,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit/{id}', 'edit')->name('edit-costing');
         Route::get('/detail/{id}', 'show')->name('detail-costing');
         Route::post('/store-detail', 'storeDetail')->name('store-costing-detail');
+        Route::post('/store-fabric-breakdown', 'storeFabricBreakdown')->name('store-costing-fabric-breakdown');
         Route::put('/update-header/{id}', 'updateHeader')->name('update-costing-header');
         Route::post('/cancel-unlock-request/{id}', 'cancelUnlockRequest')->name('costing-cancel-unlock-request');
         Route::post('/cancel-editing/{id}', 'cancelEditing')->name('costing-cancel-editing');
@@ -1320,6 +1322,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/approval', 'approval')->name('master-costing-approval');
         Route::post('/approve/{id}', 'submitApproval')->name('submit-costing-approval');
         Route::get('/copy/{id}', 'copyCosting')->name('copy-costing');
+    });
+
+    Route::controller(Marketing_WorksheetController::class)->prefix('marketing/worksheet')->middleware('marketing')->group(function () {
+        Route::get('/{costing}', 'create')->whereNumber('costing')->name('marketing-worksheet');
+        Route::get('/{costing}/rows', 'rows')->whereNumber('costing')->name('marketing-worksheet-rows');
+        Route::post('/{costing}', 'store')->whereNumber('costing')->name('marketing-worksheet-store');
+        Route::put('/{costing}/{id}', 'update')->whereNumber('costing')->whereNumber('id')->name('marketing-worksheet-update');
+        Route::post('/{costing}/batch', 'updateBatch')->whereNumber('costing')->name('marketing-worksheet-batch');
+        Route::delete('/{costing}', 'destroy')->whereNumber('costing')->name('marketing-worksheet-destroy');
     });
 
     // Master BOM

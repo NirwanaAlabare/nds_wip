@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <style>
         .mg-page { padding: 10px 14px 28px; background: #f8fafc; min-height: calc(100vh - 56px); color: #1e293b; }
         .mg-crumb { padding: 9px 12px; border-radius: 4px; background: #284A63; color: #cbd5e1; font-size: 12px; letter-spacing: .2px; margin-bottom: 12px; }
@@ -19,10 +20,7 @@
         .mg-table { margin-bottom: 0; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; }
         .mg-table thead th { padding: 7px 10px; border: 0; background: #cfe0ff; color: #26394c; font-size: 12px; font-weight: 500; text-transform: uppercase; white-space: nowrap; }
         .mg-table tbody td { padding: 7px 10px; border-top: 0; border-bottom: 1px solid #eef2f7; vertical-align: middle; }
-        .mg-table input[type="checkbox"] { width: 14px; height: 14px; accent-color: #334155; }
-        .mg-action { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-right: 4px; padding: 0; border: 0; border-radius: 50%; color: #fff; font-size: 12px; }
-        .mg-action.is-edit { background: #0ea5e9; }
-        .mg-action.is-delete { background: #e11d48; }
+
         .mg-empty { color: #94a3b8; }
 
         .mg-shell .dataTables_info, .mg-shell .dataTables_length, .mg-shell .dataTables_paginate { padding-top: 10px; color: #475569; font-size: 11px; }
@@ -55,8 +53,48 @@
             .mg-table thead th, .mg-table tbody td { padding: 6px; }
             .mg-table thead th { white-space: normal; }
             .mg-table td:last-child { white-space: nowrap; }
-            .mg-action { width: 26px; height: 26px; margin-right: 2px; }
             .mg-modal .modal-dialog { margin-left: auto; margin-right: auto; padding: 0 12px; }
+        }
+
+        /* ===== Tampilan sesuai mockup List Group (sama dengan listing costing) ===== */
+        .mg-crumb, .mg-crumb b { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 500; }
+        .mg-title { color: #284a63; font-family: 'Poppins', sans-serif; font-size: 32px; font-weight: 700; }
+        .mg-subtitle { color: #284a63; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; }
+        .mg-subtitle i { margin-right: 6px; color: #a3b2c7; }
+        .mg-shell { padding: 12px 16px 16px; border: 0; border-radius: 12px; box-shadow: 0 2px 10px rgba(15, 23, 42, .10); }
+        /* Kolom Kode & Nama sempit di kiri, Action di sebelahnya, sisa lebar kosong. */
+        .mg-table { table-layout: auto; }
+        .mg-table thead th { padding: 10px 10px; background: #cfe2ff; color: #1e293b; font-family: Inter, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; letter-spacing: .5px; }
+        .mg-table tbody td { padding: 8px 10px; color: #1e293b; font-family: Inter, sans-serif; font-size: 14px !important; font-weight: 400; line-height: 20px; white-space: nowrap; }
+        .mg-table th.mg-col-check, .mg-table td.mg-col-check { width: 34px; text-align: center; }
+        .mg-table th.mg-col-no, .mg-table td.mg-col-no { width: 54px; }
+        .mg-table th.mg-col-kode { width: 140px; }
+        .mg-table th.mg-col-nama { width: 260px; }
+        .mg-table tbody tr:hover td { background: #f6f9ff; }
+        /* Tombol aksi bulat: edit biru, hapus merah. */
+        /* Pager sama dengan tabel marketing lain. */
+        .mg-shell .dataTables_info, .mg-shell .dataTables_length, .mg-shell .dataTables_paginate { padding-top: 14px; color: #1e293b; font-family: 'Poppins', sans-serif; font-size: 16px; }
+        .mg-shell .dataTables_length label { display: inline-flex; align-items: center; gap: 12px; margin: 0; font-size: 16px; font-weight: 400; }
+        .mg-shell .dataTables_length select { height: 40px; min-width: 76px; margin: 0; padding: 0 10px; border: 1px solid #284a63; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 400; }
+        .mg-shell .dataTables_info { margin-left: 12px; }
+        .mg-shell .pagination { gap: 8px; }
+        .mg-shell .page-link { min-width: 32px; height: 32px; padding: 0 6px; border: 0; border-radius: 6px; background: transparent; color: #64748b; font-size: 16px; font-weight: 500; line-height: 32px; }
+        .mg-shell .page-item.active .page-link { background: #274b63; color: #fff; font-weight: 700; }
+        /* Khusus halaman ini: menu navbar Inter Medium 16 (QA Master Group). */
+        .navbar-nav > .nav-item > .nav-link { font-family: Inter, sans-serif !important; font-size: 16px !important; font-weight: 500 !important; }
+        .mg-shell .mg-actions-bar { display: flex; justify-content: flex-end; margin-top: 16px; }
+        /* Checkbox seragam dengan halaman marketing lain: 16x16, radius 4, navy saat dicentang. */
+        .mg-page input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
+        .mg-page input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        .mg-page input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        .mg-page input[type="checkbox"]:not(.custom-control-input):indeterminate { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' d='M3 6h6'/%3e%3c/svg%3e"); }
+        .mg-page input[type="checkbox"]:not(.custom-control-input):focus { outline: 0; }
+        .mg-page input[type="checkbox"]:not(.custom-control-input):focus-visible { box-shadow: 0 0 0 4px #b3daf7; }
+        .mg-page input[type="checkbox"]:not(.custom-control-input):disabled { opacity: .5; cursor: not-allowed; }
+        @media (max-width: 575.98px) {
+            .mg-title { font-size: 24px; }
+            .mg-table th.mg-col-kode, .mg-table th.mg-col-nama { width: auto; }
+            .mg-shell .dataTables_length label, .mg-shell .dataTables_info, .mg-shell .page-link { font-size: 14px; }
         }
     </style>
 @endsection
@@ -75,18 +113,18 @@
                 <table class="table mg-table w-100" id="mg-table">
                     <thead>
                         <tr>
-                            <th style="width: 30px;"><input type="checkbox" id="mg-check-all" aria-label="Pilih semua"></th>
-                            <th style="width: 50px;">No</th>
-                            <th>Kode Group</th>
-                            <th>Nama Group</th>
-                            <th style="width: 80px;">Action</th>
+                            <th class="mg-col-check"><input type="checkbox" id="mg-check-all" aria-label="Pilih semua"></th>
+                            <th class="mg-col-no">No</th>
+                            <th class="mg-col-kode">Kode Group</th>
+                            <th class="mg-col-nama">Nama Group</th>
+                            <th class="mg-col-action">Action</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
-            <div class="text-right">
-                <button type="button" class="mg-add" id="mg-add">Add New</button>
+            <div class="mg-actions-bar">
+                <button type="button" class="mkt-btn mkt-btn--navy" id="mg-add">Add New</button>
             </div>
         </div>
     </div>
@@ -154,14 +192,14 @@
                 },
                 ajax: MG_ROUTES.index,
                 columns: [
-                    { data: 'id', className: 'text-center', render: id => `<input type="checkbox" class="mg-row-check" value="${id}">` },
-                    { data: 'DT_RowIndex' },
+                    { data: 'id', className: 'mg-col-check', render: id => `<input type="checkbox" class="mg-row-check" value="${id}">` },
+                    { data: 'DT_RowIndex', className: 'mg-col-no' },
                     { data: 'kode_group', render: mgEscape },
                     { data: 'nama_group', render: mgEscape },
                     {
                         data: null,
-                        render: () => '<button type="button" class="mg-action is-edit" title="Edit"><i class="fas fa-pen"></i></button>'
-                            + '<button type="button" class="mg-action is-delete" title="Hapus"><i class="fas fa-trash"></i></button>'
+                        render: () => '<button type="button" class="mkt-ico mkt-ico--edit is-edit" title="Edit" data-tip="Edit"><i class="far fa-edit"></i></button>'
+                            + '<button type="button" class="mkt-ico mkt-ico--delete is-delete" title="Delete" data-tip="Delete"><i class="fas fa-trash"></i></button>'
                     }
                 ]
             }).on('draw.dt', () => $('#mg-check-all').prop('checked', false));

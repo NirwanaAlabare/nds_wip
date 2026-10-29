@@ -225,6 +225,13 @@
             .costing-crumb { font-size: 13px; }
             .costing-no-image { font-size: 13px; }
         }
+        /* Shipping & Destinations: 2 baris x 3 field (costing-field-md) mengisi penuh lebar kartu, jarak 16px;
+           menyusut proporsional di layar sempit, tablet 2 per baris, HP 1 per baris. */
+        .costing-fields.three-columns { display: flex !important; flex-wrap: wrap; gap: 16px; }
+        .costing-fields.three-columns > .costing-field-md { flex: 1 1 calc((100% - 32px) / 3); min-width: 0; }
+        @media (max-width: 991.98px) { .costing-fields.three-columns > .costing-field-md { flex-basis: calc((100% - 16px) / 2); max-width: none; } }
+        @media (max-width: 575.98px) { .costing-fields.three-columns > .costing-field-md { flex-basis: 100%; } }
+
     </style>
 @endsection
 
@@ -390,8 +397,8 @@
                     <section class="costing-section span-full">
                         <h2 class="costing-section-title">Shipping & Destinations<span class="required-mark">*</span></h2>
                         <div class="costing-section-body">
-                            <div class="costing-fields four-columns">
-                                <div class="costing-field">
+                            <div class="costing-fields three-columns">
+                                <div class="costing-field costing-field-md">
                                     <label for="ship_mode">Ship Mode</label>
                                     <select name="ship_mode" id="ship_mode" class="form-control select2bs4" required>
                                         <option value="">Choose Ship Mode</option>
@@ -400,7 +407,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="costing-field">
+                                <div class="costing-field costing-field-md">
                                     <label for="shipment_type">Shipment Type</label>
                                     <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
                                         <option value="">Choose Shipment Type</option>
@@ -408,20 +415,11 @@
                                         <option value="export">EXPORT</option>
                                     </select>
                                 </div>
-                                <div class="costing-field">
+                                <div class="costing-field costing-field-md">
                                     <label for="deldate">Delivery Date</label>
                                     <input type="date" name="deldate" id="deldate" class="form-control" required>
                                 </div>
-                                <div class="costing-field">
-                                    <label for="status">Status</label>
-                                    <select name="status" id="status" class="form-control select2bs4" required>
-                                        <option value="">Choose Status</option>
-                                        <option value="CONFIRM">CONFIRM</option>
-                                        <option value="CANCEL">CANCEL</option>
-                                        <option value="SAMPLE">SAMPLE</option>
-                                    </select>
-                                </div>
-                                <div class="costing-field">
+                                <div class="costing-field costing-field-md">
                                     <label for="marketing_order">Marketing Order</label>
                                     <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
                                         <option value="">Choose Marketing Order</option>
@@ -430,9 +428,18 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="costing-field costing-field-md">
+                                    <label for="status">Status</label>
+                                    <select name="status" id="status" class="form-control select2bs4" required>
+                                        <option value="">Choose Status</option>
+                                        <option value="CONFIRM">CONFIRM</option>
+                                        <option value="CANCEL">CANCEL</option>
+                                        <option value="SAMPLE">SAMPLE</option>
+                                    </select>
+                                </div>
                                 <input type="hidden" name="main_dest" value="">
                                 <input type="hidden" name="market" value="">
-                                <div class="costing-field">
+                                <div class="costing-field costing-field-md">
                                     <label for="notes">Notes</label>
                                     <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Notes"></textarea>
                                 </div>
@@ -454,11 +461,11 @@
                                 </div>
                                 <div class="costing-field">
                                     <label for="smv">SMV (Min)</label>
-                                    <input type="text" name="smv" id="smv" class="form-control input-decimal" placeholder="SMV (Min)" required>
+                                    <input type="text" name="smv" id="smv" class="form-control input-money" inputmode="decimal" data-max-decimals="3" placeholder="SMV (Min)" required>
                                 </div>
                                 <div class="costing-field">
                                     <label for="vat">VAT (%)</label>
-                                    <input type="text" name="vat" id="vat" class="form-control input-decimal" placeholder="VAT (%)" required>
+                                    <input type="text" name="vat" id="vat" class="form-control input-money" inputmode="decimal" data-max-decimals="2" placeholder="VAT (%)" required>
                                 </div>
                             </div>
                         </div>
@@ -479,15 +486,15 @@
                                 </div>
                                 <div class="costing-field">
                                     <label for="confirm_price">Confirm Price</label>
-                                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal" required placeholder="Confirm Price">
+                                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-money" inputmode="decimal" required placeholder="Confirm Price">
                                 </div>
                                 <div class="costing-field">
                                     <label>Rate to IDR</label>
-                                    <input type="text" name="rate_to_idr" class="form-control input-decimal" placeholder="Rate to IDR" required>
+                                    <input type="text" name="rate_to_idr" class="form-control input-money" inputmode="decimal" placeholder="Rate to IDR" required>
                                 </div>
                                 <div class="costing-field">
                                     <label>Rate from IDR</label>
-                                    <input type="text" name="rate_from_idr" class="form-control input-decimal" placeholder="Rate from IDR" required>
+                                    <input type="text" name="rate_from_idr" class="form-control input-money" inputmode="decimal" placeholder="Rate from IDR" required>
                                 </div>
                             </div>
                         </div>
@@ -507,6 +514,18 @@
 <script src="{{ asset('dist/js/marketing-title-case.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-title-case.js')) }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script>
+    // Angka format Indonesia untuk Confirm Price / Rate / SMV (lihat handler .input-money).
+    function mktMoney(selector) {
+        return parseFloat(String($(selector).val() || '').replace(/\./g, '').replace(',', '.')) || 0;
+    }
+    function mktMoneyText(text, maxDecimals) {
+        const value = String(text).replace(/[^0-9,]/g, '');
+        const comma = value.indexOf(',');
+        const int = (comma < 0 ? value : value.slice(0, comma)).replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const dec = value.slice(comma + 1).replace(/,/g, '');
+        return comma < 0 ? int : int + ',' + (maxDecimals >= 0 ? dec.slice(0, maxDecimals) : dec);
+    }
+
     $(document).ready(function() {
         // allowClear = tanda X untuk menghapus pilihan (state 2); hanya untuk select yang punya opsi kosong / multiple.
         // Dropdown nama (buyer, brand, season, product, supplier, content) tampil Title Case; singkatan (PT, CV, LTD) tetap kapital.
@@ -763,7 +782,21 @@
             let val = $(this).val().replace(/[^0-9.]/g, '');
             let parts = val.split('.');
             if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+            const maxDec = parseInt(this.dataset.maxDecimals, 10);
+            if (maxDec >= 0 && val.includes('.')) val = val.slice(0, val.indexOf('.') + 1 + maxDec);
             $(this).val(val);
+        });
+
+        // Confirm Price / Rate / SMV: format Indonesia (1.234.567,89); titik dari keyboard dianggap koma desimal.
+        $(document).on('input', '.input-money', function (e) {
+            let text = this.value;
+            if (e.originalEvent && e.originalEvent.data === '.' && this.selectionStart > 0) {
+                text = text.slice(0, this.selectionStart - 1) + ',' + text.slice(this.selectionStart);
+            }
+            const fromEnd = this.value.length - this.selectionStart;
+            this.value = mktMoneyText(text, parseInt(this.dataset.maxDecimals, 10));
+            const pos = Math.max(0, this.value.length - fromEnd);
+            this.setSelectionRange(pos, pos);
         });
 
         $(document).on('select2:open', function(e) {
@@ -775,7 +808,7 @@
         function checkShipmentType() {
             let shipmentType = $('#shipment_type').val();
             if (shipmentType === 'local') {
-                $('#vat').val('11.00');
+                $('#vat').val('11,00');
             }
         }
 

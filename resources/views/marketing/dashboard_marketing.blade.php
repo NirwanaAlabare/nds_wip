@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <style>
         .md-page { padding: 6px 4px 24px; color: #1e293b; font-family: Inter, sans-serif; }
 
@@ -144,7 +145,7 @@
                             </div>
                             <div class="md-picker-error" id="md-picker-error" hidden></div>
                             <div class="md-picker-actions">
-                                <button type="button" class="md-btn md-btn-icon" id="md-copy-range" title="Copy rentang waktu"><i class="far fa-copy"></i></button>
+                                <button type="button" class="mkt-ico mkt-ico--copy" id="md-copy-range" title="Copy rentang waktu" data-tip="Copy"><i class="fas fa-copy"></i></button>
                                 <button type="button" class="md-btn md-btn-icon" id="md-paste-range" title="Paste rentang waktu"><i class="far fa-clipboard"></i></button>
                                 <button type="button" class="md-apply" id="md-apply-range">Apply time range</button>
                             </div>
@@ -253,7 +254,7 @@
             const NAVY = '#284a63';
             const RECENT_KEY = 'md-recent-ranges';
             const escape = value => $('<div>').text(value ?? '').html();
-            const number = (value, digits = 0) => Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: digits });
+            const number = (value, digits = 0) => Number(value || 0).toLocaleString('id-ID', { maximumFractionDigits: digits });
             const pad = n => String(n).padStart(2, '0');
             const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 

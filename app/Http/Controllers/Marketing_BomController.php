@@ -467,10 +467,6 @@ class Marketing_BomController extends Controller
     }
 
 
-    /**
-     * Histori item BOM. items_added: item pertama -> "Marketing Staff created BOM on ...", berikutnya
-     * "added N BOM items"; items_updated / items_deleted -> "updated BOM items (N changes)" / "deleted N BOM items".
-     */
     private function recordBomHistory(int $bomId, string $action, int $count): void
     {
         if ($count <= 0) {
@@ -634,7 +630,6 @@ class Marketing_BomController extends Controller
                 }
             }
 
-            // Hanya ke bom_marketing_detail; BOM JO baru diperbarui saat Save form (updateItemsBatch).
             $mysql_sb->table('bom_marketing_detail')->insert($insertRows);
             $this->recordBomHistory((int) $validated['id_bom_marketing'], 'items_added', count($insertRows));
 
@@ -1139,10 +1134,6 @@ class Marketing_BomController extends Controller
         }
     }
 
-    /**
-     * Save form BOM: simpan perubahan tabel (boleh kosong) lalu kirim seluruh BOM ke bom_jo_item.
-     * Item yang ditambah/dihapus sejak Save terakhir ikut terkirim di sini.
-     */
     public function updateItemsBatch(Request $request)
     {
         if ($locked = $this->bomLockedResponse($request->id_bom_marketing)) {
@@ -1175,7 +1166,6 @@ class Marketing_BomController extends Controller
                 throw new \RuntimeException('Sebagian item tidak terdaftar pada BOM yang sedang dibuka.');
             }
 
-            // Nilai lama untuk menghitung baris yang benar-benar berubah (histori "updated BOM items (N changes)").
             $before = $mysql_sb->table('bom_marketing_detail')->whereIn('id', $ids)->get()->keyBy('id');
             $changedRows = 0;
             foreach ($items as $item) {
@@ -1185,7 +1175,6 @@ class Marketing_BomController extends Controller
                     'allowance' => $item['allowance'],
                     'id_supplier' => $item['id_supplier'] ?? null,
                     'price' => $item['price'],
-                    // Shell = id_panel di kunci sync; baris lama otomatis dibatalkan dan diganti baris dengan shell baru.
                     'shell' => $item['shell'] ?? null,
                 ];
                 $old = $before[$item['id']] ?? null;
@@ -1285,7 +1274,6 @@ class Marketing_BomController extends Controller
                 }
             }
 
-            // Hanya soft delete di BOM; baris BOM JO terkait dibatalkan saat Save form.
             $mysql_sb->table('bom_marketing_detail')->whereIn('id', $ids)->update(['cancel' => 'Y']);
             $this->recordBomHistory((int) $validated['id_bom_marketing'], 'items_deleted', $ids->count());
 
@@ -1750,8 +1738,6 @@ class Marketing_BomController extends Controller
     {
         $name = strtoupper($request->color_name);
 
-        // Menggunakan updateOrCreate agar langsung mengembalikan objek model
-        // Jika tidak pakai Model (pake DB::table), kita cari manual setelah insert
         $color = DB::connection('mysql_sb')->table('master_colors_gmt')->updateOrInsert(
             ['name' => $name],
             ['created_at' => now()]
@@ -1810,8 +1796,6 @@ class Marketing_BomController extends Controller
             $firstDetail = $mysql_sb->table('bom_marketing_detail')->where('id', $ids[0] ?? null)->first();
             $id_bom = $firstDetail ? $firstDetail->id_bom_marketing : null;
 
-            // $mysql_sb->table('bom_marketing_detail')->whereIn('id', $ids)->delete();
-            // delete jangan hapus langsung ubah cancel jadi Y
             $mysql_sb->table('bom_marketing_detail')
                 ->whereIn('id', $ids)
                 ->update([
@@ -2066,9 +2050,9 @@ class Marketing_BomController extends Controller
                     'id_content'   => $det->id_content,
                     'content_name' => $det->content_name,
                     'item_name'    => $det->item_name,
-                    'cons'         => $cons_value,  // CONS /PC dari input BOM
-                    'ac_qty'       => $ac_qty_val,  // qty dari costing (referensi)
-                    'orig_qty'     => 0,            // akan di-sum (ORIG QTY = total qty garmen di group ini)
+                    'cons'         => $cons_value,  
+                    'ac_qty'       => $ac_qty_val,  
+                    'orig_qty'     => 0,            
                     'unit_name'    => $det->unit_name,
                     'nama_panel'   => $det->nama_panel,
                     'rule_bom'     => $rule,
@@ -2078,12 +2062,7 @@ class Marketing_BomController extends Controller
                 ];
             }
 
-            // Sum orig_qty: untuk ALL COLOR ALL SIZE = total qty garmen, lainnya per color/size
-            // Karena 1 baris di bom_marketing_detail = 1 kombinasi color+size,
-            // orig_qty per group = jumlah baris yang di-group × qty_order per color/size
-            // Native menggunakan sum(so_det.qty) per group - kita gunakan qty_order dibagi jumlah kombinasi
-            // Pendekatan: kita track jumlah baris lalu hitung orig_qty = total_qty_garmen / total_groups
-            $groupedDetails[$key]['orig_qty'] += 1; // hitung jumlah baris (kombinasi color×size)
+            $groupedDetails[$key]['orig_qty'] += 1; 
 
             if ($det->color_name && !in_array($det->color_name, $groupedDetails[$key]['colors'])) {
                 $groupedDetails[$key]['colors'][] = $det->color_name;
@@ -2093,10 +2072,6 @@ class Marketing_BomController extends Controller
             }
         }
 
-        // orig_qty = qty_order dari header (total qty garmen keseluruhan)
-        // Ini mengikuti native: ALL COLOR ALL SIZE → total qty, lainnya → total qty per group
-        // Karena kita tidak punya breakdown qty per color/size di marketing BOM,
-        // kita gunakan qty_order sebagai ORIG QTY (sama dengan yang tampil di header)
         $qty_order = $bom->qty_order ?? 0;
 
         $finalDetails = [];
@@ -2110,11 +2085,6 @@ class Marketing_BomController extends Controller
             $n_colors = max(count($colorsList), 1);
             $n_sizes  = max(count($sizesList), 1);
 
-            // Hitung ORIG QTY per group mengikuti logika native:
-            // ALL COLOR ALL SIZE → total qty_order (semua warna & size digabung)
-            // PER COLOR ALL SIZE → qty_order / n_colors (per warna, semua size)
-            // ALL COLOR RANGE SIZE → qty_order / n_sizes (semua warna, per size)
-            // PER COLOR RANGE SIZE → qty_order / (n_colors * n_sizes) (per warna per size)
             if ($rule == 'ALL COLOR ALL SIZE') {
                 $g['orig_qty']     = $qty_order;
                 $g['color_display'] = 'All Color';

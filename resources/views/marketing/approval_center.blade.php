@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-fonts.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-fonts.css')) }}">
     <style>
         .ac-page { color: #1e293b; }
         .ac-title { margin: 0; font-size: 26px; font-weight: 700; color: #475569; }
@@ -114,8 +115,6 @@
         .ac-badge.is-unlocked,
         .ac-badge.is-request { border-color: #bfdbfe; background: #eff6ff; color: #2563eb; }
         .ac-timeline-toggle { width: 20px; height: 20px; padding: 0; border: 1px solid #cbd5e1; border-radius: 50%; background: #fff; color: #64748b; font-size: 8px; }
-        .ac-detail-btn { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid #4357e6; border-radius: 50%; background: linear-gradient(180deg, #4357e6, #1f2b9e); color: #fff !important; font-size: 10px; text-decoration: none !important; }
-        .ac-detail-btn:hover { background: linear-gradient(180deg, #8d9cff, #4a5ef0); }
         .ac-timeline-toggle[aria-expanded="true"] { border-color: #7dd3fc; background: #e0f2fe; color: #0284c7; }
         .ac-timeline { padding: 10px 18px; background: #f6f8fb; font-size: 11px; white-space: normal; }
         .ac-timeline-item { display: flex; gap: 10px; padding: 3px 0; }
@@ -130,7 +129,6 @@
         .ac-card .page-item.disabled .page-link { background: none; color: #cbd5e1; }
         .ac-badges { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 
-        /* Tabel lebar (banyak kolom/teks panjang) menggulir di dalam kartu, bukan menggeser halaman. */
         .ac-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
         @media (max-width: 991.98px) {
@@ -147,7 +145,6 @@
             .ac-title { font-size: 22px; }
             .ac-breadcrumb { font-size: 14px; }
             .ac-card { padding: 12px; }
-            /* Tab status satu baris, digulir ke samping bila tidak muat. */
             .ac-status-tabs { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; }
             .ac-status-tab, .ac-status-selected { flex: 0 0 auto; font-size: 13px; }
         }
@@ -173,26 +170,131 @@
         input[type="checkbox"]:not(.custom-control-input):focus-visible { box-shadow: 0 0 0 4px #b3daf7; }
         input[type="checkbox"]:not(.custom-control-input):disabled { opacity: .5; cursor: not-allowed; }
 
+        .ac-breadcrumb { margin-bottom: 16px; }
+        .ac-frame { padding: 16px 32px 32px; border-radius: 10px; background: #fff; box-shadow: 0 10px 40px rgba(30, 41, 59, .08); }
+        .ac-heading { margin-bottom: 20px; }
+        .ac-heading h1 { margin: 0; color: #284a63; font-family: Poppins, sans-serif; font-size: 32px; font-weight: 700; }
+        .ac-heading h1 i { font-size: 11px; vertical-align: middle; }
+        .ac-heading p { margin: 4px 0 0; color: #284a63; font-family: Poppins, sans-serif; font-size: 12px; font-weight: 600; }
+        .ac-heading p i { margin-right: 6px; color: #a3b2c7; }
+        .ac-summary { gap: 24px; margin-bottom: 24px; }
+        .ac-summary-card { min-height: 140px; padding: 14px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(30, 41, 59, .10); }
+        .ac-summary-card span { font-family: Poppins, sans-serif; font-size: 20px; font-weight: 600; color: #9e9e9e !important; }
+        .ac-summary-card strong { margin: 4px 0; font-family: Poppins, sans-serif; font-size: 56px; font-weight: 700; color: #284a63; }
+        .ac-summary-card small { color: #9e9e9e; font-family: Poppins, sans-serif; font-size: 11px; font-weight: 400; }
+        .ac-summary-card small b { font-weight: 600; }
+        .ac-panel { padding: 16px 32px 24px; border-radius: 12px; background: #fff; box-shadow: 0 4px 20px rgba(30, 41, 59, .06); }
+        .ac-section-title { margin: 0 0 16px; color: #284a63; font-family: Poppins, sans-serif; font-size: 25px; font-weight: 600; }
+        .ac-card { margin-bottom: 24px; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; overflow: visible; }
+        .ac-card > .ac-toolbar, .ac-card > .ac-filter-summary { padding: 0; }
+        .ac-card > .ac-status-tabs { margin: 8px 0 0; padding: 0; border-bottom: 0; }
+        .ac-card .dataTables_wrapper > .d-flex { padding: 0; }
+        .ac-table thead th { border-left: 0; border-right: 0; }
+        .ac-table tbody td { border-left: 0; border-right: 0; }
+        .ac-table { border: 0; }
+        .ac-date-badge { border-radius: 4px; background: #c7d2db; color: #284a63; }
+        .ac-card .dataTables_info, .ac-card .dataTables_length { color: #212121; font-family: Inter, sans-serif; font-size: 14px; }
+        .ac-card .dataTables_length select { height: 36px; margin: 0 8px; border: 1px solid #284a63; border-radius: 6px; font-size: 14px; }
+        .ac-card .page-link { min-width: 28px; padding: 4px 8px; font-family: Inter, sans-serif; font-size: 14px; }
+        .ac-card .page-item.active .page-link { background: #284a63; }
+        .ac-table .mkt-ico { width: 28px; height: 28px; font-size: 12px; }
+        .ac-table thead th, .ac-table tbody td { white-space: nowrap !important; overflow-wrap: normal; }
+        .ac-table thead th { text-align: left !important; vertical-align: middle; }
+        .ac-table td[colspan] { white-space: normal !important; }
+        .ac-toolbar .ac-keyword-wrap { margin-left: -8px; }
+        .ac-search-by-wrap .select2-container--bootstrap4 .select2-selection { border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+        .ac-toolbar .ac-keyword { border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+        @media (max-width: 599.98px) {
+            .ac-toolbar .ac-keyword-wrap { margin-left: 0; }
+            .ac-search-by-wrap .select2-container--bootstrap4 .select2-selection { border-radius: .25rem !important; }
+            .ac-toolbar .ac-keyword { border-left: 1px solid #ced4da; border-radius: .25rem; }
+        }
+        .ac-toolbar .ac-keyword { height: 38px; }
+        .ac-search-by-wrap .select2-container--bootstrap4 .select2-selection--multiple { height: 38px; min-height: 38px; overflow: hidden; }
+        .ac-search-by-wrap .select2-selection--multiple .select2-selection__rendered { display: flex !important; flex-wrap: nowrap; align-items: center; height: 36px; overflow: hidden; white-space: nowrap; }
+        .ac-search-by-wrap .select2-selection--multiple .select2-selection__choice { flex: 0 0 auto; margin-top: 0 !important; }
+        .ac-search-by-wrap .select2-selection--multiple .select2-search__field { height: 34px !important; margin-top: 0 !important; }
+        .ac-input-icon { top: 19px; }
+        .ac-date-toggle { width: 38px; height: 38px; }
+        .ac-date-panel { top: 42px; }
+        .ac-search-by-wrap .select2-selection--multiple .select2-search--inline:first-child,
+        .ac-search-by-wrap .select2-selection--multiple .select2-search--inline:first-child .select2-search__field { width: 100% !important; }
+        @media (max-width: 767.98px) {
+            .ac-frame { padding: 12px; }
+            .ac-heading h1 { font-size: 24px; }
+            .ac-summary { gap: 10px; }
+            .ac-summary-card { min-height: 0; }
+            .ac-summary-card span { font-size: 15px; }
+            .ac-summary-card strong { font-size: 32px; }
+            .ac-panel { padding: 12px; }
+            .ac-section-title { font-size: 20px; }
+        }
+        /* Font sesuai Figma (catatan QA Approval Center). */
+        .ac-heading h1 { font-family: Poppins, sans-serif !important; font-size: 32px; font-weight: 700; }
+        .ac-summary-card span { font-family: 'Instrument Sans', sans-serif !important; font-size: 20px; font-weight: 700 !important; }
+        .ac-summary-card strong { font-family: Poppins, sans-serif !important; font-size: 64px; font-weight: 700; line-height: 1.1; }
+        .ac-summary-card small { font-family: 'Instrument Sans', sans-serif !important; font-size: 12px; font-weight: 500; }
+        .ac-summary-card small b { font-weight: 700; }
+        .ac-section-title { font-family: Poppins, sans-serif !important; font-size: 24px; font-weight: 700; }
+        .ac-actions .mkt-btn { font-family: 'SF Pro Rounded', ui-rounded, 'MKT Rounded', sans-serif !important; font-size: 18px; font-weight: 700 !important; }
+        .ac-toolbar .ac-keyword, .ac-toolbar .ac-keyword::placeholder,
+        .ac-search-by-wrap .select2-container--bootstrap4 .select2-selection,
+        .ac-search-by-wrap .select2-search__field, .ac-search-by-wrap .select2-search__field::placeholder,
+        .ac-search-by-wrap .select2-selection__placeholder { font-family: Inter, sans-serif !important; font-size: 14px !important; font-weight: 400; }
+        /* Ringkasan filter disamakan dengan listing Costing (.filter-summary / .filter-chip / .clear-filters). */
+        .ac-filter-summary { gap: 8px; min-height: 30px; margin-top: 10px; color: #64748b; font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; }
+        .ac-filter-summary .ac-chip { gap: 0; padding: 4px 10px; border-radius: 6px; background: #e0f2fe; color: #0369a1; font-family: Inter, sans-serif; font-size: 11px; font-weight: 500; }
+        .ac-filter-summary .ac-chip-remove { padding: 0 0 0 6px; font-size: 14px; cursor: pointer; }
+        .ac-filter-summary .ac-chip-remove:hover { color: #b91c1c; }
+        .ac-filter-summary .ac-clear { padding: 0; color: #1e293b; font-family: Inter, sans-serif; font-size: 12px; font-weight: 500; text-decoration: none; cursor: pointer; }
+        .ac-filter-summary .ac-clear:hover { text-decoration: underline; }
+        .ac-filter-summary .ac-clear:disabled { color: #cbd5e1; cursor: default; text-decoration: none; }
+        .ac-status-tab { font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; }
+        .ac-status-selected { font-family: Inter, sans-serif; font-size: 14px; font-weight: 700; }
+        .ac-count { font-family: Inter, sans-serif; font-size: 10px; font-weight: 500; }
+        .ac-table thead th { font-family: Inter, sans-serif !important; font-size: 12px !important; font-weight: 500 !important; }
+        .ac-table tbody td { font-family: Inter, sans-serif !important; font-size: 16px !important; font-weight: 400 !important; }
+        .ac-table thead th:first-child, .ac-table tbody td:first-child { font-size: 15px !important; font-weight: 400 !important; }
+        .ac-table .ac-date-badge, .ac-table .ac-badge { font-family: Inter, sans-serif; font-size: 12px; font-weight: 500; }
+        .ac-card .dataTables_info, .ac-card .dataTables_length, .ac-card .dataTables_length label,
+        .ac-card .dataTables_length select, .ac-card .page-link { font-family: Poppins, sans-serif !important; font-size: 16px !important; font-weight: 400 !important; }
+        @media (max-width: 991.98px) {
+            .ac-summary-card strong { font-size: 40px; }
+            .ac-table tbody td { font-size: 14px !important; }
+        }
+        @media (max-width: 767.98px) {
+            .ac-heading h1 { font-size: 24px; }
+            .ac-summary-card span { font-size: 15px; }
+            .ac-summary-card strong { font-size: 32px; }
+            .ac-section-title { font-size: 20px; }
+            .ac-actions .mkt-btn { font-size: 15px; }
+            .ac-card .dataTables_info, .ac-card .dataTables_length, .ac-card .dataTables_length label,
+            .ac-card .dataTables_length select, .ac-card .page-link { font-size: 14px !important; }
+        }
     </style>
 @endsection
 
 @section('content')
 <div class="ac-page font-inter">
     <div class="ac-breadcrumb">Marketing &nbsp;›&nbsp; <strong>Approval</strong></div>
-    <h1 class="ac-title mb-3">Approval Center</h1>
+    <div class="ac-frame">
+    <div class="ac-heading">
+        <h1>Approval Center <i class="far fa-question-circle"></i></h1>
+        <p><i class="fas fa-exclamation-circle"></i>Semua persetujuan dan permintaan unlock dalam satu halaman.</p>
+    </div>
 
     <div class="ac-summary">
-        <a href="#ac-doc-costing" class="ac-summary-card is-costing"><span>Approval Costing</span><strong data-summary="costing">{{ $summary['costing'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
-        <a href="#ac-doc-bom" class="ac-summary-card is-bom"><span>Approval BOM</span><strong data-summary="bom">{{ $summary['bom'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
-        <a href="#ac-unlock-costing" class="ac-summary-card is-unlock-costing"><span>Unlock Costing</span><strong data-summary="unlock-costing">{{ $summary['unlock_costing'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
-        <a href="#ac-unlock-bom" class="ac-summary-card is-unlock-bom"><span>Unlock BOM</span><strong data-summary="unlock-bom">{{ $summary['unlock_bom'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
-        <a href="#ac-unlock-so" class="ac-summary-card is-unlock-so"><span>Unlock SO</span><strong data-summary="unlock-so">{{ $summary['unlock_so'] }}</strong><small>Perlu ditinjau oleh Manager</small></a>
+        <a href="#ac-doc-costing" class="ac-summary-card is-costing"><span>Approval Costing</span><strong data-summary="costing">{{ $summary['costing'] }}</strong><small><b>Perlu ditinjau</b> oleh Manager</small></a>
+        <a href="#ac-doc-bom" class="ac-summary-card is-bom"><span>Approval BOM</span><strong data-summary="bom">{{ $summary['bom'] }}</strong><small><b>Perlu ditinjau</b> oleh Manager</small></a>
+        <a href="#ac-unlock-costing" class="ac-summary-card is-unlock-costing"><span>Unlock Costing</span><strong data-summary="unlock-costing">{{ $summary['unlock_costing'] }}</strong><small><b>Perlu ditinjau</b> oleh Manager</small></a>
+        <a href="#ac-unlock-bom" class="ac-summary-card is-unlock-bom"><span>Unlock BOM</span><strong data-summary="unlock-bom">{{ $summary['unlock_bom'] }}</strong><small><b>Perlu ditinjau</b> oleh Manager</small></a>
+        <a href="#ac-unlock-so" class="ac-summary-card is-unlock-so"><span>Unlock SO</span><strong data-summary="unlock-so">{{ $summary['unlock_so'] }}</strong><small><b>Perlu ditinjau</b> oleh Manager</small></a>
     </div>
 
     @foreach ($docSections as $section)
         <section id="ac-doc-{{ $section['key'] }}" class="ac-panel" hidden>
+            <h2 class="ac-section-title">{{ $section['title'] }}</h2>
             <div class="ac-card" data-ac-kind="doc" data-ac-type="{{ $section['key'] }}" data-ac-number="{{ $section['number'] }}">
-                <h2 class="ac-section-title">{{ $section['title'] }}</h2>
                 <div class="ac-toolbar">
                     @include('marketing.approval_center_filters', ['numberLabel' => $section['number'], 'searchColumns' => $searchColumns])
                     <div class="ac-actions">
@@ -241,8 +343,8 @@
 
         @foreach ($unlockSections as $section)
             <section id="ac-unlock-{{ $section['key'] }}" class="ac-panel" hidden>
+                <h2 class="ac-section-title">{{ $section['title'] }} <i class="fas fa-lock text-muted" style="font-size: 13px;"></i></h2>
                 <div class="ac-card" data-ac-kind="unlock" data-ac-type="{{ $section['key'] }}" data-ac-enabled="{{ $section['enabled'] ? '1' : '0' }}">
-                    <h2 class="ac-section-title">{{ $section['title'] }} <i class="fas fa-lock text-muted" style="font-size: 13px;"></i></h2>
                     <div class="ac-toolbar">
                         @include('marketing.approval_center_filters', ['numberLabel' => $section['number'], 'searchColumns' => $searchColumns])
                         <div class="ac-actions">
@@ -286,6 +388,7 @@
                 </div>
             </section>
         @endforeach
+    </div>
 </div>
 @endsection
 
@@ -363,8 +466,8 @@
                 ordering: true,
                 order: [],
                 searching: false,
-                pageLength: 10,
-                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                pageLength: 4,
+                lengthMenu: [[4, 10, 25, 50], [4, 10, 25, 50]],
                 dom: 'rt<"d-flex justify-content-between align-items-center flex-wrap"<"d-flex align-items-center"li>p>',
                 language: {
                     lengthMenu: 'Item Per Page _MENU_',
@@ -512,7 +615,7 @@
         // Kolom Action: ikon detail bulat, membuka halaman detail di tab baru.
         const detailColumn = urlOf => ({
             data: null, className: 'text-center', orderable: false,
-            render: (value, displayType, row) => `<a href="${urlOf(row)}" target="_blank" class="ac-detail-btn" title="Detail" aria-label="Detail"><i class="fas fa-info"></i></a>`
+            render: (value, displayType, row) => `<a href="${urlOf(row)}" target="_blank" class="mkt-ico mkt-ico--detail" title="Detail" data-tip="Detail" aria-label="Detail"><i class="fas fa-info"></i></a>`
         });
 
         // Kolom sama dengan tabel Approval, hanya nomor dokumen (Costing/BOM/SO) yang berbeda, plus kolom Action (detail).
@@ -549,11 +652,13 @@
             if (searchBy.length) chips.push({ filter: 'search-by', text: `Search By: ${searchBy.join(', ')}` });
             if (keyword) chips.push({ filter: 'keyword', text: `Search: "${keyword}"` });
             if (from && to) chips.push({ filter: 'date', text: `Tanggal: ${acFormatDate(from)} - ${acFormatDate(to)}` });
+            // Sama dengan listing Costing: "Filter:" + chip (atau None) + Clear all di ujung.
             $card.find('.ac-filter-summary').html(
-                chips.length
-                    ? `<button type="button" class="ac-clear">Clear all</button><span>Filter: ${chips.length}</span>`
-                        + chips.map(chip => `<span class="ac-chip">${escapeHtml(chip.text)}<button type="button" class="ac-chip-remove" data-filter="${chip.filter}" title="Hapus filter">&times;</button></span>`).join('')
-                    : '<span>Filter: None</span>'
+                '<span>Filter:</span>'
+                + (chips.length
+                    ? chips.map(chip => `<span class="ac-chip">${escapeHtml(chip.text)}<button type="button" class="ac-chip-remove" data-filter="${chip.filter}" title="Hapus filter">&times;</button></span>`).join('')
+                    : '<span>None</span>')
+                + `<button type="button" class="ac-clear"${chips.length ? '' : ' disabled'}>Clear all</button>`
             );
         }
 

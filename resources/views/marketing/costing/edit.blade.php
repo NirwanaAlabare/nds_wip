@@ -1,6 +1,7 @@
 @extends('layouts.index')
 
 @section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-fonts.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-fonts.css')) }}">
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-form.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-form.css')) }}">
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
@@ -572,6 +573,46 @@
             .unlock-card { padding: 10px; }
             .unlock-badges, .unlock-actions { flex-wrap: wrap; margin-left: 0; }
         }
+        .costing-fields.three-columns { display: flex !important; flex-wrap: wrap; gap: 16px; }
+        .costing-fields.three-columns > .costing-field-md { flex: 1 1 calc((100% - 32px) / 3); min-width: 0; }
+        @media (max-width: 991.98px) { .costing-fields.three-columns > .costing-field-md { flex-basis: calc((100% - 16px) / 2); max-width: none; } }
+        @media (max-width: 575.98px) { .costing-fields.three-columns > .costing-field-md { flex-basis: 100%; } }
+
+        /* ===== Fabric: Content -> Shell -> Part. Baris lanjutan grup tidak mengulang nama content/shell. ===== */
+        #tbody-fabric td.item-name, #tbody-fabric td.shell-td { white-space: nowrap; }
+        #tbody-fabric .fb-name { vertical-align: middle; }
+        #tbody-fabric .fb-add { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin-left: 8px; padding: 0; border: 0; border-radius: 3px; background: #284a63; color: #fff; font-size: 9px; vertical-align: middle; cursor: pointer; }
+        #tbody-fabric .fb-add:hover { background: #1d3a4f; }
+        #tbody-fabric tr.fb-repeat-content td.item-name > *, #tbody-fabric tr.fb-repeat-shell td.shell-td > * { display: none; }
+        #tbody-fabric tr.row-costing:not(.fb-group-start) > td { border-top-color: transparent; }
+        .costing-create-page.is-readonly #tbody-fabric .fb-add { display: none; }
+        .fb-modal { max-width: 420px; }
+        .fb-modal .modal-content { border: 0; border-radius: 12px; }
+        .fb-modal .modal-header { justify-content: center; border-bottom: 1px solid #e2e8f0; }
+        .fb-modal .modal-title { color: #284a63; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 600; }
+        .fb-modal .fb-modal-card { padding: 14px; border-radius: 10px; box-shadow: 0 3px 10px rgba(15, 23, 42, .10); }
+        .fb-modal .fb-modal-label { display: block; margin-bottom: 8px; color: #1e293b; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; }
+        .fb-modal .select2-container--bootstrap4 .select2-selection--multiple { min-height: 46px; border: 1px solid #d6d6d6; border-radius: 10px; }
+        .fb-modal .modal-footer { justify-content: flex-end; gap: 10px; border-top: 0; }
+
+        /* ===== Font sesuai Figma (QA Edit Costing), berlaku >= 768px; HP diatur di bawah ===== */
+        @media (min-width: 768px) {
+            .costing-page-title { font-family: 'Poppins', sans-serif; font-size: 32px; font-weight: 700; }
+            #form-header .costing-head-title, .costing-section-toggle { font-family: 'Poppins', sans-serif; font-size: 25px; font-weight: 500; }
+            #form-header .costing-head-title .required-mark, .costing-section-toggle .required-mark { font-size: 26px; font-weight: 500; }
+            #form-header .costing-field label:not(.form-check-label):not(.custom-file-label) { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 500 !important; }
+            #form-header .costing-picture-dropzone { font-family: Inter, sans-serif; font-size: 12px; font-weight: 400; }
+            #form-header .costing-picture-dropzone b { font-family: Inter, sans-serif; font-size: 12px; font-weight: 700; }
+            .costing-category-tabs { overflow-x: auto; }
+            .costing-category-tab { font-family: 'Poppins', sans-serif; font-size: 25px; font-weight: 600; }
+            #costing-item-select-host label { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500 !important; }
+            .xl-legend { font-family: Inter, sans-serif; font-size: 12px; font-weight: 400; }
+            .costing-tab-panel table th.xl-check-th { font-family: Inter, sans-serif; font-size: 14px !important; font-weight: 400; }
+            .xl-pager select { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 400; }
+            .xl-pager .xl-page-btn { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 400; }
+            .xl-pager .xl-page-btn.active { font-weight: 700; }
+            .xl-cell-legend { font-family: Inter, sans-serif; font-size: 14px; font-weight: 400; }
+        }
     </style>
 @endsection
 
@@ -616,7 +657,6 @@
                 $unlockedAt = $unlock['unlock'] ? \Carbon\Carbon::parse($unlock['unlock']->approved_at ?? $unlock['unlock']->dateinput) : null;
             @endphp
             @if ($unlockState === 'locked')
-            {{-- Terkunci (approved): banner merah + kartu ringkasan, sama dengan halaman Detail Costing. --}}
             <div class="costing-lock-alert" id="costing-lock-alert" role="alert">
                 <span><i class="fas fa-lock"></i> This document is approved and can't be edited. Request an unlock from the marketing manager if you need to change it.</span>
                 <button type="button" class="mkt-btn mkt-btn--navy mkt-btn--sm costing-lock-alert-btn" id="btn-open-unlock">Request Unlock</button>
@@ -628,7 +668,7 @@
                     ['No Costing', $costing->no_costing ?: '-'],
                     ['DELIVERY DATE', $costing->deldate ? \Carbon\Carbon::parse($costing->deldate)->format('d/m/Y') : '-'],
                     ['QTY Planned', $costing->qty_planned ?: 0],
-                    ['SMV (MINUTES)', number_format((float) ($costing->smv ?? 0), 0, ',', '.')],
+                    ['SMV (MINUTES)', rtrim(rtrim(number_format((float) ($costing->smv ?? 0), 3, ',', '.'), '0'), ',')],
                     ['CONFIRM PRICE', number_format((float) ($costing->confirm_price ?? 0), 2, ',', '.')],
                 ];
             @endphp
@@ -661,7 +701,7 @@
                         <i class="fas fa-lock-open"></i>
                         Unlocked by {{ $unlock['unlock']->approved_by ?: 'Marketing Manager' }} at {{ $unlockedAt->format('H:i') }}.
                         @if ($unlock['can_edit'])
-                            Only you can edit. The document locks again when you save.
+                            Only you can edit. After you save, the document goes back to the manager for approval.
                         @else
                             Only {{ $unlock['unlock']->username }} can edit this document.
                         @endif
@@ -680,7 +720,7 @@
                     </span>
                     @endif
                 </div>
-                <p class="unlock-note mb-0">After saving, the Costing locks and is approved automatically.</p>
+                <p class="unlock-note mb-0">After saving, the Costing locks and waits for manager approval again.</p>
             </div>
             @endif
 
@@ -785,7 +825,7 @@
                                             <select name="unit" id="unit" class="form-control select2bs4" required>
                                                 <option value="">Choose Unit</option>
                                                 @foreach ($units as $u)
-                                                <option value="{{ $u->nama_pilihan }}" {{ ($costing->unit ?? 'PCS') == $u->nama_pilihan ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
+                                                    <option value="{{ $u->nama_pilihan }}" {{ ($costing->unit ?? 'PCS') == $u->nama_pilihan ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -838,8 +878,8 @@
                     <section class="costing-head-section span-full">
                         <h2 class="costing-head-title">Shipping & Destinations<span class="required-mark">*</span></h2>
                         <div class="costing-head-body">
-                            <div class="costing-fields four-columns">
-                                <div class="costing-field">
+                            <div class="costing-fields three-columns">
+                                <div class="costing-field costing-field-md">
                                     <label for="ship_mode">Ship Mode</label>
                                     <select name="ship_mode" id="ship_mode" class="form-control select2bs4" required>
                                         <option value="">Choose Ship Mode</option>
@@ -849,27 +889,18 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="costing-field">
+                                <div class="costing-field costing-field-md">
                                     <label for="shipment_type">Shipment Type</label>
                                     <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
                                         <option value="local" {{ $costing->shipment_type == 'local' ? 'selected' : '' }}>LOCAL</option>
                                         <option value="export" {{ $costing->shipment_type == 'export' ? 'selected' : '' }}>EXPORT</option>
                                     </select>
                                 </div>
-                                <div class="costing-field">
+                                <div class="costing-field costing-field-md">
                                     <label for="deldate">Delivery Date</label>
                                     <input type="date" name="deldate" id="deldate" class="form-control" value="{{ $costing->deldate }}" required>
                                 </div>
-                                <div class="costing-field">
-                                    <label for="status">Status</label>
-                                    <select name="status" id="status" class="form-control select2bs4" required>
-                                        <option value="">Choose Status</option>
-                                        <option value="CONFIRM" {{ $costing->status == 'CONFIRM' ? 'selected' : '' }}>CONFIRM</option>
-                                        <option value="CANCEL" {{ $costing->status == 'CANCEL' ? 'selected' : '' }}>CANCEL</option>
-                                        <option value="SAMPLE" {{ $costing->status == 'SAMPLE' ? 'selected' : '' }}>SAMPLE</option>
-                                    </select>
-                                </div>
-                                <div class="costing-field">
+                                <div class="costing-field costing-field-md">
                                     <label for="marketing_order">Marketing Order</label>
                                     <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
                                         <option value="">Choose Marketing Order</option>
@@ -879,9 +910,18 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="costing-field costing-field-md">
+                                    <label for="status">Status</label>
+                                    <select name="status" id="status" class="form-control select2bs4" required>
+                                        <option value="">Choose Status</option>
+                                        <option value="CONFIRM" {{ $costing->status == 'CONFIRM' ? 'selected' : '' }}>CONFIRM</option>
+                                        <option value="CANCEL" {{ $costing->status == 'CANCEL' ? 'selected' : '' }}>CANCEL</option>
+                                        <option value="SAMPLE" {{ $costing->status == 'SAMPLE' ? 'selected' : '' }}>SAMPLE</option>
+                                    </select>
+                                </div>
                                 <input type="hidden" name="main_dest" value="{{ $costing->main_dest }}">
                                 <input type="hidden" name="market" value="{{ $costing->market }}">
-                                <div class="costing-field">
+                                <div class="costing-field costing-field-md">
                                     <label for="notes">Notes</label>
                                     <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Notes">{{ $costing->notes }}</textarea>
                                 </div>
@@ -903,11 +943,11 @@
                                 </div>
                                 <div class="costing-field">
                                     <label for="smv">SMV (Min)</label>
-                                    <input type="text" name="smv" id="smv" class="form-control input-decimal" placeholder="SMV (Min)" value="{{ number_format($costing->smv, 4, '.', '') }}" required>
+                                    <input type="text" name="smv" id="smv" class="form-control input-money" inputmode="decimal" data-max-decimals="3" placeholder="SMV (Min)" value="{{ number_format($costing->smv, 3, ',', '.') }}" required>
                                 </div>
                                 <div class="costing-field">
                                     <label for="vat">VAT (%)</label>
-                                    <input type="text" name="vat" id="vat" class="form-control input-decimal" placeholder="VAT (%)" value="{{ number_format($costing->vat, 2, '.', '') }}" required>
+                                    <input type="text" name="vat" id="vat" class="form-control input-money" inputmode="decimal" data-max-decimals="2" placeholder="VAT (%)" value="{{ number_format($costing->vat, 2, ',', '.') }}" required>
                                 </div>
                             </div>
                         </div>
@@ -929,15 +969,15 @@
                                 </div>
                                 <div class="costing-field">
                                     <label for="confirm_price">Confirm Price</label>
-                                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-decimal" required placeholder="Confirm Price" value="{{ isset($costing->confirm_price) ? number_format($costing->confirm_price, 7, '.', '') : '' }}">
+                                    <input type="text" name="confirm_price" id="confirm_price" class="form-control input-money" inputmode="decimal" required placeholder="Confirm Price" value="{{ isset($costing->confirm_price) ? preg_replace('/(,\d{2}\d*?)0+$/', '$1',number_format($costing->confirm_price, 7, ',', '.')) : '' }}">
                                 </div>
                                 <div class="costing-field">
                                     <label for="rate_to_idr">Rate to IDR</label>
-                                    <input type="text" name="rate_to_idr" id="rate_to_idr" class="form-control input-decimal" placeholder="Rate to IDR" value="{{ number_format($costing->rate_to_idr, 2, '.', '') }}" required>
+                                    <input type="text" name="rate_to_idr" id="rate_to_idr" class="form-control input-money" inputmode="decimal" placeholder="Rate to IDR" value="{{ number_format($costing->rate_to_idr, 2, ',', '.') }}" required>
                                 </div>
                                 <div class="costing-field">
                                     <label for="rate_from_idr">Rate from IDR</label>
-                                    <input type="text" name="rate_from_idr" id="rate_from_idr" class="form-control input-decimal" placeholder="Rate from IDR" value="{{ number_format($costing->rate_from_idr, 2, '.', '') }}" required>
+                                    <input type="text" name="rate_from_idr" id="rate_from_idr" class="form-control input-money" inputmode="decimal" placeholder="Rate from IDR" value="{{ number_format($costing->rate_from_idr, 2, ',', '.') }}" required>
                                 </div>
                             </div>
                         </div>
@@ -955,7 +995,7 @@
                 <button type="button" class="costing-category-tab" data-category="Accessories Packing">Accessories Packing</button>
                 <button type="button" class="costing-category-tab" data-category="Manufacturing">Manufacturing</button>
                 <button type="button" class="costing-category-tab" data-category="Other Cost">Other Cost</button>
-                <button type="button" id="view-all-items" class="costing-category-tab docs-tab">View All Items</button>
+                <button type="button" id="view-all-items" class="costing-category-tab docs-tab">View All Content</button>
             </div>
 
             <div class="costing-section costing-summary-section">
@@ -988,8 +1028,16 @@
                             <option value="Other Cost">Other Cost</option>
                         </select>
 
-                        @php $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : []; $saved_sets = array_map('trim', $saved_sets); $active_sets_data = []; foreach ($master_set as $m_set) { if (in_array($m_set->id, $saved_sets)) { $active_sets_data[] =
-                        [ 'id' => $m_set->id, 'nama' => strtoupper($m_set->nama ?? $m_set->id), 'urutan' => $m_set->urutan ]; } } @endphp
+                        @php
+                            $saved_sets = $costing->product_set ? explode(',', $costing->product_set) : [];
+                            $saved_sets = array_map('trim', $saved_sets);
+                            $active_sets_data = [];
+                            foreach ($master_set as $m_set) {
+                                if (in_array($m_set->id, $saved_sets)) {
+                                    $active_sets_data[] = [ 'id' => $m_set->id, 'nama' => strtoupper($m_set->nama ?? $m_set->id), 'urutan' => $m_set->urutan ];
+                                }
+                            }
+                        @endphp
 
                         <div id="costing-item-entry" class="costing-item-entry" hidden>
                             <div class="table-responsive" style="overflow-x: auto; white-space: nowrap;">
@@ -1042,10 +1090,10 @@
                                                 </select>
                                             </td>
                                             <td style="padding: 4px;">
-                                                <input type="text" id="txt_price" class="form-control form-control-sm text-right input-decimal calc-input" value="0">
+                                                <input type="text" id="txt_price" class="form-control form-control-sm text-right input-money calc-input" value="0">
                                             </td>
                                             <td style="padding: 4px;">
-                                                <input type="text" id="txt_cons" class="form-control form-control-sm text-center input-decimal calc-input" value="0">
+                                                <input type="text" id="txt_cons" class="form-control form-control-sm text-center input-money calc-input" value="0">
                                             </td>
                                             <td style="padding: 4px;">
                                                 <select id="txt_unit" class="form-control form-control-sm select2bs4" style="width: 100%;">
@@ -1062,13 +1110,13 @@
                                                 <input type="text" id="txt_px_usd" class="form-control form-control-sm text-right bg-white" readonly value="0">
                                             </td>
                                             <td style="padding: 4px;">
-                                                <input type="text" id="txt_allowance" class="form-control form-control-sm text-center input-decimal calc-input" value="0">
+                                                <input type="text" id="txt_allowance" class="form-control form-control-sm text-center input-money calc-input" data-max-decimals="2" value="0">
                                             </td>
                                             <td style="padding: 4px;">
-                                                <input type="text" id="txt_val_idr" class="form-control form-control-sm text-right font-weight-bold bg-white input-decimal calc-input" value="0">
+                                                <input type="text" id="txt_val_idr" class="form-control form-control-sm text-right font-weight-bold bg-white input-money calc-input" value="0">
                                             </td>
                                             <td style="padding: 4px;">
-                                                <input type="text" id="txt_val_usd" class="form-control form-control-sm text-right font-weight-bold bg-white input-decimal calc-input" value="0">
+                                                <input type="text" id="txt_val_usd" class="form-control form-control-sm text-right font-weight-bold bg-white input-money calc-input" value="0">
                                             </td>
                                         </tr>
                                     </tbody>
@@ -1100,6 +1148,10 @@
                                                 </th>
                                                 <th width="3%">NO</th>
                                                 <th width="14%"><span class="xl-dot is-input"></span>CONTENT</th>
+                                                @if($cat['key'] === 'Fabric')
+                                                <th width="7%"><span class="xl-dot is-input"></span>SHELL</th>
+                                                <th width="7%"><span class="xl-dot is-input"></span>PART</th>
+                                                @endif
                                                 <th width="7%"><span class="xl-dot is-input"></span>SET<i class="fas fa-pencil-alt xl-th-pen"></i></th>
                                                 <th class="costing-desc-column"><span class="xl-dot is-input"></span>DESCRIPTION<i class="fas fa-pencil-alt xl-th-pen"></i></th>
                                                 <th width="10%"><span class="xl-dot is-input"></span>SUPPLIER<i class="fas fa-pencil-alt xl-th-pen"></i></th>
@@ -1119,17 +1171,23 @@
                                             </tr>
                                         </thead>
                                         <tbody id="{{ $cat['tbody'] }}">
-                                            @if(isset($details[$cat['key']])) @php $sorted_details = collect($details[$cat['key']])->sortBy(function ($item) use ($master_set) { $set_id = $item->set ?? ''; $found = collect($master_set)->firstWhere('id', $set_id); return $found ? $found->urutan :
-                                            999; })->values()->all(); @endphp @foreach($sorted_details as $det) @php $allow = $det->allowance > 0 ? $det->allowance : 0; $qty_bom = ceil((1 + ($allow / 100)) * $order_qty * $det->cons); $tot_val = $qty_bom
+                                            @if(isset($details[$cat['key']])) @php $sorted_details = collect($details[$cat['key']])->sortBy(function ($item) use ($master_set) { $set_id = $item->set ?? ''; $found = collect($master_set)->firstWhere('id', $set_id); /* urutan set, lalu content -> shell -> part supaya baris satu content berdekatan */ return sprintf('%05d|%012d|%s|%s|%s|%012d', $found ? $found->urutan :
+                                            999, $item->id_item, $set_id, $item->shell_name ?? '', $item->part_name ?? '', $item->id); })->values()->all(); $isFabric = $cat['key'] === 'Fabric'; @endphp @foreach($sorted_details as $det) @php $allow = $det->allowance > 0 ? $det->allowance : 0; $qty_bom = ceil((1 + ($allow / 100)) * $order_qty * $det->cons); $tot_val = $qty_bom
                                             * $det->price_px_idr; @endphp
                                             <tr class="row-costing" data-category="{{ $cat['key'] }}" data-item="{{ $det->item_id }}" data-set="{{ $det->set }}" data-desc="{{ $det->item_desc }}" data-supplier="{{ $det->supplier_id }}" data-curr="{{ $det->curr }}" data-price="{{ $det->price }}"
                                             data-cons="{{ $det->cons }}" data-unit="{{ $det->unit }}" data-allowance="{{ $det->allowance }}" data-px-idr="{{ $det->price_px_idr }}" data-px-usd="{{ $det->price_px_usd }}" data-value-idr="{{ $det->value_idr }}"
-                                            data-value-usd="{{ $det->value_usd }}" id="row-{{ $cat['token'] }}-{{ $det->id }}">
+                                            data-value-usd="{{ $det->value_usd }}" @if($isFabric) data-panel="{{ $det->id_panel }}" data-part="{{ $det->id_part }}" @endif id="row-{{ $cat['token'] }}-{{ $det->id }}">
                                                 <td class="xl-check-td">
                                                     <input type="checkbox" class="xl-row-check">
                                                 </td>
                                                 <td class="text-center fw-bold row-number">{{ $loop->iteration }}</td>
+                                                @if($isFabric)
+                                                <td class="item-name"><span class="fb-name">{{ $det->nama_item }}</span><button type="button" class="fb-add" data-type="shell" data-id="{{ $det->id }}" title="Add Shell"><i class="fas fa-plus"></i></button></td>
+                                                <td class="shell-td"><span class="fb-name">{{ $det->shell_name }}</span>@if($det->id_panel)<button type="button" class="fb-add" data-type="part" data-id="{{ $det->id }}" title="Add Part"><i class="fas fa-plus"></i></button>@endif</td>
+                                                <td class="part-td">{{ $det->part_name }}</td>
+                                                @else
                                                 <td class="item-name">{{ $det->nama_item }}</td>
+                                                @endif
                                                 <td class="set-td">{{ $det->nama_set }}</td>
                                                 <td class="desc-td">{{ $det->item_desc }}</td>
                                                 <td class="supplier-td">{{ $det->nama_supplier }}</td>
@@ -1147,7 +1205,7 @@
                                                 <td class="text-right tot-val-td fw-bold" data-val="{{ $tot_val }}">{{ number_format($tot_val, 2, ',', '.') }}</td>
                                                 <td class="text-center align-middle">
                                                     {{-- <button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-edit"></i></button> --}}
-                                                    <button type="button" class="mkt-icon-btn mkt-btn--red" title="Hapus" onclick="removeRow(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-trash"></i></button>
+                                                    <button type="button" class="mkt-ico mkt-ico--delete" title="Delete" data-tip="Delete" onclick="removeRow(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-trash"></i></button>
                                                 </td>
                                             </tr>
                                             @endforeach @endif
@@ -1169,7 +1227,7 @@
                                                     <input type="checkbox" class="xl-check-all" title="Pilih semua">
                                                 </th>
                                                 <th width="5%">NO</th>
-                                                <th width="30%"><span class="xl-dot is-input"></span>ITEM</th>
+                                                <th width="30%"><span class="xl-dot is-input"></span>CONTENT</th>
                                                 <th width="14%"><span class="xl-dot is-input"></span>ALLOW (%)<i class="fas fa-pencil-alt xl-th-pen"></i></th>
                                                 <th width="15%"><span class="xl-dot is-input"></span>VALUE IDR<i class="fas fa-pencil-alt xl-th-pen"></i></th>
                                                 <th width="15%" class="xl-th-auto"><span class="xl-dot is-auto"></span>VALUE USD</th>
@@ -1193,7 +1251,7 @@
                                                 <td class="text-center pct-td fw-bold">0%</td>
                                                 <td class="text-center align-middle">
                                                     {{-- <button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-edit"></i></button> --}}
-                                                    <button type="button" class="mkt-icon-btn mkt-btn--red" title="Hapus" onclick="removeRow(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-trash"></i></button>
+                                                    <button type="button" class="mkt-ico mkt-ico--delete" title="Delete" data-tip="Delete" onclick="removeRow(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-trash"></i></button>
                                                 </td>
                                             </tr>
                                             @endforeach @endif
@@ -1209,7 +1267,7 @@
                                             <tr>
                                                 <td colspan="3" class="text-left">G&A</td>
                                                 <td class="text-center">
-                                                    <input type="text" id="ga_percent" name="ga_percent" class="form-control form-control-sm d-inline-block text-center input-decimal" style="width: 120px;" value="{{$costing->ga_percent ?? '3.00' }}">%</td>
+                                                    <input type="text" id="ga_percent" name="ga_percent" class="form-control form-control-sm d-inline-block text-center input-money" data-max-decimals="2" style="width: 120px;" value="{{ number_format((float) ($costing->ga_percent ?? 3), 2, ',', '.') }}">%</td>
                                                 <td class="text-right" id="val-ga-idr">0,00</td>
                                                 <td class="text-right" id="val-ga-usd">0,00</td>
                                                 <td class="text-center pct-ga fw-bold">0%</td>
@@ -1275,6 +1333,25 @@
     </div>
 </div>
 
+{{-- Fabric: Add Shell / Add Part (multi-select) --}}
+<div class="modal fade" id="modal-fabric-breakdown" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered fb-modal" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title fb-modal-title">Add Shell</h5></div>
+            <div class="modal-body">
+                <div class="fb-modal-card">
+                    <label for="fb-breakdown-select" class="fb-modal-label">Shell</label>
+                    <select id="fb-breakdown-select" multiple></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" data-dismiss="modal">Cancel</button>
+                <button type="button" id="fb-breakdown-save" class="mkt-btn mkt-btn--green">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="modal_edit_costing" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -1329,11 +1406,11 @@
                     </div>
                     <div class="col-md-3 form-group">
                         <label class="fw-bold">Price</label>
-                        <input type="text" id="m_price" class="form-control text-right input-decimal m-calc" value="0">
+                        <input type="text" id="m_price" class="form-control text-right input-money m-calc" value="0">
                     </div>
                     <div class="col-md-3 form-group">
                         <label class="fw-bold">Cons/Pc</label>
-                        <input type="text" id="m_cons" class="form-control text-center input-decimal m-calc" value="0">
+                        <input type="text" id="m_cons" class="form-control text-center input-money m-calc" value="0">
                     </div>
                     <div class="col-md-3 form-group">
                         <label class="fw-bold">Unit</label>
@@ -1348,15 +1425,15 @@
                 <div class="row mt-2 pt-3 border-top">
                     <div class="col-md-4 form-group">
                         <label class="fw-bold">Allow (%)</label>
-                        <input type="text" id="m_allowance" class="form-control text-center input-decimal m-calc" value="0">
+                        <input type="text" id="m_allowance" class="form-control text-center input-money m-calc" data-max-decimals="2" value="0">
                     </div>
                     <div class="col-md-4 form-group">
                         <label class="fw-bold ">Value IDR</label>
-                        <input type="text" id="m_val_idr" class="form-control text-right fw-bold bg-white text-success input-decimal m-calc" readonly>
+                        <input type="text" id="m_val_idr" class="form-control text-right fw-bold bg-white text-success input-money m-calc" readonly>
                     </div>
                     <div class="col-md-4 form-group">
                         <label class="fw-bold">Value USD</label>
-                        <input type="text" id="m_val_usd" class="form-control text-right fw-bold bg-white text-success input-decimal m-calc" readonly>
+                        <input type="text" id="m_val_usd" class="form-control text-right fw-bold bg-white text-success input-money m-calc" readonly>
                     </div>
                 </div>
             </div>
@@ -1373,6 +1450,18 @@
 <script src="{{ asset('dist/js/marketing-title-case.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-title-case.js')) }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script>
+    // Angka format Indonesia untuk Confirm Price / Rate / SMV (lihat handler .input-money).
+    function mktMoney(selector) {
+        return parseFloat(String($(selector).val() || '').replace(/\./g, '').replace(',', '.')) || 0;
+    }
+    function mktMoneyText(text, maxDecimals) {
+        const value = String(text).replace(/[^0-9,]/g, '');
+        const comma = value.indexOf(',');
+        const int = (comma < 0 ? value : value.slice(0, comma)).replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const dec = value.slice(comma + 1).replace(/,/g, '');
+        return comma < 0 ? int : int + ',' + (maxDecimals >= 0 ? dec.slice(0, maxDecimals) : dec);
+    }
+
     function costingRowSelector(category, id) {
         let token = category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
         return '#row-' + token + '-' + id;
@@ -1596,7 +1685,7 @@
         $('#btn-save-and-lock').on('click', function() {
             Swal.fire({
                 title: 'Save and lock?',
-                text: 'Costing akan disimpan, dikunci lagi dan tetap Approved.',
+                text: 'Costing akan disimpan, dikunci lagi dan menunggu approval manager.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Save and lock',
@@ -1650,12 +1739,26 @@
             let val = $(this).val().replace(/[^0-9.]/g, '');
             let parts = val.split('.');
             if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+            const maxDec = parseInt(this.dataset.maxDecimals, 10);
+            if (maxDec >= 0 && val.includes('.')) val = val.slice(0, val.indexOf('.') + 1 + maxDec);
             $(this).val(val);
         });
 
-        $('.calc-input').on('input change', function() { calculate_template(); });
-        $('.m-calc').on('input change', function() { calculate_modal(); });
-        $('#rate_to_idr, #rate_from_idr, #confirm_price').on('input', function() { calculate_template(); calculate_summary(); });
+        // Confirm Price / Rate / SMV: format Indonesia (1.234.567,89); titik dari keyboard dianggap koma desimal.
+        $(document).on('input', '.input-money', function (e) {
+            let text = this.value;
+            if (e.originalEvent && e.originalEvent.data === '.' && this.selectionStart > 0) {
+                text = text.slice(0, this.selectionStart - 1) + ',' + text.slice(this.selectionStart);
+            }
+            const fromEnd = this.value.length - this.selectionStart;
+            this.value = mktMoneyText(text, parseInt(this.dataset.maxDecimals, 10));
+            const pos = Math.max(0, this.value.length - fromEnd);
+            this.setSelectionRange(pos, pos);
+        });
+
+        $(document).on('input change', '.calc-input', function() { calculate_template(); });
+        $(document).on('input change', '.m-calc', function() { calculate_modal(); });
+        $(document).on('input', '#rate_to_idr, #rate_from_idr, #confirm_price', function() { calculate_template(); calculate_summary(); });
 
         calculate_summary();
 
@@ -1669,9 +1772,9 @@
 
        function check_shipment_type() {
             let shipment_type = $('#shipment_type').val();
-            $('#vat').val('0.00');
+            $('#vat').val('0,00');
             if (shipment_type === 'local') {
-                $('#vat').val('11.00');
+                $('#vat').val('11,00');
             }
         }
 
@@ -1683,9 +1786,9 @@
             let shipment_type = $(this).val();
 
             if (shipment_type === 'local') {
-                $('#vat').val('11.00');
+                $('#vat').val('11,00');
             } else {
-                $('#vat').val('0.00');
+                $('#vat').val('0,00');
             }
 
             calculate_summary();
@@ -1706,8 +1809,7 @@
         });
 
         $('#vat').on('change', function() {
-            let val = parseFloat($(this).val()) || 0;
-            $(this).val(val.toFixed(2));
+            $(this).val(fmtId(mktMoney(this), 2));
 
             calculate_summary();
             autosave_header();
@@ -1870,15 +1972,15 @@
     });
 
     function calculate_template() {
-        let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
-        let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 1;
+        let rate_to_idr = mktMoney('#rate_to_idr') || 0;
+        let rate_from_idr = mktMoney('#rate_from_idr') || 1;
         let header_curr = $('#curr option:selected').text().trim().toUpperCase();
 
         let cat = $('#category').val();
         let curr = $('#txt_curr option:selected').text().trim().toUpperCase();
-        let price = parseFloat($('#txt_price').val()) || 0;
-        let cons = parseFloat($('#txt_cons').val()) || 0;
-        let allow_pct = parseFloat($('#txt_allowance').val()) || 0;
+        let price = mktMoney('#txt_price') || 0;
+        let cons = mktMoney('#txt_cons') || 0;
+        let allow_pct = mktMoney('#txt_allowance') || 0;
         let item_text = $('#txt_item option:selected').text().toUpperCase();
 
         if (cat === 'Other Cost') {
@@ -1892,17 +1994,17 @@
             $('#txt_px_idr, #txt_px_usd').val('0').data('raw', 0);
 
             if (document.activeElement && document.activeElement.id === 'txt_val_usd') {
-                let val_usd = parseFloat(String($('#txt_val_usd').val()).replace(/,/g, '')) || 0;
+                let val_usd = mktMoney('#txt_val_usd') || 0;
                 let val_idr = val_usd * rate_to_idr;
 
                 $('#txt_val_usd').data('raw', val_usd);
-                $('#txt_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
+                $('#txt_val_idr').val(val_idr.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
             } else {
-                let val_idr = parseFloat(String($('#txt_val_idr').val()).replace(/,/g, '')) || 0;
+                let val_idr = mktMoney('#txt_val_idr') || 0;
                 let val_usd = val_idr / rate_to_idr;
 
                 $('#txt_val_idr').data('raw', val_idr);
-                $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
+                $('#txt_val_usd').val(val_usd.toLocaleString('id-ID', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
             }
         } else {
             $('#txt_supplier, #txt_curr, #txt_unit').prop('disabled', false);
@@ -1923,20 +2025,20 @@
             let val_idr = px_idr * cons * allow;
             let val_usd = px_usd * cons * allow;
 
-            $('#txt_px_idr').val(px_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', px_idr);
-            $('#txt_px_usd').val(px_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', px_usd);
-            $('#txt_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
-            $('#txt_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
+            $('#txt_px_idr').val(px_idr.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', px_idr);
+            $('#txt_px_usd').val(px_usd.toLocaleString('id-ID', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', px_usd);
+            $('#txt_val_idr').val(val_idr.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
+            $('#txt_val_usd').val(val_usd.toLocaleString('id-ID', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
         }
     }
 
     function calculate_modal() {
-        let rate_to_idr = parseFloat($('#rate_to_idr').val()) || 0;
-        let rate_from_idr = parseFloat($('#rate_from_idr').val()) || 1;
+        let rate_to_idr = mktMoney('#rate_to_idr') || 0;
+        let rate_from_idr = mktMoney('#rate_from_idr') || 1;
         let header_curr = $('#curr option:selected').text().trim().toUpperCase();
 
         let cat = $('#m_category').val();
-        let allow_pct = parseFloat($('#m_allowance').val()) || 0;
+        let allow_pct = mktMoney('#m_allowance') || 0;
         let item_text = $('#m_item option:selected').text().toUpperCase();
 
         if (cat === 'Other Cost') {
@@ -1950,17 +2052,17 @@
             $('#m_price').data('raw_idr', 0).data('raw_usd', 0);
 
             if (document.activeElement && document.activeElement.id === 'm_val_usd') {
-                let current_val_usd = parseFloat(String($('#m_val_usd').val()).replace(/,/g,'')) || 0;
+                let current_val_usd = mktMoney('#m_val_usd') || 0;
                 let current_val_idr = current_val_usd * rate_to_idr;
 
                 $('#m_val_usd').data('raw', current_val_usd);
-                $('#m_val_idr').val(current_val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', current_val_idr);
+                $('#m_val_idr').val(current_val_idr.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', current_val_idr);
             } else {
-                let current_val_idr = parseFloat(String($('#m_val_idr').val()).replace(/,/g,'')) || 0;
+                let current_val_idr = mktMoney('#m_val_idr') || 0;
                 let current_val_usd = current_val_idr / rate_to_idr;
 
                 $('#m_val_idr').data('raw', current_val_idr);
-                $('#m_val_usd').val(current_val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', current_val_usd);
+                $('#m_val_usd').val(current_val_usd.toLocaleString('id-ID', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', current_val_usd);
             }
 
         }
@@ -1973,8 +2075,8 @@
             $('#m_val_idr, #m_val_usd').prop('readonly', true).addClass('bg-white text-success').removeClass('bg-light');
 
             let curr = $('#m_curr').val().toUpperCase();
-            let price = parseFloat($('#m_price').val()) || 0;
-            let cons = parseFloat($('#m_cons').val()) || 0;
+            let price = mktMoney('#m_price') || 0;
+            let cons = mktMoney('#m_cons') || 0;
 
             let px_idr = 0; let px_usd = 0;
 
@@ -1988,8 +2090,8 @@
             let val_idr = px_idr * cons * allow;
             let val_usd = px_usd * cons * allow;
 
-            $('#m_val_idr').val(val_idr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
-            $('#m_val_usd').val(val_usd.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
+            $('#m_val_idr').val(val_idr.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
+            $('#m_val_usd').val(val_usd.toLocaleString('id-ID', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
             $('#m_price').data('raw_idr', px_idr).data('raw_usd', px_usd);
         }
     }
@@ -2047,28 +2149,54 @@
 
     function costingActionButtons(id, cat) {
         // return `<button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, ${id}, '${cat}')"><i class="fas fa-edit"></i></button>` +
-         return `<button type="button" class="mkt-icon-btn mkt-btn--red" title="Hapus" onclick="removeRow(this, ${id}, '${cat}')"><i class="fas fa-trash"></i></button>`;
+         return `<button type="button" class="mkt-ico mkt-ico--delete" title="Delete" data-tip="Delete" onclick="removeRow(this, ${id}, '${cat}')"><i class="fas fa-trash"></i></button>`;
+    }
+
+    // Fabric: kolom CONTENT (+ Add Shell), SHELL (+ Add Part), PART. Kategori lain hanya CONTENT.
+    function costingLeadCells(cat, idDetail, itemHtml, shellName, partName, hasShell) {
+        if (cat !== 'Fabric') return `<td class="item-name">${itemHtml}</td>`;
+        const esc = v => $('<span>').text(v == null ? '' : v).html();
+        const add = (type, title) => `<button type="button" class="fb-add" data-type="${type}" data-id="${idDetail}" title="${title}"><i class="fas fa-plus"></i></button>`;
+        return `<td class="item-name"><span class="fb-name">${itemHtml}</span>${add('shell', 'Add Shell')}</td>`
+            + `
+            <td class="shell-td"><span class="fb-name">${esc(shellName)}</span>${hasShell ? add('part', 'Add Part') : ''}</td>
+            <td class="part-td">${esc(partName)}</td>`;
     }
 
     function costingRowHtml(cat, rowId, idDetail, d, no) {
         const esc = v => $('<span>').text(v == null ? '' : v).html();
         const at = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
         const fmt = (n, dp) => fmtId(n, dp);
-        const attrs = `class="row-costing" data-category="${at(cat)}" data-item="${at(d.item_id)}" data-set="${at(d.set_val)}" data-desc="${at(d.desc)}" data-supplier="${at(d.supplier_id)}" data-curr="${at(d.curr)}" data-price="${at(d.price)}" data-cons="${at(d.cons)}" data-unit="${at(d.unit)}" data-allowance="${at(d.allow)}" data-px-idr="${at(d.px_idr)}" data-px-usd="${at(d.px_usd)}" data-value-idr="${at(d.val_idr)}" data-value-usd="${at(d.val_usd)}" id="${rowId}"`;
+        const attrs = `class="row-costing" data-category="${at(cat)}" data-item="${at(d.item_id)}" data-set="${at(d.set_val)}" data-desc="${at(d.desc)}" data-supplier="${at(d.supplier_id)}" data-curr="${at(d.curr)}" data-price="${at(d.price)}" data-cons="${at(d.cons)}" data-unit="${at(d.unit)}" data-allowance="${at(d.allow)}" data-px-idr="${at(d.px_idr)}" data-px-usd="${at(d.px_usd)}" data-value-idr="${at(d.val_idr)}" data-value-usd="${at(d.val_usd)}" data-panel="${at(d.panel)}" data-part="${at(d.part)}" id="${rowId}"`;
         const check = '<td class="xl-check-td"><input type="checkbox" class="xl-row-check"></td>';
         const actions = `<td class="text-center align-middle">${costingActionButtons(idDetail, cat)}</td>`;
         if (cat === 'Other Cost') {
             return `<tr ${attrs}>${check}<td class="text-center fw-bold row-number">${no}</td><td class="item-name">${esc(d.item_text)}</td>
-                <td class="text-center allow-td" data-val="${at(d.allow)}"></td><td class="text-right val-idr-td-other fw-bold" data-val="${at(d.val_idr)}"></td>
-                <td class="text-right val-usd-td-other fw-bold" data-val="${at(d.val_usd)}"></td><td class="text-center pct-td fw-bold">0%</td>${actions}</tr>`;
+                <td class="text-center allow-td" data-val="${at(d.allow)}"></td>
+                <td class="text-right val-idr-td-other fw-bold" data-val="${at(d.val_idr)}"></td>
+                <td class="text-right val-usd-td-other fw-bold" data-val="${at(d.val_usd)}"></td>
+                <td class="text-center pct-td fw-bold">0%</td>${actions}</tr>`;
         }
-        return `<tr ${attrs}>${check}<td class="text-center fw-bold row-number">${no}</td><td class="item-name">${esc(d.item_text)}</td><td class="set-td"></td><td class="desc-td"></td>
-            <td class="supplier-td"></td><td class="text-center curr-td"></td><td class="text-right price-td" data-val="${at(d.price)}"></td>
-            <td class="text-right px-idr-td" data-val="${at(d.px_idr)}"></td><td class="text-right px-usd-td" data-val="${at(d.px_usd)}"></td>
-            <td class="text-center cons-td" data-val="${at(d.cons)}"></td><td class="text-center unit-td"></td><td class="text-center allow-td" data-val="${at(d.allow)}"></td>
-            <td class="text-right val-idr-td fw-bold" data-val="${at(d.val_idr)}"></td><td class="text-right val-usd-td fw-bold" data-val="${at(d.val_usd)}"></td>
-            <td class="text-center pct-td fw-bold">0%</td><td class="text-right qty-bom-td fw-bold" data-val="${at(d.qty_bom)}">${fmt(d.qty_bom, 0)}</td>
-            <td class="text-right tot-val-td fw-bold" data-val="${at(d.tot_val)}">${fmt(d.tot_val, 2)}</td>${actions}</tr>`;
+        return `<tr ${attrs}>
+                    ${check}
+                    <td class="text-center fw-bold row-number">${no}</td>
+                    ${costingLeadCells(cat, idDetail, esc(d.item_text), d.shell_name, d.part_name, !!d.panel)}
+                    <td class="set-td"></td>
+                    <td class="desc-td"></td>
+                    <td class="supplier-td"></td>
+                    <td class="text-center curr-td"></td>
+                    <td class="text-right price-td" data-val="${at(d.price)}"></td>
+                    <td class="text-right px-idr-td" data-val="${at(d.px_idr)}"></td>
+                    <td class="text-right px-usd-td" data-val="${at(d.px_usd)}"></td>
+                    <td class="text-center cons-td" data-val="${at(d.cons)}"></td>
+                    <td class="text-center unit-td"></td>
+                    <td class="text-center allow-td" data-val="${at(d.allow)}"></td>
+                    <td class="text-right val-idr-td fw-bold" data-val="${at(d.val_idr)}"></td>
+                    <td class="text-right val-usd-td fw-bold" data-val="${at(d.val_usd)}"></td>
+                    <td class="text-center pct-td fw-bold">0%</td>
+                    <td class="text-right qty-bom-td fw-bold" data-val="${at(d.qty_bom)}">${fmt(d.qty_bom, 0)}</td>
+                    <td class="text-right tot-val-td fw-bold" data-val="${at(d.tot_val)}">${fmt(d.tot_val, 2)}</td>${actions}
+                </tr>`;
     }
 
     function saveDetail() {
@@ -2120,18 +2248,29 @@
                 let html;
                 if (category === 'Other Cost') {
                     html = `<tr class="row-costing" data-category="${category}" data-item="${itemId}" data-set="" data-desc="" data-supplier="" data-curr="${currency}" data-price="0" data-cons="0" data-unit="" data-allowance="0" data-px-idr="0" data-px-usd="0" data-value-idr="0" data-value-usd="0" id="${rowId}">
-                        <td class="xl-check-td"><input type="checkbox" class="xl-row-check"></td><td class="text-center fw-bold row-number">${count}</td><td class="item-name">${itemText}</td>
-                        <td class="text-center allow-td" data-val="0"></td><td class="text-right val-idr-td-other fw-bold" data-val="0"></td>
-                        <td class="text-right val-usd-td-other fw-bold" data-val="0"></td><td class="text-center pct-td fw-bold">0%</td><td class="text-center align-middle">${actions}</td></tr>`;
+                        <td class="xl-check-td"><input type="checkbox" class="xl-row-check"></td>
+                        <td class="text-center fw-bold row-number">${count}</td><td class="item-name">${itemText}</td>
+                        <td class="text-center allow-td" data-val="0"></td>
+                        <td class="text-right val-idr-td-other fw-bold" data-val="0"></td>
+                        <td class="text-right val-usd-td-other fw-bold" data-val="0"></td>
+                        <td class="text-center pct-td fw-bold">0%</td><td class="text-center align-middle">${actions}</td>
+                        </tr>`;
                 } else {
                     html = `<tr class="row-costing" data-category="${category}" data-item="${itemId}" data-set="" data-desc="" data-supplier="" data-curr="${currency}" data-price="0" data-cons="0" data-unit="" data-allowance="0" data-px-idr="0" data-px-usd="0" data-value-idr="0" data-value-usd="0" id="${rowId}">
-                        <td class="xl-check-td"><input type="checkbox" class="xl-row-check"></td><td class="text-center fw-bold row-number">${count}</td><td class="item-name">${itemText}</td><td class="set-td"></td><td class="desc-td"></td>
+                        <td class="xl-check-td"><input type="checkbox" class="xl-row-check"></td>
+                        <td class="text-center fw-bold row-number">${count}</td>
+                        ${costingLeadCells(category, response.insert_id, itemText, '', '', false)}
+                        <td class="set-td"></td><td class="desc-td"></td>
                         <td class="supplier-td"></td><td class="text-center curr-td"></td><td class="text-right price-td" data-val="0"></td>
                         <td class="text-right px-idr-td" data-val="0"></td><td class="text-right px-usd-td" data-val="0"></td>
-                        <td class="text-center cons-td" data-val="0"></td><td class="text-center unit-td"></td><td class="text-center allow-td" data-val="0"></td>
-                        <td class="text-right val-idr-td fw-bold" data-val="0"></td><td class="text-right val-usd-td fw-bold" data-val="0"></td>
-                        <td class="text-center pct-td fw-bold">0%</td><td class="text-right qty-bom-td fw-bold" data-val="0">0</td>
-                        <td class="text-right tot-val-td fw-bold" data-val="0">0.00</td><td class="text-center align-middle">${actions}</td></tr>`;
+                        <td class="text-center cons-td" data-val="0"></td><td class="text-center unit-td"></td>
+                        <td class="text-center allow-td" data-val="0"></td>
+                        <td class="text-right val-idr-td fw-bold" data-val="0"></td>
+                        <td class="text-right val-usd-td fw-bold" data-val="0"></td>
+                        <td class="text-center pct-td fw-bold">0%</td>
+                        <td class="text-right qty-bom-td fw-bold" data-val="0">0</td>
+                        <td class="text-right tot-val-td fw-bold" data-val="0">0.00</td>
+                        <td class="text-center align-middle">${actions}</td></tr>`;
                 }
                 const $row = $(html).appendTo(target);
                 initializeCostingInlineRow($row);
@@ -2162,10 +2301,10 @@
         let supplier_id = $('#txt_supplier').val() || '';
         let supplier_text = supplier_id ? $('#txt_supplier option:selected').text() : '';
         let curr = $('#txt_curr').val();
-        let price = $('#txt_price').val() || 0;
-        let cons = $('#txt_cons').val() || 0;
+        let price = mktMoney('#txt_price');
+        let cons = mktMoney('#txt_cons');
         let unit = $('#txt_unit').val();
-        let allow = $('#txt_allowance').val() || 0;
+        let allow = mktMoney('#txt_allowance');
 
         let px_idr_text = $('#txt_px_idr').val();
         let px_usd_text = $('#txt_px_usd').val();
@@ -2253,7 +2392,7 @@
                                 <td class="text-right val-usd-td-other fw-bold" data-val="${val_usd_raw}">${val_usd_text}</td>
                                 <td class="text-center pct-td fw-bold">0%</td>
                                 <td class="text-center align-middle">
-                                    <button type="button" class="mkt-icon-btn mkt-btn--red" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
+                                    <button type="button" class="mkt-ico mkt-ico--delete" title="Delete" data-tip="Delete" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -2275,7 +2414,7 @@
                                 <td class="text-right qty-bom-td fw-bold" data-val="${qty_bom_js}">${qty_bom_text}</td>
                                 <td class="text-right tot-val-td fw-bold" data-val="${tot_val_js}">${tot_val_text}</td>
                                 <td class="text-center align-middle">
-                                    <button type="button" class="mkt-icon-btn mkt-btn--red" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
+                                    <button type="button" class="mkt-ico mkt-ico--delete" title="Delete" data-tip="Delete" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -2340,14 +2479,14 @@
                         $('#m_desc').val(d.item_desc);
                         $('#m_supplier').val(d.supplier_id || d.supplier).trigger('change');
                         $('#m_curr').val(d.curr || 'IDR');
-                        $('#m_price').val(d.price || 0);
-                        $('#m_cons').val(d.cons || 0);
+                        $('#m_price').val(fmtId(d.price || 0, 0, 7));
+                        $('#m_cons').val(fmtId(d.cons || 0, 0, 7));
                         $('#m_unit').val(d.unit).trigger('change');
-                        $('#m_allowance').val(d.allowance || 0);
+                        $('#m_allowance').val(fmtId(d.allowance || 0, 0, 7));
                         $('#m_set').val(d.set).trigger('change');
 
-                        $('#m_val_idr').val(d.value_idr || 0);
-                        $('#m_val_usd').val(d.value_usd || 0);
+                        $('#m_val_idr').val(fmtId(d.value_idr || 0, 0, 7));
+                        $('#m_val_usd').val(fmtId(d.value_usd || 0, 0, 7));
 
                         calculate_modal();
 
@@ -2384,10 +2523,10 @@
         let supplier_id = $('#m_supplier').val() || '';
         let supplier_text = supplier_id ? $('#m_supplier option:selected').text() : '';
         let curr = $('#m_curr').val();
-        let price = $('#m_price').val() || 0;
-        let cons = $('#m_cons').val() || 0;
+        let price = mktMoney('#m_price');
+        let cons = mktMoney('#m_cons');
         let unit = $('#m_unit').val();
-        let allow = $('#m_allowance').val() || 0;
+        let allow = mktMoney('#m_allowance');
 
         let px_idr_raw = $('#m_price').data('raw_idr') || 0;
         let px_usd_raw = $('#m_price').data('raw_usd') || 0;
@@ -2462,6 +2601,8 @@
                         curr: curr, price: price, cons: cons, unit: unit, allow: allow,
                         px_idr: px_idr_raw, px_usd: px_usd_raw, val_idr: val_idr_raw, val_usd: val_usd_raw,
                         qty_bom: qty_bom_js, tot_val: tot_val_js
+                        , panel: $(rowSelector).attr('data-panel'), part: $(rowSelector).attr('data-part'),
+                        shell_name: $(rowSelector).find('.shell-td .fb-name').text(), part_name: $(rowSelector).find('.part-td').text()
                     }, rowNo));
                     $(rowSelector).replaceWith($newRow);
                     initializeCostingInlineRow($newRow);
@@ -2530,8 +2671,6 @@
     let pendingCostingImages = [];
     let selectedCostingImage = 0;
 
-    // Carousel coverflow: semua gambar dirender sekali; pindah gambar hanya menggeser & menskala (transition CSS).
-    // Sebelum/sesudah tidak berputar: di gambar pertama sisi kiri kosong, di gambar terakhir sisi kanan kosong.
     function paintCoverflow($stage, urls, active, goTo) {
         const stage = $stage[0];
         if (!stage) return;
@@ -2727,8 +2866,6 @@
     });
     renderCostingImageCarousel();
 
-    /* ---------- format angka Indonesia (id-ID): '.' ribuan, ',' desimal ---------- */
-    // fmtId(17000, 2) -> "17.000,00"; fmtId(0.5, 4) -> "0,5000"; fmtId(n, 0, 7) -> desimal 0..7 digit.
     function fmtId(n, minDp, maxDp) {
         if (maxDp === undefined) maxDp = minDp;
         const cache = fmtId._c || (fmtId._c = {});
@@ -2738,10 +2875,6 @@
         return f.format(Number.isFinite(v) ? v : 0);
     }
 
-    // Baca angka dari teks (ketik / paste Excel / teks sel). Hasil: Number (titik desimal) atau NaN.
-    // - ada '.' dan ',' -> separator yang PALING AKHIR = desimal ("1.500,25" / "1,500.25" -> 1500.25)
-    // - hanya ',' -> koma desimal ("2,5" -> 2.5); lebih dari satu ',' -> pemisah ribuan ("1,234,567")
-    // - hanya '.' -> ribuan jika pola 1.234 / 1.234.567, selain itu titik desimal ("0.5", "1234.5")
     function parseIdNum(v) {
         if (typeof v === 'number') return Number.isFinite(v) ? v : NaN;
         let t = String(v === null || v === undefined ? '' : v).replace(/[%\s\u00a0]/g, '');
@@ -2769,7 +2902,7 @@
         // 0. INPUT DASAR & CACHE SELECTOR
         // ============================
         let order_qty   = parseFloat($('#qty').val().replace(/,/g, '')) || 0;
-        let rate_to_idr  = parseFloat($('#rate_to_idr').val()) || 0;
+        let rate_to_idr  = mktMoney('#rate_to_idr') || 0;
         let header_curr  = $('#curr option:selected').text().trim().toUpperCase(); // <-- dipakai utk konversi confirm_price
 
         let cat_totals = {
@@ -2885,7 +3018,7 @@
         let base_ga_idr = base_material_idr + cat_totals['Manufacturing'].idr + tot_other_idr;
         let base_ga_usd = base_material_usd + cat_totals['Manufacturing'].usd + tot_other_usd;
 
-        let input_ga_pct = parseFloat($('#ga_percent').val()) || 0;
+        let input_ga_pct = mktMoney('#ga_percent') || 0;
         let ga_idr = base_ga_idr * (input_ga_pct / 100);
         let ga_usd = base_ga_usd * (input_ga_pct / 100);
 
@@ -2916,12 +3049,13 @@
             let title = c.toUpperCase();
 
             let tfoot_html = '';
+            const extraCols = pfx === 'fab' ? 2 : 0; // Fabric punya kolom SHELL & PART
 
             sets_arr.forEach(s => {
                 let d = obj.sets[s];
                 tfoot_html += `
                     <tr style="background-color: #f8f9fa;">
-                        <td colspan="13" class="text-left">${title} - TOTAL ${s}</td>
+                        <td colspan="${13 + extraCols}" class="text-left">${title} - TOTAL ${s}</td>
                         <td class="text-right">${fmtId(d.idr, 2)}</td>
                         <td class="text-right">${fmtId(d.usd, 4)}</td>
                         <td></td>
@@ -2934,7 +3068,7 @@
 
             tfoot_html += `
                 <tr class="bg-warning text-dark">
-                    <td colspan="2"></td><td colspan="11" class="text-left">TOTAL</td>
+                    <td colspan="2"></td><td colspan="${11 + extraCols}" class="text-left">TOTAL</td>
                     <td class="text-right">${fmtId(obj.idr, 2)}</td>
                     <td class="text-right">${fmtId(obj.usd, 4)}</td>
                     <td class="text-center"></td>
@@ -2979,7 +3113,7 @@
         // ============================
         // 7. VAT & PROFIT
         // ============================
-        let input_vat      = parseFloat($('input[name="vat"]').val()) || 0;
+        let input_vat      = mktMoney('#vat') || 0;
         let shipment_type   = $('#shipment_type').val();
         let actual_vat_pct  = (shipment_type === 'export') ? 0 : input_vat;
         $('#vat-label-pct').text(fmtId(actual_vat_pct, 0, 2) + '%');
@@ -2993,7 +3127,7 @@
         // ============================
         // 8. BALANCE OTHER COST (SUGGEST) — FIX: konversi confirm_price sesuai currency header
         // ============================
-        let confirm_price_raw = parseFloat($('#confirm_price').val()) || 0;
+        let confirm_price_raw = mktMoney('#confirm_price') || 0;
         let suggest_idr = 0;
         let suggest_usd = 0;
 
@@ -3033,15 +3167,6 @@
 
         lock_type_dropdown();
     }
-    /* =====================================================================
-       EXCEL-LIKE GRID untuk semua tab (Fabric ... Other Cost)
-       - klik / drag untuk blok sel, Shift+klik untuk perluas
-       - titik biru (fill handle) di pojok kanan bawah: drag untuk copy ke bawah/atas
-       - Ctrl+C / Ctrl+V (bisa paste langsung dari Excel), Ctrl+D (fill down), Delete (kosongkan)
-       - Panah / Enter untuk pindah sel, Esc untuk batal pilih
-       - Price / Cons / Allow berubah -> Price PX, Value IDR/USD otomatis dihitung ulang
-       - 1 baris = 1 request save (di-debounce), jadi aman untuk fill banyak baris
-       ===================================================================== */
     const XL = { $tbody: null, anchor: null, rect: null, dragging: false, moved: false, filling: false, fillTarget: null, sortTimers: {} };
     const XL_ATTR = {
         set: 'set', desc: 'desc', supplier: 'supplier', curr: 'curr', price: 'price', cons: 'cons', unit: 'unit',
@@ -3351,8 +3476,8 @@
 
     function xlRecalc($row, field) {
         const isOther = $row.attr('data-category') === 'Other Cost';
-        const toIdr = parseFloat($('#rate_to_idr').val()) || 0;
-        const fromIdr = parseFloat($('#rate_from_idr').val()) || 1;
+        const toIdr = mktMoney('#rate_to_idr') || 0;
+        const fromIdr = mktMoney('#rate_from_idr') || 1;
         const hdr = $('#curr option:selected').text().trim().toUpperCase();
         const g = function (a) { return parseFloat($row.attr('data-' + a)) || 0; };
 
@@ -3533,6 +3658,85 @@
         xlUpdateSubmitButton();
     }
 
+
+    const FABRIC_SHELLS = @json($shellOptions);
+    const FABRIC_PARTS = @json($partOptions);
+    $(document).on('click', '#tbody-fabric .fb-add', function (e) {
+        e.stopPropagation();
+        if (xlReadonly()) return;
+        openFabricBreakdown($(this).data('type'), $(this).data('id'));
+    });
+    $(document).on('click', '#fb-breakdown-save', saveFabricBreakdown);
+
+    function paintFabricGroups() {
+        let no = 0, prevContent = null, prevShell = null, prevVisible = false;
+        $('#tbody-fabric > tr.row-costing').each(function () {
+            const $row = $(this);
+            const visible = !$row.hasClass('xl-hidden');
+            const content = $row.attr('data-item') + '|' + ($row.attr('data-set') || '');
+            const shell = content + '|' + ($row.attr('data-panel') || '');
+            const newContent = content !== prevContent;
+            if (newContent) no++;
+            const pageStart = visible && !prevVisible;
+            $row.toggleClass('fb-repeat-content', !newContent && !pageStart)
+                .toggleClass('fb-repeat-shell', shell === prevShell && !pageStart)
+                .toggleClass('fb-group-start', newContent);
+            $row.find('.row-number').text(newContent || pageStart ? no : '');
+            prevContent = content;
+            prevShell = shell;
+            prevVisible = visible;
+        });
+    }
+
+    function openFabricBreakdown(type, idDetail) {
+        const isShell = type === 'shell';
+        const $row = $(costingRowSelector('Fabric', idDetail));
+        // Opsi yang sudah ada di content/shell ini tidak ditampilkan.
+        const used = new Set($('#tbody-fabric > tr.row-costing').filter(function () {
+            const $r = $(this);
+            return $r.attr('data-item') === $row.attr('data-item') && ($r.attr('data-set') || '') === ($row.attr('data-set') || '')
+                && (isShell || $r.attr('data-panel') === $row.attr('data-panel'));
+        }).map(function () { return $(this).attr(isShell ? 'data-panel' : 'data-part'); }).get().filter(Boolean));
+        const options = (isShell ? FABRIC_SHELLS : FABRIC_PARTS).filter(o => !used.has(String(o.id)));
+        const $modal = $('#modal-fabric-breakdown').data({ type: type, id: idDetail });
+        $modal.find('.fb-modal-title').text(isShell ? 'Add Shell' : 'Add Part');
+        $modal.find('.fb-modal-label').text(isShell ? 'Shell' : 'Part');
+        const $select = $('#fb-breakdown-select');
+        if ($select.hasClass('select2-hidden-accessible')) $select.select2('destroy');
+        $select.html(options.map(o => `<option value="${o.id}">${$('<span>').text(o.name).html()}</option>`).join(''))
+            .select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $modal, closeOnSelect: false, placeholder: isShell ? 'Choose Shell' : 'Choose Part' });
+        $modal.modal('show');
+    }
+
+    function saveFabricBreakdown() {
+        const $modal = $('#modal-fabric-breakdown');
+        const ids = $('#fb-breakdown-select').val() || [];
+        const isShell = $modal.data('type') === 'shell';
+        if (!ids.length) {
+            Swal.fire('Peringatan', isShell ? 'Pilih minimal satu shell.' : 'Pilih minimal satu part.', 'warning');
+            return;
+        }
+        if ($('#costing-category-content .row-costing.xl-dirty').length) {
+            Swal.fire('Peringatan', 'Masih ada perubahan tabel yang belum tersimpan. Tunggu tersimpan dulu, lalu coba lagi.', 'warning');
+            return;
+        }
+        const $save = $('#fb-breakdown-save').prop('disabled', true);
+        $.post("{{ route('store-costing-fabric-breakdown') }}", {
+            _token: "{{ csrf_token() }}", id_costing: '{{ $costing->id }}', id_detail: $modal.data('id'), type: $modal.data('type'), ids: ids
+        }).done(function (res) {
+            if (res.status !== 200) {
+                Swal.fire('Gagal', res.message || 'Data tidak tersimpan.', 'error');
+                return;
+            }
+            // Baris baru dibuat di server; muat ulang supaya urutan & perhitungan ikut server (tab Fabric memang tab awal).
+            $modal.modal('hide');
+            Swal.fire({ icon: 'success', title: res.message, timer: 1200, showConfirmButton: false });
+            setTimeout(function () { window.location.reload(); }, 600);
+        }).fail(function (xhr) {
+            const errors = xhr.responseJSON && xhr.responseJSON.errors;
+            Swal.fire('Gagal', errors ? Object.values(errors)[0][0] : ((xhr.responseJSON && xhr.responseJSON.message) || 'Data tidak tersimpan.'), 'error');
+        }).always(function () { $save.prop('disabled', false); });
+    }
     function xlPaginateAll() {
         $('#costing-category-content .costing-tab-panel').each(function () { xlPaginate($(this)); });
     }
@@ -3563,6 +3767,7 @@
         }
         html += '<button type="button" class="xl-page-btn" data-page="' + (page + 1) + '"' + (page >= pages ? ' disabled' : '') + '>&rsaquo;</button>';
         $pager.find('.xl-pages').html(html);
+        if ($panel.attr('data-panel-category') === 'Fabric') paintFabricGroups();
     }
 
     function xlShowRow($row) {

@@ -2,6 +2,7 @@
 
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-form.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-form.css')) }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
     <style>
@@ -69,9 +70,6 @@
         .mc-table tbody td.mc-wide { min-width: 180px; }
         .mc-table tbody td.mc-off { color: #94a3b8; }
         .mc-table input[type="checkbox"] { width: 14px; height: 14px; accent-color: #334155; }
-        .mc-action { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin: 0 2px; padding: 0; border: 0; border-radius: 50%; color: #fff; font-size: 12px; }
-        .mc-action.is-edit { background: #17b3d4; }
-        .mc-action.is-delete { background: #e5173f; }
         .mc-empty-row td { padding: 26px; color: #94a3b8; text-align: center; }
 
         .mc-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 6px 4px; color: #1e293b; font-family: Inter, sans-serif; font-size: 12px; }
@@ -98,6 +96,22 @@
             .mc-form-actions { margin-top: 18px; }
             .mc-pager { justify-content: center; }
         }
+
+        /* ===== Tipografi QA Figma (Master Content) — semua ukuran layar ===== */
+        .navbar-nav > .nav-item > .nav-link { font-family: Inter, sans-serif !important; font-size: 16px !important; font-weight: 500 !important; }  /* khusus halaman ini */
+        .mc-crumb, .mc-crumb b { font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 500 !important; }
+        .mc-title { font-family: 'Poppins', sans-serif !important; font-size: 32px !important; font-weight: 700 !important; }
+        .mc-subtitle { font-family: 'Poppins', sans-serif !important; font-size: 12px !important; font-weight: 600 !important; }
+        .mc-table tbody td { font-family: Inter, sans-serif !important; font-size: 14px !important; font-weight: 400 !important; }
+        .mc-pager, .mc-pager-size, .mc-pager-size span { font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 400 !important; }
+        .mc-pager select { height: 36px; font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 400 !important; }
+        .mc-page-btn { min-width: 32px; height: 32px; font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 500 !important; }
+        .mc-page-btn.active { font-weight: 700 !important; }
+        .mc-search-by-btn { height: 36px; font-family: Inter, sans-serif !important; font-size: 14px !important; font-weight: 500 !important; }
+        .mc-keyword input, .mc-keyword input::placeholder { height: 36px; font-family: Inter, sans-serif !important; font-size: 14px !important; font-weight: 400 !important; }
+        .mc-tab { font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 600 !important; }
+        .mc-form label { font-family: 'Poppins', sans-serif !important; font-size: 14px !important; font-weight: 500 !important; }
+        .mc-legend { font-family: Inter, sans-serif !important; font-size: 12px !important; font-weight: 400 !important; }
     </style>
 @endsection
 
@@ -202,8 +216,8 @@
                 </form>
 
                 <div class="mc-form-actions">
-                    <button type="button" class="mc-btn is-cancel" id="mc-cancel">Cancel</button>
-                    <button type="button" class="mc-btn is-save" id="mc-save">Save</button>
+                    <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" id="mc-cancel">Cancel</button>
+                    <button type="button" class="mkt-btn mkt-btn--green" id="mc-save">Save</button>
                 </div>
             </aside>
 
@@ -304,7 +318,7 @@
             function cellText(row, field) {
                 const value = row[field];
                 if (value === null || value === undefined || String(value).trim() === '') return '--';
-                if (field === 'gramasi') return Number(value).toLocaleString('en-US', { maximumFractionDigits: 4 });
+                if (field === 'gramasi') return Number(value).toLocaleString('id-ID', { maximumFractionDigits: 4 });
                 return value;
             }
 
@@ -329,7 +343,7 @@
                         <td class="mc-group-cell">${mcEscape(row.nama_group)}</td>
                         ${MC_COLS.map(field => cellHtml(row, field)).join('')}
                         <td class="text-center">
-                            <button type="button" class="mc-action is-edit" title="Edit"><i class="fas fa-pen"></i></button> <button type="button" class="mc-action is-delete" title="Hapus"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="mkt-ico mkt-ico--edit mc-action is-edit" title="Edit" data-tip="Edit"><i class="far fa-edit"></i></button> <button type="button" class="mkt-ico mkt-ico--delete mc-action is-delete" title="Delete" data-tip="Delete"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>`).join(''));
             }
@@ -338,7 +352,7 @@
                 const pages = Math.max(1, Math.ceil(mcState.total / mcState.perPage));
                 const page = mcState.page;
                 $('#mc-per-page').val(String(mcState.perPage));
-                $('#mc-total').text('Of ' + mcState.total.toLocaleString('en-US'));
+                $('#mc-total').text('Of ' + mcState.total.toLocaleString('id-ID'));
                 const shown = new Set([1, 2, 3, pages - 2, pages - 1, pages, page - 1, page, page + 1]);
                 let html = `<button type="button" class="mc-page-btn" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
                 let last = 0;
@@ -458,7 +472,7 @@
                 $('#mc-item-size').val(row.size ?? '');
                 $('#mc-item-color').val(row.color ?? '');
                 $('#mc-item-unit').val(row.kd_satuan ?? '').trigger('change.select2');
-                $('#mc-item-weight').val(row.gramasi !== null && row.gramasi !== undefined ? Number(row.gramasi) : '');
+                $('#mc-item-weight').val(row.gramasi !== null && row.gramasi !== undefined ? Number(row.gramasi).toLocaleString('id-ID', { maximumFractionDigits: 4 }) : '');
                 $('#mc-item-width').val(row.width ?? '');
                 $('#mc-item-length').val(row.length ?? '');
                 $('#mc-item-name').trigger('focus');
@@ -483,7 +497,9 @@
                     const editing = mcEditing && mcEditing.type === 'content' ? mcEditing.row : null;
                     call = editing ? request(MC_ROUTES.contentUpdate.replace(':id', editing.id_contents), 'PUT', payload) : request(MC_ROUTES.contentStore, 'POST', payload);
                 } else {
-                    const weight = $('#mc-item-weight').val().trim().replace(',', '.');
+                    // Weight format Indonesia: 1.234,5 (titik = ribuan, koma = desimal).
+                    const weightText = $('#mc-item-weight').val().trim();
+                    const weight = weightText.includes(',') || /^\d{1,3}(\.\d{3})+$/.test(weightText) ? weightText.replace(/\./g, '').replace(',', '.') : weightText;
                     const payload = {
                         id_contents: $('#mc-item-content').val(),
                         itemdesc: $('#mc-item-name').val().trim(),

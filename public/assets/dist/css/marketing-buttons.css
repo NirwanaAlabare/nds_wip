@@ -90,3 +90,75 @@
 @media (max-width: 575.98px) {
     .mkt-btn { max-width: 100%; height: auto; min-height: 40px; padding-top: 8px; padding-bottom: 8px; white-space: normal; line-height: 1.2; text-align: center; }
 }
+
+/* ===== Tombol ikon aksi bulat bergradien (edit / delete / copy / download / detail) =====
+   <button class="mkt-ico mkt-ico--edit" data-tip="Edit" title="Edit"><i class="far fa-edit"></i></button>
+   Normal = gradien penuh; hover = lebih terang + label abu di kanan bawah (data-tip); ditekan = terang, sedikit turun. */
+.mkt-ico {
+    --ico-from: #1ec8f3; --ico-to: #0a8bd8; --ico-hover-from: #7fe3ff; --ico-hover-to: #2db8f6; --ico-shadow: rgba(10, 139, 216, .35);
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: 0 3px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--ico-from), var(--ico-to));
+    box-shadow: 0 3px 6px var(--ico-shadow);
+    color: #fff;
+    font-size: 13px;
+    line-height: 1;
+    vertical-align: middle;
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+.mkt-ico i { color: #fff; pointer-events: none; }
+.mkt-ico--edit     { --ico-from: #1ec8f3; --ico-to: #0a8bd8; --ico-hover-from: #7fe3ff; --ico-hover-to: #2db8f6; --ico-shadow: rgba(10, 139, 216, .35); }
+.mkt-ico--delete   { --ico-from: #ff3b5c; --ico-to: #e0001b; --ico-hover-from: #ff8a9c; --ico-hover-to: #f2394f; --ico-shadow: rgba(224, 0, 27, .32); }
+.mkt-ico--copy     { --ico-from: #ffc21a; --ico-to: #ff9500; --ico-hover-from: #ffe07a; --ico-hover-to: #ffbd3d; --ico-shadow: rgba(255, 149, 0, .32); }
+.mkt-ico--download { --ico-from: #a64dff; --ico-to: #6a00e0; --ico-hover-from: #c995ff; --ico-hover-to: #9140f0; --ico-shadow: rgba(106, 0, 224, .30); }
+.mkt-ico--detail   { --ico-from: #4f5fe8; --ico-to: #23299a; --ico-hover-from: #95a0ff; --ico-hover-to: #5a63d6; --ico-shadow: rgba(35, 41, 154, .30); }
+.mkt-ico:hover, .mkt-ico:focus-visible { background: linear-gradient(180deg, var(--ico-hover-from), var(--ico-hover-to)); outline: 0; }
+.mkt-ico:active, .mkt-ico.is-active { background: linear-gradient(180deg, var(--ico-hover-from), var(--ico-hover-to)); box-shadow: 0 1px 3px var(--ico-shadow); transform: translateY(1px); }
+/* Label abu saat hover (dari data-tip). */
+.mkt-ico[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: 55%;
+    left: 70%;
+    z-index: 20;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: #6f8796;
+    color: #fff;
+    font-family: Inter, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .12s ease;
+}
+.mkt-ico[data-tip]:hover::after, .mkt-ico[data-tip]:focus-visible::after { opacity: 1; }
+.mkt-ico:disabled, .mkt-ico.is-disabled { background: #e2e8f0; box-shadow: none; color: #94a3b8; cursor: not-allowed; transform: none; }
+.mkt-ico:disabled i { color: #94a3b8; }
+.mkt-ico:disabled::after { display: none; }
+.mkt-ico[hidden] { display: none !important; }
+@media (max-width: 575.98px) { .mkt-ico { width: 28px; height: 28px; font-size: 12px; } }
+
+/* Pengatur "show entries" / Item Per Page di semua tabel marketing: dibuat sedikit lebih kecil (masukan user).
+   :not(#_):not(#_) menaikkan specificity supaya menang atas aturan per halaman (#id ... select { ... !important }). */
+:is(.dataTables_length, .xl-pager, .mc-pager, .mkt-dt-pager, .so-detail-pager, .costing-detail-page-size) select:not(#_):not(#_) {
+    height: 30px !important;
+    min-width: 60px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    line-height: 28px !important;
+}
