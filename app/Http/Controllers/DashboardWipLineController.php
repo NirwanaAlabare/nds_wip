@@ -254,14 +254,16 @@ class DashboardWipLineController extends Controller
                 periode_jam,
                 req_hour_target,
                 output_jam_ini,
+                rft,
                 tot_defect,
                 tot_reworked,
                 menit_kerja,
                 ROUND(target_per_menit * menit_kerja)                                  AS target_skrg,
                 ROUND(tot_output / NULLIF(target_per_menit * menit_kerja, 0) * 100, 2) AS eff,
                 target - tot_output                                                    AS variation,
-                ROUND(rft / NULLIF(tot_output, 0) * 100, 2)                            AS rft_pct,
-                ROUND(100 - rft / NULLIF(tot_output, 0) * 100, 2)                      AS def_rate
+                -- dibagi output + defect
+                ROUND(rft / NULLIF(tot_output + tot_defect, 0) * 100, 2)               AS rft_pct,
+                ROUND(100 - rft / NULLIF(tot_output + tot_defect, 0) * 100, 2)         AS def_rate
             FROM calc",
             [$tanggal, $line, $nowM], // TEST JAM: aslinya [$tanggal, $line]
         );
