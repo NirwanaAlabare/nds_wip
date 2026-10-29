@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Cutting;
 
-use App\Exports\Cutting\PenerimaanCuttingExport;
 use App\Http\Controllers\Controller;
 use App\Models\Cutting\PenerimaanCutting;
 use Carbon\Carbon;
@@ -12,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\CuttingService;
 use Yajra\DataTables\Facades\DataTables;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use Illuminate\Support\Facades\Validator;
 
 class PenerimaanCuttingController extends Controller
@@ -484,9 +484,109 @@ class PenerimaanCuttingController extends Controller
     }
 
     public function exportPenerimaanCutting(Request $request) {
-        $from = $request->from;
-        $to = $request->to;
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '3600');
 
-        return Excel::download(new PenerimaanCuttingExport($from, $to), 'penerimaan-cutting.xlsx');
+        $from = $request->from ? $request->from : date('Y-m-d');
+        $to = $request->to ? $request->to : date('Y-m-d');
+
+        $data = PenerimaanCutting::selectRaw("
+                penerimaan_cutting.id,
+                DATE_FORMAT(penerimaan_cutting.tanggal_terima, '%d/%m/%Y') as tanggal_terima,
+                penerimaan_cutting.id_roll AS barcode,
+                penerimaan_cutting.created_by_username,
+                DATE_FORMAT(penerimaan_cutting.created_at, '%d/%m/%Y %H:%i:%s') as created_at_format,
+                whs_bppb_h.no_req,
+                whs_bppb_det.no_bppb,
+                whs_bppb_h.tgl_bppb AS tanggal_bppb,
+                whs_bppb_h.tujuan,
+                whs_bppb_h.no_ws,
+                whs_bppb_h.no_ws_aktual AS no_ws_act,
+                whs_bppb_det.qty_out,
+                whs_bppb_det.satuan AS unit,
+                penerimaan_cutting.qty_konv,
+                penerimaan_cutting.unit_konv,
+                whs_bppb_det.no_lot,
+                whs_bppb_det.no_roll,
+                whs_bppb_det.no_roll_buyer,
+                whs_bppb_det.id_item,
+                whs_bppb_det.item_desc AS nama_barang,
+                buyer_ws.styleno AS style,
+                masteritem.color AS warna
+            ")
+            ->leftJoin('signalbit_erp.whs_bppb_det', 'signalbit_erp.whs_bppb_det.id', '=', 'penerimaan_cutting.whs_bppb_det_id')
+            ->leftJoin('signalbit_erp.whs_bppb_h', 'signalbit_erp.whs_bppb_h.no_bppb', '=', 'signalbit_erp.whs_bppb_det.no_bppb')
+            ->leftJoin('signalbit_erp.masteritem', 'signalbit_erp.masteritem.id_item', '=', 'signalbit_erp.whs_bppb_det.id_item')
+            ->leftJoinSub(
+                DB::table('signalbit_erp.act_costing as ac')
+                    ->selectRaw('jod.id_jo, ac.kpno AS no_ws, ac.styleno')
+                    ->join('signalbit_erp.so as so', 'ac.id', '=', 'so.id_cost')
+                    ->join('signalbit_erp.jo_det as jod', 'so.id', '=', 'jod.id_so')
+                    ->groupBy('jod.id_jo', 'ac.kpno', 'ac.styleno'),
+                'buyer_ws',
+                function ($join) {
+                    $join->on('buyer_ws.id_jo', '=', 'signalbit_erp.whs_bppb_det.id_jo');
+                }
+            )
+            ->whereBetween('penerimaan_cutting.created_at', [
+                $from . ' 00:00:00',
+                $to . ' 23:59:59'
+            ])->get();
+
+        // Create Excel file using FastExcel
+        $excel = FastExcel::create('data');
+        $sheet = $excel->getSheet();
+
+        // Title
+        $sheet->writeTo('A1', 'Penerimaan Fabric Cutting', ['font-size' => 16]);
+        $sheet->mergeCells('A1:T1');
+        $sheet->writeTo('A2', $from . ' / ' . $to);
+        $sheet->mergeCells('A2:D2');
+
+        // Headers
+        $headers = [
+            'Tanggal Terima', 'Barcode', 'Qty Out', 'Unit', 'Qty Konv', 'Unit Konv', 'No. Req', 'No. BPPB', 'Tgl. BPPB', 'Tujuan',
+            'No. WS', 'No. WS Act', 'ID Item', 'Style', 'Warna', 'No. Lot', 'No. Roll', 'No. Roll Buyer', 'Created By', 'Created At',
+        ];
+
+        $sheet->writeRow(['']);
+        $sheet->writeRow($headers)->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
+            foreach ($rows as $row) {
+                $rowArr = [
+                    $row->tanggal_terima ?? "-",
+                    $row->barcode ?? "-",
+                    $row->qty_out,
+                    $row->unit ?? "-",
+                    $row->qty_konv,
+                    $row->unit_konv ?? "-",
+                    $row->no_req ?? "-",
+                    $row->no_bppb ?? "-",
+                    $row->tanggal_bppb ?? "-",
+                    $row->tujuan ?? "-",
+                    $row->no_ws ?? "-",
+                    $row->no_ws_act ?? "-",
+                    $row->id_item ?? "-",
+                    $row->style ?? "-",
+                    $row->warna ?? "-",
+                    $row->no_lot ?? "-",
+                    $row->no_roll ?? "-",
+                    $row->no_roll_buyer ?? "-",
+                    $row->created_by_username ?? "-",
+                    $row->created_at_format ?? "-",
+                ];
+
+                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            }
+        });
+
+        foreach (range('A', 'T') as $col) {
+            $sheet->setColWidth($col, 18);
+        }
+
+        $filename = 'Penerimaan Fabric Cutting ' . $from . ' - ' . $to . '.xlsx';
+
+        return $excel->download($filename);
     }
 }
