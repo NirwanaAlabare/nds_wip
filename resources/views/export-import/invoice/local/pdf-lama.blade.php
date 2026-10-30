@@ -427,11 +427,11 @@ CSS HEADER
 		</tr>
 		<tr>
 			<td>&nbsp;</td>
-			<td style="font-size:12px;text-align:center;border-bottom:1px solid #000000">Yus Yulius</td>
+			<td style="font-size:12px;text-align:center;border-bottom:1px solid #000000">{{ $penanda['nama'] }}</td>
 		</tr>
 		<tr>
 			<td>&nbsp;</td>
-			<td style="font-size:12px;text-align:center">Exim Manager</td>
+			<td style="font-size:12px;text-align:center">{{ $penanda['jabatan'] }}</td>
 		</tr>
 	</table>
 

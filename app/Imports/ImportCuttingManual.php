@@ -44,6 +44,17 @@ class importCuttingManual implements ToCollection, WithStartRow
             return $row[0] . '|' . $row[1] . '|' . $row[2] . '|' . $row[4];
         });
 
+        // Validasi sebelum insert: qty positif & negatif tidak boleh dalam satu group (ratio tidak boleh negatif)
+        $mixedGroups = $groupedRows->filter(function ($group) {
+            $qtyValues = $group->pluck(5)->map(fn ($qty) => intval($qty));
+
+            return $qtyValues->contains(fn ($qty) => $qty > 0) && $qtyValues->contains(fn ($qty) => $qty < 0);
+        })->keys();
+
+        if ($mixedGroups->isNotEmpty()) {
+            throw new Exception("Qty positif dan negatif tidak boleh dalam satu group (Tanggal|WS|Color|Panel) : " . $mixedGroups->implode(', '));
+        }
+
         $i = 0;
         foreach ($groupedRows as $group)
         {
@@ -146,6 +157,11 @@ class importCuttingManual implements ToCollection, WithStartRow
                         // Calculate GCD of all qty values
                         $gcdRatio = $this->calculateGCD($qtyValues);
 
+                        // Ratio tidak boleh negatif, jika qty negatif maka GCD yang dibuat negatif
+                        if (collect($qtyValues)->contains(fn ($qty) => intval($qty) < 0)) {
+                            $gcdRatio = -$gcdRatio;
+                        }
+
                         // Log the GCD calculation
                         \Log::channel("importCuttingManual")->info("GCD Calculation - Qty Values: " . json_encode($qtyValues) . ", GCD Result: " . $gcdRatio);
 
@@ -178,7 +194,7 @@ class importCuttingManual implements ToCollection, WithStartRow
 
                                 // Calculate ratio: child qty divided by GCD
                                 $childQty = intval($childRow[5]);
-                                $ratioValue = $gcdRatio > 0 ? $childQty / $gcdRatio : $childQty;
+                                $ratioValue = $gcdRatio != 0 ? $childQty / $gcdRatio : abs($childQty);
 
                                 // Create Marker Detail
                                 $markerDetailStore = MarkerDetail::create([

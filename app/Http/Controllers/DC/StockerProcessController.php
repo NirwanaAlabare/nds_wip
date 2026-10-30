@@ -278,12 +278,16 @@ class StockerProcessController extends Controller
             LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
             LEFT JOIN loading_line ON loading_line.stocker_id = stocker_input.id
             LEFT JOIN stocker_reject ON stocker_reject.id = stocker_input.stocker_reject
+            LEFT JOIN dc_in_input ON dc_in_input.id = stocker_reject.dc_in_id
+            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id = stocker_reject.secondary_inhouse_id
+            LEFT JOIN secondary_in_input ON secondary_in_input.id = stocker_reject.secondary_in_id
+            LEFT JOIN stocker_input stocker_reject_source on stocker_reject_source.id_qr_stocker = COALESCE(dc_in_input.id_qr_stocker, secondary_inhouse_input.id_qr_stocker, secondary_in_input.id_qr_stocker)
             LEFT JOIN stocker_input stocker_source ON
-                stocker_source.form_cut_id = stocker_input.form_cut_id and
+                stocker_source.form_cut_id = stocker_reject_source.form_cut_id and
                 stocker_source.part_detail_id = stocker_input.part_detail_id and
-                stocker_source.so_det_id = stocker_input.so_det_id and
-                stocker_source.group_stocker = stocker_input.group_stocker and
-                stocker_source.ratio = stocker_input.ratio and
+                stocker_source.so_det_id = stocker_reject_source.so_det_id and
+                stocker_source.group_stocker = stocker_reject_source.group_stocker and
+                stocker_source.ratio = stocker_reject_source.ratio and
                 stocker_source.stocker_reject is null and
                 stocker_input.stocker_reject is not null
 

@@ -64,6 +64,11 @@
                                 <label><small>No Request</small></label>
                                 <input type="text" class="form-control form-control" id="txt_noreq" name="txt_noreq"
                                 value="{{ $data_out->no_req }}" readonly>
+                                <input type="hidden" id="txt_tgl_req" name="txt_tgl_req" value="{{ $tgl_req }}">
+                                <input type="hidden" id="txt_ubah_tgl_req" name="txt_ubah_tgl_req" value="0">
+                                @if ($tgl_req)
+                                <small class="text-muted">Tgl Request: {{ $tgl_req }}</small>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -620,8 +625,24 @@ function formatDateYmd(date) {
     return date.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
 }
 
+let tglBppbAwal = @json($data_out->tgl_bppb);
+
+// Tgl BPPB paling awal: tanggal request, kecuali periode closed lebih akhir
+function minTglBppb() {
+    let tglReq = $('#txt_tgl_req').val();
+    return (tglReq && (!minTglRo || tglReq > minTglRo)) ? tglReq : (minTglRo || null);
+}
+
 function validateAndSubmitEditOutForm(e, evt) {
     let tglBppb = $('#txt_tgl_bppb').val();
+    // Tanggal request hanya dicek kalau Tgl BPPB diubah; data lama dibiarkan
+    let tglReq = tglBppb != tglBppbAwal ? $('#txt_tgl_req').val() : '';
+
+    if (tglReq && tglBppb < tglReq) {
+        evt.preventDefault();
+        Swal.fire({ icon: 'warning', title: 'Peringatan', text: 'Tgl BPPB tidak boleh sebelum tanggal request ' + $('#txt_noreq').val() + ' (' + tglReq + ').' });
+        return;
+    }
 
     if (minTglRo && tglBppb < minTglRo) {
         evt.preventDefault();
@@ -654,6 +675,31 @@ function validateAndSubmitEditOutForm(e, evt) {
         return;
     }
 
+    // Tgl BPPB beda dengan tanggal request: tanya apakah tanggal request ikut diubah
+    $('#txt_ubah_tgl_req').val('0');
+    if (tglReq && tglReq != tglBppb) {
+        evt.preventDefault();
+        Swal.fire({
+            icon: 'question',
+            title: 'Tanggal Berbeda',
+            html: 'Tgl BPPB <b>' + tglBppb + '</b> berbeda dengan tanggal request <b>' + $('#txt_noreq').val() + '</b> (<b>' + tglReq + '</b>).' +
+                '<br><br>Ubah tanggal request menjadi <b>' + tglBppb + '</b>?',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Ya, ubah tanggal request',
+            denyButtonText: 'Tidak, simpan saja',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#28a745',
+            denyButtonColor: '#3085d6',
+            cancelButtonColor: '#6c757d',
+        }).then((result) => {
+            if (result.isDismissed) return;
+            $('#txt_ubah_tgl_req').val(result.isConfirmed ? '1' : '0');
+            submitForm(e, evt);
+        });
+        return;
+    }
+
     submitForm(e, evt);
 }
 
@@ -681,7 +727,7 @@ function validateAndSubmitEditOutForm(e, evt) {
 
     $('#txt_tgl_bppb').datepicker({
         dateFormat: 'yy-mm-dd',
-        minDate: minTglRo ? minTglRo : null,
+        minDate: minTglBppb(),
         beforeShowDay: function (date) {
             let ymd = formatDateYmd(date);
             for (let p of closedPeriods) {
@@ -1034,7 +1080,7 @@ function sum_qty_barcode(val){
                     no_req: val,
                 },
                 success: function (res) {
-                    if (res) {
+                    if (res && res.length) {
                         $('#txt_id_jo').val(res[0].id_jo);
                         $('#txt_nojo').val(res[0].jo_no);
                         $('#txt_dikirim').val(res[0].supplier);

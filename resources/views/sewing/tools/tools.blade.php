@@ -81,7 +81,7 @@
                 <div class="col-md-12">
                     <h5 class="text-sb-secondary fw-bold mt-3">Incomplete Data</h5>
                 </div>
-                <div class="col-md-4">
+                {{-- <div class="col-md-4">
                     <a type="button" class="home-item" onclick="missUser()">
                         <div class="card">
                             <div class="card-body">
@@ -134,7 +134,7 @@
                             </div>
                         </div>
                     </a>
-                </div>
+                </div> --}}
                 <div class="col-md-4">
                     <a type="button" class="home-item" onclick="fixMasterPlanGambar()">
                         <div class="card">

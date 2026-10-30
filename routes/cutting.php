@@ -21,6 +21,7 @@ use App\Http\Controllers\Cutting\PipingStockController;
 use App\Http\Controllers\Cutting\CuttingStockOpnameController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
 use App\Http\Controllers\Cutting\CuttingSwitchingController;
+use App\Http\Controllers\Cutting\ProsesOutputController;
 
 Route::middleware('auth')->group(function () {
     // Spreading
@@ -111,6 +112,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/form-cut-lock', 'formCutLock')->name('form-cut-lock');
             // unlock form
             Route::post('/form-cut-unlock', 'formCutUnlock')->name('form-cut-unlock');
+            // undo step
+            Route::post('/undo-step', 'undoStep')->name('form-cut-undo')->middleware("role:superadmin");;
+            Route::post('/redo-step', 'redoStep')->name('form-cut-redo')->middleware("role:superadmin");;
         });
 
     // MANUAL :
@@ -384,6 +388,14 @@ Route::middleware('auth')->group(function () {
             Route::get('/check-stocker-form', 'checkStockerForm')->name('check-stocker-form');
         });
 
+        // Proses Output
+        Route::controller(ProsesOutputController::class)->prefix("proses-output")->middleware('role:cutting')->group(function () {
+            Route::get('/', 'index')->name('proses-output');
+            Route::get('/get-filter', 'getFilter')->name('get-filter-proses-output');
+            Route::post('/get-data', 'getData')->name('get-data-proses-output');
+            Route::get('/export-excel', 'exportExcel')->name('export-excel-proses-output');
+        });
+
         // ReportCutting
         Route::controller(ReportCuttingController::class)->prefix("report-cutting")->middleware('role:cutting')->group(function () {
             Route::get('/cutting', 'cutting')->name('report-cutting');
@@ -399,6 +411,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/total-pemakaian-roll', 'totalPemakaianRoll')->name('total-pemakaian-roll');
             Route::get('/report_cutting_mutasi_fabric', 'report_cutting_mutasi_fabric')->name('report_cutting_mutasi_fabric');
             Route::get('/report_cutting_mutasi_fabric_proporsional', 'report_cutting_mutasi_fabric_proporsional')->name('report_cutting_mutasi_fabric_proporsional');
+            Route::post('/report_cutting_mutasi_fabric_proporsional/generate_saldo', 'generate_saldo_mutasi_fabric_proporsional')->name('generate_saldo_mutasi_fabric_proporsional');
+            Route::get('/mutasi-fabric-barcode', 'mutasiFabricBarcode')->name('report-mutasi-fabric-barcode');
             Route::get('/report_gr_set', 'report_gr_set')->name('report_gr_set');
             Route::get('/report_gr_panel', 'report_gr_panel')->name('report_gr_panel');
             Route::get('/report_mutasi_wip_cutting', 'report_mutasi_wip_cutting')->name('report_mutasi_wip_cutting');
@@ -408,6 +422,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/report_return_fabric_cutting', 'report_return_fabric_cutting')->name('report_return_fabric_cutting');
             Route::get('/roll_fabric_cutting_in', 'roll_fabric_cutting_in')->name('roll_fabric_cutting_in');
             Route::get('/report_mutasi_wip_cutting_set', 'report_mutasi_wip_cutting_set')->name('report_mutasi_wip_cutting_set');
+            Route::get('/switching-adjustment', 'switchingAdjustment')->name('report-switching-adjustment');
+            Route::post('/switching-adjustment/export', 'switchingAdjustmentExport')->name('report-switching-adjustment-export');
 
 
             // export excel
@@ -417,6 +433,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/detail-pemakaian-roll/export', 'detailPemakaianRollExport')->name('detail-pemakaian-roll-export');
             Route::get('/export_excel_report_cutting_mutasi_fabric', 'export_excel_report_cutting_mutasi_fabric')->name('export_excel_report_cutting_mutasi_fabric');
             Route::get('/export_excel_report_cutting_mutasi_fabric_proporsional', 'export_excel_report_cutting_mutasi_fabric_proporsional')->name('export_excel_report_cutting_mutasi_fabric_proporsional');
+            Route::get('/mutasi-fabric-barcode/export', 'mutasiFabricBarcodeExport')->name('report-mutasi-fabric-barcode-export');
             Route::get('/export_excel_report_gr_set', 'export_excel_report_gr_set')->name('export_excel_report_gr_set');
             Route::get('/export_excel_report_gr_panel', 'export_excel_report_gr_panel')->name('export_excel_report_gr_panel');
             Route::get('/export_excel_report_mut_wip_cutting', 'export_excel_report_mut_wip_cutting')->name('export_excel_report_mut_wip_cutting');

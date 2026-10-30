@@ -1087,12 +1087,13 @@
             let idRollOriElement = document.getElementById('current_id_roll_ori');
 
             if (idRollElement.value.length > 0 && idRollElement.value != '-') {
-                if (idRollElement.value != idRollOriElement.value) {
-                    getScannedItem(idRollElement.value);
-                } else {
-                    $("#current_unit").val($("#current_unit_ori").val()).trigger("change");
-                    $("#current_qty_real").val($("#current_qty_ori").val()).trigger("change");
-                }
+                getScannedItem(idRollElement.value);
+                // if (idRollElement.value != idRollOriElement.value) {
+                //     getScannedItem(idRollElement.value);
+                // } else {
+                //     $("#current_unit").val($("#current_unit_ori").val()).trigger("change");
+                //     $("#current_qty_real").val($("#current_qty_ori").val()).trigger("change");
+                // }
             }
         }
 
@@ -1139,7 +1140,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
-                            text: 'Roll tidak tersedia atau sudah habis.',
+                            text: ajaxErrorMessage(jqXHR, 'Roll tidak tersedia atau sudah habis.'),
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -1250,6 +1251,9 @@
                             summaryData = res;
                             setSummary(summaryData);
                         }
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Gagal memuat data waktu.');
                     }
                 });
             }
@@ -2168,6 +2172,9 @@
 
                         getItemByWsColorPanel();
                     }
+                },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Gagal memuat data cons. WS.');
                 }
             });
         }
@@ -2203,7 +2210,7 @@
                     }
                 },
                 error: function(jqXHR) {
-                    console.error(jqXHR);
+                    showAjaxError(jqXHR, 'Gagal memuat data item.');
                 }
             });
         }
@@ -2319,7 +2326,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'ERROR',
-                                html: "Terjadi Kesalahan.",
+                                text: ajaxErrorMessage(jqXHR, 'Terjadi Kesalahan.'),
                                 showCancelButton: false,
                                 showConfirmButton: true,
                                 confirmButtonText: 'Oke',
@@ -2403,8 +2410,15 @@
                         let message = '';
                         let i = 0;
 
-                        for (let key in res.errors) {
+                        iziToast.error({
+                            title: 'Gagal',
+                            message: ajaxErrorMessage(jqXHR, 'Gagal menyimpan data.'),
+                            position: 'topCenter'
+                        });
+
+                        for (let key in (res?.errors ?? {})) {
                             message = res.errors[key];
+                            if (!document.getElementById(key)) continue;
                             document.getElementById(key).classList.add('is-invalid');
                             modified.push(
                                 [key, '.classList', '.remove(', "'is-invalid')"],
@@ -2590,16 +2604,9 @@
                             error: function (jqXHR) {
                                 document.getElementById("loading").classList.add("d-none");
 
-                                let res = jqXHR.responseJSON;
-                                let message = '';
-
-                                for (let key in res.errors) {
-                                    message = res.errors[key];
-                                }
-
                                 iziToast.error({
                                     title: 'Error',
-                                    message: 'Terjadi kesalahan. '+message,
+                                    message: ajaxErrorMessage(jqXHR, 'Terjadi kesalahan.'),
                                     position: 'topCenter'
                                 });
                             }
@@ -2689,7 +2696,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal',
-                        text: 'Terjadi kesalahan',
+                        text: ajaxErrorMessage(jqXHR, 'Terjadi kesalahan'),
                         showCancelButton: false,
                         showConfirmButton: true,
                         confirmButtonText: 'Oke',
@@ -2749,8 +2756,15 @@
                     let message = '';
                     let i = 0;
 
-                    for (let key in res.errors) {
+                    iziToast.error({
+                        title: 'Gagal',
+                        message: ajaxErrorMessage(jqXHR, 'Gagal menyimpan data.'),
+                        position: 'topCenter'
+                    });
+
+                    for (let key in (res?.errors ?? {})) {
                         message = res.errors[key];
+                        if (!document.getElementById(key)) continue;
                         document.getElementById(key).classList.add('is-invalid');
                         modified.push(
                             [key, '.classList', '.remove(', "'is-invalid')"],
@@ -2815,8 +2829,15 @@
                     let message = '';
                     let i = 0;
 
-                    for (let key in res.errors) {
+                    iziToast.error({
+                        title: 'Gagal',
+                        message: ajaxErrorMessage(jqXHR, 'Gagal menyimpan data.'),
+                        position: 'topCenter'
+                    });
+
+                    for (let key in (res?.errors ?? {})) {
                         message = res.errors[key];
+                        if (!document.getElementById(key)) continue;
                         document.getElementById(key).classList.add('is-invalid');
                         modified.push(
                             [key, '.classList', '.remove(', "'is-invalid')"],
@@ -3070,7 +3091,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
-                                text: 'Terjadi Kesalahan.',
+                                text: ajaxErrorMessage(jqXHR, 'Terjadi Kesalahan.'),
                                 showCancelButton: false,
                                 showConfirmButton: true,
                                 confirmButtonText: 'Oke',
@@ -3134,7 +3155,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: 'Terjadi Kesalahan.',
+                            text: ajaxErrorMessage(jqXHR, 'Terjadi Kesalahan.'),
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',

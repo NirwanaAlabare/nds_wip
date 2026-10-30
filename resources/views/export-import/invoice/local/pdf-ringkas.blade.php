@@ -3,7 +3,7 @@
 
      Isinya sama dengan versi sebelumnya: baris digabung per produk, harga
      satuan tanpa Rp, kolom TOTAL, total qty, rekap Subtotal / potongan yang
-     terpakai / PPN / TOTAL, lalu Approved By - Yus Yulius / Exim Manager.
+     terpakai / PPN / TOTAL, lalu Approved By (penanda tangan dari InvoiceEximController::TTD_INVOICE).
      Tampilannya disamakan dengan PDF Debit Note di AR (reportdebitnote_v2):
      kop dengan blok nilai C-A-R-I-N-G, judul merah, tabel berkepala abu,
      TOTAL berlatar merah muda, pita merah + "Caring -" di kaki halaman.
@@ -197,11 +197,11 @@
         </tr>
         <tr>
             <td>&nbsp;</td>
-            <td class="tengah garis">Yus Yulius</td>
+            <td class="tengah garis">{{ $penanda['nama'] }}</td>
         </tr>
         <tr>
             <td>&nbsp;</td>
-            <td class="tengah">Exim Manager</td>
+            <td class="tengah">{{ $penanda['jabatan'] }}</td>
         </tr>
     </table>
 

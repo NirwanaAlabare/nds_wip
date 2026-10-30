@@ -15,11 +15,16 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
-class ExportReportFinishingProses implements FromView, ShouldAutoSize, WithEvents
+class ExportReportFinishingProses extends DefaultValueBinder implements FromView, ShouldAutoSize, WithEvents, WithCustomValueBinder, WithColumnFormatting
 {
     use Exportable;
-    protected $start_date, $end_date, $proses, $rowCount;
+    protected $start_date, $end_date, $proses, $rowCount, $rawData;
 
     public function __construct($start_date, $end_date, $proses)
     {
@@ -369,6 +374,7 @@ class ExportReportFinishingProses implements FromView, ShouldAutoSize, WithEvent
         }
 
         $this->rowCount = count($rawData) + 4; // 1 for header
+        $this->rawData = $rawData;
 
         return view('sewing.report.excel.export_report_finishing_proses', [
             'rawData' => $rawData,
@@ -378,11 +384,42 @@ class ExportReportFinishingProses implements FromView, ShouldAutoSize, WithEvent
         ]);
     }
 
+    // WS (D), Color (F) & Size (G) as text, data rows start after heading row 5
+    public function bindValue(Cell $cell, $value)
+    {
+        if (in_array($cell->getColumn(), ['D', 'F', 'G'], true) && $cell->getRow() > 5 && $value !== null) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'D' => NumberFormat::FORMAT_TEXT,
+            'F' => NumberFormat::FORMAT_TEXT,
+            'G' => NumberFormat::FORMAT_TEXT,
+        ];
+    }
+
     public function registerEvents(): array
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
+
+                // HTML reader collapses multiple spaces, rewrite text columns from original data
+                $row = 6;
+                foreach ($this->rawData ?? [] as $item) {
+                    foreach (['A' => 'proses', 'B' => 'line', 'C' => 'buyer', 'D' => 'no_ws', 'E' => 'style', 'F' => 'color', 'G' => 'size'] as $col => $field) {
+                        if ($item->$field !== null) {
+                            $sheet->setCellValueExplicit($col . $row, (string) $item->$field, DataType::TYPE_STRING);
+                        }
+                    }
+                    $row++;
+                }
 
                 $highestRow = $sheet->getHighestRow();
                 $highestColumn = $sheet->getHighestColumn(); // e.g. 'Z'

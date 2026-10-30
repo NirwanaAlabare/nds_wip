@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Sewing;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class DefectSewingInReportController extends Controller
 {
@@ -97,10 +102,17 @@ class DefectSewingInReportController extends Controller
         $start = $request->start_date; $end = $request->end_date;
         $data = collect($this->getDefectInData($start, $end, $request->buyer));
 
-        return Excel::download(new class($data, $start, $end) implements FromCollection, WithHeadings, WithStyles {
+        return Excel::download(new class($data, $start, $end) extends DefaultValueBinder implements FromCollection, WithHeadings, WithStyles, WithCustomValueBinder {
             protected $data, $start, $end;
             public function __construct($data, $start, $end) { $this->data = $data; $this->start = $start; $this->end = $end; }
             public function collection() { return $this->data; }
+            public function bindValue(Cell $cell, $value) {
+                if (in_array($cell->getColumn(), ['B', 'D', 'E'], true) && $cell->getRow() > 5 && $value !== null) {
+                    $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+                    return true;
+                }
+                return parent::bindValue($cell, $value);
+            }
             public function headings(): array {
                 return [ ["NIRWANA ALABARE GARMENT"], ["REPORT DEFECT SEWING (IN)"], ["Periode: $this->start s/d $this->end"], [""],
                     ["Buyer", "WS", "Style", "Color", "Size", "Jumlah Defect IN"] ];
@@ -109,6 +121,7 @@ class DefectSewingInReportController extends Controller
                 $sheet->mergeCells('A1:F1'); $sheet->mergeCells('A2:F2'); $sheet->mergeCells('A3:F3');
                 $sheet->getStyle('A1:A3')->applyFromArray(['font' => ['bold' => true], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
                 $sheet->getStyle('A5:F5')->applyFromArray(['font' => ['bold' => true], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
+                foreach (['B', 'D', 'E'] as $col) { $sheet->getStyle($col . '6:' . $col . $sheet->getHighestRow())->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT); }
             }
         }, 'Report_Defect_IN_'.date('Ymd_His').'.xlsx');
     }

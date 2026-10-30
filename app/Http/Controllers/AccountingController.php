@@ -51,7 +51,7 @@ class AccountingController extends Controller
         $nows = DB::connection('mysql_sb')->select("select DISTINCT no_ws from whs_mut_lokasi_h");
         $jenisdok = DB::connection('mysql_sb')->select("select DISTINCT nama_pilihan from masterpilihan where kode_pilihan in ('JENIS_DOK_IN','JENIS_DOK_OUT') and nama_pilihan like '%BC%' order by nama_pilihan asc");
 
-        return view("accounting.update-ceisa", ['nows' => $nows, 'jenisdok' => $jenisdok, "page" => "accounting"]);
+        return view("accounting.update-ceisa", ['nows' => $nows, 'jenisdok' => $jenisdok, "page" => "dashboard-export-import", "subPageGroup" => "export-import", "subPage" => "update-data-ceisa"]);
     }
 
     public function create()
@@ -78,7 +78,7 @@ class AccountingController extends Controller
 
         $jenisdok = DB::connection('mysql_sb')->select("select DISTINCT nama_pilihan from masterpilihan where kode_pilihan in ('JENIS_DOK_IN','JENIS_DOK_OUT') and nama_pilihan like '%BC%' order by nama_pilihan asc");
 
-        return view('accounting.create-update-ceisa', ['kode_gr' => $kode_gr,'no_ws' => $no_ws, 'jenisdok' => $jenisdok, 'page' => 'accounting']);
+        return view('accounting.create-update-ceisa', ['kode_gr' => $kode_gr,'no_ws' => $no_ws, 'jenisdok' => $jenisdok, 'page' => 'dashboard-export-import', 'subPageGroup' => 'export-import', 'subPage' => 'update-data-ceisa']);
     }
 
     public function getData(Request $request)

@@ -28,7 +28,7 @@
             <td style="border: 1px solid #000;">{{ $d->no_cut }} </td>
             <td style="border: 1px solid #000;">{{ $d->style }} </td>
             <td style="border: 1px solid #000;">{{ $d->color }} </td>
-            <td style="border: 1px solid #000;">{{ $d->part }} </td>
+            <td style="border: 1px solid #000;">{{ preg_replace('/\s+/', ' ', (string) $d->part) }} </td>
             <td style="border: 1px solid #000;">{{ $d->size }} </td>
             <td style="border: 1px solid #000;">{{ $d->qty_in }} </td>
         </tr>

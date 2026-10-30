@@ -60,105 +60,109 @@ class ExportLaporanRekonsiliasi implements FromView, WithEvents, ShouldAutoSize
         }
 
         $data = DB::connection('mysql_sb')->select("select a.*, COALESCE(b.keterangan,'-') keterangan_update from (select *, CASE
+            -- 0. Dokumen belum ada di Signalbit
+            WHEN status = 'Not Updated' THEN 'TIDAK ADA DI SIGNALBIT'
             -- 1. Semua sesuai
             WHEN ROUND(qty, 2) = ROUND(COALESCE(qty_sb, 0), 2)
             AND ROUND(total_idr, 2) = ROUND(COALESCE(total_sb_idr, 0), 2)
-            AND (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'SESUAI'
 
             -- 2. TOTAL CEISA kosong tapi data lain sesuai
             WHEN ROUND(qty, 2) = ROUND(COALESCE(qty_sb, 0), 2)
             AND ROUND(total_idr, 2) = 0 AND ROUND(COALESCE(total_sb_idr, 0), 2) > 0
-            AND (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'TOTAL CEISA KOSONG'
 
             -- 3. Total tidak sesuai (lebih dari ±1000)
             WHEN ROUND(qty, 2) = ROUND(COALESCE(qty_sb, 0), 2)
             AND (diff_total > 1000 OR diff_total < -1000)
             AND diff_total != 0
-            AND (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'TOTAL TIDAK SESUAI'
 
             -- 4. Total selisih pembulatan (kurang dari ±1000)
             WHEN ROUND(qty, 2) = ROUND(COALESCE(qty_sb, 0), 2)
             AND ABS(diff_total) < 1000
             AND diff_total != 0
-            AND (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'SELISIH PEMBULATAN'
 
             -- 5. Satuan tidak sesuai tapi total & qty sama
             WHEN ROUND(qty, 2) = ROUND(COALESCE(qty_sb, 0), 2)
             AND ROUND(total_idr, 2) = ROUND(COALESCE(total_sb_idr, 0), 2)
-            AND NOT (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND NOT COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'SATUAN TIDAK SESUAI'
 
             -- 6. Satuan tidak sesuai + TOTAL CEISA kosong
             WHEN ROUND(qty, 2) = ROUND(COALESCE(qty_sb, 0), 2)
             AND ROUND(total_idr, 2) = 0 AND ROUND(COALESCE(total_sb_idr, 0), 2) > 0
-            AND NOT (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND NOT COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'SATUAN TIDAK SESUAI, TOTAL CEISA KOSONG'
 
             -- 7. Satuan tidak sesuai + total selisih pembulatan
             WHEN ROUND(qty, 2) = ROUND(COALESCE(qty_sb, 0), 2)
             AND ABS(diff_total) < 1000 AND diff_total != 0
-            AND NOT (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND NOT COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'SATUAN TIDAK SESUAI, SELISIH PEMBULATAN'
 
             -- 8. Satuan dan total tidak sesuai (selisih besar)
             WHEN ROUND(qty, 2) = ROUND(COALESCE(qty_sb, 0), 2)
             AND ABS(diff_total) > 1000 AND diff_total != 0
-            AND NOT (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND NOT COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'SATUAN DAN TOTAL TIDAK SESUAI'
 
             -- 9. QTY selisih kecil + total sama + satuan sama
             WHEN ABS(diff_qty) < 1 AND diff_qty != 0
             AND ROUND(total_idr, 2) = ROUND(COALESCE(total_sb_idr, 0), 2)
-            AND (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'SELISIH PEMBULATAN'
 
             -- 10. QTY selisih kecil + total sama + satuan sama
             WHEN ABS(diff_qty) < 1 AND diff_qty != 0
             AND ABS(diff_total) < 1000
             AND diff_total != 0
-            AND (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'SELISIH PEMBULATAN'
 
             -- 11. QTY tidak sesuai + total sama
             WHEN ABS(diff_qty) >= 1
             AND ROUND(total_idr, 2) = ROUND(COALESCE(total_sb_idr, 0), 2)
-            AND (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'QTY TIDAK SESUAI'
 
             -- 11. QTY tidak sesuai + total sama
             WHEN ABS(diff_qty) >= 1
             AND ABS(diff_total) < 1000
             AND diff_total != 0
-            AND (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'QTY TIDAK SESUAI'
 
             -- 12. QTY tidak sesuai + TOTAL CEISA kosong
             WHEN ABS(diff_qty) >= 1
             AND ROUND(total_idr, 2) = 0 AND ROUND(COALESCE(total_sb_idr, 0), 2) > 0
-            AND (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'QTY TIDAK SESUAI, TOTAL CEISA KOSONG'
 
             -- 13. QTY tidak sesuai + total tidak sesuai
             WHEN ROUND(qty, 2) != ROUND(COALESCE(qty_sb, 0), 2)
             AND ROUND(total_idr, 2) != ROUND(COALESCE(total_sb_idr, 0), 2)
-            AND (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'QTY DAN TOTAL TIDAK SESUAI'
 
             -- 14. QTY dan satuan tidak sesuai, total sama
             WHEN ABS(diff_qty) >= 1
             AND ROUND(total_idr, 2) = ROUND(COALESCE(total_sb_idr, 0), 2)
-            AND NOT (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND NOT COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             THEN 'QTY DAN SATUAN TIDAK SESUAI'
 
             -- 15. QTY, satuan, dan total tidak sesuai
             WHEN ROUND(qty, 2) != ROUND(COALESCE(qty_sb, 0), 2)
-            AND NOT (satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(satuan_sb, ',', '|'))
+            AND NOT COALESCE(satuan_sb = satuan_ciesa OR satuan_ciesa REGEXP REPLACE(NULLIF(satuan_sb, ''), ',', '|'), 0)
             AND ROUND(total_idr, 2) != ROUND(COALESCE(total_sb_idr, 0), 2)
             THEN 'QTY, SATUAN DAN TOTAL TIDAK SESUAI'
+            -- kombinasi lain yang tidak tertangkap aturan di atas
+            ELSE 'TIDAK SESUAI'
             END AS status_kesesuaian from  (
             select kode_dokumen, no_aju, tgl_aju, a.no_daftar, a.tgl_daftar, ROUND(qty,2) qty, ROUND(total,2) total, ROUND(total_idr,2) total_idr, ROUND(COALESCE(qty_sb,0),2) qty_sb, ROUND(COALESCE(total_sb,0),2) total_sb, ROUND(COALESCE(total_sb_idr,0),2) total_sb_idr, ROUND(ROUND(qty,2) - ROUND(COALESCE(qty_sb,0),2),2) diff_qty, ROUND(ROUND(total_idr,2) - ROUND(COALESCE(total_sb_idr,0),2),2) diff_total, if(no_bpb is null,'-',no_bpb) no_bpb, IF(jenis_dok is null,'Not Updated','Updated') status, satuan_sb, satuan_sb_total, satuan_ciesa, satuan_ciesa_tampil, satuan_ciesa_total, nama_entitas, supplier from (select * from (SELECT CONCAT('BC ',GROUP_CONCAT(SUBSTRING(kode_dokumen,n,1) ORDER BY n SEPARATOR '.')) AS kode_dokumen,nomor_aju,no_aju,tgl_aju,no_daftar,tgl_daftar,qty,satuan_ciesa, satuan_ciesa_tampil, satuan_ciesa_total,total,total_idr, nama_entitas FROM (
             select kode_dokumen,nomor_aju,no_aju,tgl_aju,no_daftar,tgl_daftar,ROUND(SUM(qty),2) AS qty,satuan_sb kode_satuan,ROUND(SUM(total),2) AS total,ROUND(SUM(total_idr),2) AS total_idr, GROUP_CONCAT(DISTINCT satuan_sb SEPARATOR ', ') AS satuan_ciesa, GROUP_CONCAT(DISTINCT kode_satuan SEPARATOR ', ') AS satuan_ciesa_tampil, GROUP_CONCAT(CONCAT(kode_satuan, ' (', round(qty,2), ')') SEPARATOR ', ') satuan_ciesa_total, nama_entitas from (select a.*, b.satuan_sb from (select a.*, b.nama_entitas from (SELECT kode_dokumen,nomor_aju,no_aju,tgl_aju,no_daftar,tgl_daftar,ROUND(SUM(jumlah_satuan),2) AS qty,kode_satuan,ROUND(SUM(cif),2) AS total,ROUND(SUM(cif_rupiah),2) AS total_idr FROM (
@@ -178,7 +182,7 @@ class ExportLaporanRekonsiliasi implements FromView, WithEvents, ShouldAutoSize
             WHEN fil_aju IN (33) THEN (fob * ndpbm)
             ELSE '0'
             END AS cif_rupiah, kode_satuan
-            from (SELECT nomor_aju, LEFT(nomor_aju,6) + 0 fil_aju, kode_barang,uraian,jumlah_satuan,kode_satuan, cif,cif_rupiah,harga_satuan,ndpbm, fob, harga_penyerahan FROM exim_barang) a
+            from (SELECT nomor_aju, fil_aju, kode_barang,uraian,jumlah_satuan,kode_satuan, cif,cif_rupiah,harga_satuan,ndpbm, fob, harga_penyerahan FROM (select eb.*, (select MAX(eh.kode_dokumen) from exim_header eh where eh.nomor_aju = eb.nomor_aju) + 0 fil_aju from exim_barang eb) exim_barang) a
             ) b ON b.nomor_aju=a.nomor_aju
             ) a GROUP BY a.no_daftar, a.nomor_aju, kode_satuan) a LEFT JOIN
             (
@@ -196,7 +200,7 @@ INNER JOIN exim_header b
 WHERE
 (
     (
-        (LEFT(b.nomor_aju,6)+0) = 27
+        (b.kode_dokumen+0) = 27
         AND
         (
             -- Prioritas 1 : 3,3,6
@@ -221,12 +225,13 @@ WHERE
                       AND x.seri = '3'
                       AND x.kode_entitas = '3'
                       AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                 )
             )
 
             OR
 
-            -- Terakhir : 8,8,6
+            -- Berikutnya : 8,8,6
             (
                 a.seri = '8'
                 AND a.kode_entitas = '8'
@@ -239,6 +244,25 @@ WHERE
                       AND x.seri = '3'
                       AND x.kode_entitas IN ('3','8')
                       AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
+                )
+            )
+
+            OR
+
+            -- Terakhir : 1,3,6
+            (
+                a.seri = '1'
+                AND a.kode_entitas = '3'
+                AND a.kode_jenis_identitas = '6'
+                AND NOT EXISTS
+                (
+                    SELECT 1
+                    FROM exim_entitas x
+                    WHERE x.nomor_aju = a.nomor_aju
+                      AND ((x.seri = '3' AND x.kode_entitas IN ('3','8')) OR (x.seri = '8' AND x.kode_entitas = '8'))
+                      AND x.kode_jenis_identitas = '6'
+                      AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                 )
             )
         )
@@ -247,12 +271,14 @@ WHERE
     OR
 
     (
-        (LEFT(b.nomor_aju,6)+0) IN (25,41,261)
+        (b.kode_dokumen+0) IN (25,41,261)
         AND a.seri='8'
         AND a.kode_entitas='8'
         AND a.kode_jenis_identitas='6'
     )
 )
+-- Supplier Ceisa tidak pernah Nirwana sendiri (semua variasi tulisan)
+AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
 GROUP BY b.nomor_aju
 
     UNION
@@ -268,7 +294,7 @@ GROUP BY b.nomor_aju
     WHERE
     (
         (
-            (LEFT(b.nomor_aju,6)+0) IN (40,262)
+            (b.kode_dokumen+0) IN (40,262)
             AND
             (
                 (
@@ -289,12 +315,14 @@ GROUP BY b.nomor_aju
                           AND x.seri='3'
                           AND x.kode_entitas='9'
                           AND x.kode_jenis_identitas='6'
+                          AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
                     )
                 )
             )
         )
 
     )
+    AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
     GROUP BY b.nomor_aju
 
     UNION
@@ -311,18 +339,14 @@ GROUP BY b.nomor_aju
         a.seri <> '4'
         AND a.kode_entitas <> '4'
         AND a.kode_jenis_identitas <> '6'
-        AND (LEFT(b.nomor_aju,6)+0)=23
-        AND a.nama_entitas NOT IN
-        (
-            'PT NIRWANA ALABARE GARMENT',
-            'NIRWANA ALABARE GARMENT'
-        )
+        AND (b.kode_dokumen+0)=23
+        AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
     GROUP BY b.nomor_aju
 
     UNION
 
     /* BC 30,33 */
-     SELECT
+    SELECT
     b.nomor_aju,
     a.nomor_identitas,
     a.nama_entitas,
@@ -349,6 +373,7 @@ WHERE
               AND x.seri='8'
               AND x.kode_entitas='8'
               AND x.kode_jenis_identitas=''
+              AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
         )
     )
     OR
@@ -363,10 +388,12 @@ WHERE
               AND x.seri='8'
               AND x.kode_entitas='8'
               AND x.kode_jenis_identitas=''
+              AND x.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
         )
     )
 )
-AND (LEFT(b.nomor_aju,6)+0) IN (30,33)
+AND (b.kode_dokumen+0) IN (30,33)
+AND a.nama_entitas NOT LIKE '%NIRWANA ALABARE%'
 GROUP BY b.nomor_aju
 
 ) a) b on b.nomor_aju = a.nomor_aju) a LEFT JOIN (select satuan_ceisa, GROUP_CONCAT(satuan_sb) satuan_sb from mapping_satuan_ceisa GROUP BY satuan_ceisa) b on b.satuan_ceisa = a.kode_satuan) a GROUP BY a.no_daftar, a.nomor_aju) a JOIN ( SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) numbers ON n<=LENGTH(a.kode_dokumen) GROUP BY no_daftar, nomor_aju ORDER BY nomor_aju asc) a

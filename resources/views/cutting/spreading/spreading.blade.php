@@ -65,6 +65,7 @@
                             <th>Qty Ply</th>
                             <th>Ket.</th>
                             <th class="align-bottom" style="text-align: left !important;">Status</th>
+                            <th>Tipe</th>
                             <th>Plan</th>
                             <th>Created By</th>
                             <th>Created At</th>
@@ -404,6 +405,9 @@
                     data: 'status'
                 },
                 {
+                    data: 'tipe_form_cut'
+                },
+                {
                     data: 'tgl_plan'
                 },
                 {
@@ -492,7 +496,7 @@
                     }
                 },
                 {
-                    targets: [15, 16],
+                    targets: [16, 17],
                     className: "text-nowrap",
                     render: (data, type, row, meta) => {
                         let color = "";
@@ -604,8 +608,44 @@
         }
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        // Filter select option per kolom (index kolom => { id, options })
+        const selectFilters = {
+            12: {
+                id: 'status_filter',
+                options: [
+                    'SPREADING',
+                    'PENGERJAAN MARKER',
+                    'PENGERJAAN FORM CUTTING',
+                    'PENGERJAAN FORM CUTTING DETAIL',
+                    'PENGERJAAN FORM CUTTING SPREAD',
+                    'SELESAI PENGERJAAN',
+                ],
+            },
+            13: {
+                id: 'tipe_form_cut_filter',
+                options: ['NORMAL', 'PILOT', 'MANUAL'],
+            },
+        };
+
         $('#datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0 && i != 9 && i != 10 && i != 12) {
+            if (selectFilters[i]) {
+                let selectFilter = selectFilters[i];
+
+                let selectOptions = '<option value="">Semua</option>';
+                selectFilter.options.forEach(option => {
+                    selectOptions += '<option value="' + option + '">' + option + '</option>';
+                });
+
+                $(this).html('<select class="form-select form-select-sm" id="' + selectFilter.id + '">' + selectOptions + '</select>');
+
+                $('select', this).on('change', function() {
+                    // regex ^...$ (exact match) supaya "PENGERJAAN FORM CUTTING" tidak ikut menarik "...DETAIL" / "...SPREAD"
+                    datatable
+                        .column(i)
+                        .search(this.value ? '^' + this.value + '$' : '', true, false)
+                        .draw();
+                });
+            } else if (i != 0 && i != 9 && i != 10) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm"/>');
 

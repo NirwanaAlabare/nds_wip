@@ -160,6 +160,10 @@
                     @include('export-import.exim-nav')
                 @endif
 
+                @if ($page == 'dashboard-master-data')
+                    @include('master-data.master-data-nav')
+                @endif
+
                 @if ($page == 'dashboard-whs-soljer')
                     @include('whs-soljer.soljer-nav')
                 @endif
@@ -300,12 +304,15 @@
                                 <a href="{{ route('lap-mutasi-barcode') }}" class="dropdown-item">
                                     Mutasi Barcode
                                 </a>
+                                <div class="dropdown-divider"></div>
                                 @if (auth()->check() && in_array(auth()->user()->username, \App\Http\Controllers\RekonsiliasiMutasiController::ALLOWED_USERNAMES, true))
-                                    <div class="dropdown-divider"></div>
                                     <a href="{{ route('rekonsiliasi-mutasi') }}" class="dropdown-item">
                                         <i class="fas fa-balance-scale fa-sm"></i> Rekonsiliasi Mutasi
                                     </a>
                                 @endif
+                                <a href="{{ route('barcode-rak') }}" class="dropdown-item">
+                                    <i class="fas fa-barcode fa-sm"></i> Barcode per Rak
+                                </a>
                             </li>
                         </ul>
                     </li>
@@ -939,8 +946,7 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}"><i
-                                class="fa-solid fa-toolbox"></i></a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic_tools' ? 'active' : '' }}">Tools</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('wip-adjustment') }}"
@@ -1180,11 +1186,6 @@
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                             class="nav-link dropdown-toggle">Proses</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
-                            <li>
-                                <a href="{{ route('update-data-ceisa') }}" class="dropdown-item">
-                                    Update Data Ceisa
-                                </a>
-                            </li>
                             <li>
                                 <a href="{{ route('lock') }}" target="_blank" class="dropdown-item">
                                     Master Data Closing

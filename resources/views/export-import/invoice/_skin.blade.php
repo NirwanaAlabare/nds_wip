@@ -1284,6 +1284,16 @@
 }
 .nag-skin .btn-dn-kosongkan:hover:not(:disabled) { background: #fecaca; color: #7f1d1d; }
 
+/* Tambah satu baris Invoice Summary. Sengaja netral - bukan merah (di layar
+   ini merah berarti membuang) dan bukan biru tua seperti Add SJ / WS, yang
+   tetap jadi tombol utama kartunya. */
+.nag-skin .btn-dn-tambah {
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #1e3a5f;
+}
+.nag-skin .btn-dn-tambah:hover:not(:disabled) { background: #e2e8f0; color: #1e3a5f; }
+
 /* Tabel detail saat masih kosong */
 .nag-skin .dn-table tbody td.dn-kosong {
   text-align: center;
@@ -1560,16 +1570,32 @@
 }
 .nag-skin #inv-table-ringkas tbody td { vertical-align: middle; }
 .nag-skin #inv-table-ringkas .form-control { width: 100%; }
+/* Kolom 11 (aksi) sempit saja - isinya cuma tombol buang baris tambahan.
+   Ruangnya diambil sedikit-sedikit dari kolom lain supaya tabelnya tetap muat
+   tanpa geser ke samping. */
 .nag-skin #inv-table-ringkas th:nth-child(1)  { width: 3%; }
-.nag-skin #inv-table-ringkas th:nth-child(2)  { width: 9%; }
-.nag-skin #inv-table-ringkas th:nth-child(3)  { width: 13.5%; }
-.nag-skin #inv-table-ringkas th:nth-child(4)  { width: 15%; }
-.nag-skin #inv-table-ringkas th:nth-child(5)  { width: 11.5%; }
-.nag-skin #inv-table-ringkas th:nth-child(6)  { width: 9.5%; }
-.nag-skin #inv-table-ringkas th:nth-child(7)  { width: 9.5%; }
-.nag-skin #inv-table-ringkas th:nth-child(8)  { width: 6%; }
-.nag-skin #inv-table-ringkas th:nth-child(9)  { width: 11.5%; }
-.nag-skin #inv-table-ringkas th:nth-child(10) { width: 11.5%; }
+.nag-skin #inv-table-ringkas th:nth-child(2)  { width: 8.5%; }
+.nag-skin #inv-table-ringkas th:nth-child(3)  { width: 13%; }
+.nag-skin #inv-table-ringkas th:nth-child(4)  { width: 14%; }
+.nag-skin #inv-table-ringkas th:nth-child(5)  { width: 11%; }
+.nag-skin #inv-table-ringkas th:nth-child(6)  { width: 9%; }
+.nag-skin #inv-table-ringkas th:nth-child(7)  { width: 9%; }
+.nag-skin #inv-table-ringkas th:nth-child(8)  { width: 5.5%; }
+.nag-skin #inv-table-ringkas th:nth-child(9)  { width: 11%; }
+.nag-skin #inv-table-ringkas th:nth-child(10) { width: 11%; }
+.nag-skin #inv-table-ringkas th:nth-child(11) { width: 5%; }
+/* Tombol buang baris tambahan. */
+.nag-skin #inv-table-ringkas .dn-ringkas-buang {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.nag-skin #inv-table-ringkas tbody td:nth-child(11) { text-align: center; }
 
 
 /* ---- Invoice Summary: semua sel kotak isian ----
@@ -1578,6 +1604,7 @@
    Tab - jadi Tab langsung lompat antar kotak yang memang perlu diketik. */
 .nag-skin #inv-table-ringkas thead th:nth-child(1) { text-align: center; }
 .nag-skin #inv-table-ringkas thead th:nth-child(n+4) { text-align: right; }
+.nag-skin #inv-table-ringkas thead th:nth-child(11) { text-align: center; }
 .nag-skin #inv-table-ringkas tbody td { padding: 5px 6px; }
 .nag-skin #inv-table-ringkas .form-control {
   height: 32px !important;
@@ -3184,5 +3211,114 @@
   .nag-skin .dn-kepala-tombol .btn { flex: 1 1 0; }
   .nag-skin .dn-filter-tombol { width: 100%; }
   .nag-skin .dn-filter-tombol .btn { flex: 1 1 0; }
+}
+
+/* Kolom nilai TAGIH di daftar Add SJ. Knitting punya dua angka - kirim &
+   tagih - dan keduanya perlu terbaca berdampingan, seperti layar knitting AR
+   lama. Garment tidak punya nilai tagih, jadi kolomnya disembunyikan supaya
+   tabelnya tidak melebar tanpa guna.
+
+   Selektornya disamakan dengan modal Add WS - kelasnya memang belum dipakai
+   di sana, tapi kalau nanti WS ikut punya dua nilai, gayanya sudah sama. */
+:is(#modal-add-so,#modal-add-ws) .dn-kol-tagih { display: none; }
+:is(#modal-add-so,#modal-add-ws).is-knit .dn-kol-tagih { display: table-cell; }
+/* Dibedakan tipis dari kolom kirim di sebelahnya - sekilas kelihatan mana
+   yang mana, tanpa harus membaca judul kolomnya lagi. */
+:is(#modal-add-so,#modal-add-ws).is-knit thead .dn-kol-tagih { color: #0f766e; }
+:is(#modal-add-so,#modal-add-ws).is-knit tbody .dn-kol-tagih { background: #f0fdfa; }
+
+/* Kolom nilai TAGIH di tabel Detail SJ halaman utama. Aturannya sama dengan
+   di modal: disembunyikan sampai ada baris yang memang punya nilai tagih,
+   penandanya kelas is-knit di tabelnya sendiri. */
+:is(#inv-table-sj,#inv-rekap-tabel) .dn-sel-tagih { display: none; }
+:is(#inv-table-sj,#inv-rekap-tabel).is-knit .dn-sel-tagih { display: table-cell; }
+:is(#inv-table-sj,#inv-rekap-tabel).is-knit thead .dn-sel-tagih { color: #0f766e; }
+:is(#inv-table-sj,#inv-rekap-tabel).is-knit tbody .dn-sel-tagih { background: #f0fdfa; }
+/* Rekap Export: Grand Total ada di tfoot, jadi ikut diurus terpisah. */
+#inv-rekap-tabel.is-knit tfoot .dn-sel-tagih { display: table-cell; }
+
+/* Rekap Invoice Local waktu knitting: SATU kartu dengan dua kolom angka -
+   Shipment & Billing - sejajar baris demi baris. Dibuat begini, bukan dua
+   kartu bersebelahan: kartu terpisah tingginya ikut isinya masing-masing,
+   jadi barisnya tidak akan pernah lurus. */
+.dn-ringkas .dn-nilai-tagih,
+.dn-ringkas .dn-judul-nilai { display: none; }
+.dn-ringkas.is-dua-nilai .dn-nilai-tagih { display: block; }
+.dn-ringkas.is-dua-nilai .dn-judul-nilai { display: flex; }
+/* Label & kedua angkanya dibagi tiga sama rata. Label tidak perlu selebar
+   waktu cuma satu angka - ruangnya lebih berguna untuk angkanya. */
+.dn-ringkas.is-dua-nilai .col-sm-5,
+.dn-ringkas.is-dua-nilai .dn-nilai-kirim,
+.dn-ringkas.is-dua-nilai .dn-nilai-tagih {
+  flex: 0 0 33.3333%;
+  max-width: 33.3333%;
+}
+.dn-ringkas .dn-judul-nilai > div {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #64748b;
+  text-align: right;
+  padding-bottom: 2px;
+}
+.dn-ringkas .dn-judul-nilai .dn-nilai-tagih { color: #0f766e; }
+/* Angka Billing diberi latar tipis - sama penandanya dengan kolom tagih di
+   tabel, jadi satu arti satu warna di seluruh layar. */
+.dn-ringkas.is-dua-nilai .dn-nilai-tagih .form-control { background: #f0fdfa; }
+/* Kartunya ikut melebar sedikit - dua kolom angka tidak muat di lebar untuk
+   satu, tapi jangan sampai separuh layar jadi ruang kosong. */
+@media (min-width: 992px) {
+  #inv-rekap-kolom.is-dua-nilai { flex: 0 0 50%; max-width: 50%; }
+}
+
+/* Panel detail di daftar: aturannya sama - nilai tagih muncul cuma kalau
+   invoicenya memang punya, supaya invoice garment tidak ikut melebar. */
+#det-tabel .det-sel-tagih { display: none; }
+#det-tabel.is-knit .det-sel-tagih { display: table-cell; }
+#det-tabel.is-knit thead .det-sel-tagih { color: #0f766e; }
+#det-tabel.is-knit tbody .det-sel-tagih { background: #f0fdfa; }
+/* Ringkasannya: satu baris label + dua angka, sejajar seperti di layar Create. */
+#det-ringkas > div,
+#det-ringkas-grand > div { display: flex; align-items: baseline; }
+#det-ringkas > div > span,
+#det-ringkas-grand > div > span { flex: 1 1 auto; }
+#det-ringkas > div > b,
+#det-ringkas-grand > div > b { flex: 0 0 110px; text-align: right; }
+#det-ringkas .det-nilai-tagih,
+#det-ringkas-grand .det-nilai-tagih { color: #0f766e; }
+#det-ringkas .det-judul-nilai b {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+#det-ringkas .det-judul-nilai .det-nilai-tagih { color: #0f766e; }
+
+/* Ketentuan SJ yang bisa ditarik - mengisi ruang kosong di sebelah Invoice
+   Summary di modal Add SJ, jadi aturannya terbaca tepat waktu user memilih. */
+:is(#modal-add-so,#modal-add-ws) .dn-ketentuan .card-body { padding: 10px 14px 6px; }
+:is(#modal-add-so,#modal-add-ws) .dn-ket-judul {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #1e3a5f;
+  margin-bottom: 4px;
+}
+:is(#modal-add-so,#modal-add-ws) .dn-ket-judul-2 { margin-top: 10px; }
+:is(#modal-add-so,#modal-add-ws) ul.dn-ket {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: #475569;
+}
+:is(#modal-add-so,#modal-add-ws) ul.dn-ket li { margin-bottom: 2px; }
+:is(#modal-add-so,#modal-add-ws) ul.dn-ket b { color: #1e3a5f; font-weight: 600; }
+/* Layar sempit: kedua kolomnya menumpuk, jangan sampai berdempetan. */
+@media (max-width: 767.98px) {
+  :is(#modal-add-so,#modal-add-ws) .dn-ket-kolom + .dn-ket-kolom { margin-top: 10px; }
 }
 </style>

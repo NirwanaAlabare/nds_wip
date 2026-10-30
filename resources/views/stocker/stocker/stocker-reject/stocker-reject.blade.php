@@ -144,10 +144,10 @@
                     targets: [7],
                     render: (data, type, row, meta) => {
                         if (data == 0) {
-                            return "<span class='text-danger fw-bold'>EXHAUSTED</span"
+                            return "<span class='text-danger fw-bold'>HABIS</span"
                         }
 
-                        return "<span class='text-success fw-bold'>AVAILABLE</span";
+                        return "<span class='text-success fw-bold'>TERSEDIA</span";
                     }
                 },
                 {

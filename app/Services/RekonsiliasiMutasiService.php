@@ -26,7 +26,7 @@ class RekonsiliasiMutasiService
     const CACHE_TTL = 21600; // 6 jam
     const LOCK_TTL = 1800;
     // Naikkan bila isi hasil hitungan berubah, supaya cache lama tidak terpakai
-    const CACHE_VERSION = 2;
+    const CACHE_VERSION = 3;   // 3: Pemasukan Detail Item menjumlahkan baris detail item yang sama
 
     // groups = pengelompokan yang dibutuhkan untuk perbandingan (lihat edges())
     public static function reports()

@@ -26,6 +26,8 @@
         <th style="font-weight: 800;">Shade</th>
         <th style="font-weight: 800;">Ratio</th>
         <th style="font-weight: 800;">Stocker Range</th>
+        <th style="font-weight: 800;">Created By</th>
+        <th style="font-weight: 800;">Updated By</th>
     </tr>
     @php
         $total = 0;
@@ -57,6 +59,8 @@
             <td>{{ $stock->shade }}</td>
             <td>{{ $stock->ratio }}</td>
             <td>{{ $stock->stocker_range }}</td>
+            <td>{{ $stock->created_by_username }}</td>
+            <td>{{ $stock->updated_by_username }}</td>
         </tr>
     @endforeach
     <tr>

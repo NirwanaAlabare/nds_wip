@@ -188,7 +188,7 @@
                 var blob = new Blob([response]);
                 var link = document.createElement('a');
                 link.href = window.URL.createObjectURL(blob);
-                link.download = "Laporan Mutasi Subcont Packing Dari  " + from + " sampai " +
+                link.download = "Laporan Data BC Signalbit Dari  " + from + " sampai " +
                 to + ".xlsx";
                 link.click();
 

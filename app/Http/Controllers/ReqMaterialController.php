@@ -302,10 +302,7 @@ class ReqMaterialController extends Controller
         //         having sum(a.qty_in) - sum(a.qty_out) >'0'");
         // }
 
-        $det_item = DB::connection('mysql_sb')->select("WITH
-stok as (select a.id_item, a.kpno, b.jo_no, c.goods_code, a.id_jo, c.mattype, c.matclass, c.itemdesc, sum(sal_akhir) qty_bpb, 0 qty_bppb, sum(sal_akhir) qty_stok, satuan unit from data_stock_fabric a INNER JOIN jo b on a.id_jo = b.id INNER JOIN masteritem c on c.id_item = a.id_item where a.id_jo = '" . $request->id_jo . "' GROUP BY a.id_jo, a.id_item),
-request as (select id_item, id_jo, sum(qty) qty, sum(coalesce(qty_out,0)) qty_out from bppb_req where bppbno like '%RQ-F%' and cancel = 'N' and bppbdate >='2025-01-01' and id_jo = '" . $request->id_jo . "' GROUP BY id_item, id_jo)
-select a.*, b.qty qty_br, b.qty_out qty_br_out, (COALESCE(b.qty,0) - COALESCE(b.qty_out,0)) sisa_req, (COALESCE(qty_stok,0) - (COALESCE(b.qty,0) - COALESCE(b.qty_out,0))) sisa_stok from stok a LEFT JOIN request b on a.id_jo = b.id_jo and a.id_item = b.id_item");
+        $det_item = $this->stokRequest($request->id_jo);
 
 
         $html = '';
@@ -324,7 +321,7 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (COALESCE(b.qty,0) - COALESCE(b.
                     $sisareq = 0;
                 }
                 $qty_sisa = $detitem->qty_stok ? $detitem->qty_stok : 0;
-                $qty_sekarang = $qty_sisa - $sisareq;
+                $qty_sekarang = $this->qtySisa($detitem);
                 if ($qty_sekarang > 0) {
                     $status = '';
                 }else{
@@ -338,10 +335,10 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (COALESCE(b.qty,0) - COALESCE(b.
                 <td >'.$detitem->itemdesc.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="itemdesc'.$x.'" name="itemdesc['.$x.']" value="'.$detitem->itemdesc.'" / readonly></td>
                 <td class="text-right d-none">'.$detitem->qty_bpb.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_bpb'.$x.'" name="qty_bpb['.$x.']" value="'.$detitem->qty_bpb.'" / readonly></td>
                 <td class="text-right d-none">'.$detitem->qty_bppb.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_bppb'.$x.'" name="qty_bppb['.$x.']" value="'.$detitem->qty_bppb.'" / readonly></td>
-                <td class="text-right">'.$detitem->sisa_stok.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="sisa_stok'.$x.'" name="sisa_stok['.$x.']" value="'.$detitem->sisa_stok.'" / readonly></td>
+                <td class="text-right">'.$detitem->qty_stok.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="sisa_stok'.$x.'" name="sisa_stok['.$x.']" value="'.$detitem->sisa_stok.'" / readonly></td>
                 <td class="text-right">'.$sisareq.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="sisa_req'.$x.'" name="sisa_req['.$x.']" value="'.$sisareq.'" / readonly></td>
                 <td class="text-right">'.$qty_sekarang.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="qty_sekarang'.$x.'" name="qty_sekarang['.$x.']" value="'.$qty_sekarang.'" / readonly></td>
-                <td><input style="width:90px;text-align:right;" class="form-control" type="text" id="qty_request'.$x.'" name="qty_request['.$x.']" onkeyup="tambahqty()" / '.$status.'></td>
+                <td><input style="width:90px;text-align:right;" class="form-control input-qty-request" type="text" id="qty_request'.$x.'" name="qty_request['.$x.']" data-max="'.$qty_sekarang.'" data-item="'.e($detitem->itemdesc).'" data-unit="'.e($detitem->unit).'" onkeyup="tambahqty(); cekQtyRequest(this)" / '.$status.'></td>
                 <td >'.$detitem->unit.' <input style="width:100%;align:center;" class="form-control" type="hidden" id="unit'.$x.'" name="unit['.$x.']" value="'.$detitem->unit.'" / readonly></td>
                 <td hidden> <input type="hidden" id="id_jo'.$x.'" name="id_jo['.$x.']" value="'.$detitem->id_jo.'" / readonly></td>
                 </tr>';
@@ -359,6 +356,48 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (COALESCE(b.qty,0) - COALESCE(b.
         return $html;
     }
 
+
+    // Stok barcode (view data_stock_fabric, dihitung per barcode sampai hari ini) per item untuk satu JO,
+    // beserta request RQ-F yang belum keluar. Dipakai tabel detail dan validasi simpan / edit supaya angkanya sama.
+    private function stokRequest($idJo)
+    {
+        return DB::connection('mysql_sb')->select("WITH
+stok as (select a.id_item, a.kpno, b.jo_no, c.goods_code, a.id_jo, c.mattype, c.matclass, c.itemdesc, round(sum(sal_akhir),2) qty_bpb, 0 qty_bppb, round(sum(sal_akhir),2) qty_stok, satuan unit from data_stock_fabric a INNER JOIN jo b on a.id_jo = b.id INNER JOIN masteritem c on c.id_item = a.id_item where a.id_jo = ? GROUP BY a.id_jo, a.id_item),
+request as (select id_item, id_jo, sum(qty) qty, sum(coalesce(qty_out,0)) qty_out from bppb_req where bppbno like '%RQ-F%' and cancel = 'N' and bppbdate >='2025-01-01' and id_jo = ? GROUP BY id_item, id_jo)
+select a.*, b.qty qty_br, b.qty_out qty_br_out, (COALESCE(b.qty,0) - COALESCE(b.qty_out,0)) sisa_req, (COALESCE(qty_stok,0) - (COALESCE(b.qty,0) - COALESCE(b.qty_out,0))) sisa_stok from stok a LEFT JOIN request b on a.id_jo = b.id_jo and a.id_item = b.id_item", [$idJo, $idJo]);
+    }
+
+    // Qty Sisa = stok barcode - request yang belum keluar (minimal 0 untuk bagian request)
+    private function qtySisa($row)
+    {
+        return round((float) ($row->qty_stok ?? 0) - max((float) ($row->sisa_req ?? 0), 0), 2);
+    }
+
+    // Daftar item yang qty request-nya melebihi Qty Sisa. $qtyLama = qty request ini sebelum diedit (per id_jo|id_item),
+    // dikembalikan ke Qty Sisa karena sudah ikut terhitung sebagai request yang belum keluar.
+    private function qtyMelebihiStok(array $baris, array $qtyLama = [])
+    {
+        $stok = [];
+        $lebih = [];
+        foreach ($baris as $b) {
+            $qty = round((float) $b['qty'], 2);
+            $kunci = $b['id_jo'] . '|' . $b['id_item'];
+            $lama = (float) ($qtyLama[$kunci] ?? 0);
+            if ($qty <= 0 || $qty <= $lama) {
+                continue;
+            }
+            if (! isset($stok[$b['id_jo']])) {
+                $stok[$b['id_jo']] = collect($this->stokRequest($b['id_jo']))->keyBy('id_item');
+            }
+            $row = $stok[$b['id_jo']]->get($b['id_item']);
+            $sisa = round(($row ? $this->qtySisa($row) : 0) + $lama, 2);
+            if ($qty > $sisa) {
+                $lebih[] = '<li>' . e($row->itemdesc ?? $b['id_item']) . ': request <b>' . $qty . '</b>, Qty Sisa <b>' . $sisa . '</b> ' . e($row->unit ?? '') . '</li>';
+            }
+        }
+
+        return $lebih;
+    }
 
     public function sumdetail(Request $request)
     {
@@ -415,6 +454,16 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
         $supplierName = $supplier ? strtoupper(preg_replace('/\s*-\s*/', ' ', trim($supplier->Supplier))) : '';
         if (str_contains($supplierName, 'PRODUCTION CUTTING') && empty($request['ws_act'])) {
             return ['status' => 400, 'message' => 'WS Actual # wajib diisi untuk Dikirim Ke Production Cutting.', 'additional' => [], 'redirect' => ''];
+        }
+
+        // Qty request tidak boleh melebihi Qty Sisa (stok barcode terkini - request yang belum keluar)
+        $baris = [];
+        for ($i = 1; $i <= intval($request['jumlah_data']); $i++) {
+            $baris[] = ['id_jo' => $request['id_jo'][$i] ?? null, 'id_item' => $request['id_item'][$i] ?? null, 'qty' => $request['qty_request'][$i] ?? 0];
+        }
+        $lebih = $this->qtyMelebihiStok($baris);
+        if ($lebih) {
+            return ['status' => 400, 'message' => 'Qty request melebihi Qty Sisa:<ul style="text-align:left;margin:8px 0 0">' . implode('', $lebih) . '</ul>', 'additional' => [], 'redirect' => ''];
         }
 
         $tglbpb = $request['txt_tgl_gr'];
@@ -556,6 +605,20 @@ select a.*, b.qty qty_br, b.qty_out qty_br_out, (b.qty - b.qty_out) sisa_req, (q
         $supplierName = $supplier ? strtoupper(preg_replace('/\s*-\s*/', ' ', trim($supplier->Supplier))) : '';
         if (str_contains($supplierName, 'PRODUCTION CUTTING') && empty($request['ws_act'])) {
             return ['status' => 400, 'message' => 'WS Actual # wajib diisi untuk Dikirim Ke Production Cutting.', 'additional' => [], 'redirect' => ''];
+        }
+
+        // Qty yang dinaikkan tidak boleh melebihi Qty Sisa (qty lama request ini dikembalikan dulu ke Qty Sisa)
+        $qtyLama = [];
+        foreach (DB::connection('mysql_sb')->select("select id_jo, id_item, sum(qty) qty from bppb_req where bppbno = ? and cancel = 'N' group by id_jo, id_item", [$request['no_req']]) as $r) {
+            $qtyLama[$r->id_jo . '|' . $r->id_item] = $r->qty;
+        }
+        $baris = [];
+        for ($i = 1; $i <= intval($request['txt_jmldet']); $i++) {
+            $baris[] = ['id_jo' => $request['id_jo'][$i] ?? null, 'id_item' => $request['id_item'][$i] ?? null, 'qty' => $request['qty_input'][$i] ?? 0];
+        }
+        $lebih = $this->qtyMelebihiStok($baris, $qtyLama);
+        if ($lebih) {
+            return ['status' => 400, 'message' => 'Qty request melebihi Qty Sisa:<ul style="text-align:left;margin:8px 0 0">' . implode('', $lebih) . '</ul>', 'additional' => [], 'redirect' => ''];
         }
 
         DB::connection('mysql_sb')->enableQueryLog();

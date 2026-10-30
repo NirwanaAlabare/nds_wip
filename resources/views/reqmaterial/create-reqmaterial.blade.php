@@ -327,7 +327,37 @@
                 table.page.len(-1).draw(false);
             }
 
+            let lebih = [];
+            $('#datatable .input-qty-request').each(function () {
+                cekQtyRequest(this);
+                if (qtyRequestLebih(this)) {
+                    lebih.push('<li>' + $('<div>').text(this.dataset.item).html() + ': request <b>' + this.value + '</b>, Qty Sisa <b>' + this.dataset.max + '</b> ' + $('<div>').text(this.dataset.unit).html() + '</li>');
+                }
+            });
+            if (lebih.length > 0) {
+                evt.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Qty Melebihi Qty Sisa',
+                    html: '<ul style="text-align:left;margin-top:10px;">' + lebih.join('') + '</ul>'
+                });
+                return;
+            }
+
             submitForm(e, evt);
+        }
+
+        // Qty request tidak boleh melebihi Qty Sisa (stok barcode - request yang belum keluar)
+        function qtyRequestLebih(el) {
+            const qty = parseFloat(el.value) || 0;
+            const max = parseFloat(el.dataset.max) || 0;
+            return qty > 0 && Math.round(qty * 100) > Math.round(max * 100);
+        }
+
+        function cekQtyRequest(el) {
+            const lebih = qtyRequestLebih(el);
+            el.classList.toggle('is-invalid', lebih);
+            el.title = lebih ? 'Melebihi Qty Sisa (' + el.dataset.max + ')' : '';
         }
 
         $("#color").prop("disabled", true);
@@ -378,6 +408,7 @@
                 pageLength: 10,
                 searching: true,
                 autoWidth: false,
+                language: { emptyTable: 'Tidak ada data ditemukan' },
                 dom: "lfrtip",
                 columnDefs: [{
                     targets: [3],
@@ -474,6 +505,13 @@
         success: function (res) {
             if (res) {
                 console.log("Isi <tr> dari server:", res);
+
+                // Baris "Tidak ada data ditemukan" dari server memakai colspan, padahal DataTables butuh satu
+                // sel per kolom (error _DT_CellIndex). Baris itu tidak dimasukkan; pesan kosong ditampilkan
+                // DataTables sendiri (language.emptyTable).
+                res = $('<tbody>').html(res).children('tr').filter(function () {
+                    return $(this).children('td[colspan]').length === 0;
+                });
 
                 // kalau DataTable sudah ada
                 if ($.fn.DataTable.isDataTable("#datatable")) {
@@ -793,7 +831,7 @@
                     no_ws: no_ws,
                 },
                 success: function (res) {
-                    if (res) {
+                    if (res && res.length) {
                         console.log(res);
                         document.getElementById('style_act').value = res[0].styleno;
                     }

@@ -13,9 +13,15 @@ use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
 use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
 use PhpOffice\PhpSpreadsheet\Chart\Legend;
 use PhpOffice\PhpSpreadsheet\Chart\Title;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use DB;
 
-class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitle
+class DefectRateExport extends DefaultValueBinder implements FromView, ShouldAutoSize, WithCharts, WithTitle, WithCustomValueBinder, WithColumnFormatting
 {
     protected $query;
     protected $dateFrom;
@@ -44,6 +50,25 @@ class DefectRateExport implements FromView, ShouldAutoSize, WithCharts, WithTitl
     public function title(): string
     {
         return 'DefectRate';
+    }
+
+    // WS (D) & Color (E) as text, data rows start after heading row 6
+    public function bindValue(Cell $cell, $value)
+    {
+        if (in_array($cell->getColumn(), ['D', 'E'], true) && $cell->getRow() > 6 && $value !== null) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'D' => NumberFormat::FORMAT_TEXT,
+            'E' => NumberFormat::FORMAT_TEXT,
+        ];
     }
 
     public function view(): View

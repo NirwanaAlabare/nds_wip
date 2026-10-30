@@ -18,6 +18,9 @@ return [
     'except' => [
         'telescope*',
         'horizon*',
+        // dashboard TV: debugbar menyimpan riwayat tiap ajax di browser (memori terus naik)
+        'dashboard-wip/wip-line*',
+        'api/trigger-wip-line*',
     ],
 
     /*

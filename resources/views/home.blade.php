@@ -463,6 +463,13 @@
         </a>
         @endrole
 
+        @role('master_data')
+        <a href="{{ route('dashboard-master-data') }}" class="menu-card">
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/master_data.png') }}" alt="master data"></div>
+            <span class="menu-label">Master Data</span>
+        </a>
+        @endrole
+
         @role('ppic')
         <a href="{{ route('dashboard-ppic') }}" class="menu-card">
             <div class="menu-img-wrap"><img src="{{ asset('dist/img/ppic.png') }}" alt="ppic"></div>

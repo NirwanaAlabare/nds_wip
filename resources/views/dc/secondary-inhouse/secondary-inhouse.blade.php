@@ -156,14 +156,14 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Reject</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreject' name='txtqtyreject' value = '' oninput='sum();' style = 'border-color:blue;'>
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyreject' name='txtqtyreject' value = '' oninput='sum();' onchange='sum()' style = 'border-color:blue;'>
                                 </div>
                             </div>
 
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Replacement</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreplace' name='txtqtyreplace' value = '0' oninput='sum();' style = 'border-color:blue;'>
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyreplace' name='txtqtyreplace' value = '0' oninput='sum();' onchange='sum()' style = 'border-color:blue;'>
                                 </div>
                             </div>
                             <div class='col-sm-3'>

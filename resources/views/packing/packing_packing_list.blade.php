@@ -622,14 +622,16 @@
         function getdatapo() {
             document.getElementById('file').value = "";
             let po = document.form_upload.cbopo.value;
-            if (!cbopo) {
+            if (!po) {
                 document.getElementById('txtbuyer').value = '';
                 document.getElementById('txtpo').value = '';
                 document.getElementById('txtstyle').value = '';
                 document.getElementById('txtdest').value = '';
             } else {
-                let cbopo = po.split('_')[0];
-                let dest = po.split('_')[1];
+                // po bisa mengandung '_' (cth: 8NAG262_0501_004), jadi split di '_' terakhir
+                let idx = po.lastIndexOf('_');
+                let cbopo = po.substring(0, idx);
+                let dest = po.substring(idx + 1);
                 console.log(po);
                 $.ajax({
                     url: '{{ route('show_det_po') }}',

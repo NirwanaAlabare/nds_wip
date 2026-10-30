@@ -7,6 +7,11 @@ use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use DB;
@@ -15,7 +20,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
 });
 
-class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
+class OrderOutputExport extends DefaultValueBinder implements FromView, WithEvents, ShouldAutoSize, WithCustomValueBinder
 {
     protected $dateFrom;
     protected $dateTo;
@@ -35,6 +40,24 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
         $this->buyer = $buyer;
         $this->colAlphabet = '';
         $this->rowCount = 0;
+    }
+
+    protected $data;
+
+    // WS (A), Style (B), Color (C) & Size (E) as text, data rows start after heading row 3
+    protected function textColumns()
+    {
+        return $this->groupBy == 'size' ? ['A', 'B', 'C', 'E'] : ['A', 'B', 'C'];
+    }
+
+    public function bindValue(Cell $cell, $value)
+    {
+        if (in_array($cell->getColumn(), $this->textColumns(), true) && $cell->getRow() > 3 && $cell->getRow() < $this->rowCount && $value !== null) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
     }
 
     public function view(): View
@@ -182,6 +205,7 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
             $orderOutputs = $orderOutputsSql->get();
 
         $this->rowCount = $orderGroup->count() + 4;
+        $this->data = $orderGroup;
         $alphabets = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
         $colCount = $orderOutputs->groupBy("tanggal")->count() + ($this->groupBy == "size" ? 5 : 4);
         if ($colCount > (count($alphabets)-1)) {
@@ -264,6 +288,24 @@ class OrderOutputExport implements FromView, WithEvents, ShouldAutoSize
 
     public static function afterSheet(AfterSheet $event)
     {
+        $export = $event->getConcernable();
+        $sheet = $event->sheet->getDelegate();
+
+        // HTML reader collapses multiple spaces, rewrite text columns from original data
+        $fields = ['A' => 'ws', 'B' => 'style', 'C' => 'color'];
+        if ($export->groupBy == 'size') $fields['E'] = 'size';
+
+        $row = 4;
+        foreach ($export->data ?? [] as $item) {
+            foreach ($fields as $col => $field) {
+                if ($item->$field !== null) {
+                    $sheet->setCellValueExplicit($col . $row, (string) $item->$field, DataType::TYPE_STRING);
+                    $sheet->getStyle($col . $row)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+                }
+            }
+            $row++;
+        }
+
         $event->sheet->styleCells(
             'A3:' . $event->getConcernable()->colAlphabet . $event->getConcernable()->rowCount,
             [

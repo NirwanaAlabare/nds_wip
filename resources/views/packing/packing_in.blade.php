@@ -138,6 +138,7 @@
                             <th>Size</th>
                             <th>Dest</th>
                             <th>Qty</th>
+                            <th>Sumber</th>
                             <th>User</th>
                             <th>Created At</th>
                         </tr>
@@ -148,6 +149,7 @@
                             <th> <input type = 'text' class="form-control form-control-sm" style="width:75px" readonly
                                     id = 'total_qty_chk'> </th>
                             <th>PCS</th>
+                            <th></th>
                             <th></th>
                         </tr>
                     </tfoot>
@@ -309,6 +311,9 @@
                 },
                 {
                     data: 'qty'
+                },
+                {
+                    data: 'source'
                 },
                 {
                     data: 'created_by'

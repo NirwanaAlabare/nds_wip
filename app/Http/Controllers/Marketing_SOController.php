@@ -217,7 +217,10 @@ class Marketing_SOController extends Controller
         $bom_catalog = $mysql_sb->table('bom_marketing')
             ->select('id', 'no_katalog_bom', 'style')
             ->whereNotNull('no_katalog_bom')
-            ->where('approval', 'Y');
+            ->where('approval', 'Y')
+            ->where(function ($q) {
+                $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            });
 
         if (!empty($used_boms)) {
             $bom_catalog = $bom_catalog->whereNotIn('id', $used_boms);
@@ -869,9 +872,15 @@ class Marketing_SOController extends Controller
 
         $raw_master_sizes = $mysql_sb->table('master_size_new')->pluck('id', 'size')->toArray();
         $master_sizes = [];
+        $master_sizes_loose = []; // key tanpa spasi -> [id, ...]  ("L+" & "L +" dianggap sama)
         foreach ($raw_master_sizes as $k => $v) {
             $master_sizes[strtoupper(trim($k))] = $v;
+            $master_sizes_loose[preg_replace('/\s+/u', '', strtoupper($k))][] = (string) $v;
         }
+
+        // Size yang terdaftar di header BOM (dipakai memilih master size duplikat beda spasi).
+        $bom_header_row   = $id_bom ? $mysql_sb->table('bom_marketing')->where('id', $id_bom)->first() : null;
+        $bom_header_sizes = array_map('strval', (array) (json_decode($bom_header_row->sizes ?? '[]', true) ?: []));
 
         // Direct Costing -> SO does not have a BOM color/size restriction.
         $bom_colors = [];
@@ -916,10 +925,7 @@ class Marketing_SOController extends Controller
             $fob_raw = $cell($row, 'FOB');
             $fob = null;
             if ($fob_raw !== null && $fob_raw !== '') {
-                $fob_clean = trim($fob_raw, " \t\n\r\0\x0B\xC2\xA0");
-                $fob_clean = preg_replace('/\s+/u', '', $fob_clean);
-                $fob_clean = str_replace(',', '', $fob_clean);
-                $fob = is_numeric($fob_clean) ? $fob_clean : null;
+                $fob = $this->parseDecimal($fob_raw);
             }
 
             // =======================================================
@@ -963,11 +969,16 @@ class Marketing_SOController extends Controller
 
                 // Validasi Size
                 $size_key = strtoupper($size_name);
-                if (!isset($master_sizes[$size_key])) {
+                $loose_ids = $master_sizes_loose[preg_replace('/\s+/u', '', $size_key)] ?? [];
+                if (!isset($master_sizes[$size_key]) && count($loose_ids) === 0) {
                     $errors_size[] = "Size: <b>$size_name</b> tidak ada di Master.";
                     continue;
                 }
-                $size_id = $master_sizes[$size_key];
+                // Master size punya duplikat beda spasi; pakai yang terdaftar di header BOM kalau ada
+                $header_match = array_values(array_intersect($loose_ids, $bom_header_sizes));
+                $size_id = count($header_match) > 0
+                    ? $header_match[0]
+                    : ($master_sizes[$size_key] ?? $loose_ids[0]);
 
                 if (count($bom_sizes) > 0 && !in_array($size_id, $bom_sizes)) {
                     $errors_size[] = "Size: <b>$size_name</b> (pada warna $color_name) tidak terdaftar di Material BOM Detail.";
@@ -1551,6 +1562,43 @@ class Marketing_SOController extends Controller
         return response()->json(['message' => 'Baris baru ditambahkan.', 'id' => (int) $id]);
     }
 
+    private function cleanText($raw)
+    {
+        $raw  = (string) $raw;
+        $text = preg_replace('/[\s\x{00A0}]+/u', ' ', $raw);
+        if ($text === null) $text = preg_replace('/\s+/', ' ', $raw);
+        return trim($text);
+    }
+
+    /**
+     * Parse angka dari Excel yang bisa format Indonesia ("18,8", "1.234,5")
+     * maupun format US ("18.8", "1,234.5"). Return string numerik atau null.
+     */
+    private function parseDecimal($raw)
+    {
+        if (is_int($raw) || is_float($raw)) return (string) $raw;
+
+        $s = preg_replace('/[\s\x{00A0}]+/u', '', (string) $raw);
+        if ($s === '') return null;
+
+        $lastComma = strrpos($s, ',');
+        $lastDot   = strrpos($s, '.');
+
+        if ($lastComma !== false && $lastDot !== false) {
+            // dua-duanya ada: yang paling belakang = desimal
+            $s = $lastComma > $lastDot
+                ? str_replace(',', '.', str_replace('.', '', $s))   // 1.234,5
+                : str_replace(',', '', $s);                         // 1,234.5
+        } elseif ($lastComma !== false) {
+            // cuma koma: "1,234" / "1,234,567" = ribuan, selain itu desimal ("18,8", "18,75")
+            $s = preg_match('/^-?\d{1,3}(,\d{3})+$/', $s) ? str_replace(',', '', $s) : str_replace(',', '.', $s);
+        } elseif ($lastDot !== false && preg_match('/^-?\d{1,3}(\.\d{3}){2,}$/', $s)) {
+            // "1.234.567" = ribuan format Indonesia
+            $s = str_replace('.', '', $s);
+        }
+
+        return is_numeric($s) ? $s : null;
+    }
     // public function getTempData(Request $request)
     // {
     //     $user_id = auth()->id();
@@ -2044,6 +2092,9 @@ class Marketing_SOController extends Controller
                 $rate_to_idr = $act_costing_new->rate_to_idr;
             }
 
+            // Style dari form (default dari costing, bisa diedit user) -> rapikan spasi ganda
+            $style_clean = $request->filled('style') ? $this->cleanText($request->style) : null;
+
             foreach ($temp_data as $no_po => $details) {
                 $total_qty_po = $details->sum('qty');
                 $wsBuyerId = $request->id_buyer ?: ($bom->id_buyer ?? null);
@@ -2070,7 +2121,7 @@ class Marketing_SOController extends Controller
                     'cost_date'   => now(),
                     'kpno'        => $kode['kpno'],
                     'id_buyer'    => $wsBuyerId,
-                    'styleno'     => $request->style ?? ($act_costing_new ? $act_costing_new->styleno : null),
+                    'styleno'     => $style_clean ?? ($act_costing_new ? $this->cleanText($act_costing_new->styleno) : null),
                     'qty'         => $act_costing_new ? $act_costing_new->qty : $total_qty_po,
                     'curr'        => $curr_name ?: ($act_costing_new ? $act_costing_new->curr : $request->id_currency),
                     'username'    => $username_2 ?? ($act_costing_new ? $act_costing_new->username : null),
@@ -2111,7 +2162,7 @@ class Marketing_SOController extends Controller
                     'id_bom'    => $request->id_bom ?? null,
                     'market'    => $request->market ?? ($act_costing_new ? $act_costing_new->market : null),
                     'nm_file'   => $file_name,
-                    'style'     => $request->style ?? ($act_costing_new ? $act_costing_new->style : null),
+                    'style'     => $style_clean ?? ($act_costing_new ? $this->cleanText($act_costing_new->style) : null),
                     'brand'     => $request->brand ?? ($act_costing_new ? $act_costing_new->brand : null),
                     'id_product'=> $request->id_product_item ?? null,
                     'smv'       => $request->smv ?? ($act_costing_new ? $act_costing_new->smv : null),
@@ -2949,6 +3000,18 @@ class Marketing_SOController extends Controller
 
             $existing_row = DB::connection('mysql_sb')->table('so_det')->where('id_so', $id_so)->first();
 
+            // FOB: pakai input jika diisi, kalau kosong ikut FOB detail aktif yang sudah terisi
+            $fob = ($request->fob !== null && $request->fob !== '')
+                ? $request->fob
+                : DB::connection('mysql_sb')->table('so_det')
+                    ->where('id_so', $id_so)
+                    ->where('cancel', 'N')
+                    ->whereNotNull('fob')
+                    ->orderBy('id')
+                    ->value('fob');
+
+            $unit = 'PCS';
+
             foreach ($id_colors as $id_color) {
                 foreach ($id_sizes as $id_size) {
 
@@ -2977,8 +3040,10 @@ class Marketing_SOController extends Controller
                         'size'        => $size_name ?? '-',
                         'qty'         => $qty,
                         'market'      => $existing_row ? $existing_row->market : '-',
+                        'fob'         => $fob,
+                        'unit'        => $unit,
                         'cancel'      => 'N',
-                        'dest'        => $existing_row ? $existing_row->dest : '-',
+                        'dest'      => $existing_row ? $existing_row->dest : '-',
                         'product_set' => $existing_row ? $existing_row->product_set : '-',
                         'barcode'     => $existing_row ? $existing_row->barcode : '-',
                         'reff_no'     => $existing_row ? $existing_row->reff_no : null,
@@ -3069,7 +3134,7 @@ class Marketing_SOController extends Controller
             $updateData = ['qty' => $totalQty];
 
             if ($newStyle !== null) {
-                $updateData['style'] = $newStyle;
+                $updateData['style'] = $this->cleanText($newStyle);
             }
 
             DB::connection('mysql_sb')->table('so')
@@ -4776,12 +4841,23 @@ class Marketing_SOController extends Controller
 
         try {
             // 1. Validasi Awal SO & JO + lock
+            // rollBack sebelum return supaya level transaksi tidak bocor
+            // (fungsi ini dipanggil di dalam transaksi lain, mis. storeDetailEdit di BOM)
             $so = $mysql_sb->table('so')->where('id', $id)->lockForUpdate()->first();
-            if (!$so) return ['status' => 400, 'message' => 'SO tidak ditemukan'];
-            if (!$so->id_bom) return ['status' => 400, 'message' => 'SO ini tidak memiliki Master BOM (id_bom kosong)'];
+            if (!$so) {
+                $mysql_sb->rollBack();
+                return ['status' => 400, 'message' => 'SO tidak ditemukan'];
+            }
+            if (!$so->id_bom) {
+                $mysql_sb->rollBack();
+                return ['status' => 400, 'message' => 'SO ini tidak memiliki Master BOM (id_bom kosong)'];
+            }
 
             $jo_det = $mysql_sb->table('jo_det')->where('id_so', $id)->first();
-            if (!$jo_det) return ['status' => 400, 'message' => 'JO tidak ditemukan untuk SO ini'];
+            if (!$jo_det) {
+                $mysql_sb->rollBack();
+                return ['status' => 400, 'message' => 'JO tidak ditemukan untuk SO ini'];
+            }
 
             $id_jo = $jo_det->id_jo;
             $id_bom = $so->id_bom;

@@ -528,6 +528,7 @@
                     { data: 'qty_terima_ekspedisi', title: 'Terima Ekspedisi', group: 'gudang', num: true },
                     { data: 'qty_terima_temporary_packing', title: 'Terima Temporary Packing', group: 'gudang', num: true },
                     { data: 'qty_terima_packing_central', title: 'Terima Packing Central', group: 'gudang', num: true },
+                    { data: 'qty_terima_qa', title: 'Terima QA', group: 'gudang', num: true },
                     { data: 'qty_keluar_sewing', title: 'Keluar Sewing', group: 'gudang', num: true },
                     { data: 'qty_keluar_qa', title: 'Keluar QA', group: 'gudang', num: true },
                     { data: 'qty_keluar_ekspedisi', title: 'Keluar Ekspedisi', group: 'gudang', num: true },

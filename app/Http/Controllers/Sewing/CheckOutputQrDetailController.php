@@ -3003,6 +3003,10 @@ class CheckOutputQrDetailController extends Controller
                 $row->po_packing_line ?? "",
             ], [
                 'border' => 'thin',
+            ], [
+                'C' => ['format' => '@'],
+                'E' => ['format' => '@'],
+                'F' => ['format' => '@'],
             ]);
         }
 

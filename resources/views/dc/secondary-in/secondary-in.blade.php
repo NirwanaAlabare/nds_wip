@@ -421,7 +421,7 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Reject</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreject' name='txtqtyreject' value='' oninput='sum();'
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyreject' name='txtqtyreject' value='' oninput='sum();' onchange='sum();'
                                         style = 'border-color:blue;'>
                                 </div>
                             </div>
@@ -429,7 +429,7 @@
                             <div class='col-sm-3'>
                                 <div class='form-group'>
                                     <label class='form-label'><small>Replacement</small></label>
-                                    <input type='number' class='form-control form-control-sm' id='txtqtyreplace' name='txtqtyreplace' value = '0' oninput='sum();'
+                                    <input type='number' class='form-control form-control-sm' id='txtqtyreplace' name='txtqtyreplace' value = '0' oninput='sum();' onchange='sum();'
                                         style = 'border-color:blue;'>
                                 </div>
                             </div>
@@ -1397,6 +1397,19 @@
         };
 
         function sum() {
+            document.getElementById('txtqtyreject').value = document.getElementById('txtqtyreject').value.replace(/\D/g, '');
+            document.getElementById('txtqtyreplace').value = document.getElementById('txtqtyreplace').value.replace(/\D/g, '');
+
+            // reject min 0
+            if (Number(document.getElementById('txtqtyreject').value).length > 0 && document.getElementById('txtqtyreject').value < 0) {
+                document.getElementById('txtqtyreject').value = 0;
+            }
+
+            // replace min 0
+            if (Number(document.getElementById('txtqtyreplace').value).length > 0 && document.getElementById('txtqtyreplace').value < 0) {
+                document.getElementById('txtqtyreplace').value = 0;
+            }
+
             let txtqtystocker = document.getElementById('txtqtystocker').value;
             let txtqty = document.getElementById('txtqtyawal').value;
             let txtqtyreject = document.getElementById('txtqtyreject').value;
@@ -1418,9 +1431,34 @@
                 document.getElementById('txtqtyreplace').value = txtqtyreject;
                 document.getElementById('txtqtyin').value = txtqty;
             }
+
+            if (result < 0) {
+                iziToast.warning({
+                    title: 'Peringatan',
+                    message: 'Qty akhir tidak dapat kurang dari 0.',
+                    position: 'bottomCenter'
+                });
+
+                document.getElementById('txtqtyreject').value = 0;
+                document.getElementById('txtqtyreplace').value = 0;
+                document.getElementById('txtqtyin').value = txtqty;
+            }
         }
 
         function editsum() {
+            document.getElementById('edit_qtyreject').value = document.getElementById('edit_qtyreject').value.replace(/\D/g, '');
+            document.getElementById('edit_qtyreplace').value = document.getElementById('edit_qtyreplace').value.replace(/\D/g, '');
+
+            // reject min 0
+            if (Number(document.getElementById('edit_qtyreject').value).length > 0 && document.getElementById('edit_qtyreject').value < 0) {
+                document.getElementById('edit_qtyreject').value = 0;
+            }
+
+            // replace min 0
+            if (Number(document.getElementById('edit_qtyreplace').value).length > 0 && document.getElementById('edit_qtyreplace').value < 0) {
+                document.getElementById('edit_qtyreplace').value = 0;
+            }
+
             let txtqtystocker = document.getElementById('edit_qtystocker').value;
             let txtqty = document.getElementById('edit_qtyawal').value;
             let txtqtyreject = document.getElementById('edit_qtyreject').value;
@@ -1442,9 +1480,34 @@
                 document.getElementById('edit_qtyreplace').value = txtqtyreject;
                 document.getElementById('edit_qtyin').value = txtqty;
             }
+
+            if (result < 0) {
+                iziToast.warning({
+                    title: 'Peringatan',
+                    message: 'Qty akhir tidak dapat kurang dari 0.',
+                    position: 'bottomCenter'
+                });
+
+                document.getElementById('edit_qtyreject').value = 0;
+                document.getElementById('edit_qtyreplace').value = 0;
+                document.getElementById('edit_qtyin').value = txtqty;
+            }
         }
 
         function editsumnew() {
+            document.getElementById('edit_qtyrejectnew').value = document.getElementById('edit_qtyrejectnew').value.replace(/\D/g, '');
+            document.getElementById('edit_qtyreplacenew').value = document.getElementById('edit_qtyreplacenew').value.replace(/\D/g, '');
+
+            // reject min 0
+            if (Number(document.getElementById('edit_qtyrejectnew').value).length > 0 && document.getElementById('edit_qtyrejectnew').value < 0) {
+                document.getElementById('edit_qtyrejectnew').value = 0;
+            }
+
+            // replace min 0
+            if (Number(document.getElementById('edit_qtyreplacenew').value).length > 0 && document.getElementById('edit_qtyreplacenew').value < 0) {
+                document.getElementById('edit_qtyreplacenew').value = 0;
+            }
+
             let txtqtystocker = document.getElementById('edit_qtystocker').value;
             let txtqty = document.getElementById('edit_lastupdate').value;
             let txtqtyreject = document.getElementById('edit_qtyrejectnew').value;
@@ -1465,6 +1528,18 @@
                 });
 
                 document.getElementById('edit_qtyreplacenew').value = txtqtyreject;
+                document.getElementById('edit_qtyinnew').value = txtqty;
+            }
+
+            if (result < 0) {
+                iziToast.warning({
+                    title: 'Peringatan',
+                    message: 'Qty akhir tidak dapat kurang dari 0.',
+                    position: 'bottomCenter'
+                });
+
+                document.getElementById('edit_qtyrejectnew').value = 0;
+                document.getElementById('edit_qtyreplacenew').value = 0;
                 document.getElementById('edit_qtyinnew').value = txtqty;
             }
         }

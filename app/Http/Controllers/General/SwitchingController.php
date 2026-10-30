@@ -48,7 +48,6 @@ class SwitchingController extends Controller
     {
         $panels = DB::table('part')
             ->where('act_costing_ws', $request->ws)
-            ->where('color', $request->color)
             ->select('panel')
             ->distinct()
             ->get();
@@ -62,8 +61,8 @@ class SwitchingController extends Controller
             ->join('part_detail', 'part_detail.master_part_id', '=', 'master_part.id')
             ->join('part', 'part.id', '=', 'part_detail.part_id')
             ->where('part.act_costing_ws', $request->ws)
-            ->where('part.color', $request->color)
             ->where('part.panel', $request->panel)
+            ->where('part_detail.part_status', "!=", "complement")
             ->select('master_part.nama_part')
             ->distinct()
             ->get();
@@ -73,7 +72,8 @@ class SwitchingController extends Controller
 
     public function store(Request $request)
     {
-        $connection = $request->source == 'NDS' ? 'mysql' : 'mysql_sb';
+        // $connection = $request->source == 'NDS' ? 'mysql' : 'mysql_sb';
+        $connection = 'mysql';
 
         DB::connection($connection)
             ->table('wip_switching_adj')

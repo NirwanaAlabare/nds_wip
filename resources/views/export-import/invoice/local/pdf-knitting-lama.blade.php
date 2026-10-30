@@ -155,6 +155,8 @@
 
     {{-- ---------------- Nomor invoice ---------------- --}}
     <div class="no-invoice">Invoice {{ $data_invoice['no_invoice'] }}</div>
+    {{-- Penanda versi - lihat pdf-knitting.blade.php. --}}
+    <div class="versi-knit" style="text-align:center;font-size:11px;font-weight:bold;letter-spacing:1px;color:#555;margin-top:3px">{{ $versi_knit ?? 'SHIPMENT' }}</div>
 
     {{-- ---------------- Rincian ---------------- --}}
     <table class="rinci">

@@ -156,8 +156,8 @@ class TrackPackingOutput extends Component
                     SELECT
                         DATE( rfts.updated_at ) tanggal,
                         master_plan.id master_plan_id,
-                        master_plan.id_ws,
-                        master_plan.color,
+                        act_costing.id id_ws, 
+                        so_det.color,
                         userpassword.username sewing_line,
                         rfts.po_id,
                         rfts.alokasi,
@@ -167,14 +167,17 @@ class TrackPackingOutput extends Component
                         output_rfts_packing_po rfts
                         INNER JOIN master_plan ON master_plan.id = rfts.master_plan_id
                         LEFT JOIN userpassword ON userpassword.username = rfts.created_by_line
+                        LEFT JOIN so_det ON so_det.id = rfts.so_det_id
+                        LEFT JOIN so ON so.id = so_det.id_so
+                        LEFT JOIN act_costing ON act_costing.id = so.id_cost
                     WHERE
                         rfts.created_by IS NOT NULL
                         AND rfts.updated_at ".$masterPlanDateFilter."
                         AND master_plan.tgl_plan ".$masterPlanDateFilter1."
                         ". ($this->selectedOrder ? " AND master_plan.id_ws = '".$this->selectedOrder."'" : "") . "
                     GROUP BY
-                        master_plan.id_ws,
-                        master_plan.color,
+                        act_costing.id, 
+                        so_det.color,
                         DATE ( rfts.updated_at ),
                         COALESCE ( userpassword.username, master_plan.sewing_line ),
                         rfts.po_id,

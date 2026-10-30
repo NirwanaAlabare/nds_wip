@@ -353,6 +353,17 @@ class StockerProcessRejectService
                                 $copyDc = $this->copyDcInTransaction($currentSecondaryIn->id_qr_stocker, $stocker->id_qr_stocker);
                             }
                         }
+
+                        // Update Current DC
+                        $newSecondary = $secondaries->where("urutan", $stocker->urutan)->first();
+                        if ($newSecondary) {
+                            $currentDcIn = DCIn::where("id_qr_stocker", $stocker->id_qr_stocker)->first();
+                            if ($currentDcIn) {
+                                $currentDcIn->tujuan = $newSecondary->tujuan;
+                                $currentDcIn->lokasi = $newSecondary->proses;
+                                $currentDcIn->save();
+                            }
+                        }
                     }
 
                     return array(

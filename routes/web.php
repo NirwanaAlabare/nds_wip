@@ -10,6 +10,8 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\Exim\DokumenPabeanController;
 use App\Http\Controllers\Exim\ExportImportController;
 use App\Http\Controllers\Exim\InvoiceEximController;
+use App\Http\Controllers\MasterData\MasterDataController;
+use App\Http\Controllers\MasterData\MasterItemController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
@@ -44,6 +46,7 @@ use App\Http\Controllers\LapMutasiBarcodeController;
 use App\Http\Controllers\LapMutasiDetailController;
 use App\Http\Controllers\LapMutasiGlobalController;
 use App\Http\Controllers\RekonsiliasiMutasiController;
+use App\Http\Controllers\BarcodeRakController;
 use App\Http\Controllers\MaintainBpbController;
 use App\Http\Controllers\Marketing_AdditionalBomController;
 use App\Http\Controllers\Marketing_BomController;
@@ -180,6 +183,8 @@ use App\Http\Controllers\ReportBc\ReportBcController;
 use App\Http\Controllers\ReportBc\DashboardReportBcController;
 use App\Http\Controllers\FGStokPenerimaanPackingController;
 use App\Http\Controllers\WipAdjustmentController;
+use App\Http\Controllers\PackingOutScanController;
+use App\Http\Controllers\PackingListController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -616,6 +621,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/hasil', 'hasil')->name('rekonsiliasi-mutasi-hasil');
     });
 
+    //print barcode roll per rak
+    Route::controller(BarcodeRakController::class)->prefix("barcode-rak")->middleware('warehouse')->group(function () {
+        Route::get('/', 'index')->name('barcode-rak');
+        Route::get('/detail', 'detail')->name('barcode-rak-detail');
+        Route::get('/pdf', 'pdf')->name('barcode-rak-pdf');
+    });
+
     //konfirmasi penerimaan
     Route::controller(KonfPemasukanController::class)->prefix("konfirmasi-pemasukan")->middleware('warehouse')->group(function () {
         Route::get('/', 'index')->name('konfirmasi-pemasukan');
@@ -827,6 +839,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/reset_trf_garment_temporary', 'reset_trf_garment_temporary')->name('reset_trf_garment_temporary');
         Route::get('/stok_temporary_transfer_garment', 'stok_temporary_transfer_garment')->name('stok-temporary-transfer-garment');
         Route::get('/get_stok_temporary_count', 'get_stok_temporary_count')->name('get_stok_temporary_count');
+        Route::get('/export_excel_stok_temporary', 'export_excel_stok_temporary')->name('export_excel_stok_temporary');
         Route::post('/get_ws_trf_garment_temporary', 'get_ws_trf_garment_temporary')->name('get_ws_trf_garment_temporary');
         Route::post('/get_color_trf_garment_temporary', 'get_color_trf_garment_temporary')->name('get_color_trf_garment_temporary');
         Route::post('/get_size_trf_garment_temporary', 'get_size_trf_garment_temporary')->name('get_size_trf_garment_temporary');
@@ -878,6 +891,21 @@ Route::middleware('auth')->group(function () {
         Route::post('/getcolor_packing_out_kirim_gudang_stok', 'getcolor_packing_out_kirim_gudang_stok')->name('getcolor_packing_out_kirim_gudang_stok');
         Route::post('/getsize_packing_out_kirim_gudang_stok', 'getsize_packing_out_kirim_gudang_stok')->name('getsize_packing_out_kirim_gudang_stok');
         Route::post('/getqty_packing_out_kirim_gudang_stok', 'getqty_packing_out_kirim_gudang_stok')->name('getqty_packing_out_kirim_gudang_stok');
+    });
+
+    Route::controller(PackingOutScanController::class)->prefix("packing-out-scan")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('packing-out-scan');
+        Route::get('/create', 'create')->name('create-packing-out-scan');
+        Route::get('/get-carton-data', 'getCartonData')->name('get-carton-data-packing-out-scan');
+        Route::post('/store', 'store')->name('store-packing-out-scan');
+        Route::post('/destroy', 'destroy')->name('destroy-packing-out-scan');    
+    });
+
+    Route::controller(PackingListController::class)->prefix("packing-list")->middleware('packing')->group(function () {
+        Route::get('/', 'index')->name('packing-list-karton');
+        Route::get('/create', 'create')->name('create-packing-list-karton');
+        Route::get('/get_po_detail', 'get_po_detail')->name('get-po-detail-packing-list-karton');
+        Route::get('/show_preview_packing_list', 'show_preview_packing_list')->name('show_preview_packing_list');
     });
 
     Route::controller(PackingLineController::class)->prefix("packing-line")->middleware('packing')->group(function () {
@@ -1061,6 +1089,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/search_po', 'search_po')->name('fg_in_search_po');
         Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
         Route::get('/create', 'create')->name('create_penerimaan_finish_good');
+        Route::post('/check_fg_in', 'check_fg_in')->name('check-fg-in');
         Route::post('/store', 'store')->name('store-fg-in');
         Route::get('/export_excel_fg_in_list', 'export_excel_fg_in_list')->name('export_excel_fg_in_list');
         Route::get('/export_excel_fg_in_summary', 'export_excel_fg_in_summary')->name('export_excel_fg_in_summary');
@@ -1721,7 +1750,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/asset_mesin_tambah/unit/{id}/print_qr', 'print_qr_mesin')->name('asset_mesin_tambah_print_qr');
         Route::get('/asset_mesin_tambah/qr_list', 'get_penerimaan_mesin_qr_list')->name('asset_mesin_tambah_qr_list');
         Route::get('/asset_mesin_tambah/qr_list/filter_options', 'get_penerimaan_mesin_qr_filter_options')->name('asset_mesin_tambah_qr_filter_options');
-        Route::get('/asset_mesin_tambah/qr_list/print', 'print_qr_list_mesin')->name('asset_mesin_tambah_qr_list_print');
+        Route::match(['get', 'post'], '/asset_mesin_tambah/qr_list/print', 'print_qr_list_mesin')->name('asset_mesin_tambah_qr_list_print');
     });
     // Master Asset Management Pengeluaran Mesin Replacement (Pembelian)
     Route::controller(AssetMesinPengeluaranController::class)->middleware('role:asset')->group(function () {
@@ -1928,6 +1957,37 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_mt_ac/summary', 'summary')->name('summary-form-maintenance-ac');
         Route::get('/dashboard_mt_ac/departments', 'getDepartments')->name('departments-form-maintenance-ac');
     });
+
+    // Master Data (customer & supplier dari mastersupplier SB)
+    Route::get('/dashboard-master-data', [MasterDataController::class, 'dashboard'])->middleware('role:master_data')->name('dashboard-master-data');
+
+    Route::controller(MasterDataController::class)->prefix("master-data")->middleware('role:master_data')->group(function () {
+        Route::get('/customer', 'customer')->name('master-data-customer');
+        Route::get('/supplier', 'supplier')->name('master-data-supplier');
+        Route::get('/{jenis}/data', 'data')->where('jenis', 'customer|supplier')->name('master-data-list');
+        Route::get('/{jenis}/excel', 'excel')->where('jenis', 'customer|supplier')->name('master-data-excel');
+        Route::get('/{jenis}/create', 'create')->where('jenis', 'customer|supplier')->name('master-data-create');
+        Route::post('/{jenis}/simpan', 'simpan')->where('jenis', 'customer|supplier')->name('master-data-simpan');
+        Route::get('/{jenis}/detail', 'detail')->where('jenis', 'customer|supplier')->name('master-data-detail');
+        Route::post('/{jenis}/status', 'status')->where('jenis', 'customer|supplier')->name('master-data-status');
+        Route::get('/{jenis}/histori', 'histori')->where('jenis', 'customer|supplier')->name('master-data-histori');
+        Route::get('/{jenis}/edit', 'edit')->where('jenis', 'customer|supplier')->name('master-data-edit');
+        Route::post('/{jenis}/perbarui', 'perbarui')->where('jenis', 'customer|supplier')->name('master-data-perbarui');
+    });
+    // Master Item General (masteritem mattype N)
+    Route::controller(MasterItemController::class)->prefix("master-data/item")->middleware('role:master_data')->group(function () {
+        Route::get('/', 'index')->name('master-data-item');
+        Route::get('/data', 'data')->name('master-data-item-list');
+        Route::get('/excel', 'excel')->name('master-data-item-excel');
+        Route::get('/create', 'create')->name('master-data-item-create');
+        Route::get('/edit', 'edit')->name('master-data-item-edit');
+        Route::post('/simpan', 'simpan')->name('master-data-item-simpan');
+        Route::post('/perbarui', 'perbarui')->name('master-data-item-perbarui');
+        Route::get('/detail', 'detail')->name('master-data-item-detail');
+        Route::post('/status', 'status')->name('master-data-item-status');
+        Route::get('/gambar', 'gambar')->name('master-data-item-gambar');
+    });
+
     // Export Import (EXIM)
 
     Route::get('/dashboard-export-import', [ExportImportController::class, 'index'])->middleware('role:export_import')->name('dashboard-export-import');
@@ -2423,16 +2483,20 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// Accounting
-Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting')->group(function () {
-    // get worksheet
-    Route::get('/', 'index')->name('accounting');
+// Update Data Ceisa (menu di Export Import > Proses), bisa dibuka user export import dan accounting
+Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting,export_import')->group(function () {
     Route::get('/update-data-ceisa', 'UpdateData')->name('update-data-ceisa');
     Route::get('/create', 'create')->name('create-update-ceisa');
     Route::get('/get-data-ceisa', 'getData')->name('get-data-ceisa');
     Route::post('/store', 'store')->name('store-update-ceisa');
     Route::get('/cancel-keterangan-ceisa', 'CancelDataCeisa')->name('cancel-keterangan-ceisa');
     Route::get('/edit-keterangan-ceisa', 'EditDataCeisa')->name('edit-keterangan-ceisa');
+});
+
+// Accounting
+Route::controller(AccountingController::class)->prefix("accounting")->middleware('role:accounting')->group(function () {
+    // get worksheet
+    Route::get('/', 'index')->name('accounting');
 
     // Memo Permintaan Pembayaran
     Route::get('/memo', 'memoIndex')->name('accounting-memo');

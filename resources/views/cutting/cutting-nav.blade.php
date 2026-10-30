@@ -38,12 +38,14 @@
                     Piping <i class="fa-solid fa-paperclip"></i>
                 </a>
             </li>
+            @strictmeja
             <li>
                 <a href="{{ route('cutting-switching') }}"
                     class="dropdown-item {{ $routeName == 'cutting-switching' ? 'active' : '' }}">
                     Switching <i class="fa-solid fa-shuffle"></i>
                 </a>
             </li>
+            @endstrictmeja
         </ul>
     </li>
 
@@ -72,13 +74,19 @@
         </li>
         <li class="nav-item dropdown">
             <a href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                class="nav-link dropdown-toggle {{ $subPage == 'manage-cutting' ? 'active' : '' }}">Completed
+                class="nav-link dropdown-toggle {{ in_array($subPage, ['manage-cutting', 'proses-output']) ? 'active' : '' }}">Completed
             </a>
             <ul aria-labelledby="dropdownSubMenu2" class="dropdown-menu border-0 shadow">
                 <li>
                     <a href="{{ route('manage-cutting') }}"
                         class="dropdown-item {{ $routeName == 'manage-cutting' ? 'active' : '' }}">
                         Completed Form <i class="fa-solid fa-check-to-slot"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('proses-output') }}"
+                        class="dropdown-item {{ $subPage == 'proses-output' ? 'active' : '' }}">
+                        Proses Output <i class="fa fa-file"></i>
                     </a>
                 </li>
             </ul>
@@ -161,6 +169,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('report-mutasi-fabric-barcode') }}"
+                        class="dropdown-item {{ $routeName == 'report-mutasi-fabric-barcode' ? 'active' : '' }}">
+                        Mutasi Fabric Barcode <i class="fa fa-list"></i>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('roll_fabric_cutting_in') }}"
                         class="dropdown-item {{ $subPage == 'roll_fabric_cutting_in' ? 'active' : '' }}">
                         Penerimaan Fabric <i class="fa-solid fa-box-open fa-sm"></i>
@@ -212,6 +226,12 @@
                     <a href="{{ route('report_return_fabric_cutting') }}"
                         class="dropdown-item {{ $routeName == 'report_return_fabric_cutting' ? 'active' : '' }}">
                         Return Fabric Cutting <i class="fa fa-list"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('report-switching-adjustment') }}"
+                        class="dropdown-item {{ $routeName == 'report-switching-adjustment' ? 'active' : '' }}">
+                        Switching Adjustment <i class="fa fa-list"></i>
                     </a>
                 </li>
             </ul>

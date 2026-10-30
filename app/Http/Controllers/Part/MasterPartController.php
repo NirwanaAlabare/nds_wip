@@ -57,36 +57,41 @@ class MasterPartController extends Controller
     public function store(Request $request)
     {
         $validatedRequest = $request->validate([
-            "nama_part" => "required",
-            "bag" => "required",
+            "nama_part" => "required|string",
+            "bag"       => "required|string",
         ]);
 
-        $masterPartCount = MasterPart::count();
-        $masterPartNumber = intval($masterPartCount) + 1;
-        $masterPartCode = 'MP' . sprintf('%05s', $masterPartNumber);
+        // Sanitasi multiple space
+        $namaPartClean = preg_replace('/\s+/', ' ', trim($validatedRequest["nama_part"]));
+        $bagClean      = preg_replace('/\s+/', ' ', trim($validatedRequest["bag"]));
+
+        // Generate kode berdasarkan ID / Kode terakhir
+        $lastMasterPart = MasterPart::select('kode_master_part')->orderBy('id', 'desc')->first();
+        $lastNumber = $lastMasterPart ? intval(substr($lastMasterPart->kode_master_part, -5)) : 0;
+        $masterPartCode = 'MP' . sprintf('%05d', $lastNumber + 1);
 
         $masterPartStore = MasterPart::create([
-            "kode_master_part" => $masterPartCode,
-            "nama_part" => $validatedRequest["nama_part"],
-            "bag" => $validatedRequest["bag"],
-            "cancel" => "N",
-            "created_by" => Auth::user()->id,
+            "kode_master_part"    => $masterPartCode,
+            "nama_part"           => $namaPartClean,
+            "bag"                 => $bagClean,
+            "cancel"              => "N",
+            "created_by"          => Auth::user()->id,
             "created_by_username" => Auth::user()->username,
         ]);
 
         if ($masterPartStore) {
-            return array(
-                "status" => 200,
-                "message" => $masterPartCode,
+            return [
+                "status"     => 200,
+                "message"    => $masterPartCode,
                 "additional" => [],
-            );
+            ];
         }
 
-        return array(
-            "status" => 400,
-            "message" => "Terjadi Kesalahan",
+        return [
+            "status"     => 400,
+            "message"    => "Terjadi Kesalahan",
             "additional" => [],
-        );
+        ];
     }
 
     /**
@@ -118,36 +123,54 @@ class MasterPartController extends Controller
      * @param  \App\Models\Part\MasterPart  $masterPart
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, MasterPart $masterPart, $id = 0)
+    public function update(Request $request)
     {
         $validatedRequest = $request->validate([
-            "edit_id" => "required",
-            "edit_nama_part" => "required",
-            "edit_bag" => "required",
+            "edit_id"        => "required|exists:master_part,id",
+            "edit_nama_part" => "required|string",
+            "edit_bag"       => "required|string",
         ]);
 
-        $updateMasterPart = MasterPart::where('id', $validatedRequest['edit_id'])->update([
-            'nama_part' => $validatedRequest['edit_nama_part'],
-            'bag' => $validatedRequest['edit_bag']
-        ]);
+        // Sanitasi multiple space dan trim
+        $namaPartClean = preg_replace('/\s+/', ' ', trim($validatedRequest["edit_nama_part"]));
+        $bagClean      = preg_replace('/\s+/', ' ', trim($validatedRequest["edit_bag"]));
 
-        if ($updateMasterPart) {
-            return array(
-                'status' => 200,
-                'message' => 'Data master part berhasil diubah',
-                'redirect' => '',
-                'table' => 'datatable-master-part',
+        // Cari model terlebih dahulu
+        $masterPart = MasterPart::find($validatedRequest['edit_id']);
+
+        if (!$masterPart) {
+            return [
+                'status'     => 404,
+                'message'    => 'Data master part tidak ditemukan',
+                'redirect'   => '',
+                'table'      => 'datatable-master-part',
                 'additional' => [],
-            );
+            ];
         }
 
-        return array(
-            'status' => 400,
-            'message' => 'Data master part gagal diubah',
-            'redirect' => '',
-            'table' => 'datatable-master-part',
+        // Assign nilai baru yang sudah dibersihkan
+        $masterPart->nama_part = $namaPartClean;
+        $masterPart->bag       = $bagClean;
+
+        // Cek apakah ada perubahan data (isDirty/save)
+        // save() mengembalikan true meskipun tidak ada kolom yang berubah
+        if ($masterPart->save()) {
+            return [
+                'status'     => 200,
+                'message'    => 'Data master part berhasil diubah',
+                'redirect'   => '',
+                'table'      => 'datatable-master-part',
+                'additional' => [],
+            ];
+        }
+
+        return [
+            'status'     => 400,
+            'message'    => 'Data master part gagal diubah',
+            'redirect'   => '',
+            'table'      => 'datatable-master-part',
             'additional' => [],
-        );
+        ];
     }
 
     /**

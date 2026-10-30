@@ -460,6 +460,8 @@
         }
 
         async function setFixedColumn() {
+            document.getElementById("loadingOrderOutput").classList.remove("hidden");
+
             setTimeout(function () {
                 // Initialize DataTable again
                 var datatable = $('#trackdatatable').DataTable({
@@ -486,6 +488,8 @@
 
             setTimeout(function () {
                 $('#trackdatatable').DataTable().columns.adjust();
+
+                document.getElementById("loadingOrderOutput").classList.add("hidden");
             }, 1000);
 
             console.log("initFixedColumn");

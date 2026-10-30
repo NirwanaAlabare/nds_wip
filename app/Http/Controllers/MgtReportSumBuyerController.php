@@ -378,9 +378,8 @@ dd AS (
         LEFT   JOIN mgt_rep_hari_libur b ON a.tanggal = b.tanggal_libur
         WHERE  a.status_prod = 'KERJA'
           AND  (b.status_absen <> 'LN' OR b.status_absen IS NULL)
-AND CAST(a.bulan AS UNSIGNED) >= '$year'
-AND CAST(a.tahun AS UNSIGNED) >= '$month'
-AND CAST(a.tahun AS UNSIGNED) <= '$month'
+AND CAST(a.bulan AS UNSIGNED) = '$month'
+AND CAST(a.tahun AS UNSIGNED) = '$year'
         GROUP  BY a.bulan, a.nama_bulan, a.tahun
 ),
 dim_tgl AS (
@@ -390,7 +389,7 @@ SELECT d.tanggal,
        END AS stat_kerja
 FROM   dim_date d
 LEFT JOIN mgt_rep_hari_libur b ON d.tanggal = b.tanggal_libur
-        WHERE  tanggal >= '$start_date' and tanggal <= '$end_date'
+        WHERE  tanggal = '$today'
 ),
 dc AS (
 SELECT
@@ -402,9 +401,8 @@ projection,
 round(sum(projection / tot_working_days),2) AS daily_cost
 FROM mgt_rep_daily_cost a
 LEFT JOIN dd ON a.bulan = dd.bulan AND a.tahun = dd.tahun
-WHERE CAST(a.bulan AS UNSIGNED) >= '$year'
-AND CAST(a.tahun AS UNSIGNED) >= '$month'
-AND CAST(a.tahun AS UNSIGNED) <= '$month'
+WHERE CAST(a.bulan AS UNSIGNED) = '$month'
+AND CAST(a.tahun AS UNSIGNED) = '$year'
 GROUP BY no_coa, dd.bulan, dd.tahun
 ),
 coa AS (
@@ -446,7 +444,7 @@ m_labor AS (
                SUM(bpjs_ks) AS bpjs_ks,
                SUM(thr)     AS thr
         FROM   mgt_rep_labor
-        WHERE  tanggal_berjalan BETWEEN '$start_date' AND '$end_date'
+        WHERE  tanggal_berjalan = '$today'
           AND  status_staff = 'NON STAFF'
         GROUP  BY sub_dept_id, group_department, tanggal_berjalan
 ),
@@ -729,6 +727,19 @@ sum(est_cost_prod) as sum_est_cost_prod,
 sum(est_earning_mkt) as sum_est_earning_mkt,
 sum(est_cost_mkt) as sum_est_cost_mkt
 from earning group by buyer),
+tmp_earning_buyer as (
+select
+buyer,
+sum(tot_earning_rupiah) as sum_tot_earning_rupiah,
+sum(est_full_earning) as sum_est_full_earning,
+sum(est_earning_prod) as sum_est_earning_prod,
+sum(est_tot_cost) as est_tot_cost,
+sum(est_cost_prod) as sum_est_cost_prod,
+sum(est_earning_mkt) as sum_est_earning_mkt,
+sum(est_cost_mkt) as sum_est_cost_mkt
+from mgt_rep_tmp_earning
+where tanggal >= '$start_date' and tanggal < '$today'
+group by buyer),
 sum_full_earn_wo_buyer as (
   SELECT SUM(est_tot_cost) AS total_cost
   FROM sum_full_earning
@@ -822,8 +833,8 @@ group by a.buyer
         ROUND((((sum_est_earning_mkt - sum_est_cost_mkt) / sum_est_earning_mkt) * 100),2) as percent_earn_cost_mkt
 
         from mgt_rep_tmp_earn a
-        left join sum_earning_buyer b on a.buyer = b.buyer
-        where a.tgl_trans >= '$start_date' and a.tgl_trans <= '$end_date'
+        left join tmp_earning_buyer b on a.buyer = b.buyer
+        where a.tgl_trans >= '$start_date' and a.tgl_trans < '$today'
         group by a.buyer
         ) a
         group by buyer

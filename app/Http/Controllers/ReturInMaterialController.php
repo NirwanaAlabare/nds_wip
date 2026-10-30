@@ -486,6 +486,12 @@ class ReturInMaterialController extends Controller
         $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
         $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
         $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
+        // roll / lot kosong diisi dari riwayat barcode yang sama; no_lot yang tetap tidak ketemu diisi '-'
+        $asal = DB::connection('mysql_sb')->selectOne("select max(nullif(nullif(no_roll,''),'-')) no_roll, max(nullif(nullif(no_roll_buyer,''),'-')) no_roll_buyer, max(nullif(nullif(no_lot,''),'-')) no_lot from whs_lokasi_inmaterial where no_barcode = ?", [$t_no_barcode]);
+        $kosong = fn ($v) => $v === null || trim((string) $v) === '' || trim((string) $v) === '-';
+        $t_no_roll = $kosong($t_no_roll) ? ($asal->no_roll ?? $t_no_roll) : $t_no_roll;
+        $t_no_roll_buyer = $kosong($t_no_roll_buyer) ? ($asal->no_roll_buyer ?? $no_roll_buyer) : $t_no_roll_buyer;
+        $t_no_lot = $kosong($t_no_lot) ? ($asal->no_lot ?? '-') : $t_no_lot;
 
         array_push($lokasiInsertData, [
             "no_barcode" => $t_no_barcode,
@@ -780,6 +786,12 @@ class ReturInMaterialController extends Controller
         $np_curr = $barcode_in ? $barcode_in[0]->np_curr : null;
         $np_tgl_in = $barcode_in ? $barcode_in[0]->np_tgl_in : null;
         $np_price = $barcode_in ? $barcode_in[0]->np_price : null;
+        // roll / lot kosong diisi dari riwayat barcode yang sama; no_lot yang tetap tidak ketemu diisi '-'
+        $asal = DB::connection('mysql_sb')->selectOne("select max(nullif(nullif(no_roll,''),'-')) no_roll, max(nullif(nullif(no_roll_buyer,''),'-')) no_roll_buyer, max(nullif(nullif(no_lot,''),'-')) no_lot from whs_lokasi_inmaterial where no_barcode = ?", [$t_no_barcode]);
+        $kosong = fn ($v) => $v === null || trim((string) $v) === '' || trim((string) $v) === '-';
+        $t_no_roll = $kosong($t_no_roll) ? ($asal->no_roll ?? $t_no_roll) : $t_no_roll;
+        $t_no_roll_buyer = $kosong($t_no_roll_buyer) ? ($asal->no_roll_buyer ?? $no_roll_buyer) : $t_no_roll_buyer;
+        $t_no_lot = $kosong($t_no_lot) ? ($asal->no_lot ?? '-') : $t_no_lot;
 
         array_push($lokasiInsertData, [
             "no_barcode" => $t_no_barcode,
@@ -1096,11 +1108,11 @@ class ReturInMaterialController extends Controller
             created_by, created_at, updated_at, nilai_barang,
             no_barcode_old, np_curr, np_tgl_in, np_price
         )
-        select a.*, a.no_barcode, np_curr, np_tgl_in, np_price from (select a.*,(coalesce(price_in,0) + coalesce(nilai_barang,0)) nilai_barang from (select no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, no_roll, no_roll_buyer, no_lot,qty_sj, qty_aktual, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode) a
+        select a.*, a.no_barcode, np_curr, np_tgl_in, np_price from (select a.*,(coalesce(price_in,0) + coalesce(nilai_barang,0)) nilai_barang from (select no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, COALESCE(NULLIF(no_roll,''), (select max(nullif(nullif(x.no_roll,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = whs_lokasi_inmaterial_temp.no_barcode)) no_roll, COALESCE(NULLIF(no_roll_buyer,''), (select max(nullif(nullif(x.no_roll_buyer,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = whs_lokasi_inmaterial_temp.no_barcode)) no_roll_buyer, COALESCE(NULLIF(NULLIF(no_lot,''),'-'), (select max(nullif(nullif(x.no_lot,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = whs_lokasi_inmaterial_temp.no_barcode), '-') no_lot,qty_sj, qty_aktual, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode) a
             INNER JOIN
     (select t.no_barcode, t.no_roll_buyer, IFNULL(t.np_curr_rev,t.np_curr) np_curr, t.np_tgl_in, IFNULL(t.np_price_rev,t.np_price) np_price from whs_lokasi_inmaterial t inner join (select no_barcode, MIN(id) min_id from whs_lokasi_inmaterial GROUP BY no_barcode) m on m.no_barcode = t.no_barcode and m.min_id = t.id) b on b.no_barcode = a.no_barcode
         UNION
-        select id_roll no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, goods_code kode_item, itemdesc, no_roll, no_roll_buyer, no_lot,qty_retur qty_sj, qty_retur qty_aktual, unit satuan, a.kode_lok, 'Y' status,created_by,created_at,updated_at, price price_in, id_roll, c.np_curr, c.np_tgl_in, c.np_price
+        select id_roll no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, goods_code kode_item, itemdesc, COALESCE(NULLIF(b.no_roll,''), (select max(nullif(nullif(x.no_roll,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = a.id_roll)) no_roll, COALESCE(NULLIF(b.no_roll_buyer,''), (select max(nullif(nullif(x.no_roll_buyer,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = a.id_roll)) no_roll_buyer, COALESCE(NULLIF(NULLIF(b.no_lot,''),'-'), (select max(nullif(nullif(x.no_lot,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = a.id_roll), '-') no_lot,qty_retur qty_sj, qty_retur qty_aktual, unit satuan, a.kode_lok, 'Y' status,created_by,created_at,updated_at, price price_in, id_roll, c.np_curr, c.np_tgl_in, c.np_price
         from whs_inmaterial_barcode_ri_temp a
         LEFT JOIN whs_barcode_in b on b.no_barcode = a.id_roll
         LEFT JOIN (select t.no_barcode, IFNULL(t.np_curr_rev,t.np_curr) np_curr, t.np_tgl_in, IFNULL(t.np_price_rev,t.np_price) np_price from whs_lokasi_inmaterial t inner join (select no_barcode, MIN(id) min_id from whs_lokasi_inmaterial GROUP BY no_barcode) m on m.no_barcode = t.no_barcode and m.min_id = t.id) c on c.no_barcode = a.id_roll
@@ -1151,8 +1163,9 @@ public function lokreturmaterial($id)
 {
 
     $kode_gr = DB::connection('mysql_sb')->select("select * from whs_inmaterial_fabric where id = '$id'");
-    $det_data = DB::connection('mysql_sb')->select("select *, round((a.qty_good - COALESCE(b.qty_lok,0)),2) qty_sisa  from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a left join
-        (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
+    // Item yang tercatat di beberapa baris detail (beda No PO) dijumlahkan jadi satu baris - lihat sqlDetReturPerItem()
+    $det_data = DB::connection('mysql_sb')->select("select *, round((a.qty_good - COALESCE(b.qty_lok,0)),2) qty_sisa  from (" . $this->sqlDetReturPerItem("b.id = ?") . ") a left join
+        (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item", [$id]);
 
     $no_bppb = DB::connection('mysql_sb')->table('bppb')->select('bppbno_int')->where('bppbno', '=', $kode_gr[0]->ori_dok)->get();
 
@@ -1165,6 +1178,24 @@ public function lokreturmaterial($id)
     $lokasi = DB::connection('mysql_sb')->select("select a.id,a.kode_lok, CONCAT(a.kode_lok,' (Used ',COALESCE(qty,0),' Of ',kapasitas,')') lokasi,a.kapasitas,COALESCE(qty,0) qty_used from (select id,kode_lok,kapasitas from whs_master_lokasi) a left join (select COUNT(id) qty,kode_lok from (select id,kode_lok from whs_lokasi_inmaterial where status = 'Y') a GROUP BY kode_lok) b on b.kode_lok = a.kode_lok ORDER BY kode_lok asc");
 
     return view('inmaterial.lokasi-inmaterial', ['no_bppb' => $no_bppb,'det_data' => $det_data,'kode_gr' => $kode_gr,'gr_type' => $gr_type,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit,'lokasi' => $lokasi,'is_retur' => true, 'page' => 'dashboard-warehouse']);
+}
+
+// Detail BPB retur per item. Satu item bisa tercatat di beberapa baris detail (beda No PO, mis.
+// GK/RI/1026/00070), sedangkan lokasi dicatat per item (no_dok, no_ws, id_jo, id_item). Baris item yang
+// sama dijumlahkan supaya qty-nya dibandingkan dengan total lokasi item itu; dulu tiap baris dikurangi
+// total lokasi sehingga balance-nya minus. id = baris pertama (dipakai link Upload Lokasi).
+// $kondisi memakai alias a (detail) / b (header); nilainya lewat binding.
+private function sqlDetReturPerItem($kondisi)
+{
+    return "select MIN(a.id) id, MAX(b.id) id_dok, a.no_dok, MAX(a.tgl_dok) tgl_dok, a.no_ws,
+            GROUP_CONCAT(DISTINCT a.no_po ORDER BY a.no_po SEPARATOR ', ') no_po, a.id_jo, a.id_item,
+            MAX(a.kode_item) kode_item, MAX(a.produk_item) produk_item, MAX(a.desc_item) desc_item,
+            SUM(a.qty_po) qty_po, SUM(a.qty_good) qty_good, SUM(COALESCE(a.qty_reject, 0)) qty_reject, a.unit,
+            MAX(a.curr) curr, MAX(a.price) price, MAX(a.status) status
+        from whs_inmaterial_fabric_det a
+        inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok
+        where a.status = 'Y' and " . $kondisi . "
+        group by a.no_dok, a.no_ws, a.id_jo, a.id_item, a.unit";
 }
 
 
@@ -1292,8 +1323,9 @@ public function savelokasiretur(Request $request)
 public function UploadLokasiRetur($id)
 {
 
-    $data_head = DB::connection('mysql_sb')->select("select id_dok,id,no_dok,no_ws,id_jo,id_item,kode_item,produk_item,desc_item,qty_good qty,unit,COALESCE(qty_lok,0) qty_lok,qty_sisa from (select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (select b.id id_dok,a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.id = '$id' and a.status = 'Y') a left join
-        (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item) a");
+    // Qty & balance item dari semua baris detail item yang sama dengan baris $id (lihat sqlDetReturPerItem())
+    $data_head = DB::connection('mysql_sb')->select("select id_dok,id,no_dok,no_ws,id_jo,id_item,kode_item,produk_item,desc_item,qty_good qty,unit,COALESCE(qty_lok,0) qty_lok,qty_sisa from (select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (" . $this->sqlDetReturPerItem("(a.no_dok, a.no_ws, a.id_jo, a.id_item, a.unit) = (select no_dok, no_ws, id_jo, id_item, unit from whs_inmaterial_fabric_det where id = ?)") . ") a left join
+        (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item) a", [$id]);
 
     $det_data = DB::connection('mysql_sb')->select("select *, (a.qty_good - COALESCE(b.qty_lok,0)) qty_sisa  from (select a.* from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where b.id = '$id' and a.status = 'Y') a left join
         (select no_dok nodok, no_ws ws,id_jo jo_id,id_item item_id,SUM(qty_aktual) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok,no_ws,id_item,id_jo) b on b.nodok = a.no_dok and b.ws = a.no_ws and b.jo_id = a.id_jo and b.item_id = a.id_item");
@@ -1377,28 +1409,71 @@ public function saveuploadlokasirtr(Request $request)
     $delete_temp = InMaterialLokTemp::where('created_by',Auth::user()->name)->delete();
 
     if ($updateItemQty) {
+        // orig_qty_bpb = total qty item (semua baris detail item ini dijumlahkan, lihat sqlDetReturPerItem())
         $newQtyGood = floatval($request['orig_qty_bpb']) + (floatval($request['qty_upload']) - floatval($request['qty_bal']));
 
-        DB::connection('mysql_sb')
+        $barisDet = DB::connection('mysql_sb')
             ->table('whs_inmaterial_fabric_det')
             ->where('no_dok', $nodok)
             ->where('id_item', $iditem)
             ->where('id_jo', $idjo)
-            ->update([
-                'qty_good' => $newQtyGood,
-            ]);
+            ->orderBy('id')
+            ->get(['id', 'qty_good']);
 
-        DB::connection('mysql_sb')
-            ->table('bpb')
-            ->where('bpbno_int', $nodok)
-            ->where('id_item', $iditem)
-            ->where('id_jo', $idjo)
-            ->update([
-                'qty_old' => DB::raw('qty'),
-                'qty' => $newQtyGood,
-                // ikut diubah supaya Konfirmasi Pemasukan (qty = qty_temp) tidak mengembalikan qty lama
-                'qty_temp' => $newQtyGood,
-            ]);
+        if ($barisDet->count() <= 1) {
+            DB::connection('mysql_sb')
+                ->table('whs_inmaterial_fabric_det')
+                ->where('no_dok', $nodok)
+                ->where('id_item', $iditem)
+                ->where('id_jo', $idjo)
+                ->update([
+                    'qty_good' => $newQtyGood,
+                ]);
+
+            DB::connection('mysql_sb')
+                ->table('bpb')
+                ->where('bpbno_int', $nodok)
+                ->where('id_item', $iditem)
+                ->where('id_jo', $idjo)
+                ->update([
+                    'qty_old' => DB::raw('qty'),
+                    'qty' => $newQtyGood,
+                    // ikut diubah supaya Konfirmasi Pemasukan (qty = qty_temp) tidak mengembalikan qty lama
+                    'qty_temp' => $newQtyGood,
+                ]);
+        } else {
+            // Item ini ada di beberapa baris (beda No PO): total item jadi $newQtyGood dengan membebankan
+            // selisihnya ke baris pertama saja. Kalau semua baris di-set ke angka yang sama, totalnya berlipat.
+            $selisih = $newQtyGood - $barisDet->sum('qty_good');
+
+            DB::connection('mysql_sb')
+                ->table('whs_inmaterial_fabric_det')
+                ->where('id', $barisDet->first()->id)
+                ->update([
+                    'qty_good' => DB::raw('qty_good + ' . floatval($selisih)),
+                ]);
+
+            $barisBpb = DB::connection('mysql_sb')
+                ->table('bpb')
+                ->where('bpbno_int', $nodok)
+                ->where('id_item', $iditem)
+                ->where('id_jo', $idjo)
+                ->orderBy('id')
+                ->get(['id', 'qty_temp']);
+
+            foreach ($barisBpb as $i => $bpbRow) {
+                $qtyBaru = floatval($bpbRow->qty_temp) + ($i === 0 ? floatval($selisih) : 0);
+                DB::connection('mysql_sb')
+                    ->table('bpb')
+                    ->where('id', $bpbRow->id)
+                    ->update([
+                        'qty_old' => DB::raw('qty'),
+                        'qty' => $qtyBaru,
+                        // ikut diubah supaya Konfirmasi Pemasukan (qty = qty_temp) tidak mengembalikan qty lama
+                        'qty_temp' => $qtyBaru,
+                    ]);
+            }
+        }
     }
 
     $activity = $updateItemQty ? 'Upload Lokasi Roll & Qty Item Retur' : 'Upload Lokasi Roll Retur';
@@ -2675,13 +2750,13 @@ public function updateRiBarcode(Request $request)
                 created_by, created_at, updated_at, nilai_barang,
                 no_barcode_old, np_curr, np_tgl_in, np_price
             )
-            select a.*, a.no_barcode, np_curr, np_tgl_in, np_price from (select a.*,(coalesce(price_in,0) + coalesce(nilai_barang,0)) nilai_barang from (select no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, no_roll, no_roll_buyer, no_lot,qty_sj, qty_aktual, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode) a
+            select a.*, a.no_barcode, np_curr, np_tgl_in, np_price from (select a.*,(coalesce(price_in,0) + coalesce(nilai_barang,0)) nilai_barang from (select no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, kode_item, item_desc, COALESCE(NULLIF(no_roll,''), (select max(nullif(nullif(x.no_roll,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = whs_lokasi_inmaterial_temp.no_barcode)) no_roll, COALESCE(NULLIF(no_roll_buyer,''), (select max(nullif(nullif(x.no_roll_buyer,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = whs_lokasi_inmaterial_temp.no_barcode)) no_roll_buyer, COALESCE(NULLIF(NULLIF(no_lot,''),'-'), (select max(nullif(nullif(x.no_lot,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = whs_lokasi_inmaterial_temp.no_barcode), '-') no_lot,qty_sj, qty_aktual, satuan, kode_lok, status,created_by,created_at,updated_at from whs_lokasi_inmaterial_temp where created_by = '".Auth::user()->name."' GROUP BY no_barcode) a inner join (select id_roll,COALESCE(price_in,0) price_in, COALESCE(nilai_barang,0) nilai_barang from whs_bppb_det where status = 'Y' GROUP BY id_roll) b on b.id_roll = a.no_barcode) a
                 INNER JOIN
         (select t.no_barcode, t.no_roll_buyer, IFNULL(t.np_curr_rev,t.np_curr) np_curr, t.np_tgl_in, IFNULL(t.np_price_rev,t.np_price) np_price from whs_lokasi_inmaterial t inner join (select no_barcode, MIN(id) min_id from whs_lokasi_inmaterial GROUP BY no_barcode) m on m.no_barcode = t.no_barcode and m.min_id = t.id) b on b.no_barcode = a.no_barcode
             UNION
-            select id_roll no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, goods_code kode_item, itemdesc, no_roll, no_roll_buyer, no_lot,qty_retur qty_sj, qty_retur qty_aktual, unit satuan, a.kode_lok, 'Y' status,created_by,created_at,updated_at, price price_in, id_roll, c.np_curr, c.np_tgl_in, c.np_price
+            select id_roll no_barcode,'".$bpbno_int."' no_dok, no_ws, id_jo, id_item, goods_code kode_item, itemdesc, COALESCE(NULLIF(b.no_roll,''), (select max(nullif(nullif(x.no_roll,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = a.id_roll)) no_roll, COALESCE(NULLIF(b.no_roll_buyer,''), (select max(nullif(nullif(x.no_roll_buyer,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = a.id_roll)) no_roll_buyer, COALESCE(NULLIF(NULLIF(b.no_lot,''),'-'), (select max(nullif(nullif(x.no_lot,''),'-')) from whs_lokasi_inmaterial x where x.no_barcode = a.id_roll), '-') no_lot,qty_retur qty_sj, qty_retur qty_aktual, unit satuan, a.kode_lok, 'Y' status,created_by,created_at,updated_at, price price_in, id_roll, c.np_curr, c.np_tgl_in, c.np_price
             from whs_inmaterial_barcode_ri_temp a
-            INNER JOIN whs_barcode_in b on b.no_barcode = a.id_roll
+            LEFT JOIN whs_barcode_in b on b.no_barcode = a.id_roll
             LEFT JOIN (select t.no_barcode, IFNULL(t.np_curr_rev,t.np_curr) np_curr, t.np_tgl_in, IFNULL(t.np_price_rev,t.np_price) np_price from whs_lokasi_inmaterial t inner join (select no_barcode, MIN(id) min_id from whs_lokasi_inmaterial GROUP BY no_barcode) m on m.no_barcode = t.no_barcode and m.min_id = t.id) c on c.no_barcode = a.id_roll
             where created_by = '".Auth::user()->name."' GROUP BY no_barcode
         ");

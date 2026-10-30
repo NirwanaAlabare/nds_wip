@@ -118,7 +118,7 @@
                 <td>{{ $day->no_style }}</td>
                 <td data-format="0.00" style="text-align: right;">{{ round($day->smv, 2) }}</td>
                 <td data-format="0" style="background: #e9ff25;text-align: right;">{{ $day->man_power }}</td>
-                <td data-format='{{ is_decimal($day->mins_avail) ? "0.00" : "0" }}' style="background: #bccee7;text-align: right;">{{ round($day->mins_avail, 2) }}</td>
+                <td data-format='{{ is_dec($day->mins_avail) ? "0.00" : "0" }}' style="background: #bccee7;text-align: right;">{{ round($day->mins_avail, 2) }}</td>
                 <td data-format="0" style="text-align: right;">{{ $day->target }}</td>
                 <td data-format="0" style="background: #bef5c0;text-align: right;">{{ $day->output }}</td>
                 <td data-format="0.00" style="text-align: right;">{{ $day->order_cfm_price }}</td>

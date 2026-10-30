@@ -4,7 +4,7 @@ use App\Models\ActivityLogHistory;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-function is_decimal($val)
+function is_dec($val)
 {
     return is_numeric($val) && floor($val) != $val;
 }
@@ -12,7 +12,7 @@ function is_decimal($val)
 function curr($num)
 {
     if (is_numeric($num)) {
-        if (is_decimal($num)) {
+        if (is_dec($num)) {
             $hasil_rupiah = number_format($num, 2, ',', '.');
         } else {
             $hasil_rupiah = number_format($num, 0, ',', '.');
@@ -148,8 +148,12 @@ function addQuotesAround($inputStr)
     return $result;  // Return the result without an extra comma at the end
 }
 
-function logHistory($subjectId = null, array $properties = [])
+// $activity & $subjectType opsional, untuk pemanggilan di luar controller (mis. Livewire) yang route-nya tidak mewakili aksi
+function logHistory($subjectId = null, array $properties = [], $activity = null, $subjectType = null)
 {
+    $activityOverride = $activity;
+    $subjectTypeOverride = $subjectType;
+
     $route = request()->route();
     $action = $route ? $route->getActionName() : null;
 
@@ -170,8 +174,8 @@ function logHistory($subjectId = null, array $properties = [])
     }
 
     ActivityLogHistory::create([
-        'activity'     => $activity,
-        'subject_type' => $subjectType,
+        'activity'     => $activityOverride ?? $activity,
+        'subject_type' => $subjectTypeOverride ?? $subjectType,
         'subject_id'   => $subjectId,
         'route_name'   => $route ? $route->getName() : null,
         'properties'   => $properties,

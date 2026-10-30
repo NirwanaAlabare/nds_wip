@@ -35,6 +35,13 @@ class LapMutasiDetailController extends Controller
             //     $additionalQuery .= " and a.tgl_bppb <= '" . $request->dateTo . "' ";
             // }
 
+            if ($request->dateFrom >= '2025-11-01') {
+                // Sama dengan export Excel (exportSql) dan laporan Mutasi Barcode: saldo awal dari Copy Saldo.
+                // Query lama di bawah menghitung saldo awal dari seluruh riwayat; hasilnya tidak sama dengan Excel.
+                $data_mutasi = DB::connection('mysql_sb')->select($this->exportSql($request->dateFrom, $request->dateTo));
+            } else {
+            // id_item & id_jo di whs_bppb_det bertipe varchar, di whs_lokasi_inmaterial bigint: tanpa CAST join ke
+            // data pengeluaran tidak bisa memakai index (block nested loop) dan laporan butuh menit-an.
             $data_mutasi = DB::connection('mysql_sb')->select("select * from (select kode_lok,id_jo,no_ws,styleno,buyer,id_item,goods_code,itemdesc, color, size, satuan,round((sal_awal - qty_out_sbl),2) sal_awal,round(qty_in,2) qty_in,ROUND(qty_out_sbl,2) qty_out_sbl,ROUND(qty_out,2) qty_out, round((sal_awal + qty_in - qty_out_sbl - qty_out),2) sal_akhir from (select concat(a.kode_lok,' FABRIC WAREHOUSE RACK') kode_lok,a.id_jo,no_ws,styleno,buyer,a.id_item,mi.goods_code,mi.itemdesc, mi.color, mi.size ,a.satuan,sal_awal,qty_in,coalesce(qty_out_sbl,'0') qty_out_sbl,coalesce(qty_out,'0') qty_out from (select b.kode_lok,b.id_jo,b.no_ws,b.styleno,b.buyer,b.id_item,b.goods_code,b.itemdesc,b.satuan, sal_awal, qty_in from (select id_item,unit from whs_sa_fabric  group by id_item,unit
             UNION
             select id_item,unit from whs_inmaterial_fabric_det group by id_item,unit) a left join
@@ -67,7 +74,7 @@ class LapMutasiDetailController extends Controller
             inner join (select ac.id_buyer,ac.styleno,jd.id_jo, ac.kpno from jo_det jd inner join so on jd.id_so = so.id inner join act_costing ac on so.id_cost = ac.id where jd.cancel = 'N' group by id_cost order by id_jo asc) jd on lk.id_jo = jd.id_jo
             inner join mastersupplier mb on jd.id_buyer = mb.id_supplier where lk.status = 'Y' and a.tgl_mut BETWEEN '" . $request->dateFrom . "' and '" . $request->dateTo . "' group by lk.kode_lok, lk.id_item, lk.id_jo, lk.satuan) a group by a.kode_lok, a.id_item, a.id_jo, a.satuan
 
-            ) b on b.id_item = a.id_item and b.satuan = a.unit where kode_lok is not null) a left join (select kode_lok,id_item,id_jo,satuan,ROUND(sum(qty_out_sbl),2) qty_out_sbl,ROUND(sum(qty_out),2) qty_out from (select id,kode_lok,id_item,id_jo,satuan,qty_out_sbl,'0' qty_out from (select 'OMB' id,b.no_rak kode_lok,b.id_item,b.id_jo,satuan,sum(b.qty_out) qty_out_sbl from whs_mut_lokasi a inner join (select no_bppb, id_roll,no_rak,id_item,id_jo,satuan, qty_out FROM whs_bppb_det where status = 'Y' and no_bppb like '%MT%' GROUP BY id_roll, no_bppb) b on a.idbpb_det = b.id_roll and a.no_mut = b.no_bppb where a.status = 'Y' and tgl_mut < '" . $request->dateFrom . "' group by b.no_rak,b.id_item,b.id_jo,satuan
+            ) b on b.id_item = a.id_item and b.satuan = a.unit where kode_lok is not null) a left join (select kode_lok,CAST(id_item AS SIGNED) id_item,CAST(id_jo AS SIGNED) id_jo,satuan,ROUND(sum(qty_out_sbl),2) qty_out_sbl,ROUND(sum(qty_out),2) qty_out from (select id,kode_lok,id_item,id_jo,satuan,qty_out_sbl,'0' qty_out from (select 'OMB' id,b.no_rak kode_lok,b.id_item,b.id_jo,satuan,sum(b.qty_out) qty_out_sbl from whs_mut_lokasi a inner join (select no_bppb, id_roll,no_rak,id_item,id_jo,satuan, qty_out FROM whs_bppb_det where status = 'Y' and no_bppb like '%MT%' GROUP BY id_roll, no_bppb) b on a.idbpb_det = b.id_roll and a.no_mut = b.no_bppb where a.status = 'Y' and tgl_mut < '" . $request->dateFrom . "' group by b.no_rak,b.id_item,b.id_jo,satuan
 
             UNION
             select 'OTB' id,no_rak kode_lok,id_item,id_jo,satuan,round(sum(qty_out),2) qty_out_sbl from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where a.status = 'Y' and tgl_bppb < '" . $request->dateFrom . "' group by no_rak, id_item, id_jo, satuan) a
@@ -75,6 +82,7 @@ class LapMutasiDetailController extends Controller
             select id,kode_lok,id_item,id_jo,satuan,'0' qty_out_sbl, qty_out from (select 'OM' id,b.no_rak kode_lok,b.id_item,b.id_jo,satuan,sum(b.qty_out) qty_out from whs_mut_lokasi a inner join (select no_bppb, id_roll,no_rak,id_item,id_jo,satuan, qty_out FROM whs_bppb_det where status = 'Y' and no_bppb like '%MT%' GROUP BY id_roll, no_bppb) b on a.idbpb_det = b.id_roll and a.no_mut = b.no_bppb where a.status = 'Y' and tgl_mut BETWEEN '" . $request->dateFrom . "' and '" . $request->dateTo . "' group by b.no_rak,b.id_item,b.id_jo,satuan
             UNION
             select 'OT' id,no_rak kode_lok,id_item,id_jo,satuan,round(sum(qty_out),2) qty_out from whs_bppb_det a inner join whs_bppb_h b on b.no_bppb = a.no_bppb where a.status = 'Y' and tgl_bppb BETWEEN '" . $request->dateFrom . "' and '" . $request->dateTo . "' group by no_rak, id_item, id_jo, satuan) a) a group by kode_lok, id_item, id_jo, satuan) b on b.kode_lok = a.kode_lok and b.id_jo = a.id_jo and b.id_item = a.id_item and b.satuan = a.satuan INNER JOIN masteritem mi on mi.id_item = a.id_item) a) a where (sal_awal + qty_in) > 0");
+            }
 
 
 return DataTables::of($data_mutasi)->toJson();

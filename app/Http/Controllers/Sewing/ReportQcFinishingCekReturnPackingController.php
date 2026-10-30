@@ -662,6 +662,14 @@ class ReportQcFinishingCekReturnPackingController extends Controller
 
             $sheet->writeRow($rows, [
                 'border' => 'thin',
+            ], $tipe == 'Detail' ? [
+                'D' => ['format' => '@'],
+                'F' => ['format' => '@'],
+                'G' => ['format' => '@'],
+            ] : [
+                'B' => ['format' => '@'],
+                'D' => ['format' => '@'],
+                'E' => ['format' => '@'],
             ]);
         }
 

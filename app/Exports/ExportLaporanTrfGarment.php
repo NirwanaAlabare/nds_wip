@@ -32,7 +32,7 @@ class ExportLaporanTrfGarment implements FromView, WithEvents, ShouldAutoSize
     use Exportable;
 
 
-    protected $from, $to, $sumber;
+    protected $from, $to, $sumber, $data;
 
     public function __construct($from, $to, $sumber)
     {
@@ -128,6 +128,7 @@ class ExportLaporanTrfGarment implements FromView, WithEvents, ShouldAutoSize
         ");
 
         $this->rowCount = count($data) + 5;
+        $this->data = $data;
 
 
         return view('packing.export_excel_trf_garment', [
@@ -149,6 +150,18 @@ class ExportLaporanTrfGarment implements FromView, WithEvents, ShouldAutoSize
 
     public static function afterSheet(AfterSheet $event)
     {
+        // HTML reader collapses multiple spaces, rewrite text columns from original data
+        $sheet = $event->sheet->getDelegate();
+        $row = 6;
+        foreach ($event->getConcernable()->data ?? [] as $item) {
+            foreach (['D' => 'line', 'E' => 'po', 'F' => 'ws', 'G' => 'styleno', 'H' => 'color', 'I' => 'size', 'K' => 'tujuan', 'L' => 'sumber', 'N' => 'created_by'] as $col => $field) {
+                if ($item->$field !== null) {
+                    $sheet->setCellValueExplicit($col . $row, (string) $item->$field, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                }
+            }
+            $row++;
+        }
+
 
         $event->sheet->styleCells(
             'A5:O' . $event->getConcernable()->rowCount,

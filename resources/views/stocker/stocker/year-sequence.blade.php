@@ -569,7 +569,7 @@
                 url: "{{ route("check-year-sequence-number") }}",
                 type: "get",
                 data: {
-                    "id_qr_stocker": $('#id_qr_stocker').val(),
+                    "id_qr_stocker": $('#stocker').val(),
                     "method": method,
                     "year": $('#year').val(),
                     "year_sequence": $('#sequence').val(),
@@ -657,7 +657,8 @@
                     url: '{{ route('set-year-sequence-number') }}',
                     type: 'post',
                     data: {
-                        "id_qr_stocker": $('#id_qr_stocker').val(),
+                        "id_qr_stocker": $('#stocker').val(),
+                        "id_qr_stocker_input": $('#id_qr_stocker').val(),
                         "method": method,
                         "year": $('#year').val(),
                         "year_sequence": $('#sequence').val(),

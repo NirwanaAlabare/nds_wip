@@ -46,6 +46,26 @@
             vertical-align: middle;
         }
 
+        #list-table .col-check,
+        .dataTables_scrollHead .col-check {
+            width: 40px;
+            min-width: 40px;
+            padding-left: .5rem !important;
+            padding-right: .5rem !important;
+            text-align: center;
+        }
+
+        .check-all-adjustment,
+        .check-adjustment {
+            float: none;
+            margin: 0 !important;
+            position: static;
+            vertical-align: middle;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
         th.search-cell {
             padding-left: .5rem !important;
             padding-right: .5rem !important;
@@ -173,6 +193,7 @@
                     <label class="form-label"><small>Jenis Report</small></label>
                     <select name="type_report" id="type_report_filter" class="form-control form-control-sm select2bs4" style="width: 170px;">
                         <option value="CUTTING_FABRIC" selected>Cutting Fabric</option>
+                        <option value="CUTTING_FABRIC_BARCODE">Cutting Fabric Barcode</option>
                         <option value="CUTTING_PCS">Cutting PCS</option>
                         <option value="DC">DC</option>
                         <option value="SEWING">Sewing</option>
@@ -181,7 +202,7 @@
                 </div>
 
                 <div>
-                    <button class="btn btn-primary btn-sm" onclick="listTableReload()">
+                    <button class="btn btn-primary btn-sm" id="btnSearch" onclick="listTableReload()">
                         <i class="fa fa-search"></i>
                     </button>
                 </div>
@@ -192,6 +213,13 @@
                         Export Excel
                     </a>
                 </div>
+                @if ($canManage)
+                    <div>
+                        <button type="button" class="btn btn-danger btn-sm" id="btnCancelSelected" onclick="cancelSelected()" disabled>
+                            <i class="fa fa-times"></i> Cancel Multiple (<span id="selectedCount">0</span>)
+                        </button>
+                    </div>
+                @endif
 
                 <!-- Button kanan -->
                 <div class="ms-auto d-flex align-items-center gap-2">
@@ -199,9 +227,11 @@
                         <i class="fa fa-file-excel"></i> Template Report
                     </button>
 
-                    <button type="button" class="btn btn-success btn-sm" onclick="OpenModal()">
-                        <i class="fa fa-upload"></i> Import Adjustment
-                    </button>
+                    @if ($canManage)
+                        <button type="button" class="btn btn-success btn-sm" id="btnOpenImport" onclick="OpenModal()">
+                            <i class="fa fa-upload"></i> Import Adjustment
+                        </button>
+                    @endif
                 </div>
             </div>
             <div>
@@ -239,6 +269,10 @@
                                 <i class="fa fa-scroll"></i> Cutting Fabric
                                 <div class="import-type-desc">Mutasi Fabric</div>
                             </button>
+                            <button type="button" class="template-type-btn import-type-btn" data-type="CUTTING_FABRIC_BARCODE">
+                                <i class="fa fa-barcode"></i> Cutting Fabric Barcode
+                                <div class="import-type-desc">Mutasi Fabric Barcode</div>
+                            </button>
                             <button type="button" class="template-type-btn import-type-btn" data-type="CUTTING_PCS">
                                 <i class="fa fa-cut"></i> Cutting PCS
                                 <div class="import-type-desc">Mutasi PCS</div>
@@ -272,7 +306,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="btnImportSubmit">
                             Import &amp; Validasi
                         </button>
                     </div>
@@ -294,6 +328,9 @@
                     <div class="template-type-list mb-3">
                         <button type="button" class="template-type-btn active" data-type="CUTTING_FABRIC">
                             <i class="fa fa-scroll"></i> Cutting Fabric
+                        </button>
+                        <button type="button" class="template-type-btn" data-type="CUTTING_FABRIC_BARCODE">
+                            <i class="fa fa-barcode"></i> Cutting Fabric Barcode
                         </button>
                         <button type="button" class="template-type-btn" data-type="CUTTING_PCS">
                             <i class="fa fa-cut"></i> Cutting PCS
@@ -385,6 +422,10 @@
                 ['WS', 'ws'], ['ID Roll', 'id_roll'], ['ID Item', 'id_item'], ['Satuan', 'satuan'],
                 ['Fabric', 'fabric', true],
             ],
+            CUTTING_FABRIC_BARCODE: [
+                ['ID Roll', 'id_roll'], ['ID Item', 'id_item'], ['Satuan', 'satuan'],
+                ['Fabric', 'fabric', true],
+            ],
         };
 
         let listTable;
@@ -392,11 +433,79 @@
         const lastClosing = @json($lastClosing ? date('Y-m-d', strtotime($lastClosing)) : null);
         // Jenis report yang sedang tampil di tabel (bukan yang sedang dipilih di dropdown)
         let currentListType;
+        // User yang boleh import & cancel (checkbox, kolom aksi, tombol cancel & import)
+        const canManage = @json($canManage);
+
+        function isClosingRow(row) {
+            return lastClosing && row.tgl_saldo_raw <= lastClosing;
+        }
+
+        function isCancelable(row) {
+            return row.status !== 'N' && !isClosingRow(row);
+        }
+
+        // Pilihan cancel lintas halaman:
+        // - mode biasa: selectedIds = id yang dicentang
+        // - mode check all: semua hasil filter (seluruh halaman), excludedIds = id yang di-uncheck
+        let selectAllMode = false;
+        let selectedIds = new Set();
+        let excludedIds = new Set();
+        // Jumlah baris hasil filter yang bisa dicancel (dari server)
+        let cancelableCount = 0;
+        // Filter terakhir yang dikirim, pilihan direset jika filter berubah (pindah halaman tidak)
+        let lastFilterKey = null;
+
+        function resetSelection() {
+            selectAllMode = false;
+            selectedIds.clear();
+            excludedIds.clear();
+        }
+
+        function isRowChecked(row) {
+            if (!isCancelable(row)) return false;
+
+            return selectAllMode ? !excludedIds.has(row.id) : selectedIds.has(row.id);
+        }
+
+        function selectedTotal() {
+            return selectAllMode ? Math.max(0, cancelableCount - excludedIds.size) : selectedIds.size;
+        }
 
         function buildListTable(type) {
             currentListType = type;
 
+            const checkColumn = {
+                    title: '<input type="checkbox" class="form-check-input check-all-adjustment">',
+                    data: null,
+                    className: 'text-center col-check',
+                    width: '40px',
+                    searchable: false,
+                    render: function (data, type, row) {
+                        return `<input type="checkbox" class="form-check-input check-adjustment" ${isCancelable(row) ? '' : 'disabled'} ${isRowChecked(row) ? 'checked' : ''}>`;
+                    }
+                };
+
+            const actionColumn = {
+                    title: 'Aksi',
+                    data: null,
+                    className: 'text-center',
+                    searchable: false,
+                    render: function (data, type, row) {
+                        const isClosing = isClosingRow(row);
+
+                        return `
+                            <button type="button" class="btn btn-danger btn-sm btn-cancel-adjustment" ${isCancelable(row) ? '' : 'disabled'}
+                                ${isClosing ? 'title="Periode sudah closing"' : ''}>
+                                <i class="fa fa-times"></i> Cancel
+                            </button>
+                        `;
+                    }
+                };
+
             const columns = [
+                // Checkbox & kolom aksi hanya untuk user yang boleh cancel
+                ...(canManage ? [checkColumn] : []),
+                { title: 'ID', data: 'id', className: 'text-center' },
                 { title: 'Tanggal Saldo', data: 'tgl_saldo' },
                 { title: 'Jenis Report', data: 'type_report' },
                 ...listColumns[type].map(([title, data, isNumber]) => ({
@@ -414,23 +523,7 @@
                             : '<span class="badge-soft badge-soft-success">Aktif</span>';
                     }
                 },
-                {
-                    title: 'Aksi',
-                    data: null,
-                    className: 'text-center',
-                    searchable: false,
-                    render: function (data, type, row) {
-                        const isClosing = lastClosing && row.tgl_saldo_raw <= lastClosing;
-                        const disabled = row.status === 'N' || isClosing;
-
-                        return `
-                            <button type="button" class="btn btn-danger btn-sm btn-cancel-adjustment" ${disabled ? 'disabled' : ''}
-                                ${isClosing ? 'title="Periode sudah closing"' : ''}>
-                                <i class="fa fa-times"></i> Cancel
-                            </button>
-                        `;
-                    }
-                },
+                ...(canManage ? [actionColumn] : []),
             ];
 
             if (listTable) {
@@ -452,11 +545,19 @@
                 <tbody></tbody>
             `);
 
+            // Search per kolom dikirim ke server, ditunda sampai berhenti mengetik
+            let searchTimer;
+
             $('#list-table thead tr:eq(1) th').each(function (i) {
                 $('input', this).on('keyup change', function () {
-                    if (listTable.column(i).search() !== this.value) {
-                        listTable.column(i).search(this.value).draw();
-                    }
+                    const value = this.value;
+
+                    clearTimeout(searchTimer);
+                    searchTimer = setTimeout(function () {
+                        if (listTable.column(i).search() !== value) {
+                            listTable.column(i).search(value).draw();
+                        }
+                    }, 500);
                 });
             });
 
@@ -465,13 +566,20 @@
                 ordering: false,
                 processing: true,
                 serverSide: true,
-                paging: false,
+                paging: true,
+                pageLength: 50,
+                lengthMenu: [
+                    [25, 50, 100, 500],
+                    [25, 50, 100, 500]
+                ],
                 searching: true,
                 scrollY: '300px',
                 scrollX: true,
-                scrollCollapse: true,
+                scrollCollapse: false,
                 drawCallback: function () {
+                    fitTableHeight();
                     this.api().columns.adjust();
+                    updateSelectedState();
                 },
                 ajax: {
                     method: 'POST',
@@ -480,11 +588,25 @@
                     },
                     url: '{{ route('get-data-wip-adjustment') }}',
                     dataType: 'json',
-                    dataSrc: 'data',
+                    dataSrc: function (json) {
+                        cancelableCount = json.cancelable_count ?? 0;
+
+                        return json.data;
+                    },
                     data: function(d) {
                         d.dateFrom = $('#tgl-awal').val();
                         d.dateTo = $('#tgl-akhir').val();
                         d.type_report = currentListType;
+
+                        const filterKey = JSON.stringify([
+                            d.dateFrom, d.dateTo, d.type_report, d.search.value,
+                            d.columns.map(col => col.search.value),
+                        ]);
+
+                        if (filterKey !== lastFilterKey) {
+                            resetSelection();
+                            lastFilterKey = filterKey;
+                        }
                     },
                 },
                 columns: columns,
@@ -497,17 +619,30 @@
             });
         }
 
+        // Tinggi area scroll tabel mengikuti sisa layar sampai bawah (minimal 300px)
+        function fitTableHeight() {
+            const $body = $('#list-table').closest('.dataTables_scrollBody');
+
+            if (!$body.length) return;
+
+            const reserved = 130; // info "Showing ..." + pagination + padding card + footer
+            const height = Math.max(300, window.innerHeight - $body.offset().top - reserved);
+
+            $body.css({ 'height': height + 'px', 'max-height': height + 'px' });
+        }
+
+        $(window).on('resize', function () {
+            fitTableHeight();
+            listTable?.columns.adjust();
+        });
+
         buildListTable($('#type_report_filter').val());
 
-        // Cancel 1 baris gabungan (semua type_report di baris itu jadi status N)
-        $('#list-table').on('click', '.btn-cancel-adjustment', function () {
-            const row = listTable.row($(this).closest('tr')).data();
-
+        // payload: { ids: [...] } atau { select_all: 1, excluded_ids: [...], ...parameter filter datatables }
+        function cancelAdjustment(payload, html) {
             Swal.fire({
                 title: 'Cancel Adjustment?',
-                html: currentListType === 'CUTTING_FABRIC'
-                    ? `WS <b>${row.ws}</b> — Roll ${row.id_roll}<br>Tanggal saldo ${row.tgl_saldo}`
-                    : `WS <b>${row.no_ws}</b> — ${row.color} / ${row.size}<br>Tanggal saldo ${row.tgl_saldo}`,
+                html: html,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Ya, cancel',
@@ -523,22 +658,15 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: {
+                        ...payload,
                         type_report: currentListType,
-                        id: row.id,
-                        tgl_saldo: row.tgl_saldo_raw,
-                        no_ws: row.no_ws,
-                        buyer: row.buyer,
-                        style: row.style,
-                        color: row.color,
-                        size: row.size,
-                        panel: row.panel,
-                        part: row.part,
                     },
                     beforeSend: function () {
                         showLoading();
                     },
                     success: function (res) {
                         iziToast.success({ title: 'Berhasil', message: res.message, position: 'topCenter' });
+                        resetSelection();
                         listTableReload();
                     },
                     error: function (xhr) {
@@ -553,7 +681,63 @@
                     }
                 });
             });
+        }
+
+        // Cancel 1 baris
+        $('#list-table').on('click', '.btn-cancel-adjustment', function () {
+            const row = listTable.row($(this).closest('tr')).data();
+
+            cancelAdjustment({ ids: [row.id] }, currentListType === 'CUTTING_FABRIC'
+                ? `ID ${row.id} — WS <b>${row.ws}</b> — Roll ${row.id_roll}<br>Tanggal saldo ${row.tgl_saldo}`
+                : currentListType === 'CUTTING_FABRIC_BARCODE'
+                ? `ID ${row.id} — Roll <b>${row.id_roll}</b> — Item ${row.id_item}<br>Tanggal saldo ${row.tgl_saldo}`
+                : `ID ${row.id} — WS <b>${row.no_ws}</b> — ${row.color} / ${row.size}<br>${row.type_report}, tanggal saldo ${row.tgl_saldo}`);
         });
+
+        // Multi cancel: baris yang diceklis (lintas halaman)
+        function updateSelectedState() {
+            const total = selectedTotal();
+
+            $('#selectedCount').text(total.toLocaleString('id-ID'));
+            $('#btnCancelSelected').prop('disabled', total === 0);
+            $('.check-all-adjustment')
+                .prop('checked', cancelableCount > 0 && total === cancelableCount)
+                .prop('indeterminate', total > 0 && total < cancelableCount);
+        }
+
+        // Check all = semua data hasil filter, bukan hanya halaman ini
+        $(document).on('change', '.check-all-adjustment', function () {
+            resetSelection();
+            selectAllMode = this.checked;
+
+            $('#list-table .check-adjustment:not(:disabled)').prop('checked', this.checked);
+            updateSelectedState();
+        });
+
+        $('#list-table').on('change', '.check-adjustment', function () {
+            const id = listTable.row($(this).closest('tr')).data().id;
+
+            if (selectAllMode) {
+                this.checked ? excludedIds.delete(id) : excludedIds.add(id);
+            } else {
+                this.checked ? selectedIds.add(id) : selectedIds.delete(id);
+            }
+
+            updateSelectedState();
+        });
+
+        function cancelSelected() {
+            const total = selectedTotal();
+
+            if (!total) return;
+
+            const payload = selectAllMode
+                // Kirim ulang filter datatables terakhir supaya server memakai hasil filter yang sama
+                ? { ...listTable.ajax.params(), select_all: 1, excluded_ids: [...excludedIds] }
+                : { ids: [...selectedIds] };
+
+            cancelAdjustment(payload, `<b>${total.toLocaleString('id-ID')}</b> data terpilih akan dicancel.`);
+        }
 
         function listTableReload() {
             const type = $('#type_report_filter').val();
@@ -707,6 +891,11 @@
                 label: 'Cutting Fabric',
                 file: "{{ asset('example/template_wip_adjustment_cutting_fabric.xlsx') }}",
                 columns: ['tgl_saldo', 'ws', 'id_roll', 'id_item', 'satuan', 'qty fabric']
+            },
+            CUTTING_FABRIC_BARCODE: {
+                label: 'Cutting Fabric Barcode',
+                file: "{{ asset('example/template_wip_adjustment_cutting_fabric_barcode.xlsx') }}",
+                columns: ['tgl_saldo', 'id_roll', 'id_item', 'satuan', 'qty fabric']
             }
         };
 
@@ -758,6 +947,7 @@
                 processData: false,
                 contentType: false,
                 beforeSend: function () {
+                    setImportProcessing(true);
                     showLoading();
                     setImportStep(3);
                 },
@@ -765,6 +955,14 @@
                     if (res.status === 200) {
                         setImportStep(4);
                         $('#importExcel').modal('hide');
+
+                        // Filter tanggal mengikuti tanggal saldo dari file yang baru diimport
+                        if (res.date_from && res.date_to) {
+                            $('#tgl-awal').val(res.date_from);
+                            $('#tgl-akhir').val(res.date_to);
+                        }
+
+                        clearImportFile();
                         listTableReload();
 
                         iziToast.success({
@@ -798,8 +996,30 @@
                 },
                 complete: function () {
                     hideLoading();
+                    setImportProcessing(false);
                 }
             });
+        }
+
+        // Selama import berjalan, kunci semua tombol yang bisa mengirim request
+        function setImportProcessing(processing) {
+            if (processing) {
+                $('#btnImportSubmit, #btnSearch, #btnCancelSelected, #btnOpenImport, #list-table .btn-cancel-adjustment')
+                    .filter(':not(:disabled)')
+                    .addClass('import-locked')
+                    .prop('disabled', true);
+                $('#but_export').addClass('disabled import-locked');
+            } else {
+                $('#but_export.import-locked').removeClass('disabled');
+                $('.import-locked').removeClass('import-locked').not('a').prop('disabled', false);
+            }
+        }
+
+        // Kosongkan file yang sudah diimport
+        function clearImportFile() {
+            $('#importFile').val('');
+            $('#importFileName').text('Belum ada file dipilih');
+            setImportStep(1);
         }
     </script>
 @endsection

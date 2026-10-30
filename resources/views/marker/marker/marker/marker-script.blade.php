@@ -108,6 +108,7 @@
             {
                 targets: [0],
                 render: (data, type, row, meta) => {
+                    let isAdmin = "{{ auth()->user()->roles->whereIn("nama_role", ["superadmin"])->count() }}";
                     let editable = true;
                     let cancelable = true;
                     if (row.status_selesai == 'SELESAI') {
@@ -122,6 +123,11 @@
                     } else if (row.cancel == 'Y') {
                         editable = false;
                         cancelable = false;
+                    }
+
+                    if (isAdmin > 0) {
+                        editable = true;
+                        cancelable = true;
                     }
 
                     let detailBtn = `

@@ -50,7 +50,7 @@
                 </span>
             </td>
             <td>
-                <span>{{ $dailyGroup->panel }}</span>
+                <span>{{ preg_replace('/\s+/', ' ', (string) $dailyGroup->panel) }}</span>
             </td>
 
             @if ($groupBy === 'size')

@@ -364,10 +364,10 @@
                         </div>
                     </div>
                     <button type="button" class="btn btn-sb btn-block" onclick="fixRollQty()">Fix Roll Qty</button>
-                    <hr class="border-sb">
+                    {{-- <hr class="border-sb">
                     <h5 class="text-center">OR</h5>
                     <hr class="border-sb">
-                    <button type="button" class="btn btn-sb-secondary btn-block" onclick="fixRollQtyUpdate()">Fix All Roll Qty</button>
+                    <button type="button" class="btn btn-sb-secondary btn-block" onclick="fixRollQtyUpdate()">Fix All Roll Qty</button> --}}
                 </div>
             </div>
         </div>
@@ -1340,6 +1340,18 @@
                     }
 
                     document.getElementById("loading").classList.add("d-none");
+                },
+                error: function (jqXHR) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Terjadi kesalahan saat memperbarui Roll.',
+                        showCancelButton: false,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Oke',
+                    });
+
+                    document.getElementById("loading").classList.add("d-none");
                 }
             });
         }
@@ -1401,8 +1413,8 @@
                                             <tr>
                                                 <td><input type='text' class='form-control' value='`+item.so_det_id+`' id='`+prefix+`so_det_id_`+i+`' data-index='`+i+`' name='`+prefix+`so_det_id[`+i+`]' readonly /></td>
                                                 <td><input type='text' class='form-control' value='`+(item.size ?? item.master_sb_ws.size)+`' id='`+prefix+`size_`+i+`' data-index='`+i+`' name='`+prefix+`size[`+i+`]' readonly /></td>
-                                                <td><input type='number' class='form-control' value='`+item.ratio+`' id='`+prefix+`ratio_`+i+`' data-index='`+i+`' name='`+prefix+`ratio[`+i+`]' onkeyup='calculateRatio(this)' onchange='calculateRatio(this)'/></td>
-                                                <td><input type='number' class='form-control' value='`+item.cut_qty+`' id='`+prefix+`cut_qty_`+i+`' data-index='`+i+`' name='`+prefix+`cut_qty[`+i+`]' readonly /></td>
+                                                <td><input type='number' class='form-control' value='`+item.ratio+`' id='`+prefix+`ratio_`+i+`' data-index='`+i+`' name='`+prefix+`ratio[`+i+`]' onkeyup='calculateRatio(this)' oninput='calculateRatio(this)' onchange='calculateRatio(this)'/></td>
+                                                <td><input type='number' class='form-control' value='`+(item.ratio * res.qty_ply)+`' id='`+prefix+`cut_qty_`+i+`' data-index='`+i+`' name='`+prefix+`cut_qty[`+i+`]' readonly /></td>
                                             </tr>
                                         `;
                                     });
@@ -1604,8 +1616,8 @@
                     let qtyPly = document.getElementById("modify_ratio_qty_ply").value;
                     let qtyCut = qtyPly * ratio;
 
-                    if (qtyCut) {
-                        return document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = qtyCut;
+                    if (qtyCut != 0) {
+                        document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = qtyCut;
                     } else {
                         document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = 0;
                     }
@@ -2433,6 +2445,16 @@
                     });
                 },
                 success: function(response){
+                    if (response.status != 200) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: response.message
+                        });
+
+                        return;
+                    }
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil',

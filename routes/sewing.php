@@ -6,6 +6,7 @@ use App\Http\Controllers\Sewing\LineWipController;
 use App\Http\Controllers\Sewing\MasterDefectController;
 use App\Http\Controllers\Sewing\MasterLineController;
 use App\Http\Controllers\Sewing\MasterPlanController;
+use App\Http\Controllers\Sewing\SewingInController;
 use App\Http\Controllers\Sewing\OrderDefectController;
 use App\Http\Controllers\Sewing\ReportController;
 use App\Http\Controllers\Sewing\ReportDefectController;
@@ -22,13 +23,40 @@ use App\Http\Controllers\Sewing\ReportProductionController;
 use App\Http\Controllers\Sewing\ReportQcFinishingCekReturnPackingController;
 use App\Http\Controllers\Sewing\ReportQcRejectController;
 use App\Http\Controllers\Sewing\ReportRejectController;
+use App\Http\Controllers\Sewing\SewingInClosingController;
+use App\Http\Controllers\Sewing\SewingInMutasiController;
 use App\Http\Controllers\Sewing\SewingSecondaryMasterController;
 use App\Http\Controllers\Sewing\SewingToolsController;
 use App\Http\Controllers\Sewing\TrackOrderOutputController;
 use App\Http\Controllers\Sewing\TransferOutputController;
 use App\Http\Controllers\Sewing\UndoOutputController;
 
+// Sewing In (tanpa login, seperti dashboard-wip)
+Route::controller(SewingInController::class)->prefix("sewing-in")->group(function () {
+    Route::get('/index', 'index')->name('sewing-in');
+    Route::get('/scan-stocker', 'scanStocker')->name('sewing-in-scan-stocker');
+    Route::post('/store', 'store')->name('sewing-in-store');
+    Route::get('/history', 'history')->name('sewing-in-history');
+    Route::get('/outstanding', 'outstanding')->name('sewing-in-outstanding');
+});
+
 Route::middleware('auth')->group(function () {
+    // Mutasi Line Sewing In (wajib login, hak akses diatur menyusul)
+    Route::controller(SewingInMutasiController::class)->prefix("sewing-in-mutasi")->group(function () {
+        Route::get('/', 'index')->name('sewing-in-mutasi');
+        Route::get('/stock', 'stock')->name('sewing-in-mutasi-stock');
+        Route::get('/history', 'history')->name('sewing-in-mutasi-history');
+        Route::post('/store', 'store')->name('sewing-in-mutasi-store');
+    });
+
+    // Closing Stok Sewing In (wajib login, hak akses diatur menyusul)
+    Route::controller(SewingInClosingController::class)->prefix("sewing-in-closing")->group(function () {
+        Route::get('/', 'index')->name('sewing-in-closing');
+        Route::get('/data', 'data')->name('sewing-in-closing-data');
+        Route::get('/history', 'history')->name('sewing-in-closing-history');
+        Route::post('/store', 'store')->name('sewing-in-closing-store');
+    });
+
     // Master Line
     Route::controller(MasterLineController::class)->prefix("master-line")->middleware('role:sewing')->group(function () {
         Route::get('/', 'index')->name('master-line');

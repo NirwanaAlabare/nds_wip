@@ -8,14 +8,39 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    {{-- Header Style --}}
+    @include('cutting.cutting-style')
 @endsection
 
 @section('content')
     <div class="row g-3 mb-3">
-        <div class="d-flex gap-3 align-items-center">
-            <h5 class="mb-1">Form Cut Manual {{ Auth::user()->type != "admin" ? "- ".strtoupper(Auth::user()->name) : "" }}</h5>
-            <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
-            <button class="btn btn-sm btn-sb" id="create-new-form" onclick="createNewForm()">Buat Form Manual Baru</button>
+        <!-- Wrapper Header dibuat Sticky/Fixed -->
+        <div class="sticky-header-wrapper mb-3" id="stickyFormHeader">
+            <div class="container-fluid d-flex justify-content-between align-items-center py-2 px-3">
+                <!-- Sisi Kiri: Judul & Tombol Utama -->
+                <div class="d-flex gap-2 align-items-center">
+                    <h5 class="mb-0 me-2">Form Cut Manual {{ Auth::user()->type != "admin" ? "- ".strtoupper(Auth::user()->name) : "" }}</h5>
+                    <button class="btn btn-sm btn-success" id="start-process" onclick="startProcess()">Mulai Pengerjaan</button>
+                    <button class="btn btn-sm btn-sb" id="create-new-form" onclick="createNewForm()">Buat Form Manual Baru</button>
+                </div>
+
+                <!-- Sisi Kanan: Tempat Tombol Undo (Sejajar & Rapi) -->
+                @role('superadmin') 
+                    <div class="d-flex gap-2 align-items-center">
+                        <button class="btn btn-sm btn-danger fw-bold text-white"
+                                id="btn-undo"
+                                onclick="handleUndo()">
+                            <i class="fa fa-undo me-1"></i> UNDO
+                        </button>
+                        <button class="btn btn-sm bg-success fw-bold text-light"
+                                id="btn-redo"
+                                onclick="handleRedo()">
+                            <i class="fa fa-repeat me-1"></i> REDO
+                        </button>
+                    </div>
+                @endrole
+            </div>
         </div>
         <div class="col-md-8">
             <div class="card card-sb" id="header-data-card">
@@ -299,7 +324,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <button class="btn btn-sb mb-3 d-none" id="next-process-1" onclick="nextProcessOne()">NEXT</button>
+            <button type="button" class="btn btn-sb mb-3 d-none" id="next-process-1" onclick="nextProcessOne()">NEXT</button>
             <div class="card card-sb d-none" id="detail-data-card">
                 <div class="card-header">
                     <h3 class="card-title">Detail Data</h3>
@@ -1273,6 +1298,9 @@
                         document.getElementById('style').value = res.styleno;
                     }
                 },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                }
             });
         }
 
@@ -1308,6 +1336,9 @@
                         document.getElementById('cons_ws_marker').value = null;
                     }
                 },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                }
             });
         }
 
@@ -1338,6 +1369,9 @@
                         }
                     }
                 },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                }
             });
         }
 
@@ -1451,6 +1485,9 @@
                     if (res) {
                         document.getElementById('urutan_marker').value = res;
                     }
+                },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
                 }
             });
         }
@@ -1517,7 +1554,7 @@
                     }
                 },
                 error: function (jqXHR) {
-                    console.log(jqXHR);
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
                 }
             });
         }
@@ -1553,7 +1590,7 @@
                     }
                 },
                 error: function(jqXHR) {
-                    console.error(jqXHR);
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
                 }
             });
         }
@@ -1747,7 +1784,9 @@
                         }
                     };
 
-                    location.reload();
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                    
+                    // location.reload();
                 }
             });
         }
@@ -1916,6 +1955,9 @@
                                 if (res) {
                                     window.location = res.redirect;
                                 }
+                            },
+                            error: function(jqXHR) {
+                                showAjaxError(jqXHR, 'Terjadi kesalahan.');
                             }
                         })
                     }
@@ -1987,6 +2029,9 @@
                         }
 
                         document.getElementById("loading").classList.add("d-none");
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -2101,6 +2146,8 @@
                                 i++;
                             }
                         };
+
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -3528,6 +3575,9 @@
                             })
                         }
                     },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                    }
                 });
 
                 $("#select_item").prop("disabled", false);
@@ -3633,6 +3683,9 @@
                                     $('#spreading-form-card').CardWidget('collapse');
                                 }
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -3773,6 +3826,11 @@
                         $('#current_kepala_kain').val(0);
                         $('#current_kepala_kain').prop('readonly', false);
                     }
+
+                    if (document.getElementById("current_lembar_gelaran").value > 0) {
+                        $('#current_lembar_gelaran').trigger("change");
+                        $('#stopLapButton').prop('disabled', false);
+                    }
                 }
 
                 // -Clear Spreading Form-
@@ -3905,6 +3963,9 @@
                                     summaryData = res;
                                     setSummary(summaryData);
                                 }
+                            },
+                            error: function(jqXHR) {
+                                showAjaxError(jqXHR, 'Terjadi kesalahan.');
                             }
                         });
                     }
@@ -4390,6 +4451,9 @@
                             if (res.count > 0) {
                                 setTimeRecordLap(res.data);
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -4667,6 +4731,9 @@
                             if (res.count > 0) {
                                 setLostTime(res.data);
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -4801,6 +4868,9 @@
                             if (res) {
                                 console.log(res);
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -4947,6 +5017,9 @@
 
                             sumNewSambungan();
                         }
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }

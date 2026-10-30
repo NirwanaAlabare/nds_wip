@@ -5348,6 +5348,11 @@ class ReportMutasiOutputController extends Controller
                 $rows,
                 [
                     'border' => 'thin',
+                ],
+                [
+                    'B' => ['format' => '@'],
+                    'D' => ['format' => '@'],
+                    'E' => ['format' => '@'],
                 ]
             );
         }

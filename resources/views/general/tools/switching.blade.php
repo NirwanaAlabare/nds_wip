@@ -65,13 +65,15 @@
 
     <div class="card">
         <div class="mx-3 my-3">
-            <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-arrow-right-arrow-left"></i> Switching</h5>
+            <h5 class="card-title fw-bold text-sb text-center"><i class="fa-solid fa-arrow-right-arrow-left text-sb-secondary"></i> Switching Adjustment</h5>
         </div>
         <div class="row g-3 mx-2">
             <div class="col-12 col-md-5">
                 <div class="card">
                     <div class="card-header bg-sb">
-                        <h5 class="card-title text-light text-center">OUT</h5>
+                        <div class="d-flex justify-content-center">
+                            <h5 class="card-title text-light text-center text-warning fw-bold">OUT</h5>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -133,10 +135,11 @@
             </div>
             <div class="col-12 col-md-2">
                 <div class="d-flex flex-column justify-content-center align-items-center h-100">
-                    <select class="form-select w-auto mb-3" name="source" id="source">
+                    {{-- <select class="form-select w-auto mb-3" name="source" id="source">
                         <option value="NDS">NDS</option>
                         <option value="SignalBit">SignalBit</option>
-                    </select>
+                    </select> --}}
+                    <input type="hidden" value="NDS" name="source" id="source" readonly>
                     <select class="form-select w-auto mb-3" name="type_report" id="type_report">
                         <option value="CUTTING">CUTTING</option>
                         <option value="DC">DC</option>
@@ -149,7 +152,9 @@
             <div class="col-12 col-md-5">
                 <div class="card">
                     <div class="card-header bg-sb">
-                        <h5 class="card-title text-light text-center">IN</h5>
+                        <div class="d-flex justify-content-center">
+                            <h5 class="card-title text-light text-center text-warning fw-bold">IN</h5>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -220,7 +225,7 @@
     <div class="card">
         <div class="card-header bg-sb-secondary">
             <h5 class="card-title">
-                <i class="fas fa-list fa-sm"></i> List Data
+                <i class="fas fa-list fa-sm text-warning"></i> List Data
             </h5>
         </div>
         <div class="card-body">
@@ -233,13 +238,14 @@
                     <label class="form-label"><small>Tanggal Akhir</small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
                 </div>
-                <div>
-                    <label class="form-label"><small>Source</small></label>
-                    <select name="source_list" id="source_list" class="form-control form-control-sm" style="width: 150px;">
+                {{-- <div> --}}
+                    {{-- <label class="form-label"><small>Source</small></label> --}}
+                    {{-- <select name="source_list" id="source_list" class="form-control form-control-sm" style="width: 150px;">
                         <option value="NDS">NDS</option>
                         <option value="SignalBit">SignalBit</option>
-                    </select>
-                </div>
+                    </select> --}}
+                    <input type="hidden" id="source_list" value="NDS">
+                {{-- </div> --}}
                 <div>
                     <button class="btn btn-primary btn-sm" onclick="listTableReload()"> <i class="fa fa-search"></i> </button>
                 </div>

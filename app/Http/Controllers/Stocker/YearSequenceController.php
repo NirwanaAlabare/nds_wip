@@ -322,6 +322,9 @@ class YearSequenceController extends Controller
                             MIN( year_sequence_number ) range_awal,
                             MAX( year_sequence_number ) range_akhir,
                             COUNT(*) as total,
+                            -- User pembuat slot (generate) & yang set ke stocker, bisa lebih dari satu per stocker
+                            GROUP_CONCAT(DISTINCT created_by_username) created_by_username,
+                            GROUP_CONCAT(DISTINCT updated_by_username) updated_by_username,
                             updated_at,
                             (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                         from
@@ -359,7 +362,9 @@ class YearSequenceController extends Controller
                             year_sequence_num.total qty,
                             CONCAT( MIN( year_sequence_num.range_awal ), ' - ', MAX( year_sequence_num.range_akhir )) numbering_range,
                             (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                            loading_line.no_bon
+                            loading_line.no_bon,
+                            year_sequence_num.created_by_username,
+                            year_sequence_num.updated_by_username
                         from
                             stocker_input
                             left join stocker_input stocker_bundle on stocker_bundle.form_cut_id <=> stocker_input.form_cut_id
@@ -503,6 +508,17 @@ class YearSequenceController extends Controller
         $stocker_range_filter = "";
         if ($request->stocker_range_filter) {
             $stocker_range_filter = "AND CONCAT( MIN(stocker_input.range_awal), '-', MAX(stocker_input.range_akhir) ) LIKE '%".$request->stocker_range_filter."%' ";
+        }
+        // Filter user (binding)
+        $user_filter = "";
+        $user_filter_bindings = [];
+        if ($request->created_by_filter) {
+            $user_filter .= "AND year_sequence_num.created_by_username LIKE ? ";
+            $user_filter_bindings[] = '%'.$request->created_by_filter.'%';
+        }
+        if ($request->updated_by_filter) {
+            $user_filter .= "AND year_sequence_num.updated_by_username LIKE ? ";
+            $user_filter_bindings[] = '%'.$request->updated_by_filter.'%';
         }
 
         // Limit to 1 month
@@ -786,6 +802,8 @@ class YearSequenceController extends Controller
                         MIN( year_sequence_number ) range_awal,
                         MAX( year_sequence_number ) range_akhir,
                         COUNT(*) as total,
+                        GROUP_CONCAT(DISTINCT created_by_username) created_by_username,
+                        GROUP_CONCAT(DISTINCT updated_by_username) updated_by_username,
                         updated_at,
                         (CASE WHEN form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe
                     from
@@ -861,6 +879,7 @@ class YearSequenceController extends Controller
                         ".$group_filter."
                         ".$shade_filter."
                         ".$ratio_filter."
+                        ".$user_filter."
                     GROUP BY
                         stocker_input.id_qr_stocker,
                         stocker_input.form_cut_id,
@@ -887,7 +906,7 @@ class YearSequenceController extends Controller
                 (
                     select * from stocker_bundle
                 ) total
-        ");
+        ", $user_filter_bindings);
 
         return $stockerList;
     }
@@ -898,7 +917,7 @@ class YearSequenceController extends Controller
         $dateFrom = $request->dateFrom ? $request->dateFrom : date('Y-m-d');
         $dateTo = $request->dateTo ? $request->dateTo : date('Y-m-d');
 
-        return Excel::download(new StockerListExport($dateFrom, $dateTo, $request->tanggal_filter, $request->no_form_filter, $request->no_cut_filter, $request->color_filter, $request->size_filter, $request->dest_filter, $request->panel_filter, $request->qty_filter, $request->year_sequence_filter, $request->numbering_range_filter, $request->buyer_filter, $request->ws_filter, $request->style_filter, $request->stocker_filter, $request->part_filter, $request->group_filter, $request->shade_filter, $request->ratio_filter, $request->stocker_range_filter), 'production_excel.xlsx');
+        return Excel::download(new StockerListExport($dateFrom, $dateTo, $request->tanggal_filter, $request->no_form_filter, $request->no_cut_filter, $request->color_filter, $request->size_filter, $request->dest_filter, $request->panel_filter, $request->qty_filter, $request->year_sequence_filter, $request->numbering_range_filter, $request->buyer_filter, $request->ws_filter, $request->style_filter, $request->stocker_filter, $request->part_filter, $request->group_filter, $request->shade_filter, $request->ratio_filter, $request->stocker_range_filter, $request->created_by_filter, $request->updated_by_filter), 'production_excel.xlsx');
     }
 
     public function stockerListDetail($form_cut_id, $group_stocker, $ratio, $so_det_id, $normal = 1) {
@@ -1205,6 +1224,8 @@ class YearSequenceController extends Controller
 
                 $upsertData = [];
                 $restrictData = [];
+                $upsertedIds = [];
+                $beforeUpsert = [];
 
                 $n = 0;
                 $n1 = 0;
@@ -1232,12 +1253,20 @@ class YearSequenceController extends Controller
                                 "size" => $validatedRequest['size'],
                                 "number" => ($currentNumber > $validatedRequest['range_akhir_stocker'] ? $validatedRequest['range_akhir_stocker'] : ($currentNumber)),
                                 "id_qr_stocker" => $request["id_qr_stocker"],
+                                "created_by" => Auth::user()->id,
+                                "created_by_username" => Auth::user()->username,
+                                "updated_by" => Auth::user()->id,
+                                "updated_by_username" => Auth::user()->username,
                                 "created_at" => $now,
                                 "updated_at" => $now,
                             ]);
 
                             if (count($upsertData) % 5000 == 0) {
-                                YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], [$formColumn, 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
+                                $batchIds = array_column($upsertData, "id_year_sequence");
+                                $beforeUpsert = array_merge($beforeUpsert, YearSequence::whereIn("id_year_sequence", $batchIds)->get(["id_year_sequence", "form_cut_id", "form_piece_id", "form_reject_id", "so_det_id", "size", "number", "id_qr_stocker"])->toArray());
+                                $upsertedIds = array_merge($upsertedIds, $batchIds);
+
+                                YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], [$formColumn, 'so_det_id', 'size', 'number', 'id_qr_stocker', 'updated_by', 'updated_by_username', 'updated_at']);
 
                                 $upsertData = [];
 
@@ -1255,8 +1284,36 @@ class YearSequenceController extends Controller
 
                 if (count($upsertData) > 0 || $largeCount > 0) {
                     if (count($upsertData) > 0) {
-                        YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], [$formColumn, 'so_det_id', 'size', 'number', 'id_qr_stocker', 'created_at', 'updated_at']);
+                        $batchIds = array_column($upsertData, "id_year_sequence");
+                        $beforeUpsert = array_merge($beforeUpsert, YearSequence::whereIn("id_year_sequence", $batchIds)->get(["id_year_sequence", "form_cut_id", "form_piece_id", "form_reject_id", "so_det_id", "size", "number", "id_qr_stocker"])->toArray());
+                        $upsertedIds = array_merge($upsertedIds, $batchIds);
+
+                        YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], [$formColumn, 'so_det_id', 'size', 'number', 'id_qr_stocker', 'updated_by', 'updated_by_username', 'updated_at']);
                     }
+
+                    activity()
+                        ->causedBy(auth()->user())
+                        ->withProperties([
+                            'method'                    => $request['method'],
+                            'tipe'                      => $validatedRequest['tipe'],
+                            'form_column'               => $formColumn,
+                            'form_id'                   => $validatedRequest['form_cut_id'],
+                            'so_det_id'                 => $validatedRequest['so_det_id'],
+                            'size'                      => $validatedRequest['size'],
+                            'id_qr_stocker_scanned'     => $request["id_qr_stocker"],
+                            'id_qr_stocker_input'       => $request["id_qr_stocker_input"],
+                            'year'                      => $validatedRequest['year'],
+                            'year_sequence'             => $validatedRequest['year_sequence'],
+                            'range_awal_stocker'        => $validatedRequest['range_awal_stocker'],
+                            'range_akhir_stocker'       => $validatedRequest['range_akhir_stocker'],
+                            'range_awal_year_sequence'  => $validatedRequest['range_awal_year_sequence'],
+                            'range_akhir_year_sequence' => $validatedRequest['range_akhir_year_sequence'],
+                            'upserted_count'            => count($upsertedIds),
+                            'upserted_ids'              => $upsertedIds,
+                            'restricted_ids'            => $restrictData,
+                            'before'                    => $beforeUpsert,
+                        ])
+                        ->log('Set Year Sequence Number');
 
                     $stockerData = Stocker::where("id_qr_stocker", $request->id_qr_stocker)->first();
 
@@ -1857,6 +1914,10 @@ class YearSequenceController extends Controller
                     "year" => $yearSequenceYear,
                     "year_sequence" => $yearSequenceSequence,
                     "year_sequence_number" => $yearSequenceNumber,
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username,
+                    "updated_by" => Auth::user()->id,
+                    "updated_by_username" => Auth::user()->username,
                     "created_at" => Carbon::now(),
                     "updated_at" => Carbon::now(),
                 ]);
@@ -1892,13 +1953,17 @@ class YearSequenceController extends Controller
                     "year" => $yearSequenceYear,
                     "year_sequence" => $yearSequenceSequence,
                     "year_sequence_number" => $i,
+                    "created_by" => Auth::user()->id,
+                    "created_by_username" => Auth::user()->username,
+                    "updated_by" => Auth::user()->id,
+                    "updated_by_username" => Auth::user()->username,
                     "created_at" => Carbon::now(),
                     "updated_at" => Carbon::now(),
                 ]);
             }
 
             if (count($upsertData) > 0) {
-                YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['created_at', 'updated_at']);
+                YearSequence::upsert($upsertData, ['id_year_sequence', 'year', 'year_sequence', 'year_sequence_number'], ['updated_by', 'updated_by_username', 'updated_at']);
 
                 $customPaper = array(0, 0, 35.35, 110.90);
                 $pdf = PDF::loadView('stocker.stocker.pdf.print-numbering-yearsequence', ["data" => $upsertData])->setPaper($customPaper);
@@ -2488,6 +2553,7 @@ class YearSequenceController extends Controller
                     $beforeUpdate = YearSequence::whereIn("id_year_sequence", $safeArr)
                         ->get(["id_year_sequence", "id_qr_stocker", "form_cut_id", "form_reject_id", "number", "so_det_id", "size"])
                         ->toArray();
+                    $beforeUpdateOutput = $this->snapshotOutputByNumbering($safeArr);
 
                     YearSequence::whereIn("id_year_sequence", $safeArr)->update([
                         "id_qr_stocker" => $stocker ? $stocker->id_qr_stocker : null,
@@ -2496,6 +2562,8 @@ class YearSequenceController extends Controller
                         "number" => $stocker ? $stocker->range_akhir : null,
                         "so_det_id" => $request->size,
                         "size" => $request->size_text,
+                        "updated_by" => Auth::user()->id,
+                        "updated_by_username" => Auth::user()->username,
                     ]);
 
                     // Update OUTPUT — safe list only
@@ -2528,6 +2596,7 @@ class YearSequenceController extends Controller
                             'range_awal'    => $request->range_awal,
                             'range_akhir'   => $request->range_akhir,
                             'before'        => $beforeUpdate,
+                            'before_output' => $beforeUpdateOutput,
                         ])
                         ->log('Modify Year Sequence Update (Size)');
                 }
@@ -2641,6 +2710,12 @@ class YearSequenceController extends Controller
                 $color = $request->color;
 
                 if ($idWs && $color) {
+                    $beforeUpdate = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)
+                        ->get(["id_year_sequence", "id_qr_stocker", "form_cut_id", "form_reject_id", "number", "so_det_id", "size"])
+                        ->toArray();
+                    $beforeUpdateOutput = $this->snapshotOutputByNumbering($yearSequenceArr);
+                    $updatedIds = [];
+                    $failedIds = [];
 
                     // Loop over year seq
                     foreach ($yearSequenceArr as $ys) {
@@ -2680,6 +2755,8 @@ class YearSequenceController extends Controller
                                     "number" => $stocker ? $stocker->range_akhir : null,
                                     "so_det_id" => $currentSoDet->id,
                                     "size" => $currentSoDet->size,
+                                    "updated_by" => Auth::user()->id,
+                                    "updated_by_username" => Auth::user()->username,
                                 ]);
                                 $rft = DB::connection("mysql_sb")->table("output_rfts")->where("kode_numbering", $ys)->update([
                                     "so_det_id" => $currentSoDet->id,
@@ -2702,8 +2779,12 @@ class YearSequenceController extends Controller
                                 $outputGudangStok = DB::connection("mysql_sb")->table("output_gudang_stok")->whereNotNull("packing_po_id")->where("kode_numbering", $ys)->update([
                                     "so_det_id" => $currentSoDet->id,
                                 ]);
+
+                                array_push($updatedIds, $ys);
                             } else {
                                 $failMessage .= "<small>'".$ys." tidak ditemukan size yang cocok'</small><br>";
+
+                                array_push($failedIds, $ys);
                             }
                         }
                     }
@@ -2721,12 +2802,15 @@ class YearSequenceController extends Controller
                             'stocker'       => $request->stocker,
                             'id_ws'         => $request->id_ws,
                             'color'         => $request->color,
-                            'updated_count' => count($yearSequenceArr),
-                            'updated_ids'   => $yearSequenceArr,
+                            'updated_count' => count($updatedIds),
+                            'updated_ids'   => $updatedIds,
+                            'failed_ids'    => $failedIds,
                             'year'          => $request->year,
                             'sequence'      => $request->sequence,
                             'range_awal'    => $request->range_awal,
                             'range_akhir'   => $request->range_akhir,
+                            'before'        => $beforeUpdate,
+                            'before_output' => $beforeUpdateOutput,
                         ])
                         ->log('Modify Year Sequence Update (WS/Color)');
 
@@ -2885,6 +2969,10 @@ class YearSequenceController extends Controller
             }
 
             if (count($yearSequenceArr) > 0 && count($yearSequenceArr) <= 5000) {
+                $beforeDelete = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)
+                    ->get(["id_year_sequence", "id_qr_stocker", "form_cut_id", "form_reject_id", "number", "so_det_id", "size"])
+                    ->toArray();
+
                 $yearSequence = YearSequence::whereIn("id_year_sequence", $yearSequenceArr)->update([
                     "form_cut_id" => null,
                     "so_det_id" => null,
@@ -2892,6 +2980,20 @@ class YearSequenceController extends Controller
                     "number" => null,
                     "id_qr_stocker" => null,
                 ]);
+
+                activity()
+                    ->causedBy(auth()->user())
+                    ->withProperties([
+                        'method'        => $request['method'],
+                        'deleted_count' => count($yearSequenceArr),
+                        'deleted_ids'   => $yearSequenceArr,
+                        'year'          => $request->year,
+                        'sequence'      => $request->sequence,
+                        'range_awal'    => $request->range_awal,
+                        'range_akhir'   => $request->range_akhir,
+                        'before'        => $beforeDelete,
+                    ])
+                    ->log('Modify Year Sequence Delete');
 
                 return array(
                     "status" => 200,
@@ -2920,5 +3022,41 @@ class YearSequenceController extends Controller
             "message" => "Year '".$request->year."' <br> Sequence '".$request->sequence."' <br> Range '".$request->range_awal." - ".$request->range_akhir."'. <br> <b>Gagal di Update</b>"
         );
     }
-}
 
+    /**
+     * Snapshot output yang terdampak modify year sequence (untuk activity log).
+     * Mencakup kolom yang diubah oleh controller ini maupun SewingService::missMasterPlan / missPackingPo.
+     */
+    private function snapshotOutputByNumbering(array $numbering)
+    {
+        if (count($numbering) < 1) {
+            return [];
+        }
+
+        $sbTables = [
+            "output_rfts" => ["id", "kode_numbering", "so_det_id", "master_plan_id"],
+            "output_defects" => ["id", "kode_numbering", "so_det_id", "master_plan_id"],
+            "output_rejects" => ["id", "kode_numbering", "so_det_id", "master_plan_id"],
+            "output_rfts_packing" => ["id", "kode_numbering", "so_det_id", "master_plan_id"],
+            "output_defects_packing" => ["id", "kode_numbering", "so_det_id", "master_plan_id"],
+            "output_rejects_packing" => ["id", "kode_numbering", "so_det_id", "master_plan_id"],
+            "output_rfts_packing_po" => ["id", "kode_numbering", "so_det_id", "master_plan_id", "po_id"],
+            "output_gudang_stok" => ["id", "kode_numbering", "so_det_id", "packing_po_id"],
+        ];
+
+        $snapshot = [];
+        foreach ($sbTables as $table => $columns) {
+            $rows = DB::connection("mysql_sb")->table($table)->select($columns)->whereIn("kode_numbering", $numbering)->get();
+            if ($rows->count() > 0) {
+                $snapshot[$table] = $rows->toArray();
+            }
+        }
+
+        $ndsRows = DB::table("output_rfts_packing")->select(["id", "kode_numbering", "so_det_id"])->whereIn("kode_numbering", $numbering)->get();
+        if ($ndsRows->count() > 0) {
+            $snapshot["nds.output_rfts_packing"] = $ndsRows->toArray();
+        }
+
+        return $snapshot;
+    }
+}

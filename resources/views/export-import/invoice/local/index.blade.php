@@ -182,6 +182,11 @@
                                         <th class="dn-angka">Unit Price</th>
                                         <th class="dn-angka">Discount (%)</th>
                                         <th class="dn-angka">Total Price</th>
+                                        {{-- Nilai TAGIH knitting - lihat _skin. --}}
+                                        <th class="det-sel-tagih">UOM Billing</th>
+                                        <th class="dn-angka det-sel-tagih">Qty Billing</th>
+                                        <th class="dn-angka det-sel-tagih">Unit Price Billing</th>
+                                        <th class="dn-angka det-sel-tagih">Total Price Billing</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -247,7 +252,10 @@
                                 <b>Summary</b><span>Per product</span></a></li>
                             <li id="det-pdf-knit-baris"><a class="dropdown-item" href="#" id="det-btn-pdf-knit"
                                 target="_blank" rel="noopener">
-                                <b>Knitting</b><span>Consignor / consignee form</span></a></li>
+                                <b>Knitting &ndash; Shipment</b><span>Qty &amp; price as shipped</span></a></li>
+                            <li id="det-pdf-knitb-baris"><a class="dropdown-item" href="#" id="det-btn-pdf-knitb"
+                                target="_blank" rel="noopener">
+                                <b>Knitting &ndash; Billing</b><span>Qty &amp; price as billed</span></a></li>
                         </ul>
                     </div>
                     {{-- PDF Classic: tampilan tanpa CARING, untuk pembanding. --}}
@@ -358,8 +366,10 @@ $(function () {
         var rute = pdf ? [RUT_PDF, RUT_PDF_R, RUT_PDF_K] : [RUT_XLS, RUT_XLS_R, RUT_XLS_K];
         var buka = pdf ? ' target="_blank" rel="noopener"' : '';
         var ekor = lama ? '&gaya=lama' : '';
-        function item(url, judul, ket) {
-            return '<li><a class="dropdown-item" href="' + url + '?id=' + id + ekor + '"' + buka + '>'
+        // tambahan: ruas alamat ekstra (dipakai versi cetakan knitting).
+        function item(url, judul, ket, tambahan) {
+            return '<li><a class="dropdown-item" href="' + url + '?id=' + id + ekor
+                + (tambahan || '') + '"' + buka + '>'
                 + '<b>' + judul + '</b><span>' + ket + '</span></a></li>';
         }
         var judulTombol = lama ? 'Print PDF Classic - without CARING'
@@ -375,9 +385,13 @@ $(function () {
             + '<ul class="dropdown-menu dn-menu-versi">'
             + item(rute[0], 'Detail', 'Per style &amp; colour')
             + item(rute[1], 'Summary', 'Per product')
-            // Bentuk knitting cuma untuk invoice NAK.
+            // Bentuk knitting cuma untuk invoice NAK, dan ada DUA: knitting
+            // memang punya dua angka (nilai kirim & nilai tagih). Bentuk
+            // dokumennya sama persis - yang berbeda cuma angkanya.
             + (String(pc || '').trim().toUpperCase() === 'NAK'
-                ? item(rute[2], 'Knitting', 'Consignor / consignee form') : '')
+                ? item(rute[2], 'Knitting &ndash; Shipment', 'Qty &amp; price as shipped')
+                  + item(rute[2], 'Knitting &ndash; Billing', 'Qty &amp; price as billed', '&versi=tagih')
+                : '')
             + '</ul></div>';
     }
 
@@ -584,6 +598,7 @@ $(function () {
         $('#det-btn-pdf-rinci').attr('href', RUT_PDF + '?id=' + encodeURIComponent(id));
         $('#det-btn-pdf-ringkas').attr('href', RUT_PDF_R + '?id=' + encodeURIComponent(id));
         $('#det-btn-pdf-knit').attr('href', RUT_PDF_K + '?id=' + encodeURIComponent(id));
+        $('#det-btn-pdf-knitb').attr('href', RUT_PDF_K + '?id=' + encodeURIComponent(id) + '&versi=tagih');
         // Ditentukan lagi setelah profit center-nya diketahui.
         $('#det-btn-pdfl-rinci').attr('href', RUT_PDF + '?id=' + encodeURIComponent(id) + '&gaya=lama');
         $('#det-btn-pdfl-ringkas').attr('href', RUT_PDF_R + '?id=' + encodeURIComponent(id) + '&gaya=lama');
@@ -591,7 +606,7 @@ $(function () {
         $('#det-btn-xls-rinci').attr('href', RUT_XLS + '?id=' + encodeURIComponent(id));
         $('#det-btn-xls-ringkas').attr('href', RUT_XLS_R + '?id=' + encodeURIComponent(id));
         $('#det-btn-xls-knit').attr('href', RUT_XLS_K + '?id=' + encodeURIComponent(id));
-        $('#det-pdf-knit-baris, #det-pdfl-knit-baris, #det-xls-knit-baris').prop('hidden', true);
+        $('#det-pdf-knit-baris, #det-pdf-knitb-baris, #det-pdfl-knit-baris, #det-xls-knit-baris').prop('hidden', true);
         // Panel History ditutup lagi & dikosongkan - isinya milik invoice tadi.
         $('#det-riw').prop('hidden', true);
         $('#det-btn-lipat-riw').attr('aria-expanded', 'false').data('inv', id);
@@ -608,7 +623,7 @@ $(function () {
             // Invoice yang dibatalkan boleh dilihat, tapi tidak boleh dicetak.
             var batal = String(h.status || '').toUpperCase() === 'CANCEL';
             $('#det-btn-pdf, #det-btn-pdfl, #det-btn-xls').toggleClass('d-none', batal);
-            $('#det-pdf-knit-baris, #det-pdfl-knit-baris, #det-xls-knit-baris').prop('hidden',
+            $('#det-pdf-knit-baris, #det-pdf-knitb-baris, #det-pdfl-knit-baris, #det-xls-knit-baris').prop('hidden',
                 String(h.profit_center || '').trim().toUpperCase() !== 'NAK');
 
             // Invoice Date yang diisi di form; kalau invoice lama belum punya,
@@ -628,6 +643,12 @@ $(function () {
                 + barisInfo('Created', (h.booking_by || '-') + (h.booking_date ? '  ·  ' + tglJam(h.booking_date) : '')));
 
             var baris = res.baris || [];
+            // Ditentukan dari datanya: invoice garment tidak punya nilai tagih,
+            // dan tabelnya tidak perlu melebar tanpa guna.
+            $('#det-tabel').toggleClass('is-knit', baris.some(function (r) {
+                return $.trim(String(r.uom_tagih == null ? '' : r.uom_tagih)) !== ''
+                    || (parseFloat(r.total_price_tagih) || 0) > 0;
+            }));
             $('#det-tabel tbody').html(baris.length
                 ? baris.map(function (r) {
                     return '<tr>'
@@ -644,24 +665,37 @@ $(function () {
                         + '<td class="dn-angka">' + uang(r.unit_price) + '</td>'
                         + '<td class="dn-angka">' + uang(r.disc) + '</td>'
                         + '<td class="dn-angka">' + uang(r.total_price) + '</td>'
+                        + '<td class="det-sel-tagih">' + teks(r.uom_tagih) + '</td>'
+                        + '<td class="dn-angka det-sel-tagih">' + uang(r.qty_tagih) + '</td>'
+                        + '<td class="dn-angka det-sel-tagih">' + uang(r.unit_price_tagih) + '</td>'
+                        + '<td class="dn-angka det-sel-tagih">' + uang(r.total_price_tagih) + '</td>'
                         + '</tr>';
                 }).join('')
-                : '<tr><td class="dn-kosong" colspan="13">No detail row.</td></tr>');
+                : '<tr><td class="dn-kosong" colspan="17">No detail row.</td></tr>');
 
             var p = res.pot || {};
-            function baut(label, nilai, kelas) {
+            // Ringkasan nilai tagih - cuma ada untuk invoice knitting.
+            var pt = res.pot_tagih || null;
+            function baut(label, nilai, kelas, nilai2) {
                 return '<div' + (kelas ? ' class="' + kelas + '"' : '') + '>'
-                    + '<span>' + label + '</span><b>' + uang(nilai || 0) + '</b></div>';
+                    + '<span>' + label + '</span><b>' + uang(nilai || 0) + '</b>'
+                    + (pt ? '<b class="det-nilai-tagih">' + uang(nilai2 || 0) + '</b>' : '')
+                    + '</div>';
             }
+            var pt2 = pt || {};
             $('#det-ringkas').html(''
-                + baut('Total', p.total)
-                + baut('Discount', p.discount)
-                + baut('Down Payment', p.dp)
-                + baut('DP/CBD from Invoice', p.dp_cbd)
-                + baut('Return', p.retur)
-                + baut('Total Without Tax', p.twot)
-                + baut('VAT' + (parseFloat(p.vat_persen) ? ' (' + parseFloat(p.vat_persen) + '%)' : ''), p.vat));
-            $('#det-ringkas-grand').html(baut('Grand Total', p.grand_total, 'dn-det-grand'));
+                + (pt ? '<div class="det-judul-nilai"><span></span>'
+                        + '<b>Shipment</b><b class="det-nilai-tagih">Billing</b></div>' : '')
+                + baut('Total', p.total, '', pt2.total)
+                + baut('Discount', p.discount, '', pt2.discount)
+                + baut('Down Payment', p.dp, '', pt2.dp)
+                + baut('DP/CBD from Invoice', p.dp_cbd, '', pt2.dp_cbd)
+                + baut('Return', p.retur, '', pt2.retur)
+                + baut('Total Without Tax', p.twot, '', pt2.twot)
+                + baut('VAT' + (parseFloat(p.vat_persen) ? ' (' + parseFloat(p.vat_persen) + '%)' : ''),
+                       p.vat, '', pt2.vat));
+            $('#det-ringkas-grand').html(baut('Grand Total', p.grand_total, 'dn-det-grand',
+                pt2.grand_total));
             // Tiap invoice dibuka dalam keadaan terlipat lagi.
             $('#det-ringkas').prop('hidden', true);
             $('#det-btn-lipat-rekap').attr('aria-expanded', 'false');

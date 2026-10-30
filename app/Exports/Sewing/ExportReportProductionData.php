@@ -16,6 +16,10 @@
     use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
     use Maatwebsite\Excel\Events\AfterSheet;
     use Maatwebsite\Excel\Sheet;
+    use PhpOffice\PhpSpreadsheet\Cell\Cell;
+    use PhpOffice\PhpSpreadsheet\Cell\DataType;
+    use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+    use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
     use Illuminate\Contracts\Queue\ShouldQueue;
     use Illuminate\Contracts\View\View;
     use DB;
@@ -24,7 +28,7 @@
         $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
     });
 
-    class ExportReportProductionData implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithColumnFormatting, WithEvents
+    class ExportReportProductionData extends DefaultValueBinder implements FromView, ShouldAutoSize, ShouldQueue, withTitle, WithColumnFormatting, WithEvents, WithCustomValueBinder
     {
         use Exportable;
 
@@ -163,10 +167,21 @@
             return substr($this->tanggal,-2,2);
         }
 
+        // WS Number (C) as text, data rows start after heading row 3
+        public function bindValue(Cell $cell, $value)
+        {
+            if ($cell->getColumn() === 'C' && $cell->getRow() > 3 && $value !== null) {
+                $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+                return true;
+            }
+
+            return parent::bindValue($cell, $value);
+        }
+
         public function columnFormats(): array
         {
             return [
-                //
+                'C' => NumberFormat::FORMAT_TEXT,
             ];
         }
 

@@ -2632,7 +2632,7 @@
                 '7': 0  // Sudah Dilunasi
             };
 
-            $('#accordionBarang .card').each(function(index) {
+            $('#accordionBarang > .card').each(function(index) {
                 let row = $(this);
 
                 // Sum Harga Penyerahan
@@ -2683,11 +2683,11 @@
             $('#totalNetto').val(formatDecimal(totalNetto));
             $('#totalVolume').val(formatDecimal(totalVolume));
 
-            let inputBruto = $('input[name="bruto"]');
-            let currentBruto = parseFloat(inputBruto.val().replace(/,/g, '')) || 0;
-            if (currentBruto < totalNetto) {
-                inputBruto.val(formatDecimal(totalNetto));
-            }
+            // let inputBruto = $('input[name="bruto"]');
+            // let currentBruto = parseFloat(inputBruto.val().replace(/,/g, '')) || 0;
+            // if (currentBruto < totalNetto) {
+            //     inputBruto.val(formatDecimal(totalNetto));
+            // }
 
             // Format dan tampilkan di tabel pungutan (Grid)
             $('#text-ppn-ditangguhkan').text(formatIdr(dataPPN['3']));

@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\General\ErdController;
 use App\Http\Controllers\General\GeneralController;
 use App\Http\Controllers\General\InjectAdjustmentController;
 use App\Http\Controllers\General\LockController;
+use App\Http\Controllers\General\LockTransactionController;
 use App\Http\Controllers\General\SwitchingController;
 use App\Http\Controllers\General\TrackController;
 use App\Http\Controllers\General\WorksheetController;
@@ -28,10 +30,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-no-form-cut', 'getNoFormCut')->name('get-no-form-cut');
         // get no form for select2
         Route::get('/get-no-form-cut-select', 'getNoFormCutSelect')->name('get-no-form-cut-select');
+        // get no form (normal, reject, piece) for select2
+        Route::get('/get-no-form-cut-all-select', 'getNoFormCutAllSelect')->name('get-no-form-cut-all-select');
         // get group
         Route::get('/get-form-group', 'getFormGroup')->name('get-form-group');
         // get stocker
         Route::get('/get-form-stocker', 'getFormStocker')->name('get-form-stocker');
+        // get stocker for select2
+        Route::get('/get-form-stocker-select', 'getFormStockerSelect')->name('get-form-stocker-select');
 
         // new general
         // get buyers
@@ -138,7 +144,32 @@ Route::middleware('auth')->group(function () {
         Route::post('/unlocked', 'unlocked')->name('unlocked-lock');
     });
 
-    Route::controller(SwitchingController::class)->prefix("switching")->group(function () {
+    Route::controller(LockTransactionController::class)->prefix("lock-transaction")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name("lock-transaction");
+        Route::post('/get-data', 'getData')->name('get-data-lock-transaction');
+        Route::post('/store', 'store')->name('store-lock-transaction');
+        Route::post('/delete', 'delete')->name('delete-lock-transaction');
+        Route::post('/locked', 'locked')->name('locked-lock-transaction');
+        Route::post('/unlocked', 'unlocked')->name('unlocked-lock-transaction');
+
+        Route::post('/detail/get-data', 'getDetail')->name('get-detail-lock-transaction');
+        Route::post('/detail/store', 'storeDetail')->name('store-detail-lock-transaction');
+        Route::post('/detail/delete', 'deleteDetail')->name('delete-detail-lock-transaction');
+    });
+
+    Route::controller(ErdController::class)->prefix("erd")->group(function () {
+        Route::get('/', 'index')->name("erd");
+        Route::get('/list', 'list')->name('list-erd');
+        Route::post('/create', 'create')->name('create-erd');
+        Route::post('/delete', 'delete')->name('delete-erd');
+        Route::get('/state/{id}', 'state')->name('state-erd');
+        Route::post('/op/{id}', 'op')->name('op-erd');
+        Route::post('/undo/{id}', 'undo')->name('undo-erd');
+        Route::get('/preview/{id}', 'preview')->name('preview-erd');
+        Route::post('/apply/{id}', 'apply')->name('apply-erd');
+    });
+
+    Route::controller(SwitchingController::class)->prefix("switching")->middleware("admin")->group(function () {
         Route::get('/', 'index')->name("switching");
         Route::post('/store', 'store')->name('store-switching');
         Route::post('/delete', 'delete')->name('delete-switching');
