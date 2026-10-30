@@ -69,6 +69,8 @@
     .erd-canvas-wrap { position: relative; min-width: 0; min-height: 0; }
     #erdSvg { width: 100%; height: 100%; display: block; cursor: grab; user-select: none; touch-action: none; }
     #erdSvg.panning { cursor: grabbing; }
+    #erdSvg.space-pan, #erdSvg.space-pan * { cursor: grab !important; }
+    #erdSvg.space-pan.panning, #erdSvg.space-pan.panning * { cursor: grabbing !important; }
     #erdSvg .tbl-head { cursor: move; }
     #erdSvg .erd-row { cursor: pointer; }
     #erdSvg .erd-row:hover .row-bg { fill: #f1f6ff; }
@@ -267,7 +269,7 @@
             <div class="minimap d-none" id="minimap" title="Klik / geser untuk pindah area">
                 <svg id="minimapSvg" width="180" height="120"></svg>
             </div>
-            <div class="canvas-hint" id="canvasHint" style="display:none">Lepas di kolom tujuan, atau di header tabel draft untuk membuat kolom FK otomatis</div>
+            <div class="canvas-hint" id="canvasHint" style="display:none">Lepas di kolom tujuan, atau di header tabel draft untuk membuat kolom FK otomatis. Tabel tujuan jauh? Tahan <kbd>Spasi</kbd> sambil gerakkan mouse untuk menggeser kanvas.</div>
         </div>
 
         <!-- Kanan: properti & riwayat -->
@@ -1824,8 +1826,33 @@
         return { x: (e.clientX - b.left - view.x) / view.k, y: (e.clientY - b.top - view.y) / view.k };
     }
 
+    // Tahan Spasi = geser kanvas, juga saat sedang menarik relasi / menggeser tabel
+    let spaceDown = false, lastPt = null;
+    const typing = () => /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.querySelector('.modal.show, .swal2-container');
+    window.addEventListener('keydown', (e) => {
+        if (e.code !== 'Space' || typing()) return;
+        e.preventDefault();
+        if (!spaceDown) { spaceDown = true; svg.classList.add('space-pan'); }
+    });
+    window.addEventListener('keyup', (e) => {
+        if (e.code !== 'Space' || !spaceDown) return;
+        e.preventDefault();
+        spaceDown = false; svg.classList.remove('space-pan');
+    });
+    window.addEventListener('blur', () => { spaceDown = false; svg.classList.remove('space-pan'); });
+
+    function drawTmpLine(e) {
+        const p = toWorld(e), dx = Math.max(30, Math.abs(p.x - conn.x) / 2) * (p.x > conn.x ? 1 : -1);
+        tmpLine.setAttribute('d', `M${conn.x} ${conn.y}C${conn.x + dx} ${conn.y} ${p.x - dx} ${p.y} ${p.x} ${p.y}`);
+    }
+
     svg.addEventListener('pointerdown', (e) => {
         if (e.button !== 0 || !data) return;
+        if (spaceDown) {
+            pan = { sx: e.clientX, sy: e.clientY, vx: view.x, vy: view.y };
+            svg.classList.add('panning');
+            return;
+        }
         const p = toWorld(e);
         const port = e.target.closest('.port');
         if (port) {
@@ -1860,6 +1887,14 @@
     });
 
     window.addEventListener('pointermove', (e) => {
+        const mx = lastPt ? e.clientX - lastPt.x : 0, my = lastPt ? e.clientY - lastPt.y : 0;
+        lastPt = { x: e.clientX, y: e.clientY };
+        if (spaceDown && (conn || drag)) {
+            view.x += mx; view.y += my;
+            applyView();
+            if (conn) drawTmpLine(e);
+            return;
+        }
         if (drag) {
             const p = toWorld(e), nx = snap(p.x - drag.dx), ny = snap(p.y - drag.dy);
             if (nx === drag.t.x && ny === drag.t.y) return;
@@ -1871,8 +1906,7 @@
             view.y = pan.vy + e.clientY - pan.sy;
             applyView();
         } else if (conn) {
-            const p = toWorld(e), dx = Math.max(30, Math.abs(p.x - conn.x) / 2) * (p.x > conn.x ? 1 : -1);
-            tmpLine.setAttribute('d', `M${conn.x} ${conn.y}C${conn.x + dx} ${conn.y} ${p.x - dx} ${p.y} ${p.x} ${p.y}`);
+            drawTmpLine(e);
         }
     });
 
