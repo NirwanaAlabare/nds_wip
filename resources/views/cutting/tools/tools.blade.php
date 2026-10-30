@@ -1616,7 +1616,7 @@
                     let qtyPly = document.getElementById("modify_ratio_qty_ply").value;
                     let qtyCut = qtyPly * ratio;
 
-                    if (qtyCut > 0) {
+                    if (qtyCut != 0) {
                         document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = qtyCut;
                     } else {
                         document.getElementById("modify_ratio_cut_qty_"+ratioIndex).value = 0;
@@ -2445,6 +2445,16 @@
                     });
                 },
                 success: function(response){
+                    if (response.status != 200) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: response.message
+                        });
+
+                        return;
+                    }
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil',
