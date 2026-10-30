@@ -408,6 +408,7 @@
                 pageLength: 10,
                 searching: true,
                 autoWidth: false,
+                language: { emptyTable: 'Tidak ada data ditemukan' },
                 dom: "lfrtip",
                 columnDefs: [{
                     targets: [3],
@@ -504,6 +505,13 @@
         success: function (res) {
             if (res) {
                 console.log("Isi <tr> dari server:", res);
+
+                // Baris "Tidak ada data ditemukan" dari server memakai colspan, padahal DataTables butuh satu
+                // sel per kolom (error _DT_CellIndex). Baris itu tidak dimasukkan; pesan kosong ditampilkan
+                // DataTables sendiri (language.emptyTable).
+                res = $('<tbody>').html(res).children('tr').filter(function () {
+                    return $(this).children('td[colspan]').length === 0;
+                });
 
                 // kalau DataTable sudah ada
                 if ($.fn.DataTable.isDataTable("#datatable")) {
@@ -823,7 +831,7 @@
                     no_ws: no_ws,
                 },
                 success: function (res) {
-                    if (res) {
+                    if (res && res.length) {
                         console.log(res);
                         document.getElementById('style_act').value = res[0].styleno;
                     }

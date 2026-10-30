@@ -683,7 +683,7 @@
                     no_ws: no_ws,
                 },
                 success: function (res) {
-                    if (res) {
+                    if (res && res.length) {
                         console.log(res);
                         document.getElementById('style_act').value = res[0].styleno;
                     }
