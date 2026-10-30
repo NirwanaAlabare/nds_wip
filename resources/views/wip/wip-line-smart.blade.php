@@ -1335,7 +1335,8 @@
             </div>
             <div class="card order">
                 {{-- dekorasi jalur sirkuit --}}
-                <svg class="circuit" viewBox="0 0 400 96" preserveAspectRatio="none" fill="none" stroke="#22d3ee" stroke-width="1.5">
+                <svg class="circuit" viewBox="0 0 400 96" preserveAspectRatio="none" fill="none" stroke="#22d3ee"
+                    stroke-width="1.5">
                     <path d="M0 30 H120 L140 14 H260 L280 30 H400" />
                     <path d="M40 70 H150 L170 52 H230" />
                     <path d="M250 70 H330 L350 84 H400" />
@@ -1350,7 +1351,8 @@
             </div>
             <div class="card clock">
                 <div class="time"><span id="clock-time">--:--:--</span>
-                    <span class="status" id="status"><span class="led"></span><span id="status-text">…</span></span>
+                    <span class="status" id="status"><span class="led"></span><span
+                            id="status-text">…</span></span>
                 </div>
                 <div class="date" id="clock-date">-</div>
             </div>
@@ -1456,7 +1458,7 @@
                                 <div class="v" id="b-day-target">0</div>
                             </div>
                             <div>
-                                <div class="k"><span class="sw" style="background:var(--ink)"></span>Realtime target</div>
+                                <div class="k">Realtime target</div>
                                 <div class="v" id="b-realtime-target">0</div>
                             </div>
                         </div>
@@ -1503,7 +1505,8 @@
                                 <div class="cap">Defect garment qty</div>
                             </div>
                         </div>
-                        <div class="progress" title="defect rate (skala 0 - 5%)"><i id="b-defect-bar" style="width:0"></i></div>
+                        <div class="progress" title="defect rate (skala 0 - 5%)"><i id="b-defect-bar"
+                                style="width:0"></i></div>
                         <div class="legend">
                             <span><i class="tone-good"></i>&lt; 2%</span>
                             <span><i class="tone-warn"></i>2 – 3%</span>
@@ -1568,7 +1571,8 @@
                 <div class="card hud proj-chart-card">
                     <div class="section-title"><i class="fa-solid fa-chart-line"></i> Projection akhir shift
                         <span class="meta legend" style="margin-top:0">
-                            <span style="color:var(--brand)"><i style="background:currentColor"></i>Output aktual</span>
+                            <span style="color:var(--brand)"><i style="background:currentColor"></i>Output
+                                aktual</span>
                             <span id="proj-legend-color"><i class="line-dash"></i>Projection</span>
                             <span style="color:var(--dim)"><i class="line-dash"></i>Target</span>
                         </span>
@@ -1671,7 +1675,8 @@
         // ---------- slide ----------
         const slides = [...document.querySelectorAll('.slide')];
         // ?slide=1..4 mengunci slide (untuk cek tampilan)
-        const lockedSlide = params.has('slide') ? Math.min(Math.max(parseInt(params.get('slide'), 10) - 1 || 0, 0), slides.length - 1) : null;
+        const lockedSlide = params.has('slide') ? Math.min(Math.max(parseInt(params.get('slide'), 10) - 1 || 0, 0), slides
+            .length - 1) : null;
         let slideIndex = lockedSlide ?? 0;
 
         function showSlide(i) {
@@ -1737,13 +1742,14 @@
                 gap = 4,
                 bw = (w - gap * (values.length - 1)) / values.length;
             el.innerHTML = values.map((v, i) => {
-                const future = i >= doneCount;
-                const top = future ? y0 - 1.5 : Math.min(Y(v), y0 - 1.5),
-                    bh = future ? 3 : Math.max(3, Math.abs(Y(v) - y0));
-                const op = future ? .2 : (i === doneCount - 1 ? 1 : .6);
-                return `<rect x="${(i * (bw + gap)).toFixed(1)}" y="${(v < 0 && !future ? y0 : top).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}"
+                    const future = i >= doneCount;
+                    const top = future ? y0 - 1.5 : Math.min(Y(v), y0 - 1.5),
+                        bh = future ? 3 : Math.max(3, Math.abs(Y(v) - y0));
+                    const op = future ? .2 : (i === doneCount - 1 ? 1 : .6);
+                    return `<rect x="${(i * (bw + gap)).toFixed(1)}" y="${(v < 0 && !future ? y0 : top).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}"
                     rx="2" fill="${color}" opacity="${op}"/>`;
-            }).join('') + `<line x1="0" x2="${w}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".8"/>
+                }).join('') +
+                `<line x1="0" x2="${w}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".8"/>
                 <text x="${w + 3}" y="${y0.toFixed(1)}" dy="4" font-size="11" font-weight="700" fill="${color}">0</text>`;
         }
 
@@ -1793,7 +1799,8 @@
             const bands = zones.map(z =>
                 `<path d="${ARC}" pathLength="100" fill="none" stroke="${z.color}" stroke-width="6" stroke-linecap="butt"
                     stroke-dasharray="${Math.max(z.to - z.from - .6, 0)} 100" stroke-dashoffset="${-z.from}"
-                    style="transform-origin:150px 150px;transform:scale(1.2)"/>`).join(''); // zona warna di luar busur utama
+                    style="transform-origin:150px 150px;transform:scale(1.2)"/>`).join(
+                ''); // zona warna di luar busur utama
             el.innerHTML = `
                 <svg viewBox="0 0 300 260">
                     ${bands}
@@ -1896,7 +1903,8 @@
             const currentStart = ((data.summary || {}).periode_jam || '').slice(0, 5);
             let currentIndex = currentStart ? rows.findIndex(r => r.hours.slice(0, 5) === currentStart) : -1;
             if (currentStart && currentIndex < 0) currentIndex = rows.length - 1;
-            return rows.filter((r, i) => num(r.menit_kerja) > 0 || num(r.output) > 0).filter(r => currentIndex < 0 || rows.indexOf(r) <= currentIndex);
+            return rows.filter((r, i) => num(r.menit_kerja) > 0 || num(r.output) > 0).filter(r => currentIndex < 0 || rows
+                .indexOf(r) <= currentIndex);
         }
 
         function renderHeader(data) {
@@ -1928,7 +1936,8 @@
                 const nowM = Number(p.hour) * 60 + Number(p.minute);
                 const friday = p.weekday === 'Fri';
                 const cut = (s, e) => Math.max(0, Math.min(nowM, e) - Math.max(shift.startM, s));
-                menit = Math.min(Math.max(0, Math.max(0, nowM - shift.startM) - cut(friday ? 690 : 720, friday ? 750 : 780) - cut(1080, 1110)), shift.totalM);
+                menit = Math.min(Math.max(0, Math.max(0, nowM - shift.startM) - cut(friday ? 690 : 720, friday ? 750 :
+                    780) - cut(1080, 1110)), shift.totalM);
             }
             // dipanggil tiap detik, tapi DOM hanya ditulis saat menitnya berubah
             if (menit === lastWorktime) return;
@@ -1959,7 +1968,9 @@
                 }
                 const future = cls === 'future';
                 const dot = future ? '' : (num(row.output) >= num(row.target) ? 'good' : 'bad');
-                const nowTag = cls === 'current' ? `<span class="now-tag"><b>SEKARANG</b><span class="eq"><i></i><i></i><i></i><i></i><i></i></span></span>` : '';
+                const nowTag = cls === 'current' ?
+                    `<span class="now-tag"><b>SEKARANG</b><span class="eq"><i></i><i></i><i></i><i></i><i></i></span></span>` :
+                    '';
                 return `<tr class="${cls}">
                     <td><span class="dot ${dot}"></span>${row.hours}${nowTag}</td>
                     <td>${fmt(row.target)}</td>
@@ -1970,7 +1981,8 @@
                     <td>${num(row.defect_rate).toFixed(2)} %</td>
                 </tr>`;
             }).join('');
-            $('hourly-meta').textContent = rows.length ? `${rows[0].hours.slice(0, 5)} – ${rows[rows.length - 1].hours.slice(-5)}` : 'Belum ada plan';
+            $('hourly-meta').textContent = rows.length ?
+                `${rows[0].hours.slice(0, 5)} – ${rows[rows.length - 1].hours.slice(-5)}` : 'Belum ada plan';
         }
 
         // proyeksi akhir shift = laju output sejauh ini x total menit kerja plan; null kalau belum ada menit kerja
@@ -1998,7 +2010,8 @@
 
             const p = projection(s);
             $('k-proj').innerHTML = p ?
-                `PROJECTION: <b>${fmt(p.proj)}</b> <span class="${p.gap < 0 ? 'neg' : 'pos'}">(${p.gap < 0 ? 'SHORTFALL' : 'SURPLUS'} ${p.gap < 0 ? '-' : '+'}${fmt(Math.abs(p.gap))})</span>` : '';
+                `PROJECTION: <b>${fmt(p.proj)}</b> <span class="${p.gap < 0 ? 'neg' : 'pos'}">(${p.gap < 0 ? 'SHORTFALL' : 'SURPLUS'} ${p.gap < 0 ? '-' : '+'}${fmt(Math.abs(p.gap))})</span>` :
+                '';
 
             // visual kartu dari data per jam: bar selalu selebar semua jam kerja (jam yang belum terjadi tampil tipis)
             const past = pastRows(data);
@@ -2073,7 +2086,8 @@
 
             const sisaTarget = Math.max(target - actual, 0);
             const need = sisa > 0 ? sisaTarget / sisa * 60 : null;
-            $('proj-rate-formula').textContent = `(Target − output) ÷ sisa jam kerja (${Math.floor(sisa / 60)} jam ${Math.round(sisa % 60)} menit)`;
+            $('proj-rate-formula').textContent =
+                `(Target − output) ÷ sisa jam kerja (${Math.floor(sisa / 60)} jam ${Math.round(sisa % 60)} menit)`;
             const note = $('proj-rate-note');
             if (sisaTarget === 0) {
                 $('proj-rate-need').innerHTML = '0<small>pcs/jam</small>';
@@ -2087,7 +2101,8 @@
                 $('proj-rate-need').innerHTML = `${fmt(Math.ceil(need))}<small>pcs/jam</small>`;
                 const diff = Math.ceil(need) - Math.round(rateNow);
                 note.className = 'note ' + (diff > 0 ? 't-bad' : 't-good');
-                note.textContent = diff > 0 ? `Perlu +${fmt(diff)} pcs/jam dari kecepatan sekarang` : 'Kecepatan sekarang sudah cukup';
+                note.textContent = diff > 0 ? `Perlu +${fmt(diff)} pcs/jam dari kecepatan sekarang` :
+                    'Kecepatan sekarang sudah cukup';
             }
 
             lastProj = [data, p, projColor];
@@ -2113,7 +2128,9 @@
             const cumTarget = [0];
             slots.forEach(r => cumTarget.push(cumTarget[cumTarget.length - 1] + num(r.target)));
 
-            const actualPts = [[0, 0]];
+            const actualPts = [
+                [0, 0]
+            ];
             let cumOut = 0;
             for (let i = 0; i < done - 1; i++) actualPts.push([i + 1, cumOut += num(slots[i].output)]);
             const nowX = nowSlotX(slots, done, realtime);
@@ -2130,25 +2147,31 @@
                 B = 40;
             const X = x => L + x / N * (W - L - R),
                 Y = y => T + (1 - y / yMax) * (H - T - B);
-            const path = pts => pts.map((pt, i) => `${i ? 'L' : 'M'}${X(pt[0]).toFixed(1)} ${Y(pt[1]).toFixed(1)}`).join(' ');
+            const path = pts => pts.map((pt, i) => `${i ? 'L' : 'M'}${X(pt[0]).toFixed(1)} ${Y(pt[1]).toFixed(1)}`).join(
+                ' ');
 
             let svg = '';
             // grid + label sumbu Y
             for (let v = 0; v <= yMax; v += step) {
-                svg += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(15,31,61,.08)"/>
+                svg +=
+                    `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(15,31,61,.08)"/>
                     <text x="${L - 10}" y="${Y(v)}" dy="5" text-anchor="end" font-size="15" font-weight="700" fill="var(--muted)">${fmt(v)}</text>`;
             }
             // area jam yang belum terjadi
-            svg += `<rect x="${X(nowX)}" y="${T}" width="${X(N) - X(nowX)}" height="${H - T - B}" fill="rgba(15,31,61,.035)"/>`;
+            svg +=
+                `<rect x="${X(nowX)}" y="${T}" width="${X(N) - X(nowX)}" height="${H - T - B}" fill="rgba(15,31,61,.035)"/>`;
             // label jam di sumbu X
             slots.forEach((r, i) => {
-                svg += `<text x="${X(i)}" y="${H - B + 24}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--muted)">${esc(r.hours.slice(0, 5))}</text>`;
+                svg +=
+                    `<text x="${X(i)}" y="${H - B + 24}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--muted)">${esc(r.hours.slice(0, 5))}</text>`;
             });
-            svg += `<text x="${X(N)}" y="${H - B + 24}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--muted)">${esc(slots[N - 1].hours.slice(-5))}</text>`;
+            svg +=
+                `<text x="${X(N)}" y="${H - B + 24}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--muted)">${esc(slots[N - 1].hours.slice(-5))}</text>`;
 
             // target kumulatif
             const targetPts = cumTarget.map((v, i) => [i, v]);
-            svg += `<path d="${path(targetPts)}" fill="none" stroke="var(--dim)" stroke-width="3" stroke-dasharray="3 6" stroke-linecap="round"/>`;
+            svg +=
+                `<path d="${path(targetPts)}" fill="none" stroke="var(--dim)" stroke-width="3" stroke-dasharray="3 6" stroke-linecap="round"/>`;
             // projection
             if (p && done > 0) {
                 svg += `<path d="${path([[nowX, actual], [N, p.proj]])}" fill="none" stroke="${projColor}" stroke-width="4" stroke-dasharray="10 8" stroke-linecap="round"/>
@@ -2159,7 +2182,8 @@
                 <path d="${path(actualPts)}" fill="none" stroke="var(--brand)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"
                     style="filter:drop-shadow(0 0 5px rgba(37,99,235,.45))"/>`;
             if (done > 0) {
-                svg += `<line x1="${X(nowX)}" x2="${X(nowX)}" y1="${T}" y2="${H - B}" stroke="var(--brand)" stroke-width="1.5" stroke-dasharray="4 4" opacity=".6"/>
+                svg +=
+                    `<line x1="${X(nowX)}" x2="${X(nowX)}" y1="${T}" y2="${H - B}" stroke="var(--brand)" stroke-width="1.5" stroke-dasharray="4 4" opacity=".6"/>
                     <circle cx="${X(nowX)}" cy="${Y(actual)}" r="8" fill="#fff" stroke="var(--brand)" stroke-width="4"/>
                     <text x="${X(nowX)}" y="${Y(actual) - 18}" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink)">${fmt(actual)}</text>`;
             }
@@ -2173,7 +2197,8 @@
                 yP = mid + dir * 23;
                 yT = mid - dir * 23;
             }
-            svg += `<text x="${X(N) + 14}" y="${yT}" font-size="14" font-weight="700" fill="var(--dim)">TARGET
+            svg +=
+                `<text x="${X(N) + 14}" y="${yT}" font-size="14" font-weight="700" fill="var(--dim)">TARGET
                     <tspan x="${X(N) + 14}" dy="20" font-size="20" font-weight="800" fill="var(--ink)">${fmt(cumTarget[N])}</tspan></text>`;
             if (p) {
                 svg += `<text x="${X(N) + 14}" y="${yP}" font-size="14" font-weight="700" fill="${projColor}">PROJECTION
@@ -2202,16 +2227,16 @@
 
             // selalu 5 slot supaya daftar penuh setinggi kartu; slot tanpa data tampil "–"
             $('defect-list').innerHTML = defects.length ? [0, 1, 2, 3, 4].map(i => {
-                const d = defects[i];
-                if (!d) return `<div class="defect-item blank"><div class="rank" style="background:#e2e8f0">${i + 1}</div>
+                    const d = defects[i];
+                    if (!d) return `<div class="defect-item blank"><div class="rank" style="background:#e2e8f0">${i + 1}</div>
                     <div class="name">–</div><div class="count"></div><div class="bar"></div></div>`;
-                return `<div class="defect-item">
+                    return `<div class="defect-item">
                     <div class="rank" style="background:${DEFECT_COLORS[i]};box-shadow:0 0 12px ${DEFECT_COLORS[i]}">${i + 1}</div>
                     <div class="name">${esc(d.defect_type)}</div>
                     <div class="count">${fmt(d.jml)}</div>
                     <div class="bar"><i style="width:${num(d.jml) / maxJml * 100}%;background:${DEFECT_COLORS[i]};box-shadow:0 0 8px ${DEFECT_COLORS[i]}"></i></div>
                 </div>`;
-            }).join('') :
+                }).join('') :
                 `<div class="empty"><i class="fa-regular fa-face-smile"></i>Belum ada defect</div>`;
 
             clearInterval(imgTimer);
@@ -2223,14 +2248,16 @@
             }
             stage.innerHTML = images.map((g, i) => {
                 // hanya titik dari 5 defect teratas, supaya gambar selalu cocok dengan daftar
-                const dots = points.filter(p => p.image === g.image && rankOf[String(p.defect_type_id)] < 5).map(p => {
-                    const r = rankOf[String(p.defect_type_id)];
-                    return `<span class="defect-point" style="left:${parseFloat(p.defect_area_x)}%;top:${parseFloat(p.defect_area_y)}%;background:${DEFECT_COLORS[r]};border:1px solid ${DEFECT_BORDERS[r]}"></span>`;
-                }).join('');
+                const dots = points.filter(p => p.image === g.image && rankOf[String(p.defect_type_id)] < 5).map(
+                    p => {
+                        const r = rankOf[String(p.defect_type_id)];
+                        return `<span class="defect-point" style="left:${parseFloat(p.defect_area_x)}%;top:${parseFloat(p.defect_area_y)}%;background:${DEFECT_COLORS[r]};border:1px solid ${DEFECT_BORDERS[r]}"></span>`;
+                    }).join('');
                 return `<div class="defect-frame ${i === 0 ? 'active' : ''}"><div class="holder">
                     <img src="${IMG_BASE}${encodeURI(g.image)}" alt="">${dots}</div></div>`;
             }).join('');
-            $('img-dots').innerHTML = images.length > 1 ? images.map((_, i) => `<i class="${i === 0 ? 'on' : ''}"></i>`).join('') : '';
+            $('img-dots').innerHTML = images.length > 1 ? images.map((_, i) => `<i class="${i === 0 ? 'on' : ''}"></i>`)
+                .join('') : '';
 
             if (images.length > 1) {
                 let k = 0;
@@ -2256,7 +2283,8 @@
 
             // tanggal lokal, bukan toISOString() (UTC)
             const d = new Date();
-            const tanggal = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+            const tanggal = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2,
+                '0')].join('-');
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 30000);
 
@@ -2291,7 +2319,8 @@
                 console.error('Request failed:', e);
                 $('status').classList.add('offline');
                 // tampilkan jam data terakhir supaya yang melihat TV tahu datanya sudah lama
-                $('status-text').innerHTML = lastUpdate ? `OFFLINE<small>data ${lastUpdate.slice(0, 5)}</small>` : 'OFFLINE';
+                $('status-text').innerHTML = lastUpdate ? `OFFLINE<small>data ${lastUpdate.slice(0, 5)}</small>` :
+                    'OFFLINE';
             } finally {
                 clearTimeout(timeout);
                 isFetching = false;
