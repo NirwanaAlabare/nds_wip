@@ -46,15 +46,18 @@
     .side-sec { padding: 12px; border-bottom: 1px solid #eef1f5; }
     .side-title { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
     .table-list { overflow-y: auto; flex: 1; padding: 6px; }
-    .table-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+    .table-item { display: flex; align-items: center; gap: 6px; padding: 5px 8px 5px 4px; border-radius: 6px; cursor: pointer; }
     .table-item:hover { background: #f1f5fb; }
-    .table-item.active { background: #e8f1ff; color: var(--sb); font-weight: 600; }
+    .table-item.active { background: #e8f1ff; color: var(--sb); }
+    .table-item.active .nm { font-weight: 600; }
     .table-item .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
-    .table-item .cnt { margin-left: auto; color: var(--muted); font-size: 11px; font-weight: 400; }
-    .table-item .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .table-item .info { flex: 1; min-width: 0; line-height: 1.25; }
+    .table-item .nm { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+    .table-item .meta { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; margin-top: 1px; }
+    .table-item .meta .badge-draft { font-size: 9px; line-height: 13px; padding: 0 4px; }
     .table-item .eye { border: none; background: none; color: var(--muted); padding: 0 2px; width: 22px; flex: none; }
     .table-item .eye:hover { color: var(--accent); }
-    .table-item.is-hidden .nm, .table-item.is-hidden .cnt { opacity: .45; }
+    .table-item.is-hidden .info { opacity: .45; }
     .table-item.is-hidden .dot { opacity: .35; }
     .table-item.is-hidden .eye { color: #c0c6d0; }
     .view-tools { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 11px; color: var(--muted); }
@@ -74,7 +77,10 @@
     #erdSvg .port:hover { fill: var(--accent); }
     #erdSvg.connecting .erd-row:hover .row-bg { fill: #dcf5e3; }
     #erdSvg .rel { cursor: pointer; }
-    #erdSvg .rel:hover .rel-line { stroke: var(--accent); }
+    #erdSvg .rel { transition: opacity .12s; }
+    #erdSvg.hl .rel:not(.on) { opacity: .12; }
+    #erdSvg .rel.on .rel-line { stroke-width: 2.6; }
+    #erdSvg .rel.on .rel-end { stroke-width: 2; }
     #erdSvg .add-row { cursor: text; }
     #erdSvg .add-row text { opacity: .6; }
     #erdSvg .add-row:hover text { opacity: 1; }
@@ -322,6 +328,10 @@
                 <hr>
                 <div class="fw-semibold mb-1"><i class="fa-regular fa-map"></i> Tampilan</div>
                 <div class="form-check"><input class="form-check-input" type="checkbox" id="setMinimap"><label class="form-check-label" for="setMinimap">Tampilkan minimap di pojok kanvas</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="setLineColor"><label class="form-check-label" for="setLineColor">Warna garis relasi berbeda per kolom induk</label></div>
+                <div class="mt-2 mb-1">Gaya garis relasi</div>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="setLineStyle" id="setLineOrtho" value="ortho"><label class="form-check-label" for="setLineOrtho">Siku (menghindari tabel)</label></div>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="setLineStyle" id="setLineCurve" value="curve"><label class="form-check-label" for="setLineCurve">Kurva</label></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary me-auto" id="btnGuideFromSettings"><i class="fa-regular fa-circle-question"></i> Lihat panduan</button>
@@ -395,7 +405,7 @@
 
     // ===== Pengaturan per orang (browser) =====
     const SETTINGS_KEY = `erd_settings_${ME}`;
-    const settings = Object.assign({ stdId: true, stdBy: false, stdTs: true, stdDel: false, minimap: true }, (() => {
+    const settings = Object.assign({ stdId: true, stdBy: false, stdTs: true, stdDel: false, minimap: true, lineColor: true, lineStyle: 'ortho' }, (() => {
         try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch (e) { return {}; }
     })());
     function saveSettings() {
@@ -529,8 +539,10 @@
         });
 
         applyView();
+        computeRoutes();
         relLayer.innerHTML = relations.map(relSvg).join('');
         tblLayer.innerHTML = tables.filter((t) => isShown(t.id)).map((t) => tableSvg(t, fkSet, hiSet)).join('');
+        applyHighlight();
         if (!exporting) renderMinimap();
         renderEmptyState();
         renderTableList();
@@ -585,14 +597,118 @@
         return s + '</g>';
     }
 
-    // Titik ujung relasi berdasarkan posisi tabel
-    function relGeometry(r) {
-        const A = tbl(r.from.t), B = tbl(r.to.t);
-        if (!A || !B) return null;
-        const ia = A.columns.findIndex((c) => c.id === r.from.c), ib = B.columns.findIndex((c) => c.id === r.to.c);
-        if (ia < 0 || ib < 0) return null;
-        const wa = W[A.id], wb = W[B.id];
-        const ya = A.y + HEAD + ia * ROW + ROW / 2, yb = B.y + HEAD + ib * ROW + ROW / 2;
+    // ===== Rute relasi: garis siku yang mencari jalan lewat celah antar tabel (tidak menembus tabel) =====
+    const STUB = 24, GAP = 16, BEND = 36, RADIUS = 6, LANE = 9;
+    let routes = {}, routeKey = '';
+    let buf = { n: 0 };          // buffer A* dipakai ulang supaya tidak alokasi tiap relasi
+
+    // Area tabel yang tampil: inti (tidak boleh ditembus) + bingkai GAP (boleh, tapi mahal)
+    function obstacles() {
+        return (data?.tables || []).filter((t) => isShown(t.id)).map((t) => {
+            const x1 = t.x + W[t.id], y1 = t.y + tableHeight(t);
+            return { x0: t.x, y0: t.y, x1, y1, X0: t.x - GAP, Y0: t.y - GAP, X1: x1 + GAP, Y1: y1 + GAP };
+        });
+    }
+
+    // Arah: 0 = kanan, 1 = bawah, 2 = kiri, 3 = atas
+    const DX = [1, 0, -1, 0], DY = [0, 1, 0, -1];
+    const lowerBound = (a, v) => { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; a[m] < v ? (lo = m + 1) : (hi = m); } return lo; };
+
+    // A* di grid yang garisnya dari tepi bingkai tabel; biaya = panjang + penalti tiap belokan
+    function routeOrtho(S, sDir, E, eDir, obs) {
+        const uniq = (a) => [...new Set(a)].sort((p, q) => p - q);
+        const xs = uniq([S.x, E.x, ...obs.flatMap((o) => [o.X0, o.X1])]), ys = uniq([S.y, E.y, ...obs.flatMap((o) => [o.Y0, o.Y1])]);
+        const nx = xs.length, ny = ys.length, n = nx * ny;
+        if (buf.n < n) buf = { n, node: new Uint8Array(n), h: new Uint8Array(n), v: new Uint8Array(n), g: new Float64Array(n * 4), prev: new Int32Array(n * 4) };
+        const { node, h, v, g, prev } = buf;
+        node.fill(0, 0, n); h.fill(0, 0, n); v.fill(0, 0, n); g.fill(Infinity, 0, n * 4);
+
+        // Tandai ruas grid: 1 = lewat bingkai tabel, 2 = menembus tabel
+        const mark = (x0, y0, x1, y1, lv) => {
+            const ia = lowerBound(xs, x0), ib = lowerBound(xs, x1), ja = lowerBound(ys, y0), jb = lowerBound(ys, y1);
+            for (let j = Math.max(0, ja - 1); j < jb && j < ny; j++) {
+                const yIn = ys[j] > y0 && ys[j] < y1, vIn = j + 1 < ny && ys[j] < y1 && ys[j + 1] > y0;
+                for (let i = Math.max(0, ia - 1); i < ib && i < nx; i++) {
+                    const k = j * nx + i, xIn = xs[i] > x0 && xs[i] < x1;
+                    if (yIn && i + 1 < nx && xs[i] < x1 && xs[i + 1] > x0) h[k] = Math.max(h[k], lv);
+                    if (xIn && vIn) v[k] = Math.max(v[k], lv);
+                    if (xIn && yIn && lv === 2) node[k] = 1;
+                }
+            }
+        };
+        obs.forEach((o) => { mark(o.X0, o.Y0, o.X1, o.Y1, 1); mark(o.x0, o.y0, o.x1, o.y1, 2); });
+
+        const si = lowerBound(xs, S.x) + lowerBound(ys, S.y) * nx, ei = lowerBound(xs, E.x) + lowerBound(ys, E.y) * nx;
+        const ex = E.x, ey = E.y, hs = [], hf = [];
+        const push = (s, f) => {
+            let i = hs.length; hs.push(s); hf.push(f);
+            while (i > 0) { const p = (i - 1) >> 1; if (hf[p] <= f) break; hs[i] = hs[p]; hf[i] = hf[p]; i = p; }
+            hs[i] = s; hf[i] = f;
+        };
+        const pop = () => {
+            const s = hs[0], f = hf[0], ls = hs.pop(), lf = hf.pop();
+            if (hs.length) {
+                let i = 0;
+                for (;;) {
+                    let c = 2 * i + 1; if (c >= hs.length) break;
+                    if (c + 1 < hs.length && hf[c + 1] < hf[c]) c++;
+                    if (hf[c] >= lf) break;
+                    hs[i] = hs[c]; hf[i] = hf[c]; i = c;
+                }
+                hs[i] = ls; hf[i] = lf;
+            }
+            return [s, f];
+        };
+        const hDist = (k) => Math.abs(xs[k % nx] - ex) + Math.abs(ys[(k / nx) | 0] - ey);
+
+        const s0 = si * 4 + sDir;
+        g[s0] = 0; prev[s0] = -1; push(s0, hDist(si));
+        let best = Infinity, bestState = -1;
+        while (hs.length) {
+            const [s, f] = pop();
+            if (f >= best) break;
+            const k = s >> 2, d = s & 3, gs = g[s];
+            if (f > gs + hDist(k) + 1e-6) continue;
+            if (k === ei) {
+                const total = gs + (d === eDir ? 0 : (d === (eDir ^ 2) ? BEND * 2 : BEND));
+                if (total < best) { best = total; bestState = s; }
+                continue;
+            }
+            const i = k % nx, j = (k / nx) | 0;
+            for (let nd = 0; nd < 4; nd++) {
+                if (nd === (d ^ 2)) continue;
+                const i2 = i + DX[nd], j2 = j + DY[nd];
+                if (i2 < 0 || j2 < 0 || i2 >= nx || j2 >= ny) continue;
+                const k2 = j2 * nx + i2;
+                const lv = nd === 0 ? h[k] : nd === 2 ? h[k2] : nd === 1 ? v[k] : v[k2];
+                if (lv === 2 || (node[k2] && k2 !== ei)) continue;
+                const len = Math.abs(xs[i2] - xs[i]) + Math.abs(ys[j2] - ys[j]);
+                const gn = gs + len * (lv ? 3 : 1) + (nd === d ? 0 : BEND), s2 = k2 * 4 + nd;
+                if (gn < g[s2]) { g[s2] = gn; prev[s2] = s; push(s2, gn + hDist(k2)); }
+            }
+        }
+        if (bestState < 0) return null;
+        const pts = [];
+        for (let s = bestState; s >= 0; s = prev[s]) { const k = s >> 2; pts.push([xs[k % nx], ys[(k / nx) | 0]]); }
+        return { pts: pts.reverse(), cost: best };
+    }
+
+    // Buang titik yang segaris supaya tiap ruas = satu garis lurus
+    function simplify(pts) {
+        const out = [];
+        pts.forEach((p) => {
+            if (out.length && out[out.length - 1][0] === p[0] && out[out.length - 1][1] === p[1]) return;
+            if (out.length >= 2) {
+                const a = out[out.length - 2], b = out[out.length - 1];
+                if ((a[0] === b[0] && b[0] === p[0]) || (a[1] === b[1] && b[1] === p[1])) out.pop();
+            }
+            out.push(p);
+        });
+        return out;
+    }
+
+    // Gaya kurva: lengkung langsung antar kolom (tidak menghindari tabel)
+    function curveGeometry(A, B, wa, wb, ya, yb) {
         let xa, sa, xb, sb;
         if (A.x + wa + 40 <= B.x) { xa = A.x + wa; sa = 1; xb = B.x; sb = -1; }
         else if (B.x + wb + 40 <= A.x) { xa = A.x; sa = -1; xb = B.x + wb; sb = 1; }
@@ -608,6 +724,147 @@
         return { d, xa, ya, sa, xb, yb, sb, mid };
     }
 
+    // Rute satu relasi: pilih sisi tabel (kiri/kanan) yang hasil rutenya paling murah
+    function relGeometry(r, obs) {
+        const A = tbl(r.from.t), B = tbl(r.to.t);
+        if (!A || !B) return null;
+        const ia = A.columns.findIndex((c) => c.id === r.from.c), ib = B.columns.findIndex((c) => c.id === r.to.c);
+        if (ia < 0 || ib < 0) return null;
+        const wa = W[A.id], wb = W[B.id];
+        const ya = A.y + HEAD + ia * ROW + ROW / 2, yb = B.y + HEAD + ib * ROW + ROW / 2;
+        if (settings.lineStyle === 'curve') return curveGeometry(A, B, wa, wb, ya, yb);
+        let sides;
+        if (A.x + wa + 40 <= B.x) sides = [[1, -1]];
+        else if (B.x + wb + 40 <= A.x) sides = [[-1, 1]];
+        else sides = [[1, 1], [-1, -1]];
+
+        let best = null;
+        sides.forEach(([sa, sb]) => {
+            const xa = sa === 1 ? A.x + wa : A.x, xb = sb === 1 ? B.x + wb : B.x;
+            const S = { x: xa + sa * STUB, y: ya }, E = { x: xb + sb * STUB, y: yb };
+            const rt = routeOrtho(S, sa === 1 ? 0 : 2, E, sb === 1 ? 2 : 0, obs);
+            if (rt && (!best || rt.cost < best.cost)) best = { pts: [[xa, ya], ...rt.pts, [xb, yb]], cost: rt.cost, xa, ya, sa, xb, yb, sb };
+        });
+        if (!best) {
+            // Tidak ada jalan (tabel saling tumpuk): garis siku sederhana
+            const [sa, sb] = sides[0];
+            const xa = sa === 1 ? A.x + wa : A.x, xb = sb === 1 ? B.x + wb : B.x;
+            const mx = sa === sb ? (sa === 1 ? Math.max(xa, xb) : Math.min(xa, xb)) + sa * STUB * 2 : (xa + xb) / 2;
+            best = { pts: [[xa, ya], [mx, ya], [mx, yb], [xb, yb]], xa, ya, sa, xb, yb, sb };
+        }
+        const { parent } = parentChild(r);
+        best.pts = simplify(best.pts);
+        best.net = parent.t + '|' + parent.c;
+        return best;
+    }
+
+    // Ruas dari relasi berbeda yang lewat jalur sama digeser supaya tidak menyatu.
+    // Relasi dari kolom induk yang sama boleh berbagi jalur (seperti cabang pohon).
+    // Lebar lajur memakai ruang kosong di celah sampai 20px dari tabel terdekat.
+    function separateLanes(obs) {
+        const groups = {};
+        Object.values(routes).forEach((g) => {
+            if (!g.pts) return;
+            const net = g.net;
+            for (let k = 1; k < g.pts.length - 2; k++) {
+                const a = g.pts[k], b = g.pts[k + 1], hor = a[1] === b[1], c = hor ? a[1] : a[0];
+                const lo = hor ? Math.min(a[0], b[0]) : Math.min(a[1], b[1]), hi = hor ? Math.max(a[0], b[0]) : Math.max(a[1], b[1]);
+                (groups[(hor ? 'h' : 'v') + c] ??= []).push({ g, k, hor, c, net, lo, hi });
+            }
+        });
+        const shifts = [];
+        Object.values(groups).forEach((segs) => {
+            segs.sort((p, q) => p.lo - q.lo);
+            // Kelompokkan ruas yang saling tumpang tindih
+            let cluster = [], end = -Infinity;
+            const flush = () => {
+                const nets = [...new Set(cluster.map((s) => s.net))];
+                if (nets.length > 1) {
+                    const { c, hor } = cluster[0], lo = Math.min(...cluster.map((s) => s.lo)), hi = Math.max(...cluster.map((s) => s.hi));
+                    let below = -Infinity, above = Infinity;
+                    obs.forEach((o) => {
+                        const [p0, p1, q0, q1] = hor ? [o.y0, o.y1, o.x0, o.x1] : [o.x0, o.x1, o.y0, o.y1];
+                        if (q1 < lo || q0 > hi) return;
+                        if (p1 <= c) below = Math.max(below, p1);
+                        else if (p0 >= c) above = Math.min(above, p0);
+                    });
+                    const minC = below + 20, maxC = above - 20;
+                    const step = Math.max(2, Math.min(LANE, (maxC - minC) / (nets.length - 1))), width = step * (nets.length - 1);
+                    const start = minC <= maxC - width ? Math.min(Math.max(c - width / 2, minC), maxC - width) : c - width / 2;
+                    cluster.forEach((s) => shifts.push([s, start + nets.indexOf(s.net) * step - c]));
+                }
+                cluster = [];
+            };
+            segs.forEach((s) => { if (s.lo >= end) { flush(); end = -Infinity; } cluster.push(s); end = Math.max(end, s.hi); });
+            flush();
+        });
+        shifts.forEach(([s, off]) => { const ax = s.hor ? 1 : 0; s.g.pts[s.k][ax] += off; s.g.pts[s.k + 1][ax] += off; });
+    }
+
+    // Hitung ulang semua rute hanya kalau posisi/ukuran tabel atau relasinya berubah
+    function computeRoutes() {
+        const shown = (data?.tables || []).filter((t) => isShown(t.id));
+        const key = shown.map((t) => `${t.id},${t.x},${t.y},${W[t.id]},${tableHeight(t)},${t.columns.map((c) => c.id).join('/')}`).join(';')
+            + '#' + (data?.relations || []).map((r) => `${r.id},${r.from.t},${r.from.c},${r.to.t},${r.to.c},${r.card}`).join(';') + '#' + settings.lineStyle;
+        if (key === routeKey) return;
+        routeKey = key; routes = {};
+        const obs = obstacles();
+        (data?.relations || []).forEach((r) => {
+            if (!isShown(r.from.t) || !isShown(r.to.t)) return;
+            const g = relGeometry(r, obs);
+            if (g) routes[r.id] = g;
+        });
+        separateLanes(obs);
+    }
+
+    // Warna garis per kolom induk: tetap sama walau diagram berubah (dari hash nama kolom)
+    const LINE_COLORS = ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#7c3aed', '#0891b2', '#db2777', '#65a30d', '#ea580c', '#4f46e5', '#0d9488', '#a16207'];
+    function lineColor(r) {
+        const { parent } = parentChild(r), key = parent.t + '|' + parent.c;
+        let h = 0;
+        for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) | 0;
+        return LINE_COLORS[Math.abs(h) % LINE_COLORS.length];
+    }
+
+    // Sorot garis yang terkait dengan yang sedang di-hover / dipilih, garis lain dipudarkan
+    let hoverHl = null;          // {r} relasi, {t, c} kolom, atau {t} tabel
+    function applyHighlight() {
+        let h = exporting ? null : hoverHl || (sel?.kind === 'rel' ? { r: sel.id } : sel?.kind === 'table' ? { t: sel.id, c: sel.col } : null);
+        const match = (hh) => new Set((data?.relations || []).filter((r) => (hh.r != null
+            ? String(r.id) === String(hh.r)
+            : [r.from, r.to].some((e) => e.t === hh.t && (hh.c == null || e.c === hh.c)))).map((r) => String(r.id)));
+        let on = h ? match(h) : new Set();
+        if (h && h.c != null && !on.size) on = match({ t: h.t });   // kolom tanpa relasi: sorot relasi tabelnya
+        svg.classList.toggle('hl', on.size > 0);
+        relLayer.querySelectorAll('.rel').forEach((el) => {
+            const o = on.has(el.dataset.r);
+            el.classList.toggle('on', o);
+            if (o) relLayer.appendChild(el);   // bawa ke depan supaya tidak tertutup garis lain
+        });
+    }
+
+    // Path SVG dengan sudut sedikit membulat + titik tengah (untuk label)
+    function routePath(pts) {
+        let d = `M${pts[0][0]} ${pts[0][1]}`;
+        for (let i = 1; i < pts.length - 1; i++) {
+            const [ax, ay] = pts[i - 1], [bx, by] = pts[i], [cx, cy] = pts[i + 1];
+            const l1 = Math.abs(bx - ax) + Math.abs(by - ay), l2 = Math.abs(cx - bx) + Math.abs(cy - by), rr = Math.min(RADIUS, l1 / 2, l2 / 2);
+            const ux = Math.sign(bx - ax), uy = Math.sign(by - ay), vx = Math.sign(cx - bx), vy = Math.sign(cy - by);
+            d += `L${bx - ux * rr} ${by - uy * rr}Q${bx} ${by} ${bx + vx * rr} ${by + vy * rr}`;
+        }
+        const last = pts[pts.length - 1];
+        d += `L${last[0]} ${last[1]}`;
+
+        const segLen = (i) => Math.abs(pts[i + 1][0] - pts[i][0]) + Math.abs(pts[i + 1][1] - pts[i][1]);
+        let half = pts.slice(1).reduce((s, _, i) => s + segLen(i), 0) / 2, mid = pts[0];
+        for (let i = 0; i < pts.length - 1; i++) {
+            const l = segLen(i);
+            if (half <= l) { const t = l ? half / l : 0; mid = [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t]; break; }
+            half -= l;
+        }
+        return { d, mid };
+    }
+
     // Notasi crow's foot: "1" = dua garis, "N" = kaki gagak + satu garis
     function symbol(x, y, s, kind) {
         if (kind === '1') return `M${x + s * 9} ${y - 6}V${y + 6}M${x + s * 13} ${y - 6}V${y + 6}`;
@@ -616,15 +873,16 @@
 
     function relSvg(r) {
         if (!isShown(r.from.t) || !isShown(r.to.t)) return '';
-        const g = relGeometry(r);
+        const g = routes[r.id];
         if (!g) return '';
+        if (g.pts) Object.assign(g, routePath(g.pts));
         const isSel = sel?.kind === 'rel' && sel.id === r.id;
-        const color = isSel ? '#2f80ed' : (r.source === 'db' ? '#475569' : '#94a3b8');
+        const color = settings.lineColor ? lineColor(r) : (isSel ? '#2f80ed' : (r.source === 'db' ? '#475569' : '#94a3b8'));
         const [ca, cb] = r.card.split(':');
         let s = `<g class="rel" data-r="${esc(r.id)}">`;
         s += `<path d="${g.d}" stroke="transparent" stroke-width="14" fill="none"/>`;
         s += `<path class="rel-line" d="${g.d}" stroke="${color}" stroke-width="${isSel ? 2.2 : 1.5}" fill="none"${r.optional ? ' stroke-dasharray="6 4"' : ''}/>`;
-        s += `<path d="${symbol(g.xa, g.ya, g.sa, ca)}${symbol(g.xb, g.yb, g.sb, cb)}" stroke="${color}" stroke-width="1.5" fill="none"/>`;
+        s += `<path class="rel-end" d="${symbol(g.xa, g.ya, g.sa, ca)}${symbol(g.xb, g.yb, g.sb, cb)}" stroke="${color}" stroke-width="1.5" fill="none"/>`;
         if (r.label) {
             const lw = textWidth(r.label, '11px Segoe UI, Arial') + 14;
             s += `<rect x="${g.mid[0] - lw / 2}" y="${g.mid[1] - 9}" width="${lw}" height="18" rx="9" fill="#fff" stroke="${color}"/>`;
@@ -663,9 +921,11 @@
         document.getElementById('tableList').innerHTML = items.map((t) => `
             <div class="table-item ${sel?.kind === 'table' && sel.id === t.id ? 'active' : ''} ${isShown(t.id) ? '' : 'is-hidden'}" data-t="${esc(t.id)}">
                 <button class="eye" data-eye="${esc(t.id)}" title="${isShown(t.id) ? 'Sembunyikan dari kanvas' : 'Tampilkan di kanvas'}"><i class="fa-regular ${isShown(t.id) ? 'fa-eye' : 'fa-eye-slash'}"></i></button>
-                <span class="dot" style="background:${t.color}"></span><span class="nm">${esc(t.name)}</span>
-                ${t.draft ? '<span class="badge-draft">DRAFT</span>' : ''}
-                <span class="cnt">${t.columns.length} kolom</span>
+                <span class="dot" style="background:${t.color}"></span>
+                <div class="info" title="${esc(t.name)}">
+                    <span class="nm">${esc(t.name)}</span>
+                    <div class="meta"><span class="cnt">${t.columns.length} kolom</span>${t.draft ? '<span class="badge-draft">DRAFT</span>' : ''}</div>
+                </div>
             </div>`).join('') || `<div class="text-muted small p-2">${data ? 'Tidak ada tabel' : ''}</div>`;
 
         const total = data?.tables.length || 0, shown = data ? data.tables.filter((t) => isShown(t.id)).length : 0;
@@ -1532,16 +1792,32 @@
     });
 
     // ===== Interaksi kanvas =====
-    // Saat drag: geser elemen tabel itu saja + gambar ulang relasi yang terhubung (bukan seluruh kanvas)
+    // Saat drag: geser elemen tabel itu saja + hitung ulang rute relasi yang terhubung (bukan seluruh kanvas).
+    // Rute relasi lain dirapikan ulang saat tabel dilepas (render penuh).
     function moveTableFast(t) {
         tblLayer.querySelector(`.tbl[data-t="${CSS.escape(t.id)}"]`)?.setAttribute('transform', `translate(${t.x},${t.y})`);
+        const obs = obstacles();
+        routeKey = '';
         data.relations.forEach((r) => {
             if (r.from.t !== t.id && r.to.t !== t.id) return;
+            if (isShown(r.from.t) && isShown(r.to.t)) routes[r.id] = relGeometry(r, obs);
             const el = relLayer.querySelector(`.rel[data-r="${CSS.escape(r.id)}"]`), html = relSvg(r);
             if (el) el.outerHTML = html;
             else if (html) relLayer.insertAdjacentHTML('beforeend', html);
         });
+        applyHighlight();
     }
+
+    // Hover tabel / kolom / garis: sorot relasinya
+    svg.addEventListener('pointerover', (e) => {
+        if (drag || pan || conn) return;
+        const relEl = e.target.closest('.rel'), row = e.target.closest('.erd-row'), tEl = e.target.closest('.tbl');
+        const next = relEl ? { r: relEl.dataset.r } : row ? { t: row.dataset.t, c: row.dataset.c } : tEl ? { t: tEl.dataset.t } : null;
+        if (JSON.stringify(next) === JSON.stringify(hoverHl)) return;
+        hoverHl = next;
+        applyHighlight();
+    });
+    svg.addEventListener('pointerleave', () => { hoverHl = null; applyHighlight(); });
 
     function toWorld(e) {
         const b = svg.getBoundingClientRect();
@@ -1700,13 +1976,36 @@
         }
         const levels = {};
         data.tables.forEach((t) => (levels[lvl[t.id]] ??= []).push(t));
-        let x = 40;
-        Object.keys(levels).sort((a, b) => a - b).forEach((k) => {
-            let y = 40, maxW = 0;
-            levels[k].sort((a, b) => a.name.localeCompare(b.name)).forEach((t) => {
-                t.x = x; t.y = y; y += tableHeight(t) + 40; maxW = Math.max(maxW, W[t.id] || tableWidth(t));
+        const cols = Object.keys(levels).sort((a, b) => a - b).map((k) => levels[k].sort((a, b) => a.name.localeCompare(b.name)));
+
+        // Jarak antar kolom/baris dibuat lega supaya ada jalur untuk garis relasi
+        const nb = {};
+        data.relations.forEach((r) => {
+            if (r.from.t === r.to.t) return;
+            (nb[r.from.t] ??= []).push(r.to.t);
+            (nb[r.to.t] ??= []).push(r.from.t);
+        });
+        const stack = (list) => { let y = 40; list.forEach((t) => { t.y = y; y += tableHeight(t) + 60; }); };
+        cols.forEach(stack);
+
+        // Urutkan tabel di tiap kolom mendekati posisi tabel relasinya (barycenter) supaya garis jarang bersilangan
+        const center = (id) => { const t = tbl(id); return t.y + tableHeight(t) / 2; };
+        for (let pass = 0; pass < 4; pass++) {
+            (pass % 2 ? [...cols].reverse() : cols).forEach((list) => {
+                const bc = new Map(list.map((t) => {
+                    const ns = (nb[t.id] || []).filter((id) => lvl[id] !== lvl[t.id]);
+                    return [t.id, ns.length ? ns.reduce((s, id) => s + center(id), 0) / ns.length : Infinity];
+                }));
+                list.sort((a, b) => (bc.get(a.id) - bc.get(b.id)) || a.name.localeCompare(b.name));
+                stack(list);
             });
-            x += maxW + 110;
+        }
+
+        let x = 40;
+        cols.forEach((list) => {
+            const maxW = Math.max(...list.map((t) => W[t.id] || tableWidth(t)));
+            list.forEach((t) => (t.x = x));
+            x += maxW + 180;
         });
         send({ type: 'move', tables: data.tables.map((t) => ({ name: t.id, x: t.x, y: t.y })) });
         render(); fit();
@@ -1923,13 +2222,15 @@
 
     // ===== Pengaturan =====
     const settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
-    const SETTING_INPUTS = { setStdId: 'stdId', setStdBy: 'stdBy', setStdTs: 'stdTs', setStdDel: 'stdDel', setMinimap: 'minimap' };
+    const SETTING_INPUTS = { setStdId: 'stdId', setStdBy: 'stdBy', setStdTs: 'stdTs', setStdDel: 'stdDel', setMinimap: 'minimap', setLineColor: 'lineColor' };
     document.getElementById('btnSettings').addEventListener('click', () => {
         Object.entries(SETTING_INPUTS).forEach(([id, key]) => (document.getElementById(id).checked = !!settings[key]));
+        document.getElementById(settings.lineStyle === 'curve' ? 'setLineCurve' : 'setLineOrtho').checked = true;
         settingsModal.show();
     });
     document.getElementById('btnSaveSettings').addEventListener('click', () => {
         Object.entries(SETTING_INPUTS).forEach(([id, key]) => (settings[key] = document.getElementById(id).checked));
+        settings.lineStyle = document.getElementById('setLineCurve').checked ? 'curve' : 'ortho';
         saveSettings();
         settingsModal.hide();
         render();
