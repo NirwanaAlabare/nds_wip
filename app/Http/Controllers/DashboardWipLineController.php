@@ -57,6 +57,15 @@ class DashboardWipLineController extends Controller
         ]);
     }
 
+    // view yang sama dalam mode lite, untuk TV line yang spek-nya rendah
+    public function show_wip_line_smart_lite($id)
+    {
+        return view('wip.wip-line-smart', [
+            'id' => $id,
+            'lite' => true,
+        ]);
+    }
+
     public function trigger_wip_line(Request $request)
     {
         $validated = $request->validate([
