@@ -396,7 +396,7 @@ $(function () {
     });
 
     $('#md-btn-export').on('click', function () {
-        window.location.href = RUT_EXCEL + '?' + $.param($.extend({ cari: tabel.search() }, filterTerpakai));
+        mdExportExcel(RUT_EXCEL + '?' + $.param($.extend({ cari: tabel.search() }, filterTerpakai)));
     });
 
     // ---------- Create / Edit membawa keadaan daftar ----------
