@@ -111,6 +111,9 @@
         .bg-sb { background: var(--costing-navy) !important; }
         .costing-picture-thumb { position: relative; width: 60px; height: 60px; padding: 0; border: 1px solid #dce4ec; border-radius: 4px; overflow: hidden; background: #fff; cursor: pointer; }
         .costing-picture-thumb.active { border: 2px solid #3085d6; }
+        /* Gambar baru dipilih, belum tersimpan (masuk act_costing_picture saat Save). */
+        .costing-picture-thumb.is-pending { border: 2px dashed #f97316; }
+        .costing-picture-thumb.is-pending::after { content: 'Belum disimpan'; position: absolute; left: 0; right: 0; bottom: 0; padding: 1px 0; background: rgba(249, 115, 22, .9); color: #fff; font-size: 7px; font-weight: 600; text-align: center; }
         .costing-picture-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .costing-picture-remove { position: absolute; top: 2px; right: 2px; z-index: 1; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%; background: rgba(220, 53, 69, .92); color: #fff; font-size: 10px; line-height: 18px; }
 
@@ -472,7 +475,6 @@
         #form-header .costing-picture-dropzone { flex-direction: row; gap: 10px; min-height: 64px; padding: 10px; color: var(--costing-navy); font-size: 10px; font-weight: 600; }
         #form-header .costing-picture-dropzone i { font-size: 24px; }
         #form-header .costing-picture-dropzone b { color: #0056b3; }
-        #form-header .costing-upload-now { width: 100%; margin-top: 8px; }
         #form-header .costing-picture-thumbnails { gap: 8px; margin-top: 10px; padding: 8px; border-color: #8b5cf6; border-radius: 6px; }
         #form-header .costing-picture-clear { margin-top: 6px; }
         #form-header .costing-picture-carousel { min-height: 200px; height: auto; margin-top: 14px; }
@@ -583,8 +585,9 @@
         #tbody-fabric .fb-name { vertical-align: middle; }
         #tbody-fabric .fb-add { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin-left: 8px; padding: 0; border: 0; border-radius: 3px; background: #284a63; color: #fff; font-size: 9px; vertical-align: middle; cursor: pointer; }
         #tbody-fabric .fb-add:hover { background: #1d3a4f; }
-        #tbody-fabric tr.fb-repeat-content td.item-name > *, #tbody-fabric tr.fb-repeat-shell td.shell-td > * { display: none; }
-        #tbody-fabric tr.row-costing:not(.fb-group-start) > td { border-top-color: transparent; }
+        #tbody-fabric td.fb-merged { display: none; }
+        #tbody-fabric td.row-number[rowspan], #tbody-fabric td.item-name[rowspan], #tbody-fabric td.shell-td[rowspan] { vertical-align: middle; }
+        #tbody-fabric td[rowspan]:not([rowspan="1"]) { background: #fff; border-right: 1px solid #e2e8f0; }
         .costing-create-page.is-readonly #tbody-fabric .fb-add { display: none; }
         .fb-modal { max-width: 420px; }
         .fb-modal .modal-content { border: 0; border-radius: 12px; }
@@ -594,6 +597,17 @@
         .fb-modal .fb-modal-label { display: block; margin-bottom: 8px; color: #1e293b; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; }
         .fb-modal .select2-container--bootstrap4 .select2-selection--multiple { min-height: 46px; border: 1px solid #d6d6d6; border-radius: 10px; }
         .fb-modal .modal-footer { justify-content: flex-end; gap: 10px; border-top: 0; }
+        .fb-modal .select2-selection--multiple .select2-selection__rendered { max-height: 120px; overflow-y: auto; }
+        .fb-check-dropdown { border: 0 !important; border-radius: 8px !important; box-shadow: 0 4px 14px rgba(15, 23, 42, .15); overflow: hidden; }
+        .fb-check-dropdown .select2-search--dropdown { padding: 10px 10px 4px; }
+        .fb-check-dropdown .select2-search__field { height: 30px; padding: 4px 8px; border: 1px solid #d6d6d6 !important; border-radius: 4px; font-size: 13px; }
+        .fb-check-dropdown .select2-results__option { padding: 6px 12px; color: #1e293b; font-size: 13px; font-weight: 500; }
+        .fb-check-dropdown .select2-results__option[aria-selected="true"] { background: transparent; color: #1e293b; }
+        .fb-check-dropdown .select2-results__option--highlighted[aria-selected] { background: #f1f5f9; color: #1e293b; }
+        .fb-check-opt { display: flex; align-items: center; gap: 8px; }
+        .fb-check { flex: 0 0 auto; position: relative; width: 15px; height: 15px; border: 1.5px solid #94a3b8; border-radius: 3px; background: #fff; }
+        .fb-check.is-checked { border-color: #284a63; background: #284a63; }
+        .fb-check.is-checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 
         /* ===== Font sesuai Figma (QA Edit Costing), berlaku >= 768px; HP diatur di bawah ===== */
         @media (min-width: 768px) {
@@ -753,8 +767,8 @@
                                             <input type="text" id="buyer_code" class="form-control" placeholder="Buyer" value="{{ $costing->buyer_code }}" readonly>
                                         </div>
                                         <div class="costing-field">
-                                            <label>Brand</label>
-                                            <input type="text" name="brand" class="form-control" placeholder="Brand" value="{{ $costing->brand }}" required>
+                                            <label for="brand">Brand</label>
+                                            <select name="brand" id="brand" class="form-control" required><option value=""></option></select>
                                         </div>
                                         <div class="costing-field">
                                             <label for="season_id">Season</label>
@@ -843,7 +857,6 @@
                                         <i class="fas fa-file-alt"></i>
                                         <span>Drag n Drop here Or <b>Browse</b></span>
                                     </div>
-                                    <button type="button" id="btn-upload-now" class="mkt-btn mkt-btn--navy mkt-btn--sm costing-upload-now">Upload Now</button>
                                 </div>
 
                                 <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Costing image previews"></div>
@@ -1345,7 +1358,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" data-dismiss="modal">Cancel</button>
+                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" id="fb-breakdown-save" class="mkt-btn mkt-btn--green">Save</button>
             </div>
         </div>
@@ -1444,11 +1457,14 @@
         </div>
     </div>
 </div>
+@include('marketing.costing.brand_modal')
 @endsection
 
 @section('custom-script')
 <script src="{{ asset('dist/js/marketing-title-case.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-title-case.js')) }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+<script src="{{ asset('dist/js/marketing-brand-select.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-brand-select.js')) }}"></script>
+<script src="{{ asset('dist/js/marketing-empty-state.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-empty-state.js')) }}"></script>
 <script>
     // Angka format Indonesia untuk Confirm Price / Rate / SMV (lihat handler .input-money).
     function mktMoney(selector) {
@@ -1839,6 +1855,12 @@
 
         $('#buyer').on('change', function() {
             $('#buyer_code').val($(this).find(':selected').data('buyer-code') || '');
+        });
+
+        mktBrandSelect({
+            select: '#brand', buyer: '#buyer', modal: '#modal-add-brand', current: @json($costing->brand),
+            readonly: @json(!$unlock['can_edit'] || $viewOnly),
+            urlList: "{{ route('costing-get-brands') }}", urlStore: "{{ route('costing-store-brand') }}", csrf: "{{ csrf_token() }}",
         });
 
         if ($('#product_group').val() !== '') {
@@ -2745,7 +2767,8 @@
         paintCoverflowDots($dots, images.length, selectedCostingImage, goTo);
         images.forEach((image, index) => {
             const $thumbnail = $('<div>', {
-                class: `costing-picture-thumb${index === selectedCostingImage ? ' active' : ''}`,
+                class: `costing-picture-thumb${index === selectedCostingImage ? ' active' : ''}${image.saved ? '' : ' is-pending'}`,
+                title: image.saved ? image.name : 'Belum disimpan, klik Save untuk menyimpan',
                 'aria-label': `Show image ${index + 1}`
             }).append($('<img>', { src: image.url, alt: '' }))
                 .on('click', function() {
@@ -2826,7 +2849,7 @@
         renderCostingImageCarousel();
     }
 
-    $('#btn-upload-now, #picture-dropzone').on('click', function() {
+    $('#picture-dropzone').on('click', function() {
         $('#upload_foto').trigger('click');
     });
     $('#picture-dropzone').on('keydown', function(event) {
@@ -3668,8 +3691,11 @@
     });
     $(document).on('click', '#fb-breakdown-save', saveFabricBreakdown);
 
+    // NO + CONTENT di-merge (rowspan) sepanjang baris content yang sama, SHELL sepanjang shell yang sama.
+    // Sel yang tertutup merge cuma disembunyikan (tetap di DOM) supaya index kolom grid tidak bergeser.
     function paintFabricGroups() {
         let no = 0, prevContent = null, prevShell = null, prevVisible = false;
+        let $contentHead = null, $shellHead = null;
         $('#tbody-fabric > tr.row-costing').each(function () {
             const $row = $(this);
             const visible = !$row.hasClass('xl-hidden');
@@ -3678,10 +3704,26 @@
             const newContent = content !== prevContent;
             if (newContent) no++;
             const pageStart = visible && !prevVisible;
-            $row.toggleClass('fb-repeat-content', !newContent && !pageStart)
-                .toggleClass('fb-repeat-shell', shell === prevShell && !pageStart)
-                .toggleClass('fb-group-start', newContent);
-            $row.find('.row-number').text(newContent || pageStart ? no : '');
+            const $lead = $row.children('td.row-number, td.item-name');
+            const $shellTd = $row.children('td.shell-td');
+            $lead.add($shellTd).attr('rowspan', 1).removeClass('fb-merged');
+            $row.toggleClass('fb-group-start', newContent);
+            $row.find('.row-number').text(no);
+
+            if (visible) {
+                if (newContent || pageStart) {
+                    $contentHead = $lead;
+                } else {
+                    $contentHead.attr('rowspan', +$contentHead.attr('rowspan') + 1);
+                    $lead.addClass('fb-merged');
+                }
+                if (shell !== prevShell || pageStart || !$row.attr('data-panel')) {
+                    $shellHead = $shellTd;
+                } else {
+                    $shellHead.attr('rowspan', +$shellHead.attr('rowspan') + 1);
+                    $shellTd.addClass('fb-merged');
+                }
+            }
             prevContent = content;
             prevShell = shell;
             prevVisible = visible;
@@ -3703,9 +3745,54 @@
         $modal.find('.fb-modal-label').text(isShell ? 'Shell' : 'Part');
         const $select = $('#fb-breakdown-select');
         if ($select.hasClass('select2-hidden-accessible')) $select.select2('destroy');
-        $select.html(options.map(o => `<option value="${o.id}">${$('<span>').text(o.name).html()}</option>`).join(''))
-            .select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $modal, closeOnSelect: false, placeholder: isShell ? 'Choose Shell' : 'Choose Part' });
+        $select.html((options.length ? '<option value="__all">All</option>' : '')
+            + options.map(o => `<option value="${o.id}">${$('<span>').text(o.name).html()}</option>`).join(''));
+        initFabricCheckSelect($select, $modal, isShell ? 'Shell' : 'Part');
         $modal.modal('show');
+    }
+
+    // Multiselect ala filter: kotak cari di dropdown + checkbox per opsi + "All" (centang/lepas semua yang tampil).
+    function initFabricCheckSelect($select, $parent, label) {
+        const amd = $.fn.select2.amd;
+        const Utils = amd.require('select2/utils');
+        const optionValues = () => $select.find('option').map(function () { return this.value; }).get().filter(v => v !== '__all');
+        const allChecked = () => { const v = $select.val() || []; return v.length > 0 && v.length === optionValues().length; };
+        const box = checked => `<span class="fb-check${checked ? ' is-checked' : ''}"></span>`;
+        const refreshChecks = () => {
+            const sel = new Set($select.val() || []);
+            $('#select2-' + $select.attr('id') + '-results > .select2-results__option').each(function () {
+                const value = String(this.id || '').split('-').pop();
+                const checked = value === '__all' ? allChecked() : sel.has(value);
+                $(this).attr('aria-selected', checked && value !== '__all' ? 'true' : 'false')
+                    .find('.fb-check').toggleClass('is-checked', checked);
+            });
+        };
+
+        $select.select2({
+            theme: 'bootstrap4', width: '100%', dropdownParent: $parent, closeOnSelect: false,
+            placeholder: 'Choose ' + label,
+            language: { noResults: () => 'Tidak ada data' },
+            selectionAdapter: Utils.Decorate(Utils.Decorate(amd.require('select2/selection/multiple'), amd.require('select2/selection/placeholder')), amd.require('select2/selection/eventRelay')),
+            dropdownAdapter: [amd.require('select2/dropdown/search'), amd.require('select2/dropdown/attachBody'), amd.require('select2/compat/dropdownCss')]
+                .reduce((adapter, decorator) => Utils.Decorate(adapter, decorator), amd.require('select2/dropdown')),
+            dropdownCssClass: 'fb-check-dropdown',
+            templateResult: d => d.loading ? d.text : $('<span class="fb-check-opt"></span>')
+                .append(box(d.id === '__all' ? allChecked() : d.selected)).append($('<span>').text(d.text)),
+        }).off('.fbcheck').on('select2:selecting.fbcheck', function (e) {
+            if (e.params.args.data.id !== '__all') return;
+            e.preventDefault();
+            // "All" mengikuti hasil pencarian: hanya opsi yang sedang tampil yang dicentang/dilepas.
+            const term = ($('.fb-check-dropdown .select2-search__field').val() || '').toLowerCase();
+            const visible = $select.find('option').filter(function () {
+                return this.value !== '__all' && $(this).text().toLowerCase().includes(term);
+            }).map(function () { return this.value; }).get();
+            const current = new Set($select.val() || []);
+            const check = visible.some(v => !current.has(v));
+            visible.forEach(v => check ? current.add(v) : current.delete(v));
+            $select.val([...current]).trigger('change');
+            refreshChecks();
+        }).on('change.fbcheck select2:open.fbcheck', () => setTimeout(refreshChecks));
+        $select.on('select2:open.fbcheck', () => $('.fb-check-dropdown .select2-search__field').attr('placeholder', 'Search ' + label));
     }
 
     function saveFabricBreakdown() {
@@ -3742,8 +3829,16 @@
     }
 
     function xlPaginate($panel) {
-        const $rows = $panel.find('tbody').first().children('tr.row-costing');
+        const $tbody = $panel.find('tbody').first();
+        const $rows = $tbody.children('tr.row-costing');
         const total = $rows.length;
+        // Tab tanpa detail menampilkan template tabel kosong.
+        $tbody.children('tr.mkt-empty-row').remove();
+        if (!total) {
+            let cols = 0;
+            $panel.find('thead tr').first().children().each(function () { cols += parseInt($(this).attr('colspan'), 10) || 1; });
+            $tbody.append(mktEmptyRow(cols));
+        }
         let per = parseInt($panel.data('perPage'), 10);
         if (Number.isNaN(per)) per = 10;
         const pages = per > 0 ? Math.max(1, Math.ceil(total / per)) : 1;

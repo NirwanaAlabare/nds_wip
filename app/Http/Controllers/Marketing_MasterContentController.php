@@ -18,8 +18,8 @@ class Marketing_MasterContentController extends Controller
     public function index()
     {
         return view('marketing.master.content', [
-            'page' => 'dashboard-marketing',
-            'subPageGroup' => 'marketing-master-data',
+            'page' => 'dashboard-master-data',
+            'subPageGroup' => 'master-data',
             'subPage' => 'marketing-master-content',
             'containerFluid' => true,
             'groups' => $this->db()->table('mastergroup')->where('cancel', 'N')->orderBy('id')->get(['id', 'kode_group', 'nama_group']),

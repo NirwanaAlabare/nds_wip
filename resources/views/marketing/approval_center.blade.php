@@ -396,6 +396,7 @@
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('dist/js/marketing-empty-state.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-empty-state.js')) }}"></script>
     <script>
         const AC_ROUTES = {
             documents: "{{ route('marketing-approval-documents', ':type') }}",
@@ -473,8 +474,8 @@
                     lengthMenu: 'Item Per Page _MENU_',
                     info: 'Of _TOTAL_',
                     infoEmpty: 'Of 0',
-                    zeroRecords: 'Tidak ada data.',
-                    emptyTable: 'Tidak ada data.',
+                    zeroRecords: mktEmptyHtml(),
+                    emptyTable: mktEmptyHtml(),
                     processing: '<i class="fas fa-spinner fa-spin"></i>',
                     paginate: { previous: '<i class="fas fa-chevron-left"></i>', next: '<i class="fas fa-chevron-right"></i>' }
                 },

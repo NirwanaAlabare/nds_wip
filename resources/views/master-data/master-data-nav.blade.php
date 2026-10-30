@@ -23,6 +23,18 @@
                     Master Item General <i class="fa-solid fa-boxes-stacked fa-sm"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('marketing-master-group') }}"
+                    class="dropdown-item {{ (isset($subPage) && $subPage == 'marketing-master-group') ? 'active' : '' }}">
+                    Master Group <i class="fa-solid fa-layer-group fa-sm"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('marketing-master-content') }}"
+                    class="dropdown-item {{ (isset($subPage) && $subPage == 'marketing-master-content') ? 'active' : '' }}">
+                    Master Content & Item <i class="fa-solid fa-cubes fa-sm"></i>
+                </a>
+            </li>
         </ul>
     </li>
 @endrole

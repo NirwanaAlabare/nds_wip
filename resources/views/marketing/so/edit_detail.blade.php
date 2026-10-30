@@ -351,6 +351,7 @@
 
 @section('custom-script')
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+<script src="{{ asset('dist/js/marketing-empty-state.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-empty-state.js')) }}"></script>
 <script>
     // ===== Edit Sales Order =====
     // Semua perubahan (edit sel, Add New, hapus) disimpan di browser dulu; tombol Update mengirim semuanya sekaligus.
@@ -426,6 +427,7 @@
         value = value === null || value === undefined ? '' : String(value);
         if (value === '') return null;
         if (value !== value.trim() || /\s{2,}/.test(value)) return 'Tidak boleh ada spasi di awal/akhir atau spasi ganda.';
+        if (/\d/.test(value)) return 'Destination tidak boleh berisi angka.';
         if (value.length > 60) return 'Destination maksimal 60 karakter.';
         return null;
     }
@@ -528,7 +530,7 @@
                 ? `<button type="button" class="so-row-restore" data-key="${row.key}" title="Rollback"><i class="fas fa-undo"></i></button>`
                 : `<button type="button" class="mkt-ico mkt-ico--delete so-row-delete" data-tip="Delete" data-key="${row.key}" ${row.locked ? 'disabled title="Sudah masuk PPIC, tidak bisa dihapus"' : 'title="Tandai untuk dihapus"'} aria-label="Hapus baris"><i class="fas fa-trash"></i></button>`}</td>
         </tr>`).join('');
-        $('#so-grid-body').html(body || '<tr><td colspan="9" class="so-empty">Belum ada detail. Tambahkan lewat Add New.</td></tr>');
+        $('#so-grid-body').html(body || mktEmptyRow(9));
 
         $('#so-page-count').text('Of ' + pageCount);
         const pages = [];
@@ -623,7 +625,7 @@
             <td>${text(group.color)}</td>
             ${sizeList.map(size => `<td class="text-right">${group.qty[size] ? num(group.qty[size]) : '-'}</td>`).join('')}
             <td class="text-right so-col-total">${num(group.total)}</td>
-        </tr>`).join('') : `<tr><td colspan="${colCount}" class="so-empty">Tidak ada detail SO.</td></tr>`);
+        </tr>`).join('') : mktEmptyRow(colCount));
 
         const sizeTotals = sizeList.map(size => list.reduce((sum, group) => sum + (group.qty[size] || 0), 0));
         $('#so-pivot tfoot').html(`<tr><td></td><td colspan="${7 + (hasSet ? 1 : 0)}">GRAND TOTAL</td>`
@@ -865,6 +867,7 @@
         invalid = soFieldError('size', sizeId ? null : 'Required') || invalid;
         invalid = soFieldError('qty', qty.trim() === '' ? 'Required' : soQtyError(qty)) || invalid;
         invalid = soFieldError('market', market === '' ? 'Required' : soMarketError(market)) || invalid;
+        invalid = soFieldError('destination', soDestinationError(destination)) || invalid;
         invalid = soFieldError('fob', soFobError(fob)) || invalid;
         if (invalid) return;
 

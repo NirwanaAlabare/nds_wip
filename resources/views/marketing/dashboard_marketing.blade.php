@@ -248,6 +248,7 @@
 
 @section('custom-script')
     <script src="{{ asset('plugins/apexcharts/apexcharts.min.js') }}"></script>
+    <script src="{{ asset('dist/js/marketing-empty-state.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-empty-state.js')) }}"></script>
     <script>
         $(function () {
             const DATA_URL = "{{ route('dashboard-marketing-data') }}";
@@ -549,7 +550,7 @@
                         <td class="text-right">${number(row.value, 2)}</td>
                         <td>${escape(row.deldate || '-')}</td>
                         <td>${escape(row.cost_no || '-')}</td>
-                    </tr>`).join('') : '<tr><td colspan="8" class="md-empty">No data</td></tr>');
+                    </tr>`).join('') : mktEmptyRow(8));
             }
 
             /* ---------- popover ---------- */

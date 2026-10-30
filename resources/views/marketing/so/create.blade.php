@@ -1011,6 +1011,7 @@
 <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
 <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+<script src="{{ asset('dist/js/marketing-empty-state.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-empty-state.js')) }}"></script>
 <script>
     let previewTable = null;
     let previewUploadRows = [];
@@ -1083,7 +1084,7 @@
                             </td></tr>`;
                     });
                 } else {
-                    bodyHtml = '<tr><td colspan="13" class="text-center">Belum ada data di-upload.</td></tr>';
+                    bodyHtml = mktEmptyRow(13);
                 }
                 $('#table-preview-so tbody').html(bodyHtml);
 
@@ -1693,7 +1694,7 @@
             <td>${soDetailText(row.size)}</td>
             <td class="text-right">${Number(row.qty || 0).toLocaleString('id-ID')}</td>
         </tr>`).join('');
-        $('#so-detail-body').html(body || '<tr><td colspan="11" class="text-center">Tidak ada detail SO.</td></tr>');
+        $('#so-detail-body').html(body || mktEmptyRow(11));
         $('#so-detail-check-all').prop('checked', false);
         $('#so-detail-page-count').text('Of ' + pageCount);
 

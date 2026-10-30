@@ -2246,7 +2246,7 @@ class Marketing_SOController extends Controller
                 // save ke so_det
 
                 // Baris Excel per destination digabung per color + size; qty per destination ke so_destination.
-                $this->insertSoDetailsWithDestinations($mysql_sb, $details, function ($d) use ($mysql_sb, $id_so, $username, $act_costing_new) {
+                $this->insertSoDestination($mysql_sb, $details, function ($d) use ($mysql_sb, $id_so, $username, $act_costing_new) {
                     $color = $mysql_sb->table('master_colors_gmt')->where('id', $d->id_color)->first();
                     $size  = $mysql_sb->table('master_size_new')->where('id', $d->size)->first();
 
@@ -2516,7 +2516,7 @@ class Marketing_SOController extends Controller
                     ]);
 
                     // Baris Excel per destination digabung per color + size; qty per destination ke so_destination.
-                    $this->insertSoDetailsWithDestinations($db, $details, function ($detail) use ($db, $idSo, $costing, $user, $now) {
+                    $this->insertSoDestination($db, $details, function ($detail) use ($db, $idSo, $costing, $user, $now) {
                         $color = $db->table('master_colors_gmt')->where('id', $detail->id_color)->first();
                         $size = $db->table('master_size_new')->where('id', $detail->size)->first();
                         return [
@@ -5959,7 +5959,7 @@ class Marketing_SOController extends Controller
      * qty & FOB per destination masuk so_destination; so_det.fob = rata-rata FOB tertimbang qty.
      * so_det.dest tidak dipakai lagi (diisi '-').
      */
-    private function insertSoDetailsWithDestinations($db, $lines, callable $soDetRow, ?string $userName): void
+    private function insertSoDestination($db, $lines, callable $soDetRow, ?string $userName): void
     {
         $now = now();
         $groups = collect($lines)->groupBy(fn ($line) => json_encode([

@@ -118,7 +118,7 @@
 @section('content')
 <div class="mc-page">
     <div class="mc-card">
-        <div class="mc-crumb">Marketing &nbsp;›&nbsp; Master &nbsp;›&nbsp; <b>Master Content</b></div>
+        <div class="mc-crumb">Master Data &nbsp;›&nbsp; <b>Master Content</b></div>
         <h1 class="mc-title">Content & Items List <i class="fas fa-info-circle" title="Content di bawah group, item di bawah content"></i></h1>
         <p class="mc-subtitle"><i class="fas fa-database"></i> List Data Master Content & Items</p>
         <div class="mc-search">
@@ -270,6 +270,7 @@
 
 @section('custom-script')
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('dist/js/marketing-empty-state.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-empty-state.js')) }}"></script>
     <script>
         const MC_ROUTES = {
             rows: "{{ route('marketing-master-content-rows') }}",
@@ -332,7 +333,7 @@
             function renderRows() {
                 $('#mc-check-all').prop('checked', false);
                 if (!mcState.rows.length) {
-                    $('#mc-tbody').html('<tr class="mc-empty-row"><td colspan="12">Belum ada data.</td></tr>');
+                    $('#mc-tbody').html(mktEmptyRow(12));
                     return;
                 }
                 const start = (mcState.page - 1) * mcState.perPage;

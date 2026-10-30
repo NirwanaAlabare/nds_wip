@@ -25,8 +25,8 @@ class Marketing_MasterGroupController extends Controller
         }
 
         return view('marketing.master.group', [
-            'page' => 'dashboard-marketing',
-            'subPageGroup' => 'marketing-master-data',
+            'page' => 'dashboard-master-data',
+            'subPageGroup' => 'master-data',
             'subPage' => 'marketing-master-group',
             'containerFluid' => true,
         ]);

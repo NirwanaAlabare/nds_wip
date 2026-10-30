@@ -471,7 +471,7 @@
                                             <td class="text-right">{{ number_format($totalValue, 2, ',', '.') }}</td>
                                         </tr>
                                     @empty
-                                        <tr class="empty-row"><td colspan="18">Belum ada detail {{ $category }}.</td></tr>
+                                        <tr class="empty-row mkt-empty-row"><td colspan="18">@include('marketing.empty_state')</td></tr>
                                     @endforelse
                                 </tbody>
                                 <tfoot>
@@ -542,7 +542,7 @@
                                         <td class="text-right">{{ number_format($itemPercent, 2, ',', '.') }}%</td>
                                     </tr>
                                 @empty
-                                    <tr class="empty-row"><td colspan="9">Belum ada detail Other Cost.</td></tr>
+                                    <tr class="empty-row mkt-empty-row"><td colspan="9">@include('marketing.empty_state')</td></tr>
                                 @endforelse
                             </tbody>
                             <tfoot>

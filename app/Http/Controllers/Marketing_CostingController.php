@@ -8,6 +8,7 @@ use Yajra\DataTables\Facades\DataTables;
 use DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use App\Services\MarketingBomService;
@@ -787,6 +788,8 @@ class Marketing_CostingController extends Controller
 
         $seasons = $db->table('masterseason')->orderBy('season', 'asc')->get();
 
+        // dd($details);
+
         return view($viewOnly ? 'marketing.costing.detail' : 'marketing.costing.edit', [
             'costing'        => $costing,
             'buyers'           => $buyers,
@@ -957,6 +960,69 @@ class Marketing_CostingController extends Controller
         $costing->smv = $costing->smv_min;
         $costing->product_item = $costing->nama_product_item ?? $costing->id_product;
         $costing->nama_curr = $costing->nama_curr ?? $costing->curr;
+    }
+
+    // Brand milik buyer dari signalbit_erp.masterbrand (dropdown Brand di Information Buyer).
+    public function getBrands(Request $request)
+    {
+        $brands = DB::connection('mysql_sb')->table('masterbrand')
+            ->where('Id_Supplier', $request->buyer)
+            ->where('cancel', 'N')
+            ->orderBy('brand')
+            ->get(['kd_brand', 'brand']);
+
+        return response()->json(['status' => 200, 'data' => $brands]);
+    }
+
+    // Tambah brand baru dari dropdown Brand ("Add Brand ..."); act_costing.brand tetap menyimpan nama brand.
+    public function storeBrand(Request $request)
+    {
+        $request->merge([
+            'kd_brand' => Str::upper(trim((string) $request->kd_brand)),
+            'brand' => Str::upper(preg_replace('/\s+/', ' ', trim((string) $request->brand))),
+        ]);
+        $validator = Validator::make($request->all(), [
+            'buyer' => ['required', 'exists:mysql_sb.mastersupplier,Id_Supplier'],
+            'kd_brand' => ['required', 'max:20', 'unique:mysql_sb.masterbrand,kd_brand'],
+            'brand' => ['required', 'max:120'],
+        ], [
+            'kd_brand.unique' => 'Brand Code sudah dipakai.',
+            'buyer.required' => 'Pilih buyer dulu.',
+            'buyer.exists' => 'Buyer tidak valid.',
+        ], [
+            'kd_brand' => 'Brand Code',
+            'brand' => 'Brand Name',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['status' => 422, 'message' => $validator->errors()->first()]);
+        }
+
+        $db = DB::connection('mysql_sb');
+        $exists = $db->table('masterbrand')
+            ->where('Id_Supplier', $request->buyer)
+            ->where('cancel', 'N')
+            ->whereRaw('UPPER(brand) = ?', [$request->brand])
+            ->exists();
+        if ($exists) {
+            return response()->json(['status' => 422, 'message' => 'Brand ini sudah ada untuk buyer tersebut.']);
+        }
+
+        $now = now();
+        $db->table('masterbrand')->insert([
+            'kd_brand' => $request->kd_brand,
+            'Id_Supplier' => $request->buyer,
+            'brand' => $request->brand,
+            'cancel' => 'N',
+            'created_at' => $now,
+            'updated_at' => $now,
+            'created_by' => Auth::user()->name,
+        ]);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Brand berhasil ditambahkan.',
+            'data' => ['kd_brand' => $request->kd_brand, 'brand' => $request->brand],
+        ]);
     }
 
     public function getItemContents(Request $request)

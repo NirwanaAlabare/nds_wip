@@ -509,6 +509,7 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 
+    <script src="{{ asset('dist/js/marketing-empty-state.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-empty-state.js')) }}"></script>
     <script>
         let table;
         let activeSearchColumn = '';
@@ -1306,7 +1307,7 @@
         function showCostingDetailTable(title, columns, rows, summary) {
             const tableRows = rows.length
                 ? rows.map(row => `<tr>${columns.map(column => `<td>${escapeCostingHtml(row[column.key])}</td>`).join('')}</tr>`).join('')
-                : `<tr><td colspan="${columns.length}" class="text-center text-muted py-4">Data tidak ditemukan.</td></tr>`;
+                : mktEmptyRow(columns.length);
             const headers = columns.map(column => `<th>${escapeCostingHtml(column.label)}</th>`).join('');
 
             Swal.fire({
@@ -1351,7 +1352,7 @@
                 const start = (page - 1) * perPage;
                 popup.querySelector('tbody').innerHTML = rows.length
                     ? rows.slice(start, start + perPage).map((row, i) => `<tr><td class="is-no">${start + i + 1}</td>${columns.map(column => cell(row, column)).join('')}</tr>`).join('')
-                    : `<tr><td colspan="${columns.length + 1}" class="mkt-dt-empty">Data tidak ditemukan.</td></tr>`;
+                    : mktEmptyRow(columns.length + 1);
                 popup.querySelector('.mkt-dt-page-count').textContent = 'Of ' + pageCount;
                 const pages = [];
                 for (let p = 1; p <= pageCount; p++) {

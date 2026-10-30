@@ -103,7 +103,7 @@
 <div class="mg-page">
 
     <div class="mg-card">
-        <div class="mg-crumb">Marketing &nbsp;›&nbsp; Master &nbsp;›&nbsp; <b>Master Group</b></div>
+        <div class="mg-crumb">Master Data &nbsp;›&nbsp; <b>Master Group</b></div>
 
         <h1 class="mg-title">List Group <i class="fas fa-info-circle" title="Group material untuk content, item, dan BOM"></i></h1>
         <p class="mg-subtitle"><i class="fas fa-database"></i> List Data Master Group</p>
@@ -162,6 +162,7 @@
     <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('dist/js/marketing-empty-state.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-empty-state.js')) }}"></script>
     <script>
         const MG_ROUTES = {
             index: "{{ route('marketing-master-group') }}",
@@ -185,8 +186,8 @@
                     lengthMenu: 'Item Per Page _MENU_',
                     info: 'Of _TOTAL_',
                     infoEmpty: 'Of 0',
-                    zeroRecords: 'Belum ada group.',
-                    emptyTable: 'Belum ada group.',
+                    zeroRecords: mktEmptyHtml(),
+                    emptyTable: mktEmptyHtml(),
                     processing: '<i class="fas fa-spinner fa-spin"></i>',
                     paginate: { previous: '<i class="fas fa-chevron-left"></i>', next: '<i class="fas fa-chevron-right"></i>' }
                 },

@@ -69,7 +69,6 @@
         .costing-picture-dropzone i { font-size: 24px; }
         .costing-picture-dropzone b { color: #0056b3; font-weight: 600; }
         .costing-picture-dropzone.dragging { background: #eff7ff; }
-        .costing-upload-now { width: 100%; margin-top: 8px; }
         .costing-picture-thumbnails { display: flex; flex-wrap: wrap; gap: 8px; min-height: 70px; margin-top: 10px; padding: 8px; border: 1px dashed #8b5cf6; border-radius: 6px; }
         .costing-picture-clear { margin-top: 6px; }
         .costing-picture-carousel { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; margin-top: 14px; }
@@ -115,28 +114,23 @@
         .costing-field .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { right: 16px; width: 12px; }
         .costing-field .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b { top: 50%; left: 50%; width: 8px; height: 8px; margin: -6px 0 0 -4px; border: solid #284a63; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
         .costing-field .select2-container--bootstrap4.select2-container--open .select2-selection--single .select2-selection__arrow b { margin-top: -2px; transform: rotate(-135deg); }
-        /* State 2: ada isi + hover/fokus = border navy dan tanda X untuk menghapus pilihan (allowClear), menggantikan chevron.
-           State 3: sudah terpilih & diam = border abu + chevron. */
         .costing-field .select2-container--bootstrap4 .select2-selection { position: relative; }
         .costing-field .select2-container--bootstrap4 .select2-selection__clear { display: none; position: absolute; top: 50%; right: 14px; z-index: 2; float: none; width: 18px; height: 18px; margin: 0; padding: 0; transform: translateY(-50%); color: #284a63; font-size: 20px; font-weight: 400; line-height: 18px; text-align: center; cursor: pointer; }
         .costing-field .select2-container--bootstrap4:not(.select2-container--disabled):is(:hover, .select2-container--focus, .select2-container--open) .select2-selection__clear { display: block; }
         .costing-field .select2-container--bootstrap4:not(.select2-container--disabled):is(:hover, .select2-container--focus, .select2-container--open) .select2-selection--single:has(.select2-selection__clear) .select2-selection__arrow { display: none; }
         .costing-field .select2-container--bootstrap4:not(.select2-container--disabled):hover .select2-selection:has(.select2-selection__clear) { border-color: #284a63; }
-        /* State 4: disabled / readonly / view only = label ikut pudar. */
         .costing-field:has(.select2-container--disabled) label, .costing-field:has(.form-control:disabled) label, .costing-field:has(.form-control[readonly]) label { color: #c4c4c4; }
         .costing-field .select2-container--bootstrap4 .select2-selection--multiple { display: flex; align-items: center; height: auto; min-height: 59px !important; padding: 4px 16px; }
         .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__rendered { padding: 0; }
         .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-search__field { margin-top: 0; font-size: 14px; font-weight: 500; color: #000; }
         .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-search__field::placeholder { color: #ababab; }
 
-        /* Disabled: latar abu muda, teks & panah pudar. */
         .costing-field .form-control[readonly],
         .costing-field .form-control:disabled,
         .costing-field .select2-container--bootstrap4.select2-container--disabled .select2-selection { background: #f8f8f8; border-color: #e9ecef; color: #ababab; }
         .costing-field .select2-container--bootstrap4.select2-container--disabled .select2-selection__rendered { color: #ababab; }
         .costing-field .select2-container--bootstrap4.select2-container--disabled .select2-selection__arrow b { border-color: #c4c4c4; }
 
-        /* Banner "N fields are empty" di atas form, muncul saat Save dengan field wajib kosong. */
         .costing-error-alert { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 12px; border-radius: 4px; background: #ff5f5f; color: #fff; font-family: Inter, sans-serif; font-size: 13px; }
         .costing-error-alert[hidden] { display: none; }
         .costing-error-alert > span { flex: 1; }
@@ -151,16 +145,11 @@
         .costing-field.is-invalid::after { content: 'Required'; display: block; margin-top: 4px; color: #c8161d; font-size: 13px; font-weight: 500; }
         .costing-field.is-invalid[data-error]::after { content: attr(data-error); }
 
-        /* Dropdown list ikut ukuran teks 14. */
         .select2-container--bootstrap4 .select2-results__option { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; }
-        /* Carousel gambar (coverflow): semua gambar dirender sekali di satu panggung. Pindah gambar hanya mengubah posisi &
-           skala dengan transition CSS (gambar benar-benar bergeser, tanpa ganti src), jadi gerakannya halus.
-           Aktif = besar di tengah, sebelum/sesudah = kecil di samping (klik untuk pindah), titik aktif memanjang. */
         .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 288px; overflow: hidden; }
         .mkt-cf-stage > .mkt-cf-main, .mkt-cf-stage > .mkt-cf-side { display: none !important; }
         .mkt-cf-stage > img.mkt-cf-item { position: absolute; top: 50%; left: 50%; max-width: 46%; max-height: 100%; object-fit: contain; cursor: pointer; will-change: transform, opacity; transition: transform .55s cubic-bezier(.22, .61, .36, 1), opacity .55s ease; }
         .mkt-cf-stage > img.mkt-cf-item.is-active { cursor: default; }
-        /* Gambar samping (sebelum/sesudah): 90x192, sejajar tengah dengan gambar aktif 182x256. */
         .mkt-cf-stage > img.mkt-cf-item.is-side { width: 90px; height: 192px; max-height: 192px; }
         .mkt-cf-stage > img.mkt-cf-item.is-active { width: 182px; height: 256px; max-height: 256px; }
         .mkt-cf-stage > img.mkt-cf-item { transition-property: transform, opacity, width, height; }
@@ -169,9 +158,7 @@
         .mkt-cf-dot { width: 6px; height: 4px; padding: 0; border: 0; border-radius: 2px; background: #d9dee5; cursor: pointer; transition: width .3s ease, background-color .3s ease; }
         .mkt-cf-dot.is-active { width: 16px; background: #1d6fd8; }
         @media (prefers-reduced-motion: reduce) { .mkt-cf-stage > img.mkt-cf-item { transition: none; } }
-        /* ===== Responsif tablet & HP (desktop >= 1200px tidak berubah) ===== */
         @media (max-width: 1199.98px) {
-            /* Label boleh turun baris (tidak terpotong "..."), chevron tidak ikut menyusut. */
             .costing-field label { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
             .costing-section-chevron { flex: 0 0 auto; margin-left: 8px; }
         }
@@ -208,14 +195,9 @@
             .costing-section-body { padding: 10px 8px 2px; }
             .costing-fields, .costing-fields.four-columns, .costing-fields.price-columns { grid-template-columns: minmax(0, 1fr); }
         }
-        /* QA font (Figma Create Costing): tombol Save = SF Pro Rounded Bold 18 (bawaan .mkt-btn),
-           dropzone Inter Regular 12 + Browse Inter Bold 12, Upload Now Inter Bold 14,
-           label Marketing Order Poppins Medium 18, input tanggal Poppins Medium 14 — semua ukuran layar. */
         .costing-create-page .costing-actions .mkt-btn, .costing-create-page button[type="submit"].mkt-btn { font-family: "SF Pro Rounded", ui-rounded, "MKT Rounded", sans-serif !important; font-size: 18px !important; font-weight: 700 !important; }
         .costing-create-page .costing-picture-dropzone, .costing-create-page .costing-picture-dropzone span { font-family: Inter, sans-serif !important; font-size: 12px !important; font-weight: 400 !important; }
         .costing-create-page .costing-picture-dropzone b { font-family: Inter, sans-serif !important; font-size: 12px !important; font-weight: 700 !important; }
-        .costing-create-page .costing-upload-now { font-family: Inter, sans-serif !important; font-size: 14px !important; font-weight: 700 !important; }
-        /* Marketing Order selalu 2px di atas label lain (16/15/14 -> 18/17/16). */
         .costing-create-page .costing-field label[for="marketing_order"] { font-size: 18px !important; font-weight: 500 !important; }
         @media (max-width: 991.98px) { .costing-create-page .costing-field label[for="marketing_order"] { font-size: 17px !important; } }
         @media (max-width: 767.98px) { .costing-create-page .costing-field label[for="marketing_order"] { font-size: 16px !important; } }
@@ -225,8 +207,6 @@
             .costing-crumb { font-size: 13px; }
             .costing-no-image { font-size: 13px; }
         }
-        /* Shipping & Destinations: 2 baris x 3 field (costing-field-md) mengisi penuh lebar kartu, jarak 16px;
-           menyusut proporsional di layar sempit, tablet 2 per baris, HP 1 per baris. */
         .costing-fields.three-columns { display: flex !important; flex-wrap: wrap; gap: 16px; }
         .costing-fields.three-columns > .costing-field-md { flex: 1 1 calc((100% - 32px) / 3); min-width: 0; }
         @media (max-width: 991.98px) { .costing-fields.three-columns > .costing-field-md { flex-basis: calc((100% - 16px) / 2); max-width: none; } }
@@ -280,10 +260,9 @@
                                             <input type="text" id="buyer_code" class="form-control" placeholder="Buyer" readonly>
                                         </div>
                                         <div class="costing-field">
-                                            <label>Brand</label>
-                                            <select name="brand" class="form-control select2bs4" required>
-                                                <option value="">Choose Brand</option>
-                                                <option value="Sample Brand">Sample Brand</option>
+                                            <label for="brand">Brand</label>
+                                            <select name="brand" id="brand" class="form-control" required>
+                                                <option value=""></option>
                                             </select>
                                         </div>
                                         <div class="costing-field">
@@ -369,7 +348,6 @@
                                         <i class="fas fa-file-alt"></i>
                                         <span>Drag n Drop here Or <b>Browse</b></span>
                                     </div>
-                                    <button type="button" id="btn-upload-now" class="mkt-btn mkt-btn--navy mkt-btn--sm costing-upload-now">Upload Now</button>
                                 </div>
 
                                 <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Selected image previews"></div>
@@ -508,11 +486,13 @@
         </form>
     </div>
 </div>
+@include('marketing.costing.brand_modal')
 @endsection
 
 @section('custom-script')
 <script src="{{ asset('dist/js/marketing-title-case.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-title-case.js')) }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+<script src="{{ asset('dist/js/marketing-brand-select.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-brand-select.js')) }}"></script>
 <script>
     // Angka format Indonesia untuk Confirm Price / Rate / SMV (lihat handler .input-money).
     function mktMoney(selector) {
@@ -677,7 +657,6 @@
             paintCoverflowDots($dots, costingImageUrls.length, activeCostingImage, goTo);
 
             costingImageUrls.forEach((image, index) => {
-                // Buat Thumbnail HTML
                 let thumb = $('<div>', {
                     class: `costing-picture-thumb`,
                     style: `position: relative; width: 60px; height: 60px; cursor: pointer; border-radius: 4px; overflow: hidden; border: ${index === activeCostingImage ? '2px solid #3085d6' : '1px solid #dce4ec'};`
@@ -685,7 +664,6 @@
 
                 thumb.append($('<img>', { src: image.url, style: 'width: 100%; height: 100%; object-fit: cover; opacity: 0.8;' }));
 
-                // Gambar aktif cukup ditandai garis biru (tanpa ikon centang).
                 if (index !== activeCostingImage) {
                     let closeBtn = $('<div>', {
                         style: 'position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.7); color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 9px;'
@@ -734,7 +712,7 @@
             renderCostingImages();
         }
 
-        $('#btn-upload-now, #picture-dropzone').on('click', function() {
+        $('#picture-dropzone').on('click', function() {
             $('#upload_foto').trigger('click');
         });
 
@@ -778,6 +756,11 @@
             $('#buyer_code').val($(this).val() || '');
         }).trigger('change');
 
+        mktBrandSelect({
+            select: '#brand', buyer: '#buyer', modal: '#modal-add-brand', current: @json(old('brand')),
+            urlList: "{{ route('costing-get-brands') }}", urlStore: "{{ route('costing-store-brand') }}", csrf: "{{ csrf_token() }}",
+        });
+
         $(document).on('input', '.input-decimal', function() {
             let val = $(this).val().replace(/[^0-9.]/g, '');
             let parts = val.split('.');
@@ -787,7 +770,6 @@
             $(this).val(val);
         });
 
-        // Confirm Price / Rate / SMV: format Indonesia (1.234.567,89); titik dari keyboard dianggap koma desimal.
         $(document).on('input', '.input-money', function (e) {
             let text = this.value;
             if (e.originalEvent && e.originalEvent.data === '.' && this.selectionStart > 0) {

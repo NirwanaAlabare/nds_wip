@@ -1295,15 +1295,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/request-unlock', 'requestUnlock')->name('marketing-request-unlock');
     });
 
-    // Marketing > Master: data master
-    Route::controller(Marketing_MasterGroupController::class)->prefix('marketing/master-group')->middleware('marketing')->group(function () {
+    // Master Data > Master Group / Master Content & Item (dipakai Costing, BOM, SO)
+    Route::controller(Marketing_MasterGroupController::class)->prefix('master-data/master-group')->middleware('role:master_data')->group(function () {
         Route::get('/', 'index')->name('marketing-master-group');
         Route::post('/', 'store')->name('marketing-master-group-store');
         Route::put('/{id}', 'update')->whereNumber('id')->name('marketing-master-group-update');
         Route::delete('/{id}', 'destroy')->whereNumber('id')->name('marketing-master-group-destroy');
     });
 
-    Route::controller(Marketing_MasterContentController::class)->prefix('marketing/master-content')->middleware('marketing')->group(function () {
+    Route::controller(Marketing_MasterContentController::class)->prefix('master-data/master-content')->middleware('role:master_data')->group(function () {
         Route::get('/', 'index')->name('marketing-master-content');
         Route::get('/contents', 'contents')->name('marketing-master-content-list');
         Route::post('/contents', 'storeContent')->name('marketing-master-content-store');
@@ -1333,6 +1333,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-costing');
         Route::post('/store', 'store')->name('store-costing');
         Route::get('/get-item-contents', 'getItemContents')->name('get-item-contents');
+        Route::get('/get-brands', 'getBrands')->name('costing-get-brands');
+        Route::post('/store-brand', 'storeBrand')->name('costing-store-brand');
         Route::get('/edit/{id}', 'edit')->name('edit-costing');
         Route::get('/detail/{id}', 'show')->name('detail-costing');
         Route::post('/store-detail', 'storeDetail')->name('store-costing-detail');
