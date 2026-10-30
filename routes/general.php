@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\General\ErdController;
 use App\Http\Controllers\General\GeneralController;
 use App\Http\Controllers\General\InjectAdjustmentController;
 use App\Http\Controllers\General\LockController;
@@ -154,6 +155,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/detail/get-data', 'getDetail')->name('get-detail-lock-transaction');
         Route::post('/detail/store', 'storeDetail')->name('store-detail-lock-transaction');
         Route::post('/detail/delete', 'deleteDetail')->name('delete-detail-lock-transaction');
+    });
+
+    Route::controller(ErdController::class)->prefix("erd")->group(function () {
+        Route::get('/', 'index')->name("erd");
+        Route::get('/list', 'list')->name('list-erd');
+        Route::post('/create', 'create')->name('create-erd');
+        Route::post('/delete', 'delete')->name('delete-erd');
+        Route::get('/state/{id}', 'state')->name('state-erd');
+        Route::post('/op/{id}', 'op')->name('op-erd');
+        Route::post('/undo/{id}', 'undo')->name('undo-erd');
+        Route::get('/preview/{id}', 'preview')->name('preview-erd');
+        Route::post('/apply/{id}', 'apply')->name('apply-erd');
     });
 
     Route::controller(SwitchingController::class)->prefix("switching")->middleware("admin")->group(function () {

@@ -557,9 +557,9 @@ class PenerimaanCuttingController extends Controller
                 $rowArr = [
                     $row->tanggal_terima ?? "-",
                     $row->barcode ?? "-",
-                    $row->qty_out,
+                    (float) ($row->qty_out ?? 0),
                     $row->unit ?? "-",
-                    $row->qty_konv,
+                    (float) ($row->qty_konv ?? 0),
                     $row->unit_konv ?? "-",
                     $row->no_req ?? "-",
                     $row->no_bppb ?? "-",
