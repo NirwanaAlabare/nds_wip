@@ -122,7 +122,7 @@
 #md-modal-detail .md-bank-kosong { padding: 16px 18px; color: #94a3b8; font-style: italic; font-size: 12.5px; }
 
 
-/* Priority supplier - warna sama dengan pilihan di form: merah High, kuning Medium, hijau Low */
+/* Payment Flexibility Rating supplier - warna sama dengan pilihan di form: Red, Yellow, Green */
 .nag-skin .md-prio-pil {
   display: inline-flex;
   align-items: center;
@@ -140,16 +140,75 @@
 }
 .nag-skin .md-prio-pil-titik { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .nag-skin .md-prio-baris { display: block; line-height: 1; }
-.nag-skin .md-prio-pil.is-high   { background: #fee2e2; border-color: #fecaca; color: #b91c1c; }
-.nag-skin .md-prio-pil.is-medium { background: #fef9c3; border-color: #fde68a; color: #a16207; }
-.nag-skin .md-prio-pil.is-low    { background: #dcfce7; border-color: #bbf7d0; color: #15803d; }
-.nag-skin .md-prio-pil.is-high .md-prio-pil-titik   { background: #dc2626; }
-.nag-skin .md-prio-pil.is-medium .md-prio-pil-titik { background: #eab308; }
-.nag-skin .md-prio-pil.is-low .md-prio-pil-titik    { background: #16a34a; }
+.nag-skin .md-prio-pil.is-red    { background: #fee2e2; border-color: #fecaca; color: #b91c1c; }
+.nag-skin .md-prio-pil.is-yellow { background: #fef9c3; border-color: #fde68a; color: #a16207; }
+.nag-skin .md-prio-pil.is-green  { background: #dcfce7; border-color: #bbf7d0; color: #15803d; }
+.nag-skin .md-prio-pil.is-red .md-prio-pil-titik    { background: #dc2626; }
+.nag-skin .md-prio-pil.is-yellow .md-prio-pil-titik { background: #eab308; }
+.nag-skin .md-prio-pil.is-green .md-prio-pil-titik  { background: #16a34a; }
 /* Di kepala modal sejajar dengan pil status */
 #md-modal-detail .md-prio-pil.is-kepala { margin-top: 0; height: 21px; padding: 0 9px; }
 /* Baris tidak aktif: pil tetap berwarna tapi redup */
 .nag-skin .dn-tabel-daftar tbody tr.md-nonaktif .md-prio-pil { opacity: .6; }
+
+/* Status Blocked (Inactive memakai pil merah bawaan) */
+.nag-skin .dn-pil.md-pil-blokir { background: #1e293b; border-color: #1e293b; color: #f8fafc; }
+#md-modal-detail .md-riw-blocked > .dn-riw-titik { background: #1e293b; }
+#md-modal-detail .md-riw-blocked > .dn-riw-kartu { border-color: #cbd5e1; background: #f8fafc; }
+
+/* Swal ubah status supplier: pilih Active / Inactive / Blocked, Blocked wajib dengan alasan */
+.dn-swal .md-st-judul { margin: 16px 0 8px; text-align: left; font-size: 12px; font-weight: 700; color: #1e3a5f; }
+.dn-swal .md-st-daftar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.dn-swal .md-st-pilih {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0;
+  padding: 11px 8px;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.dn-swal .md-st-pilih:hover { border-color: #94a3b8; }
+.dn-swal .md-st-pilih input { position: absolute; opacity: 0; pointer-events: none; }
+.dn-swal .md-st-titik { width: 9px; height: 9px; border-radius: 50%; }
+.dn-swal .md-st-active .md-st-titik   { background: #16a34a; }
+.dn-swal .md-st-inactive .md-st-titik { background: #dc2626; }
+.dn-swal .md-st-blocked .md-st-titik  { background: #1e293b; }
+.dn-swal .md-st-active.is-pilih   { background: #dcfce7; border-color: #22c55e; color: #15803d; }
+.dn-swal .md-st-inactive.is-pilih { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
+.dn-swal .md-st-blocked.is-pilih  { background: #1e293b; border-color: #1e293b; color: #fff; }
+.dn-swal .md-st-blocked.is-pilih .md-st-titik { background: #fff; }
+.dn-swal .md-st-pilih:focus-within { box-shadow: 0 0 0 3px rgba(30, 58, 95, .18); }
+.dn-swal .md-st-pilih.is-kini { cursor: not-allowed; opacity: .55; border-style: dashed; }
+.dn-swal .md-st-kini {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #64748b;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+.dn-swal .md-st-alasan { margin-top: 14px; text-align: left; }
+.dn-swal .md-st-alasan label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; color: #1e3a5f; }
+.dn-swal .md-st-alasan .dn-wajib { color: #dc2626; }
+.dn-swal .md-st-alasan textarea { font-size: 13px; resize: vertical; }
+@media (max-width: 575px) {
+  .dn-swal .md-st-daftar { grid-template-columns: 1fr; }
+}
 </style>
 @endsection
 
@@ -188,7 +247,7 @@
                     </select>
                 </div>
                 <div class="form-group dn-f-sedang">
-                    <label for="md-area">Area</label>
+                    <label for="md-area">{{ $isSupplier ? 'Type' : 'Area' }}</label>
                     <select class="form-control select2bs4" id="md-area">
                         <option value="">ALL</option>
                         @foreach ($area as $kode => $label)
@@ -202,6 +261,9 @@
                         <option value="">ALL</option>
                         <option value="aktif" {{ $awal['status'] === 'aktif' ? 'selected' : '' }}>ACTIVE</option>
                         <option value="nonaktif" {{ $awal['status'] === 'nonaktif' ? 'selected' : '' }}>INACTIVE</option>
+                        @if ($baru)
+                            <option value="blokir" {{ $awal['status'] === 'blokir' ? 'selected' : '' }}>BLOCKED</option>
+                        @endif
                     </select>
                 </div>
                 <div class="dn-filter-tombol">
@@ -236,7 +298,7 @@
                                 <th>Code</th>
                                 <th>{{ $conf['kolom'] }}</th>
                                 <th>Country</th>
-                                <th>Area</th>
+                                <th>{{ $isSupplier ? 'Type' : 'Area' }}</th>
                                 <th>Address</th>
                                 <th>NPWP</th>
                                 @if ($isSupplier)
@@ -313,6 +375,13 @@
                             <dl class="dn-det-info dn-det-info-4" id="md-det-identitas"></dl>
                             <div class="dn-det-judul"><i class="fas fa-scale-balanced"></i> Classification &amp; Tax</div>
                             <dl class="dn-det-info dn-det-info-4 mb-0" id="md-det-klasifikasi"></dl>
+                            {{-- Supplier dengan kolom baru --}}
+                            <div class="md-det-baru" hidden>
+                                <div class="dn-det-judul mt-3"><i class="fas fa-hand-holding-dollar"></i> Payment</div>
+                                <dl class="dn-det-info dn-det-info-4" id="md-det-bayar"></dl>
+                                <div class="dn-det-judul"><i class="fas fa-user-check"></i> Status &amp; Approval</div>
+                                <dl class="dn-det-info dn-det-info-4 mb-0" id="md-det-status"></dl>
+                            </div>
                         </div>
 
                         <div class="tab-pane fade" id="md-tab-alamat" role="tabpanel">
@@ -383,6 +452,10 @@ $(function () {
     var IKON       = @json($conf['ikon']);
     var SUPPLIER   = @json($isSupplier);
     var JUDUL      = @json($conf['kolom']);
+    // Kolom baru supplier sudah ada: status Active / Inactive / Blocked, Payment Flexibility Rating, dll
+    var BARU       = @json($baru);
+    // Label nilai tersimpan: rating, status, pkp, fasilitas (nilai => label)
+    var LABEL      = @json($labelNilai);
     // Keadaan daftar saat kembali dari Create / Edit (filter, cari, halaman, urutan)
     var AWAL       = @json($awal);
 
@@ -399,12 +472,24 @@ $(function () {
         return s !== '' && s !== '-' && s !== '0';
     }
 
-    // Pil Priority supplier: merah High, kuning Medium, hijau Low. Kosong = tidak ditampilkan.
-    var LABEL_PRIORITAS = { HIGH: 'High', MEDIUM: 'Medium', LOW: 'Low' };
-    function pilPrioritas(nilai, kelas, akhiran) {
-        if (!LABEL_PRIORITAS[nilai]) { return ''; }
-        return '<span class="md-prio-pil is-' + nilai.toLowerCase() + (kelas ? ' ' + kelas : '') + '">'
-            + '<span class="md-prio-pil-titik"></span>' + LABEL_PRIORITAS[nilai] + (akhiran || '') + '</span>';
+    // Pil Payment Flexibility Rating supplier: Red, Yellow, Green. Kosong = tidak ditampilkan.
+    function pilRating(nilai, kelas, akhiran) {
+        if (!LABEL.rating[nilai]) { return ''; }
+        return '<span class="md-prio-pil is-' + nilai.toLowerCase() + (kelas ? ' ' + kelas : '') + '"'
+            + ' title="Payment Flexibility Rating"><span class="md-prio-pil-titik"></span>' + LABEL.rating[nilai] + (akhiran || '') + '</span>';
+    }
+
+    // Pil status - sama dengan status di daftar Invoice EXIM; Blocked gelap dengan alasannya di tooltip
+    var KELAS_STATUS = { ACTIVE: 'is-second', INACTIVE: 'is-batal', BLOCKED: 'md-pil-blokir' };
+    function pilStatus(status, alasan) {
+        return '<span class="dn-pil ' + (KELAS_STATUS[status] || 'is-batal') + '"'
+            + (status === 'BLOCKED' && ada(alasan) ? ' title="Blocked: ' + teks(alasan) + '"' : '') + '>'
+            + '<span class="dn-pil-titik"></span>' + teks(LABEL.status[status] || status) + '</span>';
+    }
+
+    // Label nilai tersimpan (PKP, Customs Classification); yang tidak dikenal ditampilkan apa adanya
+    function labelNilai(jenis, nilai) {
+        return LABEL[jenis][nilai] || nilai;
     }
 
     function filterSaatIni() {
@@ -435,11 +520,14 @@ $(function () {
         {
             data: 'nama',
             render: function (v, t, row) {
-                // Priority ikut dicari (ketik HIGH / MEDIUM / LOW di Search)
-                if (t !== 'display') { return (v || '') + ' ' + (row.short_name || '') + ' ' + (row.prioritas || ''); }
+                // Legal Name & rating ikut dicari (ketik RED / YELLOW / GREEN di Search)
+                if (t !== 'display') { return [v, row.short_name, row.legal_name, row.payment_rating].filter(Boolean).join(' '); }
+                // Legal Name hanya ditulis kalau berbeda dengan nama
+                var legal = ada(row.legal_name) && String(row.legal_name).trim() !== String(v || '').trim();
                 return '<span class="md-nama">' + teks(v) + '</span>'
+                    + (legal ? '<span class="md-sub" title="Legal Name"><i class="fas fa-scale-balanced"></i> ' + teks(row.legal_name) + '</span>' : '')
                     + (ada(row.short_name) ? '<span class="md-sub">' + teks(row.short_name) + '</span>' : '')
-                    + (row.prioritas ? '<span class="md-prio-baris">' + pilPrioritas(row.prioritas) + '</span>' : '');
+                    + (row.payment_rating ? '<span class="md-prio-baris">' + pilRating(row.payment_rating) + '</span>' : '');
             }
         },
         { data: 'country', render: function (v, t) { return t === 'display' ? teks(v) : (v || ''); } },
@@ -448,10 +536,11 @@ $(function () {
         {
             data: 'npwp',
             render: function (v, t, row) {
-                if (t !== 'display') { return (v || '') + ' ' + (row.pkp || ''); }
+                if (t !== 'display') { return [v, row.pkp, row.nib].filter(Boolean).join(' '); }
                 // Ada yang berisi dua nomor NPWP - dibatasi dua baris seperti alamat.
                 return klem(v, t)
-                    + (ada(row.pkp) ? '<span class="md-sub">PKP: ' + teks(row.pkp) + '</span>' : '');
+                    + (ada(row.pkp) ? '<span class="md-sub">PKP: ' + teks(labelNilai('pkp', row.pkp)) + '</span>' : '')
+                    + (ada(row.nib) ? '<span class="md-sub">NIB: ' + teks(row.nib) + '</span>' : '');
             }
         }
     ];
@@ -474,14 +563,12 @@ $(function () {
             }
         },
         {
-            data: 'non_aktif',
+            // ACTIVE / INACTIVE / BLOCKED dari server (non_aktif + status_aktif)
+            data: 'status',
             className: 'dn-tengah',
-            render: function (v, t) {
-                var aktif = String(v) !== '1';
-                if (t !== 'display') { return aktif ? 'ACTIVE' : 'INACTIVE'; }
-                // Pil kecil bertitik - sama dengan status di daftar Invoice EXIM.
-                return '<span class="dn-pil ' + (aktif ? 'is-second' : 'is-batal') + '">'
-                    + '<span class="dn-pil-titik"></span>' + (aktif ? 'Active' : 'Inactive') + '</span>';
+            render: function (v, t, row) {
+                if (t !== 'display') { return v || ''; }
+                return pilStatus(v, row.blocked_reason);
             }
         },
         {
@@ -490,15 +577,16 @@ $(function () {
             searchable: false,
             className: 'dn-tengah',
             render: function (row) {
-                // Layar lebar: tiga tombol; HP: satu tombol menu (lihat mdTombolAksi)
-                return mdTombolAksi({ id: row.id, aktif: String(row.non_aktif) !== '1', urlEdit: RUT_EDIT });
+                // Layar lebar: tiga tombol; HP: satu tombol menu (lihat mdTombolAksi).
+                // Supplier dengan kolom baru memilih statusnya lewat swal (Active / Inactive / Blocked).
+                return mdTombolAksi({ id: row.id, aktif: row.status === 'ACTIVE', status: BARU ? row.status : null, urlEdit: RUT_EDIT });
             }
         }
     );
 
     // Kolom yang tetap tampil di layar sempit (angka kecil = dipertahankan lebih lama):
     // nama, kode, aksi, status. Sisanya masuk ke detail yang dibuka dengan tombol +.
-    var PRIORITAS = { nama: 1, kode: 2, non_aktif: 4, country: 5, area_label: 6, produk: 7, npwp: 8, alamat: 9 };
+    var PRIORITAS = { nama: 1, kode: 2, status: 4, country: 5, area_label: 6, produk: 7, npwp: 8, alamat: 9 };
     kolom.forEach(function (k, i) {
         k.responsivePriority = PRIORITAS[k.data] || (i === kolom.length - 1 ? 3 : 10);
     });
@@ -539,7 +627,7 @@ $(function () {
         },
         columns: kolom,
         createdRow: function (tr, row) {
-            $(tr).toggleClass('md-nonaktif', String(row.non_aktif) === '1');
+            $(tr).toggleClass('md-nonaktif', row.status !== 'ACTIVE');
         }
     });
 
@@ -551,7 +639,7 @@ $(function () {
     });
 
     $('#md-btn-export').on('click', function () {
-        window.location.href = RUT_EXCEL + '?' + $.param(filterSaatIni());
+        mdExportExcel(RUT_EXCEL + '?' + $.param(filterSaatIni()));
     });
 
     // ---------- Create / Edit membawa keadaan daftar ----------
@@ -634,8 +722,11 @@ $(function () {
 
         $.getJSON(RUT_DETAIL, { id: idDetail }).done(function (res) {
             var d = res.data || {};
-            var aktif = String(d.non_aktif) !== '1';
+            var status = res.status ? res.status.nilai : (String(d.non_aktif) === '1' ? 'INACTIVE' : 'ACTIVE');
+            var baru = res.baru;   // null = customer, atau kolom baru supplier belum dibuat
             var tipe = [d.tipe_buyer === 'Y' ? 'Buyer' : '', d.tipe_agent === 'Y' ? 'Agent' : ''].filter(Boolean).join(', ');
+            var labelArea = SUPPLIER ? 'Type' : 'Area';
+            var labelFasilitas = baru ? 'Customs Classification' : 'Facility';
 
             // ----- Kepala -----
             $('#md-det-judul').text(d.Supplier || JUDUL).attr('title', d.Supplier || '');
@@ -646,32 +737,51 @@ $(function () {
                 + (ada(res.area_label) ? '<span class="md-det-chip"><i class="fas fa-location-dot"></i>' + teks(res.area_label) + '</span>' : '')
                 + (ada(d.country) ? '<span class="md-det-chip"><i class="fas fa-globe"></i>' + teks(d.country) + '</span>' : '')
                 + (tipe ? '<span class="md-det-chip"><i class="fas fa-tag"></i>' + teks(tipe) + '</span>' : '')
-                + '<span class="dn-pil ' + (aktif ? 'is-second' : 'is-batal') + '"><span class="dn-pil-titik"></span>'
-                + (aktif ? 'Active' : 'Inactive') + '</span>'
-                + (res.prioritas ? pilPrioritas(res.prioritas.nilai, 'is-kepala', ' priority') : ''));
+                + pilStatus(status, d.blocked_reason)
+                + (baru ? pilRating(baru.rating.nilai, 'is-kepala', ' rating') : ''));
 
-            // Priority (supplier): di depan Classification, kosong ditulis "Not set"
-            var barisPrioritas = res.prioritas
-                ? '<div><dt>Priority</dt><dd>' + (pilPrioritas(res.prioritas.nilai) || '<span class="md-det-kosong">Not set</span>') + '</dd></div>'
-                : '';
+            var akunManual = String(d.to_account_manual) === '1' ? 'Yes' : 'No';
 
             // ----- Basic -----
             $('#md-det-identitas').html(''
                 + barisInfo('Code', d.supplier_code)
                 + barisInfo(JUDUL + ' Name', d.Supplier)
                 + barisInfo('Short Name (Alias)', d.short_name)
-                + barisInfo('Group Name', d.group_name));
-            $('#md-det-klasifikasi').html(''
-                + barisPrioritas
-                + barisInfo('Area', res.area_label)
-                + barisInfo('Category', res.kategori_label)
-                + barisInfo('Facility', d.jenis_fasilitas)
-                + (SUPPLIER ? (res.prioritas ? '' : barisInfo('Term of Payment', res.term_label)) : barisInfo('Customer Type', tipe))
-                + (SUPPLIER && res.prioritas ? barisInfo('Term of Payment', res.term_label) : '')
-                + barisInfo('NPWP', d.npwp)
-                + barisInfo('PKP Status', d.pkp)
-                + (SUPPLIER ? '' : barisInfo('Term of Payment', res.term_label))
-                + barisInfo('To Account Manual', String(d.to_account_manual) === '1' ? 'Yes' : 'No'));
+                + barisInfo('Group Name', d.group_name)
+                + (baru ? barisInfo('Legal Name', d.legal_name, 'md-penuh') + barisInfo('NIB', d.nib) : ''));
+
+            if (baru) {
+                $('#md-det-klasifikasi').html(''
+                    + barisInfo(labelArea, res.area_label)
+                    + barisInfo('Category', res.kategori_label)
+                    + barisInfo(labelFasilitas, res.fasilitas_label)
+                    + barisInfo('PKP Status', res.pkp_label)
+                    + barisInfo('NPWP', d.npwp, 'md-penuh'));
+                // Rating kosong ditulis "Not set"
+                $('#md-det-bayar').html(''
+                    + barisInfo('Term of Payment', res.term_label)
+                    + '<div><dt>Payment Flexibility Rating</dt><dd>' + (pilRating(baru.rating.nilai) || '<span class="md-det-kosong">Not set</span>') + '</dd></div>'
+                    + barisInfo('Last Review Date', baru.review_date)
+                    + barisInfo('To Account Manual', akunManual));
+                // Verified / Approved diisi dari menu tersendiri (belum ada)
+                $('#md-det-status').html(''
+                    + '<div><dt>' + JUDUL + ' Status</dt><dd>' + pilStatus(status) + '</dd></div>'
+                    + (status === 'BLOCKED' ? barisInfo('Blocked Reason', d.blocked_reason, 'md-penuh') : '')
+                    + barisInfo('Verified By / Date', [d.verified_by, baru.verified_date].filter(ada).join(' / '))
+                    + barisInfo('Approved By / Date', [d.approved_by, baru.approved_date].filter(ada).join(' / '))
+                    + barisInfo('Last Modified By / Date', [d.modified_by, baru.modified_date].filter(ada).join(' / ')));
+            } else {
+                $('#md-det-klasifikasi').html(''
+                    + barisInfo(labelArea, res.area_label)
+                    + barisInfo('Category', res.kategori_label)
+                    + barisInfo(labelFasilitas, res.fasilitas_label)
+                    + (SUPPLIER ? barisInfo('Term of Payment', res.term_label) : barisInfo('Customer Type', tipe))
+                    + barisInfo('NPWP', d.npwp)
+                    + barisInfo('PKP Status', res.pkp_label)
+                    + (SUPPLIER ? '' : barisInfo('Term of Payment', res.term_label))
+                    + barisInfo('To Account Manual', akunManual));
+            }
+            $('.md-det-baru').prop('hidden', !baru);
 
             // ----- Address & Product -----
             $('#md-det-alamat').html(''
@@ -732,7 +842,7 @@ $(function () {
     });
 
     // ---------- History: dimuat waktu tab-nya pertama kali dibuka ----------
-    var IKON_RIW = { create: 'fa-plus', update: 'fa-pen', active: 'fa-toggle-on', inactive: 'fa-toggle-off' };
+    var IKON_RIW = { create: 'fa-plus', update: 'fa-pen', active: 'fa-toggle-on', inactive: 'fa-toggle-off', blocked: 'fa-ban' };
 
     function kartuRiwayat(b) {
         var isi = '';
@@ -799,9 +909,13 @@ $(function () {
         });
     });
 
-    // ---------- Active / Inactive ----------
+    // ---------- Active / Inactive (/ Blocked) ----------
     $('#md-table').on('click', '.md-btn-status', function () {
         var row = mdBarisDari(tabel, this);
+        if (BARU) {
+            pilihStatus(row);
+            return;
+        }
         var keAktif = String($(this).data('aktif')) !== '1';   // sekarang tidak aktif -> diaktifkan
 
         Swal.fire({
@@ -820,32 +934,96 @@ $(function () {
             customClass: { popup: 'dn-swal' }
         }).then(function (pilih) {
             if (!pilih.isConfirmed) { return; }
-
-            $.ajax({
-                url: RUT_STATUS,
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
-                data: { id: row.id, aktif: keAktif ? 1 : 0 }
-            }).done(function (res) {
-                Swal.fire({
-                    icon: 'success',
-                    title: res.aktif ? 'Set to Active' : 'Set to Inactive',
-                    html: '<b>' + teks(res.nama) + '</b> is now ' + (res.aktif ? 'Active' : 'Inactive') + '.',
-                    timer: 1800,
-                    showConfirmButton: false,
-                    customClass: { popup: 'dn-swal' }
-                });
-                tabel.ajax.reload(null, false);   // tetap di halaman yang sama
-            }).fail(function (x) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Status not changed',
-                    text: (x.responseJSON && x.responseJSON.message) || 'Please try again.',
-                    customClass: { popup: 'dn-swal' }
-                });
-            });
+            kirimStatus({ id: row.id, aktif: keAktif ? 1 : 0 });
         });
     });
+
+    // Supplier: swal memilih status baru. Status sekarang tidak bisa dipilih; Blocked wajib dengan alasan.
+    function pilihStatus(row) {
+        var pilihan = Object.keys(LABEL.status).map(function (s) {
+            var kini = s === row.status;
+            return '<label class="md-st-pilih md-st-' + s.toLowerCase() + (kini ? ' is-kini' : '') + '">'
+                + '<input type="radio" name="md-st" value="' + s + '"' + (kini ? ' disabled' : '') + '>'
+                + '<span class="md-st-titik"></span>' + teks(LABEL.status[s])
+                + (kini ? '<span class="md-st-kini">Current</span>' : '')
+                + '</label>';
+        }).join('');
+
+        Swal.fire({
+            icon: 'question',
+            title: 'Change ' + JUDUL.toLowerCase() + ' status?',
+            html: '<div class="dn-swal-ringkas">'
+                + '<div><span>Code</span><b>' + teks(row.kode) + '</b></div>'
+                + '<div><span>' + JUDUL + '</span><b>' + teks(row.nama) + '</b></div>'
+                + '</div>'
+                + '<div class="md-st-judul">New status</div>'
+                + '<div class="md-st-daftar">' + pilihan + '</div>'
+                + '<div class="md-st-alasan" hidden>'
+                + '<label for="md-st-alasan">Blocked Reason <span class="dn-wajib">*</span></label>'
+                + '<textarea class="form-control" id="md-st-alasan" rows="3" maxlength="255" placeholder="Why is this ' + JUDUL.toLowerCase() + ' blocked?"></textarea>'
+                + '</div>',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-check"></i> Yes, change status',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true,
+            focusCancel: true,
+            customClass: { popup: 'dn-swal' },
+            didOpen: function (popup) {
+                $(popup).on('change', 'input[name="md-st"]', function () {
+                    var blokir = this.value === 'BLOCKED';
+                    $(popup).find('.md-st-pilih').removeClass('is-pilih');
+                    $(this).closest('.md-st-pilih').addClass('is-pilih');
+                    $(popup).find('.md-st-alasan').prop('hidden', !blokir);
+                    if (blokir) { $('#md-st-alasan').trigger('focus'); }
+                    Swal.resetValidationMessage();
+                });
+                $(popup).on('input', '#md-st-alasan', function () { Swal.resetValidationMessage(); });
+            },
+            preConfirm: function () {
+                var status = $('input[name="md-st"]:checked').val();
+                var alasan = $.trim($('#md-st-alasan').val() || '');
+                if (!status) {
+                    Swal.showValidationMessage('Please choose the new status');
+                    return false;
+                }
+                if (status === 'BLOCKED' && !alasan) {
+                    Swal.showValidationMessage('Blocked reason is required');
+                    $('#md-st-alasan').trigger('focus');
+                    return false;
+                }
+                return { status: status, alasan: status === 'BLOCKED' ? alasan : '' };
+            }
+        }).then(function (pilih) {
+            if (!pilih.isConfirmed) { return; }
+            kirimStatus({ id: row.id, status: pilih.value.status, alasan: pilih.value.alasan });
+        });
+    }
+
+    function kirimStatus(data) {
+        $.ajax({
+            url: RUT_STATUS,
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: data
+        }).done(function (res) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Set to ' + res.label,
+                html: '<b>' + teks(res.nama) + '</b> is now ' + teks(res.label) + '.',
+                timer: 1800,
+                showConfirmButton: false,
+                customClass: { popup: 'dn-swal' }
+            });
+            tabel.ajax.reload(null, false);   // tetap di halaman yang sama
+        }).fail(function (x) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Status not changed',
+                text: (x.responseJSON && x.responseJSON.message) || 'Please try again.',
+                customClass: { popup: 'dn-swal' }
+            });
+        });
+    }
 });
 </script>
 @endpush

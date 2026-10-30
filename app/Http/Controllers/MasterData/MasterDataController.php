@@ -5,6 +5,7 @@ namespace App\Http\Controllers\MasterData;
 use App\Http\Controllers\Controller;
 use App\Services\MasterDataHistoryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -43,17 +44,61 @@ class MasterDataController extends Controller
         'F' => 'Factory',
     ];
 
-    // Prioritas supplier (kolom prioritas): merah / kuning / hijau. Kosong = belum diisi.
-    private const PRIORITAS = [
-        'HIGH'   => 'High',
-        'MEDIUM' => 'Medium',
-        'LOW'    => 'Low',
+    // Type supplier hanya Local / Overseas. Overseas disimpan 'I' (Import/Export di Signalbit) supaya
+    // combo Area Signalbit tetap mengenali nilainya. Factory (F) hanya ada di data lama.
+    private const TIPE_SUPPLIER = [
+        'L' => 'Local',
+        'I' => 'Overseas',
+    ];
+
+    // Payment Flexibility Rating supplier (kolom payment_rating, dulu Priority): merah / kuning / hijau.
+    // Kosong = belum diisi.
+    private const RATING = [
+        'RED'    => 'Red',
+        'YELLOW' => 'Yellow',
+        'GREEN'  => 'Green',
+    ];
+
+    // Supplier Status. non_aktif tetap diisi untuk Signalbit (0 = Active, 1 = Inactive / Blocked),
+    // status_aktif yang membedakan Inactive dengan Blocked.
+    private const STATUS = [
+        'ACTIVE'   => 'Active',
+        'INACTIVE' => 'Inactive',
+        'BLOCKED'  => 'Blocked',
+    ];
+
+    // PKP Status - nilai tersimpan sama dengan pilihan PKP Signalbit (masterpilihan), labelnya di sini
+    private const PKP = [
+        'PKP'     => 'PKP',
+        'NON PKP' => 'Non-PKP',
+        'NA'      => 'NA',
+    ];
+
+    // Customs Classification (jenis_fasilitas), urutan sesuai ketentuan. Disimpan huruf besar seperti
+    // pilihan J_FAS Signalbit (combo Signalbit mencocokkan nilainya persis).
+    private const FASILITAS = [
+        'TLDDP'             => 'TLDDP',
+        'KB'                => 'KB',
+        'GB'                => 'GB',
+        'PLB'               => 'PLB',
+        'KITE PEMBEBASAN'   => 'KITE Pembebasan',
+        'KITE PENGEMBALIAN' => 'KITE Pengembalian',
+        'KEK'               => 'KEK',
+        'KPBPB'             => 'KPBPB',
+        'OVERSEAS'          => 'Overseas',
+    ];
+
+    // Kolom dari database/sql/2026_10_30_mastersupplier_kolom_baru.sql
+    private const KOLOM_BARU = [
+        'legal_name', 'nib', 'status_aktif', 'blocked_reason', 'payment_rating', 'payment_review_date',
+        'verified_by', 'verified_date', 'approved_by', 'approved_date', 'modified_by', 'modified_date',
     ];
 
     // Panjang kolom mastersupplier - Signalbit memotong diam-diam, di sini ditolak dengan pesan jelas
     private const PANJANG = [
         'supplier_code'    => ['Code', 10],
         'Supplier'         => ['Name', 80],
+        'legal_name'       => ['Legal Name', 150],
         'short_name'       => ['Short Name', 10],
         'group_name'       => ['Group Name', 20],
         'alamat'           => ['Address', 200],
@@ -103,13 +148,16 @@ class MasterDataController extends Controller
             ->distinct()
             ->orderBy('area')
             ->pluck('area')
-            ->mapWithKeys(fn ($kode) => [$kode => self::AREA[$kode] ?? $kode]);
+            ->mapWithKeys(fn ($kode) => [$kode => $this->labelArea($jenis, $kode)]);
 
         return view('master-data.partner.index', [
             'jenis'        => $jenis,
             'conf'         => self::JENIS[$jenis],
             'negara'       => $negara,
             'area'         => $area,
+            // Kolom baru supplier (Blocked, Payment Flexibility Rating, dll); false = SQL-nya belum dijalankan
+            'baru'         => $this->supplierBaru($jenis),
+            'labelNilai'   => ['rating' => self::RATING, 'status' => self::STATUS, 'pkp' => self::PKP, 'fasilitas' => self::FASILITAS],
             // Filter, cari, halaman & urutan saat kembali dari Create / Edit
             'awal'         => $this->keadaanDaftar(),
             'page'           => 'dashboard-master-data',
@@ -133,7 +181,7 @@ class MasterDataController extends Controller
         return [
             'country' => $teks('country', 50),
             'area'    => $teks('area', 20),
-            'status'  => in_array($q['status'] ?? '', ['aktif', 'nonaktif'], true) ? $q['status'] : '',
+            'status'  => in_array($q['status'] ?? '', ['aktif', 'nonaktif', 'blokir'], true) ? $q['status'] : '',
             'cari'    => $teks('cari', 100),
             'hal'     => min(100000, max(0, (int) $teks('hal', 6))),
             'baris'   => in_array((int) $teks('baris', 3), [10, 25, 50, 100], true) ? (int) $teks('baris', 3) : 10,
@@ -153,8 +201,10 @@ class MasterDataController extends Controller
 
     public function data(Request $request, $jenis)
     {
-        $rows = $this->ambil($request, $jenis)->map(function ($row) {
-            $row->area_label = self::AREA[$row->area] ?? $row->area;
+        $rows = $this->ambil($request, $jenis)->map(function ($row) use ($jenis) {
+            $row->area_label = $this->labelArea($jenis, $row->area);
+            $row->status = $this->statusDari($row);
+            unset($row->status_aktif);
             return $row;
         });
 
@@ -183,8 +233,10 @@ class MasterDataController extends Controller
             )
             ->where('tipe_sup', self::JENIS[$jenis]['tipe_sup']);
 
-        if ($this->adaPrioritas($jenis)) {
-            $query->addSelect('prioritas');
+        $baru = $this->supplierBaru($jenis);
+        if ($baru) {
+            $query->addSelect('legal_name', 'nib', 'payment_rating', 'payment_review_date', 'status_aktif', 'blocked_reason',
+                'verified_by', 'verified_date', 'approved_by', 'approved_date', 'modified_by', 'modified_date');
         }
 
         if ($request->filled('country')) {
@@ -195,11 +247,17 @@ class MasterDataController extends Controller
             $query->where('area', $request->area);
         }
 
-        // non_aktif '1' = tidak aktif, selain itu (0 / kosong) dianggap aktif
+        // non_aktif '1' = tidak aktif, selain itu (0 / kosong) dianggap aktif.
+        // Blocked = non_aktif '1' dengan status_aktif BLOCKED (lihat statusDari()).
         if ($request->status === 'aktif') {
             $query->where(fn ($q) => $q->whereNull('non_aktif')->orWhere('non_aktif', '<>', '1'));
         } elseif ($request->status === 'nonaktif') {
             $query->where('non_aktif', '1');
+            if ($baru) {
+                $query->where(fn ($q) => $q->whereNull('status_aktif')->orWhere('status_aktif', '<>', 'BLOCKED'));
+            }
+        } elseif ($request->status === 'blokir' && $baru) {
+            $query->where('non_aktif', '1')->where('status_aktif', 'BLOCKED');
         }
 
         return $query->orderBy('Supplier')->get();
@@ -210,16 +268,20 @@ class MasterDataController extends Controller
         $conf = self::JENIS[$jenis];
         $rows = $this->ambil($request, $jenis);
         $supplier = $jenis === 'supplier';
-        $prioritas = $this->adaPrioritas($jenis);
+        $baru = $this->supplierBaru($jenis);
 
-        $kolom = ['No', 'Code', $conf['kolom'], 'Short Name', 'Country', 'Area', 'Facility', 'Address', 'NPWP', 'PKP', 'Contact', 'Phone', 'Email'];
-        if ($supplier) {
-            $kolom[] = 'Product';
+        if ($baru) {
+            $kolom = ['No', 'ID', 'Code', $conf['kolom'], 'Legal Name', 'Short Name', 'Country', 'Type', 'Customs Classification', 'Address',
+                      'NPWP', 'PKP Status', 'NIB', 'Contact', 'Phone', 'Email', 'Product', 'Payment Flexibility Rating',
+                      'Payment Flexibility Last Review Date', 'Supplier Status', 'Blocked Reason', 'Verified By', 'Verified Date',
+                      'Approved By', 'Approved Date', 'Last Modified By', 'Last Modified Date'];
+        } else {
+            $kolom = ['No', 'ID', 'Code', $conf['kolom'], 'Short Name', 'Country', $supplier ? 'Type' : 'Area', 'Facility', 'Address', 'NPWP', 'PKP', 'Contact', 'Phone', 'Email'];
+            if ($supplier) {
+                $kolom[] = 'Product';
+            }
+            $kolom[] = 'Status';
         }
-        if ($prioritas) {
-            $kolom[] = 'Priority';
-        }
-        $kolom[] = 'Status';
 
         $ss = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $s  = $ss->getActiveSheet();
@@ -242,32 +304,65 @@ class MasterDataController extends Controller
 
         $b = $bKepala + 1;
         foreach ($rows as $i => $r) {
-            $isi = [
-                $i + 1,
-                $r->kode,
-                $r->nama,
-                $r->short_name,
-                $r->country,
-                self::AREA[$r->area] ?? $r->area,
-                $r->fasilitas,
-                $r->alamat,
-                $r->npwp,
-                $r->pkp,
-                $r->kontak,
-                $r->telepon,
-                $r->email,
-            ];
-            if ($supplier) {
-                $isi[] = $r->produk;
+            $area = $this->labelArea($jenis, $r->area);
+            $status = self::STATUS[$this->statusDari($r)];
+            if ($baru) {
+                $isi = [
+                    $i + 1,
+                    (int) $r->id,
+                    $r->kode,
+                    $r->nama,
+                    $r->legal_name,
+                    $r->short_name,
+                    $r->country,
+                    $area,
+                    self::FASILITAS[$r->fasilitas] ?? $r->fasilitas,
+                    $r->alamat,
+                    $r->npwp,
+                    self::PKP[$r->pkp] ?? $r->pkp,
+                    $r->nib,
+                    $r->kontak,
+                    $r->telepon,
+                    $r->email,
+                    $r->produk,
+                    self::RATING[$r->payment_rating] ?? '',
+                    $r->payment_review_date ? date('d M Y', strtotime($r->payment_review_date)) : '',
+                    $status,
+                    $status === 'Blocked' ? $r->blocked_reason : '',
+                    $r->verified_by,
+                    $r->verified_date ? date('d M Y H:i', strtotime($r->verified_date)) : '',
+                    $r->approved_by,
+                    $r->approved_date ? date('d M Y H:i', strtotime($r->approved_date)) : '',
+                    $r->modified_by,
+                    $r->modified_date ? date('d M Y H:i', strtotime($r->modified_date)) : '',
+                ];
+            } else {
+                $isi = [
+                    $i + 1,
+                    (int) $r->id,
+                    $r->kode,
+                    $r->nama,
+                    $r->short_name,
+                    $r->country,
+                    $area,
+                    $r->fasilitas,
+                    $r->alamat,
+                    $r->npwp,
+                    $r->pkp,
+                    $r->kontak,
+                    $r->telepon,
+                    $r->email,
+                ];
+                if ($supplier) {
+                    $isi[] = $r->produk;
+                }
+                $isi[] = $status;
             }
-            if ($prioritas) {
-                $isi[] = self::PRIORITAS[$r->prioritas] ?? '';
-            }
-            $isi[] = $r->non_aktif == '1' ? 'Inactive' : 'Active';
 
             foreach ($isi as $k => $nilai) {
                 $sel = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($k + 1) . $b;
-                if ($k === 0) {
+                // No & ID tetap angka
+                if ($k <= 1) {
                     $s->setCellValue($sel, $nilai);
                 } else {
                     // Kode, NPWP & telepon disimpan sebagai teks supaya nol di depan tidak hilang
@@ -281,7 +376,9 @@ class MasterDataController extends Controller
             ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $s->getStyle('A' . $bKepala . ':' . $akhirKol . max($bKepala, $b - 1))->getFont()->setSize(10);
 
-        foreach (range(1, count($kolom)) as $k) {
+        // No lebarnya tetap: autosize ikut menghitung judul & keterangan export di A1 / A2 sehingga kolomnya melebar
+        $s->getColumnDimension('A')->setWidth(6);
+        foreach (range(2, count($kolom)) as $k) {
             $s->getColumnDimensionByColumn($k)->setAutoSize(true);
         }
         // Alamat & produk bisa sangat panjang - dibatasi lebar lalu dibungkus
@@ -336,21 +433,40 @@ class MasterDataController extends Controller
         // Data lama hanya punya jumlah hari di terms_of_pay (id_terms kosong) - ditampilkan sebagai keterangan
         $termLama = $ubah && ! (int) $ubah->id_terms && (float) $ubah->terms_of_pay > 0 ? (float) $ubah->terms_of_pay . ' days' : null;
 
+        if ($jenis === 'supplier') {
+            // Type supplier: Local / Overseas (nilai = kode area tersimpan)
+            $area = $this->denganNilaiLama(collect(self::TIPE_SUPPLIER), $ubah->area ?? null, self::AREA[$ubah->area ?? ''] ?? null);
+        } else {
+            // nilai tetap pilihan aslinya (Lokal / Import/Export / Factory), labelnya bahasa Inggris
+            $area = $pilihan('Area')->mapWithKeys(fn ($a) => [$a => self::AREA[strtoupper(substr($a, 0, 1))] ?? $a]);
+        }
+
+        // Sesudah SQL kolom baru dijalankan: pilihan Facility & PKP sesuai ketentuan (nilai => label).
+        // Nilai data lama yang tidak ada di pilihan tetap ikut supaya tidak hilang waktu disimpan.
+        if ($this->kolomBaru()) {
+            $fasilitas = $this->denganNilaiLama(collect(self::FASILITAS), $ubah->jenis_fasilitas ?? null);
+            $pkp = $this->denganNilaiLama(collect(self::PKP), $ubah->pkp ?? null);
+        } else {
+            $fasilitas = $pilihan('J_FAS')->mapWithKeys(fn ($f) => [$f => $f]);
+            $pkp = $pilihan('PKP')->mapWithKeys(fn ($p) => [$p => $p]);
+        }
+
         return view('master-data.partner.form', [
             'jenis'          => $jenis,
             'conf'           => self::JENIS[$jenis],
             'ubah'           => $ubah,
             'kodeTerkunci'   => $ubah ? $this->dipakaiTransaksi($ubah->Id_Supplier) : false,
-            // Pilihan Priority (supplier saja); null = kolomnya belum dibuat, isiannya tidak ditampilkan
-            'prioritas'      => $this->adaPrioritas($jenis) ? self::PRIORITAS : null,
+            // Isian baru supplier (Legal Name, NIB, Payment Flexibility); false = kolomnya belum dibuat, tidak ditampilkan
+            'baru'           => $this->supplierBaru($jenis),
+            'rating'         => self::RATING,
+            'status'         => $ubah ? $this->statusDari($ubah) : 'ACTIVE',
             // Kembali ke daftar dengan filter & pencarian yang sama seperti sebelum Create / Edit dibuka
             'urlKembali'     => $this->urlDaftar($jenis),
             'termLama'       => $termLama,
-            // nilai tetap pilihan aslinya (Lokal / Import/Export / Factory), labelnya bahasa Inggris
-            'area'           => $pilihan('Area')->mapWithKeys(fn ($a) => [$a => self::AREA[strtoupper(substr($a, 0, 1))] ?? $a]),
+            'area'           => $area,
             'kategori'       => $pilihan('Vendor_Cat'),
-            'fasilitas'      => $pilihan('J_FAS'),
-            'pkp'            => $pilihan('PKP'),
+            'fasilitas'      => $fasilitas,
+            'pkp'            => $pkp,
             'terms'          => $sb->table('masterpterms')->select('id', 'kode_pterms', 'nama_pterms')->orderBy('id')->get(),
             'negara'         => $sb->table('mastersupplier')->whereRaw("trim(coalesce(country, '')) <> ''")->distinct()->orderBy('country')->pluck('country'),
             'autoCoa'        => $autoCoa,
@@ -369,7 +485,7 @@ class MasterDataController extends Controller
         $conf = self::JENIS[$jenis];
         $sb = DB::connection('mysql_sb');
 
-        [$v, $kategori, $kurang] = $this->periksa($request, $conf);
+        [$v, $kategori, $kurang] = $this->periksa($request, $jenis);
         if ($kurang) {
             return response()->json(['status' => 400, 'message' => 'Please complete the form', 'kurang' => $kurang], 422);
         }
@@ -432,8 +548,8 @@ class MasterDataController extends Controller
                 // Kolom tinyint (default 0) - dicentang = 1
                 'to_account_manual' => $request->boolean('to_account_manual') ? 1 : 0,
             ];
-            if ($this->adaPrioritas($jenis)) {
-                $data['prioritas'] = $this->nilaiPrioritas($request);
+            if ($this->supplierBaru($jenis)) {
+                $data += $this->isianBaru($v) + ['status_aktif' => 'ACTIVE'] + $this->jejakUbah();
             }
 
             $id = $sb->table('mastersupplier')->insertGetId($data, 'Id_Supplier');
@@ -475,7 +591,7 @@ class MasterDataController extends Controller
             $request->merge(['supplier_code' => $lama->supplier_code]);
         }
 
-        [$v, $kategori, $kurang] = $this->periksa($request, $conf, ! $terkunci);
+        [$v, $kategori, $kurang] = $this->periksa($request, $jenis, $lama, ! $terkunci);
         if ($kurang) {
             return response()->json(['status' => 400, 'message' => 'Please complete the form', 'kurang' => $kurang], 422);
         }
@@ -531,8 +647,9 @@ class MasterDataController extends Controller
             $data['tipe_agent'] = $request->boolean('tipe_agent') ? 'Y' : '';
         }
         $data['to_account_manual'] = $request->boolean('to_account_manual') ? 1 : 0;
-        if ($this->adaPrioritas($jenis)) {
-            $data['prioritas'] = $this->nilaiPrioritas($request);
+        $baru = $this->supplierBaru($jenis);
+        if ($baru) {
+            $data += $this->isianBaru($v);
         }
 
         // Yang disimpan & dicatat hanya kolom yang nilainya berubah. Kosong vs NULL di data lama
@@ -540,10 +657,11 @@ class MasterDataController extends Controller
         $berubah = array_filter($data, fn ($nilai, $kolom) => (string) $nilai !== (string) $lama->$kolom, ARRAY_FILTER_USE_BOTH);
 
         if ($berubah) {
-            $sb->transaction(function () use ($sb, $id, $berubah, $lama) {
-                $sb->table('mastersupplier')->where('Id_Supplier', $id)->update($berubah);
-                $set = collect($berubah)->map(fn ($nilai, $kolom) => $kolom . "='" . $nilai . "'")->implode(',');
-                $actHistId = $this->catatLog('update mastersupplier set ' . $set . " where id_supplier='" . $id . "'");
+            // Last Modified By / Date ikut disimpan, tapi tidak dihitung sebagai perubahan isian
+            $simpan = $baru ? $berubah + $this->jejakUbah() : $berubah;
+            $sb->transaction(function () use ($sb, $id, $berubah, $simpan, $lama) {
+                $sb->table('mastersupplier')->where('Id_Supplier', $id)->update($simpan);
+                $actHistId = $this->catatLog($this->sqlUpdate('mastersupplier', $simpan, 'id_supplier', $id));
                 $this->riwayat()->catatUbah($id, $lama, $berubah, $actHistId);
             });
         }
@@ -559,15 +677,27 @@ class MasterDataController extends Controller
 
     // Isian form create / edit: semua teks lewat nb() seperti Signalbit (trim, huruf besar, tanpa tanda kutip),
     // lalu validasi sama dengan validasi() di master_supcust.php - semua kekurangan dilaporkan sekaligus.
-    private function periksa(Request $request, array $conf, $kodeWajib = true)
+    // $lama = data sebelum diedit (null waktu create): nilai lama yang tidak ada di pilihan sekarang
+    // (mis. Type Factory, Facility KITE) tetap boleh disimpan apa adanya.
+    private function periksa(Request $request, $jenis, $lama = null, $kodeWajib = true)
     {
+        $conf = self::JENIS[$jenis];
+        $supplier = $jenis === 'supplier';
+        $baru = $this->supplierBaru($jenis);
+
         $v = [];
-        foreach (['supplier_code', 'short_name', 'Supplier', 'group_name', 'product_name', 'alamat', 'alamat2', 'zip_code',
+        foreach (['supplier_code', 'short_name', 'Supplier', 'legal_name', 'group_name', 'product_name', 'alamat', 'alamat2', 'zip_code',
                   'country', 'npwp', 'pkp', 'Attn', 'Attn2', 'Attn3', 'Attn4', 'Phone', 'Fax', 'Email',
                   'jenis_fasilitas', 'area'] as $kolom) {
             $v[$kolom] = $this->nb($request->input($kolom));
         }
+        $v['nib'] = preg_replace('/\s+/', '', (string) $request->input('nib'));
+        $v['payment_rating'] = strtoupper(trim((string) $request->input('payment_rating')));
+        $v['payment_review_date'] = trim((string) $request->input('payment_review_date'));
         $kategori = (string) $request->input('vendor_cat');
+        $kodeArea = substr($v['area'], 0, 1);
+        $sah = fn ($nilai, array $pilihan, $kolom) => $nilai === '' || array_key_exists($nilai, $pilihan)
+            || ($lama && $nilai === (string) $lama->$kolom);
 
         $kurang = [];
         if ($kodeWajib && $v['supplier_code'] === '') { $kurang[] = 'Code'; }
@@ -577,9 +707,30 @@ class MasterDataController extends Controller
         $kategoriSah = DB::connection('mysql_sb')->table('masterpilihan')->where('kode_pilihan', 'Vendor_Cat')->pluck('nama_pilihan')
             ->map(fn ($p) => substr($p, 0, 2))->all();
         if ($kategori === '' || !in_array($kategori, $kategoriSah, true)) { $kurang[] = 'Category'; }
-        if ($v['area'] === '') { $kurang[] = 'Area'; }
-        if ($v['area'] === 'LOKAL' && $v['jenis_fasilitas'] === '') { $kurang[] = 'Facility (required for Local)'; }
-        if ($request->filled('prioritas') && $this->nilaiPrioritas($request) === null) { $kurang[] = 'Priority'; }
+        if ($v['area'] === '') {
+            $kurang[] = $supplier ? 'Type' : 'Area';
+        } elseif ($supplier && ! $sah($kodeArea, self::TIPE_SUPPLIER, 'area')) {
+            $kurang[] = 'Type (Local / Overseas)';
+        }
+        $labelFasilitas = $baru ? 'Customs Classification' : 'Facility';
+        if ($kodeArea === 'L' && $v['jenis_fasilitas'] === '') { $kurang[] = $labelFasilitas . ' (required for Local)'; }
+        if ($this->kolomBaru()) {
+            if (! $sah($v['jenis_fasilitas'], self::FASILITAS, 'jenis_fasilitas')) { $kurang[] = $labelFasilitas; }
+            if (! $sah($v['pkp'], self::PKP, 'pkp')) { $kurang[] = 'PKP Status'; }
+        }
+        if ($baru) {
+            if ($v['nib'] !== '' && ! preg_match('/^\d{13}$/', $v['nib'])) { $kurang[] = 'NIB must be 13 digits'; }
+            if (! $sah($v['payment_rating'], self::RATING, 'payment_rating')) { $kurang[] = 'Payment Flexibility Rating'; }
+            $tgl = $v['payment_review_date'];
+            if ($tgl !== '') {
+                $d = \DateTime::createFromFormat('!Y-m-d', $tgl);
+                if (! $d || $d->format('Y-m-d') !== $tgl) {
+                    $kurang[] = 'Last Review Date is not a valid date';
+                } elseif ($tgl > now()->format('Y-m-d')) {
+                    $kurang[] = 'Last Review Date cannot be in the future';
+                }
+            }
+        }
         foreach (self::PANJANG as $kolom => [$label, $maks]) {
             if (mb_strlen($v[$kolom]) > $maks) {
                 $kurang[] = $label . ' max ' . $maks . ' characters';
@@ -589,29 +740,72 @@ class MasterDataController extends Controller
         return [$v, $kategori, $kurang];
     }
 
-    // Priority hanya untuk supplier, dan baru dipakai kalau kolomnya sudah dibuat
-    // (database/sql/2026_10_14_mastersupplier_prioritas.sql) - sebelum itu isiannya disembunyikan.
-    private function adaPrioritas($jenis)
+    // Isian baru supplier yang disimpan dari form create / edit (kosong = NULL)
+    private function isianBaru(array $v)
+    {
+        return [
+            'legal_name'          => $v['legal_name'] !== '' ? $v['legal_name'] : null,
+            'nib'                 => $v['nib'] !== '' ? $v['nib'] : null,
+            'payment_rating'      => $v['payment_rating'] !== '' ? $v['payment_rating'] : null,
+            'payment_review_date' => $v['payment_review_date'] !== '' ? $v['payment_review_date'] : null,
+        ];
+    }
+
+    // Last Modified By / Date - diisi setiap create, edit & ubah status dari NDS
+    private function jejakUbah()
+    {
+        return [
+            'modified_by'   => substr((string) (Auth::user()->username ?? Auth::user()->name), 0, 100),
+            'modified_date' => now()->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    // Kolom dari database/sql/2026_10_30_mastersupplier_kolom_baru.sql sudah dibuat (termasuk jenis_fasilitas
+    // yang dilebarkan). Sebelum itu isian barunya disembunyikan dan form tetap seperti sebelumnya.
+    private function kolomBaru()
     {
         static $ada;
-        if ($jenis !== 'supplier') {
-            return false;
-        }
         if ($ada === null) {
-            $ada = DB::connection('mysql_sb')->table('information_schema.columns')
+            $kolom = DB::connection('mysql_sb')->table('information_schema.columns')
                 ->whereRaw('table_schema = database()')
                 ->where('table_name', 'mastersupplier')
-                ->where('column_name', 'prioritas')
-                ->exists();
+                ->whereIn('column_name', array_merge(self::KOLOM_BARU, ['jenis_fasilitas']))
+                ->pluck('character_maximum_length', 'column_name');
+            $ada = $kolom->count() === count(self::KOLOM_BARU) + 1 && (int) $kolom['jenis_fasilitas'] >= 17;
         }
         return $ada;
     }
 
-    // HIGH / MEDIUM / LOW, atau null kalau kosong / tidak dikenal
-    private function nilaiPrioritas(Request $request)
+    // Isian baru (Legal Name, NIB, Blocked, Payment Flexibility, dll) hanya untuk supplier
+    private function supplierBaru($jenis)
     {
-        $nilai = strtoupper(trim((string) $request->input('prioritas')));
-        return array_key_exists($nilai, self::PRIORITAS) ? $nilai : null;
+        return $jenis === 'supplier' && $this->kolomBaru();
+    }
+
+    // Active / Inactive / Blocked. non_aktif yang menentukan aktif atau tidak (Signalbit hanya mengubah
+    // kolom itu), status_aktif hanya membedakan Inactive dengan Blocked.
+    private function statusDari($row)
+    {
+        if ((string) $row->non_aktif !== '1') {
+            return 'ACTIVE';
+        }
+        return ($row->status_aktif ?? null) === 'BLOCKED' ? 'BLOCKED' : 'INACTIVE';
+    }
+
+    private function labelArea($jenis, $kode)
+    {
+        $label = $jenis === 'supplier' ? self::TIPE_SUPPLIER + self::AREA : self::AREA;
+        return $label[$kode] ?? $kode;
+    }
+
+    // Pilihan (nilai => label) ditambah nilai data lama yang tidak ada di pilihan, ditandai (old)
+    private function denganNilaiLama($pilihan, $nilai, $label = null)
+    {
+        $nilai = (string) $nilai;
+        if (trim($nilai) !== '' && ! $pilihan->has($nilai)) {
+            $pilihan->put($nilai, ($label ?? $nilai) . ' (old)');
+        }
+        return $pilihan;
     }
 
     // Partner sudah dipakai transaksi (penerimaan, pengeluaran, costing) -> Code tidak boleh diganti.
@@ -658,41 +852,87 @@ class MasterDataController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        $baru = $this->supplierBaru($jenis);
+        $status = $this->statusDari($row);
+        $waktu = fn ($nilai, $format) => $nilai ? date($format, strtotime($nilai)) : null;
+
         return response()->json([
-            'data'           => $row,
-            'area_label'     => self::AREA[$row->area] ?? $row->area,
-            'kategori_label' => $kategori ?? $row->vendor_cat,
-            // null = tidak ada isian Priority (customer, atau kolomnya belum dibuat); label null = belum diisi
-            'prioritas'      => $this->adaPrioritas($jenis)
-                ? ['nilai' => $row->prioritas, 'label' => self::PRIORITAS[$row->prioritas ?? ''] ?? null]
-                : null,
-            'term_label'     => $termLabel,
-            'bank'           => $bank,
+            'data'            => $row,
+            'area_label'      => $this->labelArea($jenis, $row->area),
+            'kategori_label'  => $kategori ?? $row->vendor_cat,
+            'fasilitas_label' => self::FASILITAS[$row->jenis_fasilitas] ?? $row->jenis_fasilitas,
+            'pkp_label'       => self::PKP[$row->pkp] ?? $row->pkp,
+            'status'          => ['nilai' => $status, 'label' => self::STATUS[$status]],
+            // null = tidak ada isian baru (customer, atau kolomnya belum dibuat); label rating null = belum diisi
+            'baru'            => $baru ? [
+                'rating'        => ['nilai' => $row->payment_rating, 'label' => self::RATING[$row->payment_rating ?? ''] ?? null],
+                'review_date'   => $waktu($row->payment_review_date, 'd M Y'),
+                'verified_date' => $waktu($row->verified_date, 'd M Y H:i'),
+                'approved_date' => $waktu($row->approved_date, 'd M Y H:i'),
+                'modified_date' => $waktu($row->modified_date, 'd M Y H:i'),
+            ] : null,
+            'term_label'      => $termLabel,
+            'bank'            => $bank,
         ]);
     }
 
-    // Aktif / non-aktifkan. Signalbit cuma punya Non Aktif untuk supplier (pages/forms/non_akt.php,
-    // non_aktif = '1'); di sini dua arah untuk customer & supplier, dicatat ke act_hist dengan query yang sama.
+    // Ubah status. Signalbit cuma punya Non Aktif untuk supplier (pages/forms/non_akt.php, non_aktif = '1');
+    // di sini dua arah, dicatat ke act_hist. Supplier (sesudah SQL kolom baru) memilih Active / Inactive /
+    // Blocked - Blocked wajib dengan alasannya, dan non_aktif tetap diisi supaya Signalbit ikut menyaring.
     public function status(Request $request, $jenis)
     {
         $conf = self::JENIS[$jenis];
         $id = (int) $request->input('id');
-        $aktif = $request->boolean('aktif');
         $sb = DB::connection('mysql_sb');
+        $baru = $this->supplierBaru($jenis);
 
-        $row = $sb->table('mastersupplier')->where('Id_Supplier', $id)->where('tipe_sup', $conf['tipe_sup'])->first(['Id_Supplier', 'Supplier']);
+        $row = $sb->table('mastersupplier')->where('Id_Supplier', $id)->where('tipe_sup', $conf['tipe_sup'])
+            ->first(array_merge(['Id_Supplier', 'Supplier', 'non_aktif'], $baru ? ['status_aktif'] : []));
         if (! $row) {
             return response()->json(['message' => $conf['kolom'] . ' not found'], 404);
         }
 
-        $nilai = $aktif ? '0' : '1';
-        $sb->transaction(function () use ($sb, $id, $nilai, $aktif) {
-            $sb->table('mastersupplier')->where('Id_Supplier', $id)->update(['non_aktif' => $nilai]);
-            $actHistId = $this->catatLog("update mastersupplier set non_aktif='" . $nilai . "' where id_supplier='" . $id . "'");
-            $this->riwayat()->catatStatus($id, $aktif, $actHistId);
+        $alasan = null;
+        if ($baru) {
+            $status = strtoupper(trim((string) $request->input('status')));
+            if (! array_key_exists($status, self::STATUS)) {
+                return response()->json(['message' => 'Please choose the new status.'], 422);
+            }
+            if ($status === $this->statusDari($row)) {
+                return response()->json(['message' => $row->Supplier . ' is already ' . self::STATUS[$status] . '.'], 422);
+            }
+            if ($status === 'BLOCKED') {
+                $alasan = trim(preg_replace('/\s+/', ' ', (string) $request->input('alasan')));
+                if ($alasan === '') {
+                    return response()->json(['message' => 'Blocked reason is required.'], 422);
+                }
+                if (mb_strlen($alasan) > 255) {
+                    return response()->json(['message' => 'Blocked reason max 255 characters.'], 422);
+                }
+            }
+            $data = [
+                'non_aktif'      => $status === 'ACTIVE' ? '0' : '1',
+                'status_aktif'   => $status,
+                'blocked_reason' => $alasan,
+            ] + $this->jejakUbah();
+        } else {
+            $status = $request->boolean('aktif') ? 'ACTIVE' : 'INACTIVE';
+            $data = ['non_aktif' => $status === 'ACTIVE' ? '0' : '1'];
+        }
+
+        $sb->transaction(function () use ($sb, $id, $data, $status, $alasan) {
+            $sb->table('mastersupplier')->where('Id_Supplier', $id)->update($data);
+            $actHistId = $this->catatLog($this->sqlUpdate('mastersupplier', $data, 'id_supplier', $id));
+            $this->riwayat()->catatStatus($id, $status, $actHistId, $alasan);
         });
 
-        return response()->json(['status' => 200, 'aktif' => $aktif, 'nama' => $row->Supplier]);
+        return response()->json([
+            'status' => 200,
+            'aktif'  => $status === 'ACTIVE',
+            'nilai'  => $status,
+            'label'  => self::STATUS[$status],
+            'nama'   => $row->Supplier,
+        ]);
     }
 
     // Tab History di modal Show: dibuat, diubah, aktif / tidak aktif. Dimuat waktu tab-nya dibuka.
