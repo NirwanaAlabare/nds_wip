@@ -1,9 +1,9 @@
 {{-- Buyer / Agent hanya untuk customer (sama dengan form Signalbit); To Account Manual untuk keduanya.
-     Dipakai form.blade.php - letaknya beda antara customer dan supplier yang punya Priority. --}}
+     Dipakai form.blade.php - supplier dengan kolom baru menaruhnya di sebelah Term of Payment ($kotak = berbingkai). --}}
 <div class="col-md-4">
     <div class="form-group">
         <label>{{ $isCustomer ? 'Customer Type' : 'Options' }}</label>
-        <div class="md-cek">
+        <div class="md-cek {{ ($kotak ?? false) ? 'is-kotak' : '' }}">
             @if ($isCustomer)
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="md-buyer" name="tipe_buyer" value="1" {{ ($ubah->tipe_buyer ?? '') === 'Y' ? 'checked' : '' }}>

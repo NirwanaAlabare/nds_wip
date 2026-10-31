@@ -155,6 +155,47 @@ class TransferOutput extends Component
         }
     }
 
+    // Simpan riwayat transfer ke activity_log_history
+    private function logTransferHistory($activity, array $detail = [])
+    {
+        logHistory(
+            $this->toSelectedMasterPlan,
+            [
+                "output_type" => $this->outputType,
+                "from_line" => $this->fromLine,
+                "from_master_plan" => $this->fromSelectedMasterPlan,
+                "to_line" => $this->toLine,
+                "to_master_plan" => $this->toSelectedMasterPlan,
+                "detail" => $detail,
+            ],
+            $activity,
+            "TransferOutput"
+        );
+    }
+
+    private function toMasterPlanCancelled()
+    {
+        if (!$this->toSelectedMasterPlan) {
+            return false;
+        }
+
+        $toMasterPlan = MasterPlan::select("id", "cancel")->where("id", $this->toSelectedMasterPlan)->first();
+
+        if (!$toMasterPlan) {
+            $this->emit("alert", "error", "Master Plan tujuan '".$this->toSelectedMasterPlan."' tidak ditemukan. Transfer dibatalkan.");
+
+            return true;
+        }
+
+        if ($toMasterPlan->cancel == 'Y') {
+            $this->emit("alert", "error", "Master Plan tujuan '".$this->toSelectedMasterPlan."' sudah di-cancel. Transfer dibatalkan.");
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function preTransferNumbering()
     {
         if ($this->toLine && $this->toDate) {
@@ -166,6 +207,11 @@ class TransferOutput extends Component
 
     public function transferNumbering()
     {
+        // Cek ulang master plan tujuan, batalkan transfer jika sudah di-cancel
+        if ($this->toMasterPlanCancelled()) {
+            return;
+        }
+
         $newKodeNumbering = addQuotesAround($this->kodeNumbering);
 
         // if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
@@ -395,14 +441,17 @@ class TransferOutput extends Component
                 }
 
                 if ($messageSuccess != "") {
-                    Log::channel('transferOutput')->info([
+                    $transferLog = [
                         "Moving Output Data by QR Number",
                         $this->outputType,
                         "QR : ". $newKodeNumbering,
                         "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                         "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."'",
                         "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
-                    ]);
+                    ];
+
+                    Log::channel('transferOutput')->info($transferLog);
+                    $this->logTransferHistory(__FUNCTION__, $transferLog);
 
                     $this->emit('alert', 'success', $messageSuccess);
                 }
@@ -420,6 +469,11 @@ class TransferOutput extends Component
 
     public function transferAll()
     {
+        // Cek ulang master plan tujuan, batalkan transfer jika sudah di-cancel
+        if ($this->toMasterPlanCancelled()) {
+            return;
+        }
+
         if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             // From SoDet List
             $this->fromSoDet = MasterPlan::selectRaw("
@@ -536,13 +590,16 @@ class TransferOutput extends Component
             }
 
             if ($messageSuccess != "") {
-                Log::channel('transferOutput')->info([
+                $transferLog = [
                     "Moving All Output Data",
                     $this->outputType,
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
                     "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
-                ]);
+                ];
+
+                Log::channel('transferOutput')->info($transferLog);
+                $this->logTransferHistory(__FUNCTION__, $transferLog);
 
                 $this->emit('alert', 'success', $messageSuccess);
             }
@@ -557,6 +614,11 @@ class TransferOutput extends Component
 
     public function transferRft()
     {
+        // Cek ulang master plan tujuan, batalkan transfer jika sudah di-cancel
+        if ($this->toMasterPlanCancelled()) {
+            return;
+        }
+
         if ($this->toSelectedMasterPlan && $this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             $toUser = DB::connection("mysql_sb")->table("userpassword")->selectRaw("
                     user_sb_wip.id,
@@ -641,13 +703,16 @@ class TransferOutput extends Component
             }
 
             if ($messageSuccess != "") {
-                Log::channel('transferOutput')->info([
+                $transferLog = [
                     "Moving Output RFT Data",
                     $this->outputType,
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
                     "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
-                ]);
+                ];
+
+                Log::channel('transferOutput')->info($transferLog);
+                $this->logTransferHistory(__FUNCTION__, $transferLog);
 
                 $this->emit('alert', 'success', $messageSuccess);
             }
@@ -662,6 +727,11 @@ class TransferOutput extends Component
 
     public function transferRftDetail()
     {
+        // Cek ulang master plan tujuan, batalkan transfer jika sudah di-cancel
+        if ($this->toMasterPlanCancelled()) {
+            return;
+        }
+
         if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             if ($this->transferRftQty && $this->transferRftSize) {
                 $userList = UserSbWip::selectRaw("MAX(user_sb_wip.id) id, user_sb_wip.line_id, userpassword.username")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->groupBy("user_sb_wip.line_id")->get();
@@ -729,13 +799,16 @@ class TransferOutput extends Component
                     }
                 }
 
-                Log::channel('transferOutput')->info([
+                $transferLog = [
                     "Moving Output RFT Data Size ".$this->transferRftSize." ".$this->transferRftQty." PCS",
                     $this->outputType,
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
                     "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
-                ]);
+                ];
+
+                Log::channel('transferOutput')->info($transferLog);
+                $this->logTransferHistory(__FUNCTION__, $transferLog);
 
                 $this->emit('alert', 'success', $rfts->count()." RFT Berhasil di Transfer");
             } else {
@@ -748,6 +821,11 @@ class TransferOutput extends Component
 
     public function transferDefect()
     {
+        // Cek ulang master plan tujuan, batalkan transfer jika sudah di-cancel
+        if ($this->toMasterPlanCancelled()) {
+            return;
+        }
+
         if ($this->toSelectedMasterPlan && $this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
 
             $toUser = DB::connection("mysql_sb")->table("userpassword")->selectRaw("
@@ -833,13 +911,16 @@ class TransferOutput extends Component
             }
 
             if ($messageSuccess != "") {
-                Log::channel('transferOutput')->info([
+                $transferLog = [
                     "Moving Output Defect Data",
                     $this->outputType,
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
                     "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
-                ]);
+                ];
+
+                Log::channel('transferOutput')->info($transferLog);
+                $this->logTransferHistory(__FUNCTION__, $transferLog);
 
                 $this->emit('alert', 'success', $messageSuccess);
             }
@@ -854,6 +935,11 @@ class TransferOutput extends Component
 
     public function transferDefectDetail()
     {
+        // Cek ulang master plan tujuan, batalkan transfer jika sudah di-cancel
+        if ($this->toMasterPlanCancelled()) {
+            return;
+        }
+
         if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             if ($this->transferDefectQty && $this->transferDefectSize) {
                 $userList = UserSbWip::selectRaw("MAX(user_sb_wip.id) id, user_sb_wip.line_id, userpassword.username")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->groupBy("user_sb_wip.line_id")->get();
@@ -921,13 +1007,16 @@ class TransferOutput extends Component
                     }
                 }
 
-                Log::channel('transferOutput')->info([
+                $transferLog = [
                     "Moving Output Defect Data Size ".$this->transferDefectSize." ".$this->transferDefectQty." PCS",
                     $this->outputType,
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
                     "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
-                ]);
+                ];
+
+                Log::channel('transferOutput')->info($transferLog);
+                $this->logTransferHistory(__FUNCTION__, $transferLog);
 
                 $this->emit('alert', 'success', $defects->count()." Defect Berhasil di Transfer");
             } else {
@@ -940,6 +1029,11 @@ class TransferOutput extends Component
 
     public function transferRework()
     {
+        // Cek ulang master plan tujuan, batalkan transfer jika sudah di-cancel
+        if ($this->toMasterPlanCancelled()) {
+            return;
+        }
+
         if ($this->toSelectedMasterPlan && $this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
 
             $toUser = DB::connection("mysql_sb")->table("userpassword")->selectRaw("
@@ -1041,13 +1135,16 @@ class TransferOutput extends Component
             }
 
             if ($messageSuccess != "") {
-                Log::channel('transferOutput')->info([
+                $transferLog = [
                     "Moving Output Defect Data",
                     $this->outputType,
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
                     "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
-                ]);
+                ];
+
+                Log::channel('transferOutput')->info($transferLog);
+                $this->logTransferHistory(__FUNCTION__, $transferLog);
 
                 $this->emit('alert', 'success', $messageSuccess);
             }
@@ -1062,6 +1159,11 @@ class TransferOutput extends Component
 
     public function transferReworkDetail()
     {
+        // Cek ulang master plan tujuan, batalkan transfer jika sudah di-cancel
+        if ($this->toMasterPlanCancelled()) {
+            return;
+        }
+
         if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             if ($this->transferReworkQty && $this->transferReworkSize) {
                 $userList = UserSbWip::selectRaw("MAX(user_sb_wip.id) id, user_sb_wip.line_id, userpassword.username")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->groupBy("user_sb_wip.line_id")->get();
@@ -1137,13 +1239,16 @@ class TransferOutput extends Component
                     }
                 }
 
-                Log::channel('transferOutput')->info([
+                $transferLog = [
                     "Moving Output Rework Data Size ".$this->transferReworkSize." ".$this->transferReworkQty." PCS",
                     $this->outputType,
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
                     "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
-                ]);
+                ];
+
+                Log::channel('transferOutput')->info($transferLog);
+                $this->logTransferHistory(__FUNCTION__, $transferLog);
 
                 $this->emit('alert', 'success', $defects->count()." Rework Berhasil di Transfer");
             } else {
@@ -1156,6 +1261,11 @@ class TransferOutput extends Component
 
     public function transferReject()
     {
+        // Cek ulang master plan tujuan, batalkan transfer jika sudah di-cancel
+        if ($this->toMasterPlanCancelled()) {
+            return;
+        }
+
         if ($this->toSelectedMasterPlan && $this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             $toUser = DB::connection("mysql_sb")->table("userpassword")->selectRaw("
                     user_sb_wip.id,
@@ -1256,13 +1366,16 @@ class TransferOutput extends Component
             }
 
             if ($messageSuccess != "") {
-                Log::channel('transferOutput')->info([
+                $transferLog = [
                     "Moving Output Reject Data",
                     $this->outputType,
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
                     "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
-                ]);
+                ];
+
+                Log::channel('transferOutput')->info($transferLog);
+                $this->logTransferHistory(__FUNCTION__, $transferLog);
 
                 $this->emit('alert', 'success', $messageSuccess);
             }
@@ -1277,6 +1390,11 @@ class TransferOutput extends Component
 
     public function transferRejectDetail()
     {
+        // Cek ulang master plan tujuan, batalkan transfer jika sudah di-cancel
+        if ($this->toMasterPlanCancelled()) {
+            return;
+        }
+
         if ($this->fromLine && $this->fromSelectedMasterPlan && $this->toLine && $this->toSelectedMasterPlan) {
             if ($this->transferRejectQty && $this->transferRejectSize) {
                 $userList = UserSbWip::selectRaw("MAX(user_sb_wip.id) id, user_sb_wip.line_id, userpassword.username")->leftJoin("userpassword", "userpassword.line_id", "=", "user_sb_wip.line_id")->groupBy("user_sb_wip.line_id")->get();
@@ -1355,13 +1473,16 @@ class TransferOutput extends Component
                     }
                 }
 
-                Log::channel('transferOutput')->info([
+                $transferLog = [
                     "Moving Output Reject Data Size ".$this->transferRejectSize." ".$this->transferRejectQty." PCS",
                     $this->outputType,
                     "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
                     "From Line '".$this->fromLine."'. with Master Plan '".$this->fromSelectedMasterPlan."' ",
                     "To Line '".$this->toLine."'. with Master Plan '".$this->toSelectedMasterPlan."'",
-                ]);
+                ];
+
+                Log::channel('transferOutput')->info($transferLog);
+                $this->logTransferHistory(__FUNCTION__, $transferLog);
 
                 $this->emit('alert', 'success', $rejects->count()." Reject Berhasil di Transfer");
             } else {

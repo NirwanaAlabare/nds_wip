@@ -193,6 +193,7 @@
                     <label class="form-label"><small>Jenis Report</small></label>
                     <select name="type_report" id="type_report_filter" class="form-control form-control-sm select2bs4" style="width: 170px;">
                         <option value="CUTTING_FABRIC" selected>Cutting Fabric</option>
+                        <option value="CUTTING_FABRIC_BARCODE">Cutting Fabric Barcode</option>
                         <option value="CUTTING_PCS">Cutting PCS</option>
                         <option value="DC">DC</option>
                         <option value="SEWING">Sewing</option>
@@ -268,6 +269,10 @@
                                 <i class="fa fa-scroll"></i> Cutting Fabric
                                 <div class="import-type-desc">Mutasi Fabric</div>
                             </button>
+                            <button type="button" class="template-type-btn import-type-btn" data-type="CUTTING_FABRIC_BARCODE">
+                                <i class="fa fa-barcode"></i> Cutting Fabric Barcode
+                                <div class="import-type-desc">Mutasi Fabric Barcode</div>
+                            </button>
                             <button type="button" class="template-type-btn import-type-btn" data-type="CUTTING_PCS">
                                 <i class="fa fa-cut"></i> Cutting PCS
                                 <div class="import-type-desc">Mutasi PCS</div>
@@ -323,6 +328,9 @@
                     <div class="template-type-list mb-3">
                         <button type="button" class="template-type-btn active" data-type="CUTTING_FABRIC">
                             <i class="fa fa-scroll"></i> Cutting Fabric
+                        </button>
+                        <button type="button" class="template-type-btn" data-type="CUTTING_FABRIC_BARCODE">
+                            <i class="fa fa-barcode"></i> Cutting Fabric Barcode
                         </button>
                         <button type="button" class="template-type-btn" data-type="CUTTING_PCS">
                             <i class="fa fa-cut"></i> Cutting PCS
@@ -412,6 +420,10 @@
             ],
             CUTTING_FABRIC: [
                 ['WS', 'ws'], ['ID Roll', 'id_roll'], ['ID Item', 'id_item'], ['Satuan', 'satuan'],
+                ['Fabric', 'fabric', true],
+            ],
+            CUTTING_FABRIC_BARCODE: [
+                ['ID Roll', 'id_roll'], ['ID Item', 'id_item'], ['Satuan', 'satuan'],
                 ['Fabric', 'fabric', true],
             ],
         };
@@ -677,6 +689,8 @@
 
             cancelAdjustment({ ids: [row.id] }, currentListType === 'CUTTING_FABRIC'
                 ? `ID ${row.id} — WS <b>${row.ws}</b> — Roll ${row.id_roll}<br>Tanggal saldo ${row.tgl_saldo}`
+                : currentListType === 'CUTTING_FABRIC_BARCODE'
+                ? `ID ${row.id} — Roll <b>${row.id_roll}</b> — Item ${row.id_item}<br>Tanggal saldo ${row.tgl_saldo}`
                 : `ID ${row.id} — WS <b>${row.no_ws}</b> — ${row.color} / ${row.size}<br>${row.type_report}, tanggal saldo ${row.tgl_saldo}`);
         });
 
@@ -877,6 +891,11 @@
                 label: 'Cutting Fabric',
                 file: "{{ asset('example/template_wip_adjustment_cutting_fabric.xlsx') }}",
                 columns: ['tgl_saldo', 'ws', 'id_roll', 'id_item', 'satuan', 'qty fabric']
+            },
+            CUTTING_FABRIC_BARCODE: {
+                label: 'Cutting Fabric Barcode',
+                file: "{{ asset('example/template_wip_adjustment_cutting_fabric_barcode.xlsx') }}",
+                columns: ['tgl_saldo', 'id_roll', 'id_item', 'satuan', 'qty fabric']
             }
         };
 

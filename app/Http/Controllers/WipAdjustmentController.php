@@ -169,6 +169,23 @@ class WipAdjustmentController extends Controller
             ],
             'required' => ['ws', 'id_roll', 'id_item', 'satuan'],
         ],
+        'CUTTING_FABRIC_BARCODE' => [
+            'text' => [
+                'id_roll' => 'id_roll',
+                'id_item' => 'id_item',
+                'satuan'  => 'satuan',
+            ],
+            'qty' => [
+                'qty fabric' => 'fabric',
+            ],
+            'required' => ['id_roll', 'id_item', 'satuan'],
+        ],
+    ];
+
+    // Jenis report fabric => tabel adjustment-nya (1 baris Excel = 1 baris tabel)
+    private $fabricTables = [
+        'CUTTING_FABRIC'         => 'wip_adjustment_fabric',
+        'CUTTING_FABRIC_BARCODE' => 'wip_adjustment_fabric_barcode',
     ];
 
     // Pecah nilai type_map jadi [type_report, proses]
@@ -265,12 +282,13 @@ class WipAdjustmentController extends Controller
 
         $data = [];
         $closing = [];
-        $wsField = in_array('no_ws', $template['text']) ? 'no_ws' : 'ws';
+        // Fabric barcode tidak punya kolom WS
+        $wsField = in_array('no_ws', $template['text']) ? 'no_ws' : (in_array('ws', $template['text']) ? 'ws' : null);
 
         // WS di file harus ada di master_sb_ws (dicek sekali untuk semua WS unik)
         $wsList = [];
 
-        foreach (array_slice($rows, 1) as $row) {
+        foreach ($wsField ? array_slice($rows, 1) : [] as $row) {
             $ws = trim((string) ($row[$index[$wsField]] ?? ''));
 
             if ($ws !== '' && !str_contains($ws, ',')) {
@@ -336,7 +354,9 @@ class WipAdjustmentController extends Controller
             }
 
             // WS gabungan (mengandung koma) tidak diterima
-            if (str_contains((string) $item[$wsField], ',')) {
+            if (!$wsField) {
+                // tanpa WS, tidak ada yang dicek
+            } elseif (str_contains((string) $item[$wsField], ',')) {
                 $errors[] = 'WS tidak boleh mengandung koma';
             } elseif ($item[$wsField] !== '' && !isset($validWs[strtoupper((string) $item[$wsField])])) {
                 $errors[] = 'WS ' . $item[$wsField] . ' tidak ditemukan di master WS';
@@ -483,11 +503,69 @@ class WipAdjustmentController extends Controller
         return count($insert);
     }
 
+    // Simpan Cutting Fabric Barcode: 1 baris Excel = 1 baris wip_adjustment_fabric_barcode
+    private function simpanImportFabricBarcode($data)
+    {
+        // Pasangan id_roll + id_item yang ada di fabric_rekap => REKAP
+        $rekapKey = fn ($idRoll, $idItem) => strtoupper(trim((string) $idRoll)) . '|' . strtoupper(trim((string) $idItem));
+
+        $rolls = array_values(array_unique(array_filter(array_column($data, 'id_roll'))));
+
+        $rollRekap = [];
+
+        foreach (array_chunk($rolls, 500) as $chunk) {
+            $found = DB::connection('mysql')
+                ->table('fabric_rekap')
+                ->whereIn('id_roll', $chunk)
+                ->select('id_roll', 'id_item')
+                ->distinct()
+                ->get();
+
+            foreach ($found as $row) {
+                $rollRekap[$rekapKey($row->id_roll, $row->id_item)] = true;
+            }
+        }
+
+        $username = Auth::user()->username;
+        $now = now();
+        $insert = [];
+
+        foreach ($data as $item) {
+            if (empty($item['fabric'])) {
+                continue;
+            }
+
+            $insert[] = [
+                'tgl_saldo'           => $item['tgl_saldo'],
+                'id_roll'             => $item['id_roll'],
+                'id_item'             => $item['id_item'],
+                'satuan'              => $item['satuan'],
+                'qty'                 => $item['fabric'],
+                'type'                => isset($rollRekap[$rekapKey($item['id_roll'], $item['id_item'])]) ? 'REKAP' : 'NON REKAP',
+                'status'              => 'Y',
+                'created_by_username' => $username,
+                'created_at'          => $now,
+            ];
+        }
+
+        DB::connection('mysql')->transaction(function () use ($insert) {
+            foreach (array_chunk($insert, 500) as $chunk) {
+                DB::connection('mysql')->table('wip_adjustment_fabric_barcode')->insert($chunk);
+            }
+        });
+
+        return count($insert);
+    }
+
     // Simpan hasil import: 1 baris per kolom qty yang tidak 0
     private function simpanImport($typeReport, $data)
     {
         if ($typeReport == 'CUTTING_FABRIC') {
             return $this->simpanImportFabric($data);
+        }
+
+        if ($typeReport == 'CUTTING_FABRIC_BARCODE') {
+            return $this->simpanImportFabricBarcode($data);
         }
 
         $typeMap = $this->templateFields[$typeReport]['type_map'];
@@ -730,6 +808,10 @@ class WipAdjustmentController extends Controller
     private function queryData($typeReport, $dateFrom, $dateTo, &$filters = [])
     {
         $textColumns = array_values($this->templateFields[$typeReport]['text']);
+
+        // Kolom teks sesuai template (DC ikut panel & part)
+        $keyColumns = implode(', ', array_map(fn ($column) => "a.$column", $textColumns));
+
         $filters = [
             'tgl_saldo' => ["DATE_FORMAT(a.tgl_saldo, '%d-%m-%Y')", []],
         ];
@@ -738,21 +820,19 @@ class WipAdjustmentController extends Controller
             $filters[$column] = ["a.$column", []];
         }
 
-        if ($typeReport == 'CUTTING_FABRIC') {
-            $filters['type_report'] = ["'CUTTING FABRIC'", []];
+        if (isset($this->fabricTables[$typeReport])) {
+            $label = str_replace('_', ' ', $typeReport);
+            $filters['type_report'] = ["'$label'", []];
             $filters['fabric'] = ['a.qty', []];
 
             return DB::connection('mysql')
-                ->table('wip_adjustment_fabric as a')
+                ->table($this->fabricTables[$typeReport] . ' as a')
                 ->selectRaw("
                     a.id,
                     a.tgl_saldo AS tgl_saldo_raw,
                     DATE_FORMAT(a.tgl_saldo, '%d-%m-%Y') AS tgl_saldo,
-                    'CUTTING FABRIC' AS type_report,
-                    a.ws,
-                    a.id_roll,
-                    a.id_item,
-                    a.satuan,
+                    '$label' AS type_report,
+                    $keyColumns,
                     a.qty AS fabric,
                     a.type,
                     a.created_at,
@@ -761,7 +841,7 @@ class WipAdjustmentController extends Controller
                 ")
                 ->whereBetween('a.tgl_saldo', [$dateFrom, $dateTo])
                 ->orderBy('a.tgl_saldo', 'desc')
-                ->orderBy('a.ws')
+                ->when(in_array('ws', $textColumns), fn ($query) => $query->orderBy('a.ws'))
                 ->orderBy('a.id_roll');
         }
 
@@ -785,9 +865,6 @@ class WipAdjustmentController extends Controller
             $bindings = array_merge($bindings, $fieldBindings);
             $filters[$field] = [$expression, $fieldBindings];
         }
-
-        // Kolom teks sesuai template (DC ikut panel & part)
-        $keyColumns = implode(', ', array_map(fn ($column) => "a.$column", $textColumns));
 
         // Kolom proses hanya ada di report yang memakainya (SEWING)
         $typeColumn = $this->hasProses($typeMap) ? "CONCAT_WS(' - ', a.type_report, a.proses)" : 'a.type_report';
@@ -857,10 +934,11 @@ class WipAdjustmentController extends Controller
         }
 
         // Query dasar per potongan id: id yang masih aktif & sesuai jenis report
-        if ($type == 'CUTTING_FABRIC') {
+        if (isset($this->fabricTables[$type])) {
             $connection = 'mysql';
+            $table = $this->fabricTables[$type];
             $query = fn ($chunk) => DB::connection($connection)
-                ->table('wip_adjustment_fabric')
+                ->table($table)
                 ->whereIn('id', $chunk)
                 ->where('status', 'Y');
         } else {

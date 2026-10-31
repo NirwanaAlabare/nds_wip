@@ -8,6 +8,9 @@
 .nag-skin .dn-tabel-daftar .dn-aksi .btn.md-ikon-aktif:hover { background: #b91c1c; border-color: #b91c1c; }
 .nag-skin .dn-tabel-daftar .dn-aksi .btn.md-ikon-nonaktif { color: #94a3b8; border-color: #e2e8f0; background: #f8fafc; }
 .nag-skin .dn-tabel-daftar .dn-aksi .btn.md-ikon-nonaktif:hover { background: #15803d; border-color: #15803d; }
+/* Supplier Blocked: gelap, warna yang sama dengan pil Blocked */
+.nag-skin .dn-tabel-daftar .dn-aksi .btn.md-ikon-blokir   { color: #1e293b; border-color: #cbd5e1; background: #f1f5f9; }
+.nag-skin .dn-tabel-daftar .dn-aksi .btn.md-ikon-blokir:hover { background: #1e3a5f; border-color: #1e3a5f; }
 .nag-skin .dn-tabel-daftar .dn-aksi .btn.dn-ikon:disabled { opacity: .4; cursor: not-allowed; pointer-events: auto; }
 .nag-skin .dn-tabel-daftar .dn-aksi .btn.dn-ikon-ubah:disabled:hover { color: #1d4ed8; background: #f7faff; border-color: #cddcf8; }
 /* Baris tidak aktif dibuat redup supaya langsung kelihatan. */

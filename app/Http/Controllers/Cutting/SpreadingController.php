@@ -416,13 +416,20 @@ class SpreadingController extends Controller
     public function updateStatus(Request $request, StockerService $stockerService) {
 
         // Check Closing
-        $dataForm = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
+        $dataForm = FormCutInput::where("id", $request->edit_id_status)->first();
         if (!$dataForm->waktu_selesai) {
-            return array(
-                "status" => 400,
-                "message" => "Form belum memiliki waktu selesai.",
-                "additional" => ""
-            );
+            // When not superadmin
+            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form belum memiliki waktu selesai.",
+                    "additional" => ""
+                );
+            }
+
+            // Bypass for superadmin
+            $dataForm->waktu_selesai = Carbon::now()->toDateTimeString();
+            $dataForm->save();
         }
 
         if (checkClosingDate($dataForm->waktu_selesai)) {

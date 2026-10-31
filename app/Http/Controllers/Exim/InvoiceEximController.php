@@ -597,6 +597,7 @@ class InvoiceEximController extends Controller
             'group_so_number'     => $this->kolomArray($db, self::TABEL_DET, 'so_number', $id),
             // mPDF membaca logo dari berkas lokal, jadi yang dikirim path penuh.
             'logo'                => str_replace('\\', '/', public_path('img/nag_logo3.jpg')),
+            'penanda'             => self::TTD_INVOICE,
         );
     }
 
@@ -1342,14 +1343,14 @@ class InvoiceEximController extends Controller
 
         $bTtd = $b + 4;   // ruang kosong untuk tanda tangan basah
         $s->mergeCells('G' . $bTtd . ':H' . $bTtd);
-        $s->setCellValue('G' . $bTtd, 'Yus Yulius');
+        $s->setCellValue('G' . $bTtd, self::TTD_INVOICE['nama']);
         $s->getStyle('G' . $bTtd)->getAlignment()->setHorizontal('center');
         $s->getStyle('G' . $bTtd)->getFont()->setSize(10);
         $s->getStyle('G' . $bTtd . ':H' . $bTtd)->getBorders()->getBottom()
             ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         $s->mergeCells('G' . ($bTtd + 1) . ':H' . ($bTtd + 1));
-        $s->setCellValue('G' . ($bTtd + 1), 'Exim Manager');
+        $s->setCellValue('G' . ($bTtd + 1), self::TTD_INVOICE['jabatan']);
         $s->getStyle('G' . ($bTtd + 1))->getAlignment()->setHorizontal('center');
         $s->getStyle('G' . ($bTtd + 1))->getFont()->setSize(10);
 
@@ -1560,11 +1561,11 @@ class InvoiceEximController extends Controller
 
         $bTtd = $b + 5;   // ruang kosong untuk tanda tangan basah
         $s->mergeCells('E' . $bTtd . ':H' . $bTtd);
-        $s->setCellValue('E' . $bTtd, self::TTD_EXPORT['nama']);
+        $s->setCellValue('E' . $bTtd, self::TTD_INVOICE['nama']);
         $s->getStyle('E' . $bTtd)->getAlignment()->setHorizontal('center');
         $s->getStyle('E' . $bTtd . ':H' . $bTtd)->getBorders()->getBottom()->setBorderStyle($TIPIS);
         $s->mergeCells('E' . ($bTtd + 1) . ':H' . ($bTtd + 1));
-        $s->setCellValue('E' . ($bTtd + 1), self::TTD_EXPORT['jabatan']);
+        $s->setCellValue('E' . ($bTtd + 1), self::TTD_INVOICE['jabatan']);
         $s->getStyle('E' . ($bTtd + 1))->getAlignment()->setHorizontal('center');
 
         $this->aturCetakExcelLocal($s, 'A1:H' . ($bTtd + 2));
@@ -3623,7 +3624,7 @@ class InvoiceEximController extends Controller
                 'receiver'  => $this->barisAlamat($h['receiver_nama'], $h['receiver_alamat']),
             ),
             'kop'       => self::KOP_EXPORT,
-            'penanda'   => self::TTD_EXPORT,
+            'penanda'   => self::TTD_INVOICE,
             // mPDF membaca logo dari berkas lokal, jadi yang dikirim path penuh.
             'logo'      => str_replace('\\', '/', public_path('img/nag_logo3.jpg')),
         );
@@ -3639,8 +3640,8 @@ class InvoiceEximController extends Controller
         'telp'   => 'Phone : +62 22 8596 2076 / +62 22 8596 2081',
     );
 
-    /** Penanda tangan Invoice Export - sama dengan Invoice Local. */
-    const TTD_EXPORT = array('nama' => 'Yus Yulius', 'jabatan' => 'Exim Manager');
+    /** Penanda tangan "Approved By" semua cetakan Invoice EXIM: Local & Export, PDF & Excel. */
+    const TTD_INVOICE = array('nama' => 'Willy Fernandez', 'jabatan' => 'Finance Manager');
 
     /** Nama + alamat jadi daftar baris cetak; baris kosong dibuang. */
     private function barisAlamat($nama, $alamat)

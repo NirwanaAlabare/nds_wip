@@ -2017,7 +2017,7 @@ class PartController extends Controller
         return DataTables::of($list_part)->toJson();
     }
 
-    public function cancelPartDetail($id=0) {
+    public function cancelPartDetail(Request $request, $id=0) {
         $partDetail = PartDetail::with('masterPart')->find($id);
 
         if ($partDetail) {
@@ -2049,9 +2049,29 @@ class PartController extends Controller
             ]);
 
             if ($partDetailUpdate) {
+                // Opsi : ikut cancel stocker yang sudah di-print
+                $cancelStockerMessage = "";
+                if ($request->cancel_stocker == 1) {
+                    $printedStockers = Stocker::where('part_detail_id', $partDetail->id)
+                        ->where(function ($query) {
+                            $query->whereNull('cancel')->orWhere('cancel', '!=', 'y');
+                        });
+
+                    Log::channel('deletePartDetail')->info([
+                        "Cancel Part Detail With Printed Stocker",
+                        "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                        $partDetail,
+                        (clone $printedStockers)->get(),
+                    ]);
+
+                    $cancelledStocker = $printedStockers->update(["cancel" => "y"]);
+
+                    $cancelStockerMessage = '<br>'.$cancelledStocker.' stocker ikut di-cancel.';
+                }
+
                 return array(
                     'status' => 200,
-                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil diupdate menjadi Inactive. <br> "'.$partDetail->id.'"',
+                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil diupdate menjadi Inactive. <br> "'.$partDetail->id.'"'.$cancelStockerMessage,
                     'redirect' => '',
                     'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
                     'additional' => [],
@@ -2092,17 +2112,6 @@ class PartController extends Controller
                 }
             }
 
-            // Check Part Form
-            if (PartForm::where('part_id', $partDetail->part_id)->exists()) {
-                return array(
-                    'status' => 400,
-                    'message' => 'Part sudah memiliki Form Cut, tidak dapat diubah.',
-                    'redirect' => '',
-                    'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
-                    'additional' => [],
-                );
-            }
-
             // Update Part Detail Status to Inactive
             $partDetailUpdate = $partDetail->update([
                "status" => "active",
@@ -2111,9 +2120,25 @@ class PartController extends Controller
             ]);
 
             if ($partDetailUpdate) {
+                $cancelledStocker = Stocker::where('part_detail_id', $partDetail->id)
+                    ->where(function ($query) {
+                        $query->where('cancel', '=', 'y');
+                    });
+
+                Log::channel('deletePartDetail')->info([
+                    "Cancel Part Detail With Printed Stocker",
+                    "By ".(Auth::user() ? Auth::user()->id." ".Auth::user()->username : "System"),
+                    $partDetail,
+                    (clone $cancelledStocker)->get(),
+                ]);
+
+                $uncancelStocker = $cancelledStocker->update(["cancel" => "n"]);
+
+                $uncancelStockerMessage = '<br>'.$uncancelStocker.' stocker ikut di restore.';
+
                 return array(
                     'status' => 200,
-                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil diupdate menjadi Active. <br> "'.$partDetail->id.'"',
+                    'message' => 'Part Detail <br> "'.$partDetail->masterPart->nama_part.'" <br> berhasil diupdate menjadi Active. <br> "'.$partDetail->id.'" <br> '.$uncancelStockerMessage,
                     'redirect' => '',
                     'table' => $partDetail->part_status == 'complement' ? 'datatable_list_part_complement' : 'datatable_list_part',
                     'additional' => [],

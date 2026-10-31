@@ -180,37 +180,37 @@ group by buyer");
         $ctn_akhir = $request->txtctn_akhir;
         $ins_tmp_fg =  DB::insert("INSERT into fg_fg_retur_tmp
         (id_fg_in,buyer,po,notes,no_carton,dest,created_at,updated_at,created_by)
-select
-b.id id_fg_in,
-a.buyer,
-a.po,
-b.notes,
-a.no_carton,
-a.dest,
-'$timestamp',
-'$timestamp',
-'$user'
-from
-(
-select
-m.buyer,a.po,a.barcode, a.no_carton, a.dest, a.id_so_det, a.qty
-from packing_master_packing_list	a
-inner join ppic_master_so p on a.id_ppic_master_so = p.id
-inner join master_sb_ws m on p.id_so_det = m.id_so_det
-where m.buyer = '$buyer' and a.po = '$po' and a.dest = '$dest' and cast(a.no_carton as int) >= '$ctn_awal' and cast(a.no_carton as int) <= '$ctn_akhir'
-)a
-left join
-(
-select id,po,barcode, no_carton, dest, id_so_det, sum(qty) qty_fg, notes from fg_fg_in where po = '$po' and dest = '$dest' and cast(no_carton as int) >= '$ctn_awal' and cast(no_carton as int) <= '$ctn_akhir' and status = 'NORMAL'
-group by no_carton, barcode, po, dest
-) b on a.po = b.po and a.barcode = b.barcode and a.no_carton = b.no_carton and a.id_so_det = b.id_so_det
-left join
-(
-select po,barcode, no_carton, dest, id_so_det, sum(qty) qty_fg_out from fg_fg_out where po = '$po' and dest = '$dest' and cast(no_carton as int) >= '$ctn_awal' and cast(no_carton as int) <= '$ctn_akhir' and status = 'NORMAL'
-group by no_carton, barcode, po, dest
-) c on a.po = c.po and a.barcode = c.barcode and a.no_carton = c.no_carton and a.id_so_det = c.id_so_det
-where qty = coalesce(qty_fg,0) and coalesce(qty_fg_out,0) = '0'
-order by po asc, no_carton asc ");
+            select
+            b.id id_fg_in,
+            a.buyer,
+            a.po,
+            b.notes,
+            a.no_carton,
+            a.dest,
+            '$timestamp',
+            '$timestamp',
+            '$user'
+            from
+            (
+            select
+            m.buyer,a.po,a.barcode, a.no_carton, a.dest, a.id_so_det, a.qty
+            from packing_master_packing_list	a
+            inner join ppic_master_so p on a.id_ppic_master_so = p.id
+            inner join master_sb_ws m on p.id_so_det = m.id_so_det
+            where m.buyer = '$buyer' and a.po = '$po' and a.dest = '$dest' and cast(a.no_carton as unsigned) >= '$ctn_awal' and cast(a.no_carton as unsigned) <= '$ctn_akhir'
+            )a
+            left join
+            (
+            select id,po,barcode, no_carton, dest, id_so_det, sum(qty) qty_fg, notes from fg_fg_in where po = '$po' and dest = '$dest' and cast(no_carton as unsigned) >= '$ctn_awal' and cast(no_carton as unsigned) <= '$ctn_akhir' and status = 'NORMAL'
+            group by no_carton, barcode, po, dest
+            ) b on a.po = b.po and a.barcode = b.barcode and a.no_carton = b.no_carton and a.id_so_det = b.id_so_det
+            left join
+            (
+            select po,barcode, no_carton, dest, id_so_det, sum(qty) qty_fg_out from fg_fg_out where po = '$po' and dest = '$dest' and cast(no_carton as unsigned) >= '$ctn_awal' and cast(no_carton as unsigned) <= '$ctn_akhir' and status = 'NORMAL'
+            group by no_carton, barcode, po, dest
+            ) c on a.po = c.po and a.barcode = c.barcode and a.no_carton = c.no_carton and a.id_so_det = c.id_so_det
+            where qty = coalesce(qty_fg,0) and coalesce(qty_fg_out,0) = '0'
+            order by po asc, no_carton asc ");
     }
 
 
@@ -237,7 +237,7 @@ order by po asc, no_carton asc ");
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
         left join master_size_new msn on m.size = msn.size
         where tmp.created_by = '$user'
-        order by po asc, cast(tmp.no_carton as int) asc, color asc, urutan asc
+        order by po asc, cast(tmp.no_carton as unsigned) asc, color asc, urutan asc
             ");
 
 
@@ -299,7 +299,7 @@ order by po asc, no_carton asc ");
         inner join master_sb_ws m on p.id_so_det = m.id_so_det
         left join master_size_new msn on m.size = msn.size
         where tmp.created_by = '$user' and a.status = 'NORMAL'
-        order by po asc, cast(tmp.no_carton as int) asc, color asc, urutan asc
+        order by po asc, cast(tmp.no_carton as UNSIGNED) asc, color asc, urutan asc
             ");
 
 

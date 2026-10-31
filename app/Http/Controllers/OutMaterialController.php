@@ -152,12 +152,12 @@ class OutMaterialController extends Controller
         DB::connection('mysql_sb')->delete("DELETE FROM whs_bppb_det_temp WHERE created_by = ? ", [Auth::user()->name]);
 
 
-        return view('outmaterial.edit-outmaterial', ['det_data' => $det_data, 'data_out' => $data_out, 'no_req' => $no_req, 'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
+        return view('outmaterial.edit-outmaterial', ['det_data' => $det_data, 'data_out' => $data_out, 'tgl_req' => $this->getTglRequest($data_out->no_req ?? null), 'no_req' => $no_req, 'kode_gr' => $kode_gr,'jns_klr' => $jns_klr,'pch_type' => $pch_type,'mtypebc' => $mtypebc,'msupplier' => $msupplier,'arealok' => $arealok,'unit' => $unit ,'no_po' => $no_po, 'min_tgl_ro' => $this->getMinTglRo(), 'closed_periods' => $this->getClosedPeriods(), 'page' => 'dashboard-warehouse']);
     }
 
     public function getdetailreq(Request $request)
     {
-        $data = DB::connection('mysql_sb')->select("select a.id_jo,a.id_supplier,s.supplier,jo_no,ac.kpno idws,b.supplier buyer, a.idws_act, a.style_act from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier inner join jo on a.id_jo=jo.id left join jo_det jod on a.id_jo=jod.id_jo left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id inner join mastersupplier b on ac.id_buyer=b.id_supplier where bppbno='".$request->no_req."' limit 1");
+        $data = DB::connection('mysql_sb')->select("select a.id_jo,a.id_supplier,s.supplier,jo_no,ac.kpno idws,b.supplier buyer, a.idws_act, a.style_act, (select min(x.bppbdate) from bppb_req x where x.bppbno = a.bppbno) tgl_req from bppb_req a inner join mastersupplier s on a.id_supplier=s.id_supplier inner join jo on a.id_jo=jo.id left join jo_det jod on a.id_jo=jod.id_jo left join so on jod.id_so=so.id left join act_costing ac on so.id_cost=ac.id inner join mastersupplier b on ac.id_buyer=b.id_supplier where bppbno='".$request->no_req."' limit 1");
 
         return $data;
     }
@@ -702,6 +702,11 @@ class OutMaterialController extends Controller
             return ['status' => 400, 'message' => "Tgl BPPB $tglbppb berada pada periode yang sudah closed.", 'additional' => [], 'redirect' => ''];
         }
 
+        $tgl_req = $this->getTglRequest($request['txt_noreq']);
+        if ($tgl_req && $tglbppb < $tgl_req) {
+            return ['status' => 400, 'message' => "Tgl BPPB tidak boleh sebelum tanggal request " . e($request['txt_noreq']) . " ($tgl_req).", 'additional' => [], 'redirect' => ''];
+        }
+
         // Validasi akhir: total qty out per barcode di temp tidak boleh melebihi stok akurat saat disimpan
         if ($stockError = $this->validateQtyOutAgainstStock($this->getTempQtyOutByBarcode())) {
             return ['status' => 400, 'message' => $stockError, 'additional' => [], 'redirect' => ''];
@@ -828,6 +833,14 @@ class OutMaterialController extends Controller
                 $qtyReqChanged = $this->syncBppbReqQty($bppbno_int, $id_item) || $qtyReqChanged;
             }
 
+            // Tgl BPPB beda dengan tanggal request dan user memilih tanggal request ikut diubah
+            $tglReqChanged = false;
+            if ($request['txt_ubah_tgl_req'] == '1') {
+                $tglReqChanged = DB::connection('mysql_sb')->table('bppb_req')
+                    ->where('bppbno', $request['txt_noreq'])
+                    ->update(['bppbdate' => $tglbppb]) > 0;
+            }
+
             $this->logRawQueryActivity('Create BPPB', $bppbno_int, DB::connection('mysql_sb')->getQueryLog());
             DB::connection('mysql_sb')->flushQueryLog();
 
@@ -847,6 +860,9 @@ class OutMaterialController extends Controller
         $massage = $bppbno_int . ' Saved Succesfully';
         if ($qtyReqChanged) {
             $massage .= '<br><small class="text-danger">Qty Request ikut terupdate.</small>';
+        }
+        if ($tglReqChanged) {
+            $massage .= '<br><small class="text-danger">Tanggal Request ' . e($request['txt_noreq']) . ' diubah menjadi ' . e($tglbppb) . '.</small>';
         }
         $stat = 200;
 
@@ -1297,6 +1313,14 @@ public function pdfoutmaterial(Request $request, $id)
 
             $bppb = DB::connection('mysql_sb')->select("select * from whs_bppb_h where id = '" . $id . "' LIMIT 1");
             $bppbno_int = $bppb ? $bppb[0]->no_bppb : null;
+            $no_req = $bppb ? $bppb[0]->no_req : null;
+
+            // Hanya dicek kalau Tgl BPPB diubah; data lama yang tanggalnya sudah sebelum request dibiarkan
+            $tgl_req = $this->getTglRequest($no_req);
+            $tglBppbBerubah = !$bppb || $bppb[0]->tgl_bppb != $tglbppb;
+            if ($tglBppbBerubah && $tgl_req && $tglbppb < $tgl_req) {
+                return ['status' => 400, 'message' => "Tgl BPPB tidak boleh sebelum tanggal request " . e($no_req) . " ($tgl_req).", 'additional' => [], 'redirect' => ''];
+            }
 
             DB::connection('mysql_sb')->beginTransaction();
 
@@ -1327,10 +1351,12 @@ public function pdfoutmaterial(Request $request, $id)
                     'remark'    => $request['txt_notes'],
                 ]);
 
-                if (!empty($request['txt_noreq'])) {
-                    DB::connection('mysql_sb')->table('bppb_req')
-                        ->where('bppbno', $request['txt_noreq'])
-                        ->update(['bppbdate' => $request['txt_tgl_bppb']]);
+                // Tgl BPPB beda dengan tanggal request dan user memilih tanggal request ikut diubah
+                $tglReqChanged = false;
+                if ($tglBppbBerubah && !empty($no_req) && $request['txt_ubah_tgl_req'] == '1') {
+                    $tglReqChanged = DB::connection('mysql_sb')->table('bppb_req')
+                        ->where('bppbno', $no_req)
+                        ->update(['bppbdate' => $tglbppb]) > 0;
                 }
 
                 $this->logRawQueryActivity('Edit BPPB', $bppbno_int, DB::connection('mysql_sb')->getQueryLog());
@@ -1344,6 +1370,9 @@ public function pdfoutmaterial(Request $request, $id)
             }
 
             $massage = 'Edit Data Successfully';
+            if ($tglReqChanged) {
+                $massage .= '<br><small class="text-danger">Tanggal Request ' . e($no_req) . ' diubah menjadi ' . e($tglbppb) . '.</small>';
+            }
 
             return array(
                 "status" => 200,
@@ -1535,6 +1564,16 @@ public function pdfoutmaterial(Request $request, $id)
     // jadi setiap kali qty di dokumen BPPB Out berubah (edit qty roll, tambah scan/manual,
     // cancel), qty_out di bppb_req harus disinkronkan ulang (dihitung dari total semua
     // dokumen BPPB Out untuk item tsb). Return true kalau nilainya berubah dari sebelumnya.
+    // Tanggal request; kalau baris request punya tanggal berbeda, ambil yang paling awal
+    private function getTglRequest($no_req)
+    {
+        if (empty($no_req)) {
+            return null;
+        }
+
+        return DB::connection('mysql_sb')->table('bppb_req')->where('bppbno', $no_req)->min('bppbdate');
+    }
+
     private function syncBppbReqQty($bppbno_int, $id_item)
     {
         $no_req = DB::connection('mysql_sb')->table('whs_bppb_h')->where('no_bppb', $bppbno_int)->value('no_req');

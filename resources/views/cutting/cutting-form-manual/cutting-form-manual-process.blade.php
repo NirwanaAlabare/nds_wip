@@ -1298,6 +1298,9 @@
                         document.getElementById('style').value = res.styleno;
                     }
                 },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                }
             });
         }
 
@@ -1333,6 +1336,9 @@
                         document.getElementById('cons_ws_marker').value = null;
                     }
                 },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                }
             });
         }
 
@@ -1363,6 +1369,9 @@
                         }
                     }
                 },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                }
             });
         }
 
@@ -1476,6 +1485,9 @@
                     if (res) {
                         document.getElementById('urutan_marker').value = res;
                     }
+                },
+                error: function(jqXHR) {
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
                 }
             });
         }
@@ -1542,7 +1554,7 @@
                     }
                 },
                 error: function (jqXHR) {
-                    console.log(jqXHR);
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
                 }
             });
         }
@@ -1578,7 +1590,7 @@
                     }
                 },
                 error: function(jqXHR) {
-                    console.error(jqXHR);
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
                 }
             });
         }
@@ -1772,7 +1784,9 @@
                         }
                     };
 
-                    location.reload();
+                    showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                    
+                    // location.reload();
                 }
             });
         }
@@ -1941,6 +1955,9 @@
                                 if (res) {
                                     window.location = res.redirect;
                                 }
+                            },
+                            error: function(jqXHR) {
+                                showAjaxError(jqXHR, 'Terjadi kesalahan.');
                             }
                         })
                     }
@@ -2012,6 +2029,9 @@
                         }
 
                         document.getElementById("loading").classList.add("d-none");
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -2126,6 +2146,8 @@
                                 i++;
                             }
                         };
+
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
@@ -3553,6 +3575,9 @@
                             })
                         }
                     },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
+                    }
                 });
 
                 $("#select_item").prop("disabled", false);
@@ -3658,6 +3683,9 @@
                                     $('#spreading-form-card').CardWidget('collapse');
                                 }
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -3935,6 +3963,9 @@
                                     summaryData = res;
                                     setSummary(summaryData);
                                 }
+                            },
+                            error: function(jqXHR) {
+                                showAjaxError(jqXHR, 'Terjadi kesalahan.');
                             }
                         });
                     }
@@ -4420,6 +4451,9 @@
                             if (res.count > 0) {
                                 setTimeRecordLap(res.data);
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -4697,6 +4731,9 @@
                             if (res.count > 0) {
                                 setLostTime(res.data);
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -4831,6 +4868,9 @@
                             if (res) {
                                 console.log(res);
                             }
+                        },
+                        error: function(jqXHR) {
+                            showAjaxError(jqXHR, 'Terjadi kesalahan.');
                         }
                     });
                 }
@@ -4977,6 +5017,9 @@
 
                             sumNewSambungan();
                         }
+                    },
+                    error: function(jqXHR) {
+                        showAjaxError(jqXHR, 'Terjadi kesalahan.');
                     }
                 });
             }
