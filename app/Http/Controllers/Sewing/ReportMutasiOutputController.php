@@ -41,7 +41,7 @@ class ReportMutasiOutputController extends Controller
         $end_date = $end_date;
         $prev_date = date('Y-m-d', strtotime($start_date . ' -1 day'));
         $tgl_saldo = '2026-03-01';
-        $buyer = $buyer;
+        $buyer = addslashes($buyer ?? '');
 
         DB::statement("CALL get_secondary_proses_per_proses()");
 
@@ -49,11 +49,13 @@ class ReportMutasiOutputController extends Controller
             $filter = "WHERE buyer = '$buyer'";
             $filter_subcont = " AND buyer = '$buyer'";
             $filter_loading = " AND buyer = '$buyer'";
+            $filter_final = "WHERE a.buyer = '$buyer'";
             $filter_terima_gudang = " AND Supplier = '$buyer'";
         } else {
             $filter = '';
             $filter_subcont = '';
             $filter_loading = '';
+            $filter_final = '';
             $filter_terima_gudang = '';
         }
 
@@ -4851,6 +4853,7 @@ class ReportMutasiOutputController extends Controller
             from query_keluar_packing
             ) a
             LEFT JOIN laravel_nds.sewing_temp ON sewing_temp.buyer = a.buyer and sewing_temp.style = a.styleno and sewing_temp.ws = a.ws and sewing_temp.color = a.color and sewing_temp.size = a.size
+            $filter_final
             GROUP BY a.buyer, a.ws, a.styleno, a.color, a.size
         ";
 
