@@ -33,6 +33,8 @@ class SewingReworkSpotcleaningReportController extends Controller
                 COUNT(a.id) AS qty_rework_spotcleaning
             FROM signalbit_erp.output_defects a
             INNER JOIN signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
+            LEFT JOIN signalbit_erp.output_undo c ON c.output_defect_id = a.id
+            LEFT JOIN signalbit_erp.output_reject_in reject_in ON reject_in.reject_id = c.output_reject_id AND reject_in.output_type = 'qc' AND reject_in.status = 'reworked' AND reject_in.updated_at <= a.updated_at
             INNER JOIN signalbit_erp.so_det sd ON a.so_det_id = sd.id
             INNER JOIN signalbit_erp.so ON sd.id_so = so.id
             INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
@@ -43,6 +45,7 @@ class SewingReworkSpotcleaningReportController extends Controller
               AND a.defect_status IN ('REWORKED', 'REJECTED')
               AND a.updated_at >= ?
               AND a.updated_at <= ?
+              AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id IS NULL ELSE 1=1 END)
               AND jd.cancel = 'N'
               $buyerFilter
             GROUP BY ms.supplier, ac.kpno, ac.styleno, sd.color, sd.size, msn.urutan
