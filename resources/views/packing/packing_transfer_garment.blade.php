@@ -23,6 +23,12 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-2">
+                        <a onclick="export_excel_stok_temporary()" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-file-excel fa-sm"></i>
+                            Export Excel
+                        </a>
+                    </div>
                     <div class='row'>
                         <div class="col-md-12 table-responsive">
                             <table id="datatable_stok_temporary"
@@ -389,7 +395,9 @@
             ordering: false,
             processing: true,
             serverSide: true,
-            paging: false,
+            paging: true,
+            pageLength: 10,
+            lengthChange: false,
             searching: true,
             scrollY: true,
             scrollX: true,
@@ -476,6 +484,45 @@
 
                     }
                 },
+            });
+        }
+
+        function export_excel_stok_temporary() {
+            Swal.fire({
+                title: 'Please Wait...',
+                html: 'Exporting Data...',
+                didOpen: () => {
+                    Swal.showLoading()
+                },
+                allowOutsideClick: false,
+            });
+
+            $.ajax({
+                type: "get",
+                url: '{{ route('export_excel_stok_temporary') }}',
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    Swal.fire({
+                        title: 'Data Sudah Di Export!',
+                        icon: "success",
+                        showConfirmButton: true,
+                        allowOutsideClick: false
+                    });
+                    var blob = new Blob([response]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Stok Temporary " + new Date().toISOString().slice(0, 10) + ".xlsx";
+                    link.click();
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Export Gagal!',
+                        icon: "error",
+                        showConfirmButton: true
+                    });
+                }
             });
         }
     </script>
