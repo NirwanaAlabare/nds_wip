@@ -230,7 +230,7 @@ class ReportMutasiOutputController extends Controller
                                         date(a.created_at)
                                         UNION ALL
                                     SELECT
-                                        so_det_id,
+                                        a.so_det_id,
                                                     date(a.updated_at) tgl_defect,
                                                     '0' as defect_sewing,
                                                     '0' as defect_spotcleaning,
@@ -240,12 +240,15 @@ class ReportMutasiOutputController extends Controller
                                         SUM(CASE WHEN allocation = 'mending' AND defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_mending
                                     FROM signalbit_erp.output_defects a
                                     INNER JOIN signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
+                                    LEFT JOIN signalbit_erp.output_undo c on c.output_defect_id = a.id
+                                    LEFT join signalbit_erp.output_reject_in reject_in on reject_in.reject_id = c.output_reject_id and reject_in.output_type = 'qc' and reject_in.status = 'reworked' and reject_in.updated_at <= a.updated_at
                                     WHERE
                                         allocation IN ('SEWING', 'spotcleaning', 'mending')
                                         AND (a.updated_at >= '$start_date 00:00:00') AND (a.updated_at <= '$end_date 23:59:59')
                                         AND defect_status IN ('REWORKED','REJECTED')
+                                        AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id is null ELSE 1=1 END)
                                     GROUP BY
-                                        so_det_id,
+                                        a.so_det_id,
                                         date(a.updated_at)
                                 ) defect
                                 GROUP BY
@@ -266,6 +269,8 @@ class ReportMutasiOutputController extends Controller
                 select
                 a.so_det_id,
                 date(a.updated_at) tgl_reject,
+                SUM(CASE WHEN a.output_defect_id > 0 AND a.updated_at > '2026-10-31 23:59:59' AND a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_defect_awal,
+                SUM(CASE WHEN a.output_defect_id > 0 AND a.updated_at > '2026-10-31 23:59:59' AND a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_defect,
                 SUM(CASE WHEN a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_reject_awal,
                 SUM(CASE WHEN a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_reject
                 from signalbit_erp.output_undo a
@@ -314,7 +319,7 @@ class ReportMutasiOutputController extends Controller
                                         date(a.created_at)
                                         UNION ALL
                                     SELECT
-                                        so_det_id,
+                                        a.so_det_id,
                                         DATE(a.updated_at) as tgl_defect,
                                                     '0' as defect_sewing,
                                                     '0' as defect_spotcleaning,
@@ -324,12 +329,15 @@ class ReportMutasiOutputController extends Controller
                                         SUM(CASE WHEN allocation = 'mending' AND defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_mending
                                     FROM signalbit_erp.output_defects_packing a
                                     INNER JOIN signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
+                                    LEFT JOIN signalbit_erp.output_undo_packing c on c.output_defect_id = a.id
+                                    LEFT join signalbit_erp.output_reject_in reject_in on reject_in.reject_id = c.output_reject_id and reject_in.output_type = 'packing' and reject_in.status = 'reworked' and reject_in.updated_at <= a.updated_at
                                     WHERE
                                         allocation IN ('SEWING', 'spotcleaning', 'mending')
                                         AND (a.updated_at >= '$start_date 00:00:00') AND (a.updated_at <= '$end_date 23:59:59')
                                         AND defect_status IN ('REWORKED','REJECTED')
+                                        AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id is null ELSE 1=1 END)
                                     GROUP BY
-                                        so_det_id,
+                                        a.so_det_id,
                                         date(a.updated_at)
                                 ) defect
                                 GROUP BY
@@ -350,6 +358,8 @@ class ReportMutasiOutputController extends Controller
                 select
                 a.so_det_id,
                 date(a.updated_at) tgl_reject,
+                SUM(CASE WHEN a.output_defect_id > 0 AND a.updated_at > '2026-10-31 23:59:59' AND a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_defect_awal,
+                SUM(CASE WHEN a.output_defect_id > 0 AND a.updated_at > '2026-10-31 23:59:59' AND a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_defect,
                 SUM(CASE WHEN a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_reject_awal,
                 SUM(CASE WHEN a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_reject
                 from signalbit_erp.output_undo_packing a
@@ -516,106 +526,106 @@ class ReportMutasiOutputController extends Controller
                 GROUP BY osor.so_det_id, date(osor.updated_at)
             ),
             -- secondary_proses_per_proses AS (
-            --     SELECT
-            --         os.so_det_id,
-            --         os.secondary_id,
-            --         tgl_proses,
-            --         SUM(COALESCE(os.total_in_before, 0)) AS total_in_before,
-            --         SUM(COALESCE(os.total_in, 0)) AS total_in,
-            --         SUM(COALESCE(os.rft_before, 0)) AS rft_before,
-            --         SUM(COALESCE(os.rft, 0)) AS rft,
-            --         SUM(COALESCE(os.defect_before, 0)) AS defect_before,
-            --         SUM(COALESCE(os.defect, 0)) AS defect,
-            --         SUM(COALESCE(os.rework_before, 0)) AS rework_before,
-            --         SUM(COALESCE(os.rework, 0)) AS rework,
-            --         SUM(COALESCE(os.reject_before, 0)) AS reject_before,
-            --         SUM(COALESCE(os.reject, 0)) AS reject,
-            --         SUM(COALESCE(os.reject_defect_before, 0)) AS reject_defect_before,
-            --         SUM(COALESCE(os.reject_defect, 0)) AS reject_defect
-            --     FROM (
-            --         /* TOTAL IN */
-            --         SELECT
-            --             r.so_det_id,
-            --             osi.secondary_id,
-            --             DATE(osi.updated_at) AS tgl_proses,
-            --             SUM(CASE WHEN DATE(osi.updated_at) >= '2026-03-01' AND DATE(osi.updated_at) <= '$prev_date' THEN 1 ELSE 0 END) AS total_in_before,
-            --             SUM(CASE WHEN DATE(osi.updated_at) >= '$start_date' THEN 1 ELSE 0 END) AS total_in,
-            --             0 AS rft_before, 0 AS rft,
-            --             0 AS defect_before, 0 AS defect,
-            --             0 AS rework_before, 0 AS rework,
-            --             0 AS reject_before, 0 AS reject,
-            --             0 AS reject_defect_before, 0 AS reject_defect
-            --         FROM output_secondary_in osi
-            --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
-            --         WHERE osi.updated_at <= '$end_date 23:59:59'
-            --         GROUP BY r.so_det_id, osi.secondary_id, DATE(osi.updated_at)
+                --     SELECT
+                --         os.so_det_id,
+                --         os.secondary_id,
+                --         tgl_proses,
+                --         SUM(COALESCE(os.total_in_before, 0)) AS total_in_before,
+                --         SUM(COALESCE(os.total_in, 0)) AS total_in,
+                --         SUM(COALESCE(os.rft_before, 0)) AS rft_before,
+                --         SUM(COALESCE(os.rft, 0)) AS rft,
+                --         SUM(COALESCE(os.defect_before, 0)) AS defect_before,
+                --         SUM(COALESCE(os.defect, 0)) AS defect,
+                --         SUM(COALESCE(os.rework_before, 0)) AS rework_before,
+                --         SUM(COALESCE(os.rework, 0)) AS rework,
+                --         SUM(COALESCE(os.reject_before, 0)) AS reject_before,
+                --         SUM(COALESCE(os.reject, 0)) AS reject,
+                --         SUM(COALESCE(os.reject_defect_before, 0)) AS reject_defect_before,
+                --         SUM(COALESCE(os.reject_defect, 0)) AS reject_defect
+                --     FROM (
+                --         /* TOTAL IN */
+                --         SELECT
+                --             r.so_det_id,
+                --             osi.secondary_id,
+                --             DATE(osi.updated_at) AS tgl_proses,
+                --             SUM(CASE WHEN DATE(osi.updated_at) >= '2026-03-01' AND DATE(osi.updated_at) <= '$prev_date' THEN 1 ELSE 0 END) AS total_in_before,
+                --             SUM(CASE WHEN DATE(osi.updated_at) >= '$start_date' THEN 1 ELSE 0 END) AS total_in,
+                --             0 AS rft_before, 0 AS rft,
+                --             0 AS defect_before, 0 AS defect,
+                --             0 AS rework_before, 0 AS rework,
+                --             0 AS reject_before, 0 AS reject,
+                --             0 AS reject_defect_before, 0 AS reject_defect
+                --         FROM output_secondary_in osi
+                --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
+                --         WHERE osi.updated_at <= '$end_date 23:59:59'
+                --         GROUP BY r.so_det_id, osi.secondary_id, DATE(osi.updated_at)
 
-            --         UNION ALL
+                --         UNION ALL
 
-            --         /* RFT & REWORK */
-            --         SELECT
-            --             r.so_det_id,
-            --             osi.secondary_id,
-            --             DATE(oso.updated_at) AS tgl_proses,
-            --             0 AS total_in_before, 0 AS total_in,
-            --             SUM(CASE WHEN DATE(oso.updated_at) >= '2026-03-01' AND DATE(oso.updated_at) <= '$prev_date' AND oso.status = 'rft' THEN 1 ELSE 0 END) AS rft_before,
-            --             SUM(CASE WHEN DATE(oso.updated_at) >= '$start_date' AND oso.status = 'rft' THEN 1 ELSE 0 END) AS rft,
-            --             0 AS defect_before, 0 AS defect,
-            --             SUM(CASE WHEN DATE(oso.updated_at) >= '2026-03-01' AND DATE(oso.updated_at) <= '$prev_date' AND oso.status = 'rework' THEN 1 ELSE 0 END) AS rework_before,
-            --             SUM(CASE WHEN DATE(oso.updated_at) >= '$start_date' AND oso.status = 'rework' THEN 1 ELSE 0 END) AS rework,
-            --             0 AS reject_before, 0 AS reject,
-            --             0 AS reject_defect_before, 0 AS reject_defect
-            --         FROM output_secondary_out oso
-            --         LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
-            --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
-            --         WHERE oso.status NOT IN ('defect', 'reject')
-            --             AND oso.updated_at <= '$end_date 23:59:59'
-            --         GROUP BY r.so_det_id, osi.secondary_id, DATE(oso.updated_at)
+                --         /* RFT & REWORK */
+                --         SELECT
+                --             r.so_det_id,
+                --             osi.secondary_id,
+                --             DATE(oso.updated_at) AS tgl_proses,
+                --             0 AS total_in_before, 0 AS total_in,
+                --             SUM(CASE WHEN DATE(oso.updated_at) >= '2026-03-01' AND DATE(oso.updated_at) <= '$prev_date' AND oso.status = 'rft' THEN 1 ELSE 0 END) AS rft_before,
+                --             SUM(CASE WHEN DATE(oso.updated_at) >= '$start_date' AND oso.status = 'rft' THEN 1 ELSE 0 END) AS rft,
+                --             0 AS defect_before, 0 AS defect,
+                --             SUM(CASE WHEN DATE(oso.updated_at) >= '2026-03-01' AND DATE(oso.updated_at) <= '$prev_date' AND oso.status = 'rework' THEN 1 ELSE 0 END) AS rework_before,
+                --             SUM(CASE WHEN DATE(oso.updated_at) >= '$start_date' AND oso.status = 'rework' THEN 1 ELSE 0 END) AS rework,
+                --             0 AS reject_before, 0 AS reject,
+                --             0 AS reject_defect_before, 0 AS reject_defect
+                --         FROM output_secondary_out oso
+                --         LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
+                --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
+                --         WHERE oso.status NOT IN ('defect', 'reject')
+                --             AND oso.updated_at <= '$end_date 23:59:59'
+                --         GROUP BY r.so_det_id, osi.secondary_id, DATE(oso.updated_at)
 
-            --         UNION ALL
+                --         UNION ALL
 
-            --         /* DEFECT */
-            --         SELECT
-            --             r.so_det_id,
-            --             osi.secondary_id,
-            --             DATE(osod.created_at) AS tgl_proses,
-            --             0 AS total_in_before, 0 AS total_in,
-            --             0 AS rft_before, 0 AS rft,
-            --             SUM(CASE WHEN DATE(osod.created_at) >= '2026-03-01' AND DATE(osod.created_at) <= '$prev_date' THEN 1 ELSE 0 END) AS defect_before,
-            --             SUM(CASE WHEN DATE(osod.created_at) >= '$start_date' THEN 1 ELSE 0 END) AS defect,
-            --             0 AS rework_before, 0 AS rework,
-            --             0 AS reject_before, 0 AS reject,
-            --             0 AS reject_defect_before, 0 AS reject_defect
-            --         FROM output_secondary_out_defect osod
-            --         LEFT JOIN output_secondary_out oso ON oso.id = osod.secondary_out_id
-            --         LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
-            --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
-            --         WHERE osod.created_at <= '$end_date 23:59:59'
-            --         GROUP BY r.so_det_id, osi.secondary_id, DATE(osod.created_at)
+                --         /* DEFECT */
+                --         SELECT
+                --             r.so_det_id,
+                --             osi.secondary_id,
+                --             DATE(osod.created_at) AS tgl_proses,
+                --             0 AS total_in_before, 0 AS total_in,
+                --             0 AS rft_before, 0 AS rft,
+                --             SUM(CASE WHEN DATE(osod.created_at) >= '2026-03-01' AND DATE(osod.created_at) <= '$prev_date' THEN 1 ELSE 0 END) AS defect_before,
+                --             SUM(CASE WHEN DATE(osod.created_at) >= '$start_date' THEN 1 ELSE 0 END) AS defect,
+                --             0 AS rework_before, 0 AS rework,
+                --             0 AS reject_before, 0 AS reject,
+                --             0 AS reject_defect_before, 0 AS reject_defect
+                --         FROM output_secondary_out_defect osod
+                --         LEFT JOIN output_secondary_out oso ON oso.id = osod.secondary_out_id
+                --         LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
+                --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
+                --         WHERE osod.created_at <= '$end_date 23:59:59'
+                --         GROUP BY r.so_det_id, osi.secondary_id, DATE(osod.created_at)
 
-            --         UNION ALL
+                --         UNION ALL
 
-            --         /* REJECT */
-            --         SELECT
-            --             r.so_det_id,
-            --             osi.secondary_id,
-            --             DATE(osor.updated_at) AS tgl_proses,
-            --             0 AS total_in_before, 0 AS total_in,
-            --             0 AS rft_before, 0 AS rft,
-            --             0 AS defect_before, 0 AS defect,
-            --             0 AS rework_before, 0 AS rework,
-            --             SUM(CASE WHEN DATE(osor.updated_at) >= '2026-03-01' AND DATE(osor.updated_at) <= '$prev_date' AND osor.status = 'mati' THEN 1 ELSE 0 END) AS reject_before,
-            --             SUM(CASE WHEN DATE(osor.updated_at) >= '$start_date' AND osor.status = 'mati' THEN 1 ELSE 0 END) AS reject,
-            --             SUM(CASE WHEN DATE(osor.updated_at) >= '2026-03-01' AND DATE(osor.updated_at) <= '$prev_date' AND osor.status = 'defect' THEN 1 ELSE 0 END) AS reject_defect_before,
-            --             SUM(CASE WHEN DATE(osor.updated_at) >= '$start_date' AND osor.status = 'defect' THEN 1 ELSE 0 END) AS reject_defect
-            --         FROM output_secondary_out_reject osor
-            --         LEFT JOIN output_secondary_out oso ON oso.id = osor.secondary_out_id
-            --         LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
-            --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
-            --         WHERE osor.updated_at <= '$end_date 23:59:59'
-            --         GROUP BY r.so_det_id, osi.secondary_id, DATE(osor.updated_at)
-            --     ) os
-            --     GROUP BY os.so_det_id, os.secondary_id, tgl_proses
+                --         /* REJECT */
+                --         SELECT
+                --             r.so_det_id,
+                --             osi.secondary_id,
+                --             DATE(osor.updated_at) AS tgl_proses,
+                --             0 AS total_in_before, 0 AS total_in,
+                --             0 AS rft_before, 0 AS rft,
+                --             0 AS defect_before, 0 AS defect,
+                --             0 AS rework_before, 0 AS rework,
+                --             SUM(CASE WHEN DATE(osor.updated_at) >= '2026-03-01' AND DATE(osor.updated_at) <= '$prev_date' AND osor.status = 'mati' THEN 1 ELSE 0 END) AS reject_before,
+                --             SUM(CASE WHEN DATE(osor.updated_at) >= '$start_date' AND osor.status = 'mati' THEN 1 ELSE 0 END) AS reject,
+                --             SUM(CASE WHEN DATE(osor.updated_at) >= '2026-03-01' AND DATE(osor.updated_at) <= '$prev_date' AND osor.status = 'defect' THEN 1 ELSE 0 END) AS reject_defect_before,
+                --             SUM(CASE WHEN DATE(osor.updated_at) >= '$start_date' AND osor.status = 'defect' THEN 1 ELSE 0 END) AS reject_defect
+                --         FROM output_secondary_out_reject osor
+                --         LEFT JOIN output_secondary_out oso ON oso.id = osor.secondary_out_id
+                --         LEFT JOIN output_secondary_in osi ON osi.id = oso.secondary_in_id
+                --         LEFT JOIN output_rfts r ON r.id = osi.rft_id
+                --         WHERE osor.updated_at <= '$end_date 23:59:59'
+                --         GROUP BY r.so_det_id, osi.secondary_id, DATE(osor.updated_at)
+                --     ) os
+                --     GROUP BY os.so_det_id, os.secondary_id, tgl_proses
             -- ),
             secondary_proses_per_proses AS (
                 SELECT
@@ -1386,7 +1396,7 @@ class ReportMutasiOutputController extends Controller
                     LEFT JOIN output_secondary_master ON output_secondary_master.id = secondary_proses_per_proses.secondary_id
                     UNION ALL
                     SELECT
-                        tgl_reject, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, 0 AS input_rework_sewing, 0 AS input_rework_spotcleaning, 0 AS input_rework_mending,
+                        tgl_reject, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, qty_sew_defect AS input_rework_sewing, 0 AS input_rework_spotcleaning, 0 AS input_rework_mending,
                         0 AS defect_sewing, 0 AS defect_spotcleaning, 0 AS defect_mending, qty_sew_reject, 0 AS qty_finishing,
                         0 AS input_rework_sewing_f, 0 AS input_rework_spotcleaning_f, 0 AS input_rework_mending_f,
                         0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
@@ -1413,7 +1423,7 @@ class ReportMutasiOutputController extends Controller
                     SELECT
                         tgl_reject, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, 0 AS input_rework_sewing, 0 AS input_rework_spotcleaning, 0 AS input_rework_mending,
                         0 AS defect_sewing, 0 AS defect_spotcleaning, 0 AS defect_mending, 0 AS qty_sew_reject, 0 AS qty_finishing,
-                        0 AS input_rework_sewing_f, 0 AS input_rework_spotcleaning_f, 0 AS input_rework_mending_f,
+                        qty_fin_defect AS input_rework_sewing_f, 0 AS input_rework_spotcleaning_f, 0 AS input_rework_mending_f,
                         0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                         qty_fin_reject,
                         0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
@@ -1721,7 +1731,7 @@ class ReportMutasiOutputController extends Controller
                         0 AS qty_loading_awal,
 
                         0 AS qty_sewing_awal,
-                        0 AS input_rework_sewing_awal,
+                        qty_sew_defect_awal AS input_rework_sewing_awal,
                         0 AS input_rework_spotcleaning_awal,
                         0 AS input_rework_mending_awal,
                         0 AS defect_sewing_awal,
@@ -1780,7 +1790,7 @@ class ReportMutasiOutputController extends Controller
                         0 qty_sew_reject_awal,
 
                         0 AS qty_finishing_awal,
-                        0 AS input_rework_sewing_f_awal,
+                        qty_fin_defect_awal AS input_rework_sewing_f_awal,
                         0 AS input_rework_spotcleaning_f_awal,
                         0 AS input_rework_mending_f_awal,
                         0 AS defect_sewing_f_awal,

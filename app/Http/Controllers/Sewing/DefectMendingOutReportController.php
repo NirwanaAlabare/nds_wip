@@ -29,21 +29,25 @@ class DefectMendingOutReportController extends Controller
             saldo_sewing_defect AS (
                 SELECT so_det_id, SUM(input_rework_mending) AS input_rework_mending
                 FROM (
-                    SELECT so_det_id, SUM(CASE WHEN allocation = 'mending' AND defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_mending
+                    SELECT a.so_det_id AS so_det_id, SUM(CASE WHEN allocation = 'mending' AND defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_mending
                     FROM signalbit_erp.output_defects a
                     INNER JOIN signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-                    WHERE allocation = 'mending' AND (a.updated_at >= '$startDate 00:00:00') AND (a.updated_at <= '$endDate 23:59:59') AND defect_status IN ('REWORKED','REJECTED')
-                    GROUP BY so_det_id
+                    LEFT JOIN signalbit_erp.output_undo c ON c.output_defect_id = a.id
+                    LEFT JOIN signalbit_erp.output_reject_in reject_in ON reject_in.reject_id = c.output_reject_id AND reject_in.output_type = 'qc' AND reject_in.status = 'reworked' AND reject_in.updated_at <= a.updated_at
+                    WHERE allocation = 'mending' AND (a.updated_at >= '$startDate 00:00:00') AND (a.updated_at <= '$endDate 23:59:59') AND defect_status IN ('REWORKED','REJECTED') AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id IS NULL ELSE 1=1 END)
+                    GROUP BY a.so_det_id
                 ) defect GROUP BY so_det_id
             ),
             saldo_finishing_defect AS (
                 SELECT so_det_id, SUM(input_rework_mending) AS input_rework_mending_f
                 FROM (
-                    SELECT so_det_id, SUM(CASE WHEN allocation = 'mending' AND defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_mending
+                    SELECT a.so_det_id AS so_det_id, SUM(CASE WHEN allocation = 'mending' AND defect_status IN ('REWORKED','REJECTED') THEN 1 ELSE 0 END) AS input_rework_mending
                     FROM signalbit_erp.output_defects_packing a
                     INNER JOIN signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
-                    WHERE allocation = 'mending' AND (a.updated_at >= '$startDate 00:00:00') AND (a.updated_at <= '$endDate 23:59:59') AND defect_status IN ('REWORKED','REJECTED')
-                    GROUP BY so_det_id
+                    LEFT JOIN signalbit_erp.output_undo_packing c ON c.output_defect_id = a.id
+                    LEFT JOIN signalbit_erp.output_reject_in reject_in ON reject_in.reject_id = c.output_reject_id AND reject_in.output_type = 'packing' AND reject_in.status = 'reworked' AND reject_in.updated_at <= a.updated_at
+                    WHERE allocation = 'mending' AND (a.updated_at >= '$startDate 00:00:00') AND (a.updated_at <= '$endDate 23:59:59') AND defect_status IN ('REWORKED','REJECTED') AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id IS NULL ELSE 1=1 END)
+                    GROUP BY a.so_det_id
                 ) defect GROUP BY so_det_id
             ),
             mut AS (
