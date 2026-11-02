@@ -2404,6 +2404,7 @@ class PartController extends Controller
             })->
             whereNotNull("part.act_costing_id")->
             where("part_detail.part_status", "!=", "complement")->
+            whereRaw("COALESCE(part_detail.status, 'active') = 'active'")->
             groupByRaw("
                 master_sb_ws.id_act_cost,
                 master_sb_ws.color,
