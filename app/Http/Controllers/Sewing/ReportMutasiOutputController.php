@@ -754,7 +754,7 @@ class ReportMutasiOutputController extends Controller
                 b.so_det_id,
                 date(a.created_at) tgl_reject,
                 SUM(CASE WHEN b.status = 'rejected' THEN 1 ELSE 0 END) AS qty_rejected,
-                SUM(CASE WHEN b.status = 'reworked' THEN 1 ELSE 0 END) AS qty_reworked,
+                SUM(CASE WHEN b.status = 'reworked' and b.output_type != 'qc_fns_pck_return' THEN 1 ELSE 0 END) AS qty_reworked,
                 SUM(CASE WHEN b.status = 'reworked' AND a.created_at >= '2026-09-01' and b.output_type = 'qc' THEN 1 ELSE 0 END) AS qty_reworked_qc,
                 SUM(CASE WHEN b.status = 'reworked' AND a.created_at >= '2026-09-01' and b.output_type = 'packing' THEN 1 ELSE 0 END) AS qty_reworked_finishing,
                 SUM(CASE WHEN b.status = 'reworked' AND a.created_at >= '2026-09-01' and b.output_type = 'finishing_proses' THEN 1 ELSE 0 END) AS qty_reworked_secondary,
@@ -2091,6 +2091,7 @@ class ReportMutasiOutputController extends Controller
                     + COALESCE(qty_reject_in_awal, 0)
                     - COALESCE(qty_rejected_awal, 0)
                     - COALESCE(qty_reworked_awal, 0)
+                    - COALESCE(qty_reworked_secondary_awal, 0)
                     AS saldo_awal_reject,
                     COALESCE(ss.qty_reject_in, 0) AS qty_reject_in,
                     COALESCE(ss.qty_rejected, 0) AS qty_rejected,
@@ -2108,10 +2109,12 @@ class ReportMutasiOutputController extends Controller
                     + COALESCE(qty_reject_in_awal, 0)
                     - COALESCE(qty_rejected_awal, 0)
                     - COALESCE(qty_reworked_awal, 0)
+                    - COALESCE(qty_reworked_secondary_awal, 0)
                     )
                     + COALESCE(ss.qty_reject_in, 0)
                     - COALESCE(ss.qty_rejected, 0)
-                    - COALESCE(ss.qty_reworked, 0) AS saldo_akhir_qc_reject,
+                    - COALESCE(ss.qty_reworked, 0)
+                    - COALESCE(ss.qty_reworked_secondary, 0) AS saldo_akhir_qc_reject,
                     COALESCE(ss.qty_transit_terima_sewing_before, 0) AS qty_transit_terima_sewing_before,
                     COALESCE(ss.qty_transit_terima_qc_finishing_before, 0) AS qty_transit_terima_qc_finishing_before,
                     COALESCE(ss.qty_transit_terima_finishing_before, 0) AS qty_transit_terima_finishing_before,
