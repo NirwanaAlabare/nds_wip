@@ -234,6 +234,15 @@ class CuttingToolsController extends Controller
                 }
             }
 
+            // Check Stocker WS Additional
+            $checkStockerWsAdditional = StockerAdditional::where("form_cut_id", $validatedRequest['modify_ratio_form_id'])->first();
+            if ($checkStockerWsAdditional) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada Stocker Additional."
+                );
+            }
+
             $oldMarker = Marker::where("kode", $validatedRequest['modify_ratio_kode_marker'])->first();
 
             $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
@@ -245,7 +254,7 @@ class CuttingToolsController extends Controller
                 $totalQty += $qty;
             }
 
-            if ($totalQty > 0) {
+            if ($totalQty != 0) {
                 $markerStore = Marker::create([
                     'tgl_cutting' => $oldMarker->tgl_cutting,
                     'kode' => $markerCode,
@@ -1181,7 +1190,15 @@ class CuttingToolsController extends Controller
 
         $file->move('file_upload',$nama_file);
 
-        $import = Excel::import(new importCuttingManual, public_path('/file_upload/'.$nama_file));
+        try {
+            $import = Excel::import(new importCuttingManual, public_path('/file_upload/'.$nama_file));
+        } catch (\Exception $e) {
+            return array(
+                "status" => 400,
+                "message" => $e->getMessage(),
+                "additional" => [],
+            );
+        }
 
         if ($import) {
             return array(
