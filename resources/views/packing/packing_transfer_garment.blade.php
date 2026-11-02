@@ -197,7 +197,7 @@
                     const badge = $('#badgeStokTemporary');
                     const total = parseInt(response.total_stok || 0);
 
-                    badge.text(total);
+                    badge.text(total.toLocaleString('id-ID'));
                     badge.show();
                 },
                 error: function() {
