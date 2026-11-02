@@ -1074,7 +1074,7 @@ class StockerRejectController extends Controller
 
             foreach ($similarStockers as $idx => $s) {
                 $i = $idx + 1;
-                $stockerIds[]         = $s->id;
+                $stockerIds[$i]       = $s->id;
                 $partDetailIds[$i]    = $s->part_detail_id;
                 $soDotIds[$i]         = $s->so_det_id;
                 $shades[$i]           = $s->shade;
@@ -1099,7 +1099,17 @@ class StockerRejectController extends Controller
                 'size'                 => $sizes,
             ]);
 
-            $result = $stockerProcessRejectService->storeStockerProcessReject($mockRequest, true);
+            // Gagal di satu stocker tidak menghentikan stocker berikutnya
+            try {
+                $result = $stockerProcessRejectService->storeStockerProcessReject($mockRequest, true);
+            } catch (\Throwable $e) {
+                report($e);
+
+                $result = [
+                    'status'  => 400,
+                    'message' => 'Data gagal disimpan : ' . $e->getMessage(),
+                ];
+            }
 
             // Tentukan show_id dan proses untuk URL detail
             $showId = $dcInId ?? $secondaryInhouseId ?? $secondaryInId;

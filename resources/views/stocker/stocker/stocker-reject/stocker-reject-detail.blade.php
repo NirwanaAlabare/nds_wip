@@ -467,7 +467,7 @@
                     console.log(response);
                 },
                 error: function (jqXHR) {
-                    document.getElementById("loading").classist.add("d-none")
+                    document.getElementById("loading").classList.add("d-none")
 
                     Swal.fire({
                         icon: 'error',
