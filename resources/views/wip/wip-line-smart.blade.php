@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" @if (!empty($lite)) class="lite" @endif>
 
 <head>
     <meta charset="UTF-8">
@@ -1302,7 +1302,7 @@
             }
         }
 
-        /* ---------- MODE LITE (?lite=1): untuk TV spek rendah, semua animasi & efek cahaya/bayangan dimatikan ---------- */
+        /* ---------- MODE LITE (route wip-line-smart-lite): untuk TV spek rendah, semua animasi & efek cahaya/bayangan dimatikan ---------- */
         .lite *,
         .lite *::before,
         .lite *::after {
@@ -1319,6 +1319,67 @@
         /* tanpa animasi, teks panjang tidak berjalan: tampil dari kiri & terpotong di ujung kartu */
         .lite .scroll-text.marquee {
             padding-left: 0;
+        }
+
+        /* slide tidak aktif dikeluarkan dari render (display:none), jadi ganti slide = langsung tampil tanpa efek */
+        .lite .slide {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+        }
+
+        .lite .slide:not(.active),
+        .lite .defect-frame:not(.active) {
+            display: none;
+        }
+
+        .lite .defect-frame.active,
+        .lite .defect-frame img,
+        .lite .defect-point {
+            opacity: 1;
+        }
+
+        /* gradient & dekorasi diganti warna polos: lebih murah digambar ulang di kanvas yang di-scale */
+        .lite body {
+            background: var(--bg);
+        }
+
+        .lite .order .circuit,
+        .lite .hud::before,
+        .lite .hud::after {
+            display: none;
+        }
+
+        .lite .kpi.target {
+            background: #0891b2;
+        }
+
+        .lite .kpi.output {
+            background: #0f766e;
+        }
+
+        .lite .kpi.variation {
+            background: #6d28d9;
+        }
+
+        .lite .kpi.eff {
+            background: #15803d;
+        }
+
+        .lite .kpi.defect {
+            background: #b91c1c;
+        }
+
+        .lite .hourly tr.break {
+            background: #fee2e2;
+        }
+
+        .lite .hourly tr.current {
+            background: #dff7fc;
+        }
+
+        .lite .defect-stage {
+            background: #f8fbff;
         }
     </style>
 </head>
@@ -1605,8 +1666,8 @@
         const lineId = @json($id);
         const params = new URLSearchParams(location.search);
         const testJam = params.get('jam'); // TEST JAM: ?jam=HH:MM menggantikan jam server
-        // ?lite=1 untuk TV spek rendah: matikan semua animasi & efek cahaya/bayangan (lihat CSS MODE LITE)
-        if (params.has('lite')) document.documentElement.classList.add('lite');
+        // class lite dipasang dari route wip-line-smart-lite
+        const LITE = document.documentElement.classList.contains('lite');
         const SLIDE_MS = 15000;
         const REFRESH_MS = 60000;
         const DEFECT_COLORS = ['#ec3032', '#fd8024', '#fffb45', '#2bff6b', '#c084fc'];
@@ -1628,6 +1689,10 @@
         const effTone = v => v >= 85 ? 'good' : (v >= 75 ? 'warn' : 'bad');
         let shift = null; // jam mulai & total menit kerja dari summary, untuk renderWorktime()
         let lastWorktime = null; // menit terakhir yang sudah ditampilkan
+        let lastProj = null; // argumen drawProjChart terakhir, untuk gambar ulang saat resize / slide 4 tampil
+        let imgTimer = null; // pergantian gambar defect, hanya jalan saat slide 3 tampil
+        let imgFrames = [],
+            imgDots = [];
         const worktimeFmt = new Intl.DateTimeFormat('en-US', {
             timeZone: 'Asia/Jakarta',
             weekday: 'short',
@@ -1663,10 +1728,14 @@
             year: 'numeric'
         });
 
+        // DOM hanya ditulis saat teksnya berubah; mode lite tanpa detik supaya jam cukup digambar ulang tiap menit
         function tick() {
             const now = new Date();
-            $('clock-time').textContent = timeFmt.format(now).replace(/\./g, ':');
-            $('clock-date').textContent = dateFmt.format(now);
+            const time = timeFmt.format(now).replace(/\./g, ':');
+            const clock = LITE ? time.slice(0, 5) : time;
+            const date = dateFmt.format(now);
+            if ($('clock-time').textContent !== clock) $('clock-time').textContent = clock;
+            if ($('clock-date').textContent !== date) $('clock-date').textContent = date;
             renderWorktime();
         }
         tick();
@@ -1682,6 +1751,9 @@
         function showSlide(i) {
             slideIndex = i;
             slides.forEach((s, k) => s.classList.toggle('active', k === i));
+            // mode lite: slide tersembunyi display:none (lebar 0), jadi grafik projection digambar saat slide-nya tampil
+            if (lastProj && slides[i].classList.contains('s4')) drawProjChart($('proj-chart'), ...lastProj);
+            startImgCycle();
         }
         // auto slide; diganti manual (geser/panah) -> hitungan 15 detik mulai ulang
         let slideTimer = null;
@@ -2110,7 +2182,6 @@
         }
 
         // ukuran SVG ikut ukuran kartu, jadi gambar ulang saat layar di-resize
-        let lastProj = null;
         addEventListener('resize', () => lastProj && drawProjChart($('proj-chart'), ...lastProj));
 
         // sumbu X = slot jam kerja (lebar sama), posisi "sekarang" di dalam jam berjalan dari realtime target
@@ -2209,7 +2280,22 @@
         }
 
         let lastDefectSignature = null;
-        let imgTimer = null;
+
+        // gambar defect berganti tiap 4,5 detik hanya saat slide 3 tampil, selalu mulai dari gambar pertama
+        function startImgCycle() {
+            clearInterval(imgTimer);
+            imgFrames.forEach((f, i) => f.classList.toggle('active', i === 0));
+            imgDots.forEach((d, i) => d.classList.toggle('on', i === 0));
+            if (imgFrames.length < 2 || !slides[slideIndex].classList.contains('s3')) return;
+            let k = 0;
+            imgTimer = setInterval(() => {
+                imgFrames[k].classList.remove('active');
+                imgDots[k].classList.remove('on');
+                k = (k + 1) % imgFrames.length;
+                imgFrames[k].classList.add('active');
+                imgDots[k].classList.add('on');
+            }, 4500);
+        }
 
         function renderDefect(data) {
             const defects = data.list_defect || [];
@@ -2239,12 +2325,13 @@
                 }).join('') :
                 `<div class="empty"><i class="fa-regular fa-face-smile"></i>Belum ada defect</div>`;
 
-            clearInterval(imgTimer);
             const stage = $('defect-stage');
             if (!images.length) {
                 stage.innerHTML = `<div class="empty"><i class="fa-regular fa-image"></i>Belum ada gambar</div>`;
                 $('img-dots').innerHTML = '';
-                return;
+                imgFrames = [];
+                imgDots = [];
+                return startImgCycle();
             }
             stage.innerHTML = images.map((g, i) => {
                 // hanya titik dari 5 defect teratas, supaya gambar selalu cocok dengan daftar
@@ -2259,18 +2346,9 @@
             $('img-dots').innerHTML = images.length > 1 ? images.map((_, i) => `<i class="${i === 0 ? 'on' : ''}"></i>`)
                 .join('') : '';
 
-            if (images.length > 1) {
-                let k = 0;
-                const frames = stage.querySelectorAll('.defect-frame');
-                const dots = $('img-dots').querySelectorAll('i');
-                imgTimer = setInterval(() => {
-                    frames[k].classList.remove('active');
-                    dots[k].classList.remove('on');
-                    k = (k + 1) % frames.length;
-                    frames[k].classList.add('active');
-                    dots[k].classList.add('on');
-                }, 4500);
-            }
+            imgFrames = [...stage.querySelectorAll('.defect-frame')];
+            imgDots = [...$('img-dots').querySelectorAll('i')];
+            startImgCycle();
         }
 
         // ---------- data ----------

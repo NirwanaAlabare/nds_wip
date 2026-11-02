@@ -43,6 +43,8 @@ class ReportMutasiOutputController extends Controller
         $tgl_saldo = '2026-03-01';
         $buyer = $buyer;
 
+        DB::statement("CALL get_secondary_proses_per_proses()");
+
         if (!empty($buyer)) {
             $filter = "WHERE buyer = '$buyer'";
             $filter_subcont = " AND buyer = '$buyer'";
