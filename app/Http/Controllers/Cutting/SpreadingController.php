@@ -7,6 +7,7 @@ use App\Models\Cutting\CutPlan;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailLap;
+use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Marker\Marker;
 use App\Models\Stocker\Stocker;
@@ -19,6 +20,7 @@ use App\Services\CuttingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
@@ -28,6 +30,15 @@ use PDF;
 
 class SpreadingController extends Controller
 {
+    // Status yang bisa dipilih di form ubah status
+    private $editableFormStatuses = [
+        'SPREADING',
+        'PENGERJAAN FORM CUTTING',
+        'PENGERJAAN FORM CUTTING DETAIL',
+        'PENGERJAAN FORM CUTTING SPREAD',
+        'SELESAI PENGERJAAN',
+    ];
+
     /**
      * Display a listing of the resource.
      *
@@ -413,102 +424,28 @@ class SpreadingController extends Controller
         );
     }
 
-    public function updateStatus(Request $request, StockerService $stockerService) {
-
-        // Check Closing
-        $dataForm = FormCutInput::where("id", $request->edit_id_status)->first();
-        if (!$dataForm->waktu_selesai) {
-            // When not superadmin
-            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
-                return array(
-                    "status" => 400,
-                    "message" => "Form belum memiliki waktu selesai.",
-                    "additional" => ""
-                );
-            }
-
-            // Bypass for superadmin
-            $dataForm->waktu_selesai = Carbon::now()->toDateTimeString();
-            $dataForm->save();
-        }
-
-        if (checkClosingDate($dataForm->waktu_selesai)) {
-            return array(
-                "status" => 400,
-                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
-                "additional" => "Closing"
-            );
-        }
-
-        $validatedRequest = $request->validate([
-            "edit_id_status" => "required",
-            "edit_status" => "required",
-        ]);
-
-        // If the form already has stockers (return error)
-        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
-            $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
-            if ($stockerForm) {
-                return array(
-                    'status' => 400,
-                    'message' => 'Form sudah memiliki stocker',
-                    'redirect' => '',
-                    'table' => 'datatable',
-                    'additional' => [],
-                );
-            }
-        }
-
-        // If the form only has part form (delete part form & reorder)
-        $partForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->first();
-        if ($partForm) {
-            // Delete part form
-            $deletePartForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->delete();
-
-            if ($deletePartForm) {
-                // Reorder part form group
-                $stockerService->reorderStockerNumbering($partForm->part_id);
-            }
-        }
-
-        $updateStatusForm = FormCutInput::where('id', $validatedRequest['edit_id_status'])->update([
-            'status' => $validatedRequest['edit_status'],
-            'edited' => 1,
-            'edited_by' => Auth::user()->id,
-            'edited_by_username' => Auth::user()->username,
-            'edited_at' => Carbon::now(),
-            'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
-        ]);
-
-        if ($updateStatusForm) {
-            $updatedData = FormCutInput::where('id', $validatedRequest['edit_id_status'])->first();
-            return array(
-                'status' => 201,
-                'message' => 'Form  "' . $updatedData->no_form. '" berhasil diubah ke status '.$validatedRequest['edit_status'].'. ',
-                'redirect' => '',
-                'table' => 'datatable',
-                'additional' => [],
-            );
-        }
-
-        return array(
-            'status' => 400,
-            'message' => 'Data produksi gagal diubah',
-            'redirect' => '',
-            'table' => 'datatable',
-            'additional' => [],
-        );
+    public function updateStatus(Request $request, StockerService $stockerService, CuttingService $cuttingService) {
+        return $this->changeFormStatus($request, $stockerService, $cuttingService);
     }
 
-    public function updateStatusRedirect(Request $request, StockerService $stockerService) {
+    public function updateStatusRedirect(Request $request, StockerService $stockerService, CuttingService $cuttingService) {
+        return $this->changeFormStatus($request, $stockerService, $cuttingService, true);
+    }
+
+    private function changeFormStatus(Request $request, StockerService $stockerService, CuttingService $cuttingService, $withRedirect = false) {
         $validatedRequest = $request->validate([
-            "edit_id_status" => "required",
-            "edit_status" => "required",
+            "edit_id_status" => "required|exists:form_cut_input,id",
+            "edit_status" => "required|in:".implode(",", $this->editableFormStatuses),
         ]);
 
+        $formCutId = $validatedRequest['edit_id_status'];
+        $status = $validatedRequest['edit_status'];
+
+        $dataForm = FormCutInput::where("id", $formCutId)->first();
+        $isSuperadmin = Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0;
+
         // Check Closing
-        $dataForm = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
-        if (!$dataForm->waktu_selesai) {
+        if (!$dataForm->waktu_selesai && !$isSuperadmin) {
             return array(
                 "status" => 400,
                 "message" => "Form belum memiliki waktu selesai.",
@@ -524,9 +461,21 @@ class SpreadingController extends Controller
             );
         }
 
+        // Output hasil switching akan hangus kalau dihapus / digenerate ulang
+        $hasSwitching = FormCutInputDetailOutput::where("form_cut_input_id", $formCutId)->
+            whereColumn("qty_output_original", "!=", "qty_output_aktual")->
+            exists();
+
+        if ($hasSwitching) {
+            return array(
+                "status" => 400,
+                "message" => "Form sudah ada transfer switching."
+            );
+        }
+
         // If the form already has stockers (return error)
-        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
-            $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
+        if (!$isSuperadmin) {
+            $stockerForm = Stocker::where('form_cut_id', $formCutId)->first();
             if ($stockerForm) {
                 return array(
                     'status' => 400,
@@ -538,63 +487,101 @@ class SpreadingController extends Controller
             }
         }
 
-        // If the form only has part form (delete part form & reorder)
-        $partForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->first();
-        if ($partForm) {
-            // Delete part form
-            $deletePartForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->delete();
-
-            if ($deletePartForm) {
-                // Reorder part form group
-                $stockerService->reorderStockerNumbering($partForm->part_id);
+        DB::beginTransaction();
+        try {
+            // Bypass for superadmin
+            if (!$dataForm->waktu_selesai) {
+                $dataForm->waktu_selesai = Carbon::now()->toDateTimeString();
+                $dataForm->save();
             }
-        }
 
-        $updateStatusForm = FormCutInput::where('id', $validatedRequest['edit_id_status'])->update([
-            'status' => $validatedRequest['edit_status'],
-            'edited' => 1,
-            'edited_by' => Auth::user()->id,
-            'edited_by_username' => Auth::user()->username,
-            'edited_at' => Carbon::now(),
-            'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
-        ]);
+            // If the form only has part form (delete part form & reorder)
+            $partForm = PartForm::where('form_id', $formCutId)->first();
+            if ($partForm) {
+                // Delete part form
+                $deletePartForm = PartForm::where('form_id', $formCutId)->delete();
 
-        if ($updateStatusForm) {
-            $updatedData = FormCutInput::where('id', $validatedRequest['edit_id_status'])->first();
-
-            // Redirect Route
-            $redirect = '';
-            switch ($updatedData->tipe_form_cut) {
-                case 'NORMAL' :
-                    $redirect = route('process-form-cut-input', $updatedData->id);
-                    break;
-                case 'MANUAL' :
-                    $redirect = route('process-manual-form-cut', $updatedData->id);
-                    break;
-                case 'PILOT' :
-                    $redirect = route('process-pilot-form-cut', $updatedData->id);
-                    break;
-                default :
-                    $redirect = null;
-                    break;
+                if ($deletePartForm) {
+                    // Reorder part form group
+                    $stockerService->reorderStockerNumbering($partForm->part_id);
+                }
             }
+
+            $updateStatusForm = FormCutInput::where('id', $formCutId)->update([
+                'status' => $status,
+                'edited' => 1,
+                'edited_by' => Auth::user()->id,
+                'edited_by_username' => Auth::user()->username,
+                'edited_at' => Carbon::now(),
+                'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ', ".DB::getPdo()->quote($status).", ' AT ', CURRENT_TIMESTAMP )")
+            ]);
+
+            if (!$updateStatusForm) {
+                DB::rollBack();
+
+                return array(
+                    'status' => 400,
+                    'message' => 'Data produksi gagal diubah',
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                );
+            }
+
+            // Update or delete form cut input detail output
+            if ($status == 'SELESAI PENGERJAAN') {
+                $generateOutput = $cuttingService->generateFormCutInputDetailOutput($formCutId, true);
+
+                if ($generateOutput['status'] != 200) {
+                    DB::rollBack();
+
+                    return array(
+                        'status' => 400,
+                        'message' => $generateOutput['message'],
+                        'redirect' => '',
+                        'table' => 'datatable',
+                        'additional' => [],
+                    );
+                }
+            } else {
+                FormCutInputDetailOutput::where("form_cut_input_id", $formCutId)->delete();
+            }
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            Log::error("Gagal mengubah status form ".$dataForm->no_form." : ".$th->getMessage());
 
             return array(
-                'status' => 201,
-                'message' => 'Form  "' . $updatedData->no_form. '" berhasil diubah ke status '.$validatedRequest['edit_status'].'. ',
-                'redirect' => $redirect,
+                'status' => 400,
+                'message' => 'Data produksi gagal diubah',
+                'redirect' => '',
                 'table' => 'datatable',
                 'additional' => [],
             );
         }
 
         return array(
-            'status' => 400,
-            'message' => 'Data produksi gagal diubah',
-            'redirect' => null,
+            'status' => 201,
+            'message' => 'Form  "' . $dataForm->no_form. '" berhasil diubah ke status '.$status.'. ',
+            'redirect' => $withRedirect ? $this->formProcessRoute($dataForm) : '',
             'table' => 'datatable',
             'additional' => [],
         );
+    }
+
+    private function formProcessRoute($form) {
+        switch ($form->tipe_form_cut) {
+            case 'NORMAL' :
+                return route('process-form-cut-input', $form->id);
+            case 'MANUAL' :
+                return route('process-manual-form-cut', $form->id);
+            case 'PILOT' :
+                return route('process-pilot-form-cut', $form->id);
+            default :
+                return null;
+        }
     }
 
     /**
@@ -605,9 +592,18 @@ class SpreadingController extends Controller
      */
     public function destroy(FormCutInput $formCutInput, $id, CuttingService $cuttingService, StockerService $stockerService)
     {
+        $spreadingForm = FormCutInput::where('id', $id)->first();
+
+        if (!$spreadingForm) {
+            return array(
+                "status" => 400,
+                "message" => "Form tidak ditemukan",
+                "table" => "datatable"
+            );
+        }
+
         // Check Closing
-        $dataCheckClosing = DB::table("form_cut_input")->where("id", $id)->first();
-        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
+        if (checkClosingDate($spreadingForm->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -615,7 +611,17 @@ class SpreadingController extends Controller
             );
         }
 
-        $spreadingForm = FormCutInput::where('id', $id)->first();
+        // Output hasil switching akan hangus kalau dihapus
+        $hasSwitching = FormCutInputDetailOutput::where("form_cut_input_id", $id)->
+            whereColumn("qty_output_original", "!=", "qty_output_aktual")->
+            exists();
+
+        if ($hasSwitching) {
+            return array(
+                "status" => 400,
+                "message" => "Form sudah ada transfer switching."
+            );
+        }
 
         $checkMarker = Marker::where("kode", $spreadingForm->id_marker)->first();
 
@@ -631,113 +637,127 @@ class SpreadingController extends Controller
             );
         }
 
-        // If the form only has part form (delete part form & reorder)
-        $partForm = PartForm::where('form_id', $id)->first();
-        if ($partForm) {
-            // Delete part form
-            $deletePartForm = PartForm::where('form_id', $id)->delete();
+        DB::beginTransaction();
+        try {
+            // If the form only has part form (delete part form & reorder)
+            $partForm = PartForm::where('form_id', $id)->first();
+            if ($partForm) {
+                // Delete part form
+                $deletePartForm = PartForm::where('form_id', $id)->delete();
 
-            if ($deletePartForm) {
-                // Reorder part form group
-                $stockerService->reorderStockerNumbering($partForm->part_id);
-            }
-        }
-
-        // Delete Detail
-        $spreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->get();
-
-        $idRolls = [];
-        $idFormDetailLapArr = [];
-        foreach ($spreadingFormDetails as $spreadingFormDetail) {
-            DB::table("form_cut_input_detail_delete")->insert([
-                "no_form_cut_input" => $spreadingFormDetail['no_form_cut_input'],
-                "id_roll" => $spreadingFormDetail['id_roll'],
-                "id_item" => $spreadingFormDetail['id_item'],
-                "color_act" => $spreadingFormDetail['color_act'],
-                "detail_item" => $spreadingFormDetail['detail_item'],
-                "group_roll" => $spreadingFormDetail['group_roll'],
-                "lot" => $spreadingFormDetail['lot'],
-                "roll" => $spreadingFormDetail['roll'],
-                "qty" => $spreadingFormDetail['qty'],
-                "unit" => $spreadingFormDetail['unit'],
-                "sisa_gelaran" => $spreadingFormDetail['sisa_gelaran'],
-                "sambungan" => $spreadingFormDetail['sambungan'],
-                "est_amparan" => $spreadingFormDetail['est_amparan'],
-                "lembar_gelaran" => $spreadingFormDetail['lembar_gelaran'],
-                "average_time" => $spreadingFormDetail['average_time'],
-                "kepala_kain" => $spreadingFormDetail['kepala_kain'],
-                "sisa_tidak_bisa" => $spreadingFormDetail['sisa_tidak_bisa'],
-                "reject" => $spreadingFormDetail['reject'],
-                "sisa_kain" => $spreadingFormDetail['sisa_kain'],
-                "total_pemakaian_roll" => $spreadingFormDetail['total_pemakaian_roll'],
-                "short_roll" => $spreadingFormDetail['short_roll'],
-                "piping" => $spreadingFormDetail['piping'],
-                "remark" => $spreadingFormDetail['remark'],
-                "status" => $spreadingFormDetail['status'],
-                "metode" => $spreadingFormDetail['metode'],
-                "group_stocker" => $spreadingFormDetail['group_stocker'],
-                "created_at" => $spreadingFormDetail['created_at'],
-                "updated_at" => $spreadingFormDetail['updated_at'],
-                "deleted_by" => Auth::user()->username,
-                "deleted_at" => Carbon::now(),
-            ]);
-
-            array_push($idRolls, $spreadingFormDetail->id_roll);
-            array_push($idFormDetailLapArr, $spreadingFormDetail->id);
-
-            // Delete Spreading Form Detail
-            $spreadingFormDetail->delete();
-        }
-
-        // Delete Detail Lap
-        $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
-
-        // Delete Cutting Plan Items
-        $deleteCutPlan = CutPlan::where('form_cut_id', $id)->delete();
-
-        // Spreading Form Delete Process
-        $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
-        if ($deleteSpreadingForm) {
-
-            // Delete Spreading Form Detail All
-            $deleteSpreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->delete();
-
-            // Update Scanned Item Balance
-            $cuttingService->fixMultipleRollQty($idRolls);
-
-            // Update Marker Balance
-            $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
-                "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.($spreadingForm->qty_ply ? $spreadingForm->qty_ply : 0))
-            ]);
-
-            // Similar Form No. Cutting Update
-            $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->
-                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                where("marker_input.act_costing_ws", $checkMarker ? $checkMarker->act_costing_ws : null)->
-                where("marker_input.color", $checkMarker ? $checkMarker->color : null)->
-                where("marker_input.panel", $checkMarker ? $checkMarker->panel : null)->
-                where("form_cut_input.status", "SELESAI PENGERJAAN")->
-                orderBy("form_cut_input.waktu_selesai", "asc")->
-                orderBy("form_cut_input.no_cut", "asc")->
-                get();
-
-            if ($formCuts->count() > 0) {
-                $i=0;
-                foreach ($formCuts as $formCut) {
-                    $i++;
-
-                    $updateFormCut = FormCutInput::where("id", $formCut->id)->
-                        update([
-                            "no_cut" => $i
-                        ]);
+                if ($deletePartForm) {
+                    // Reorder part form group
+                    $stockerService->reorderStockerNumbering($partForm->part_id);
                 }
             }
 
-            return array(
-                "status" => 200,
-                "message" => "Form berhasil dihapus",
-                "table" => "datatable"
-            );
+            // Delete Detail
+            $spreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->get();
+
+            $idRolls = [];
+            $idFormDetailLapArr = [];
+            foreach ($spreadingFormDetails as $spreadingFormDetail) {
+                DB::table("form_cut_input_detail_delete")->insert([
+                    "no_form_cut_input" => $spreadingFormDetail['no_form_cut_input'],
+                    "id_roll" => $spreadingFormDetail['id_roll'],
+                    "id_item" => $spreadingFormDetail['id_item'],
+                    "color_act" => $spreadingFormDetail['color_act'],
+                    "detail_item" => $spreadingFormDetail['detail_item'],
+                    "group_roll" => $spreadingFormDetail['group_roll'],
+                    "lot" => $spreadingFormDetail['lot'],
+                    "roll" => $spreadingFormDetail['roll'],
+                    "qty" => $spreadingFormDetail['qty'],
+                    "unit" => $spreadingFormDetail['unit'],
+                    "sisa_gelaran" => $spreadingFormDetail['sisa_gelaran'],
+                    "sambungan" => $spreadingFormDetail['sambungan'],
+                    "est_amparan" => $spreadingFormDetail['est_amparan'],
+                    "lembar_gelaran" => $spreadingFormDetail['lembar_gelaran'],
+                    "average_time" => $spreadingFormDetail['average_time'],
+                    "kepala_kain" => $spreadingFormDetail['kepala_kain'],
+                    "sisa_tidak_bisa" => $spreadingFormDetail['sisa_tidak_bisa'],
+                    "reject" => $spreadingFormDetail['reject'],
+                    "sisa_kain" => $spreadingFormDetail['sisa_kain'],
+                    "total_pemakaian_roll" => $spreadingFormDetail['total_pemakaian_roll'],
+                    "short_roll" => $spreadingFormDetail['short_roll'],
+                    "piping" => $spreadingFormDetail['piping'],
+                    "remark" => $spreadingFormDetail['remark'],
+                    "status" => $spreadingFormDetail['status'],
+                    "metode" => $spreadingFormDetail['metode'],
+                    "group_stocker" => $spreadingFormDetail['group_stocker'],
+                    "created_at" => $spreadingFormDetail['created_at'],
+                    "updated_at" => $spreadingFormDetail['updated_at'],
+                    "deleted_by" => Auth::user()->username,
+                    "deleted_at" => Carbon::now(),
+                ]);
+
+                array_push($idRolls, $spreadingFormDetail->id_roll);
+                array_push($idFormDetailLapArr, $spreadingFormDetail->id);
+
+                // Delete Spreading Form Detail
+                $spreadingFormDetail->delete();
+            }
+
+            // Delete Detail Lap
+            $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
+
+            // Delete Form Cut Input Detail Output
+            FormCutInputDetailOutput::where("form_cut_input_id", $id)->delete();
+
+            // Delete Cutting Plan Items
+            $deleteCutPlan = CutPlan::where('form_cut_id', $id)->delete();
+
+            // Spreading Form Delete Process
+            $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
+            if ($deleteSpreadingForm) {
+
+                // Delete Spreading Form Detail All
+                $deleteSpreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->delete();
+
+                // Update Scanned Item Balance
+                $cuttingService->fixMultipleRollQty($idRolls);
+
+                // Update Marker Balance
+                $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
+                    "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.($spreadingForm->qty_ply ? $spreadingForm->qty_ply : 0))
+                ]);
+
+                // Similar Form No. Cutting Update
+                $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->
+                    leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                    where("marker_input.act_costing_ws", $checkMarker ? $checkMarker->act_costing_ws : null)->
+                    where("marker_input.color", $checkMarker ? $checkMarker->color : null)->
+                    where("marker_input.panel", $checkMarker ? $checkMarker->panel : null)->
+                    where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                    orderBy("form_cut_input.waktu_selesai", "asc")->
+                    orderBy("form_cut_input.no_cut", "asc")->
+                    get();
+
+                if ($formCuts->count() > 0) {
+                    $i=0;
+                    foreach ($formCuts as $formCut) {
+                        $i++;
+
+                        $updateFormCut = FormCutInput::where("id", $formCut->id)->
+                            update([
+                                "no_cut" => $i
+                            ]);
+                    }
+                }
+
+                DB::commit();
+
+                return array(
+                    "status" => 200,
+                    "message" => "Form berhasil dihapus",
+                    "table" => "datatable"
+                );
+            }
+
+            DB::rollBack();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            Log::error("Gagal menghapus form ".$spreadingForm->no_form." : ".$th->getMessage());
         }
 
         return array(
