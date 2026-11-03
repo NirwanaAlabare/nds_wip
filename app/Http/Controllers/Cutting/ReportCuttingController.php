@@ -5948,6 +5948,11 @@ class ReportCuttingController extends Controller
                 $rows,
                 [
                     'border' => 'thin',
+                ],
+                [
+                    2 => ['format' => '@date'], // Tgl BPPB
+                    3 => ['format' => '@date'], // Tgl Terima
+                    5 => ['format' => '@date'], // Tgl Request
                 ]
             );
         }
