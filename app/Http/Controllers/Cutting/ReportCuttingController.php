@@ -5761,6 +5761,63 @@ class ReportCuttingController extends Controller
     }
 
     /// Penerimaan Fabric Cutting
+    private function buildQueryRollFabricCuttingIn($start_date, $end_date)
+    {
+        return "
+            SELECT
+                a.no_bppb,
+                DATE_FORMAT(tgl_bppb, '%d-%M-%Y') AS tgl_bppb_fix,
+                tgl_bppb,
+                no_req,
+                b.id_roll,
+                no_roll,
+                no_roll_buyer,
+                no_lot,
+                mi.id_item,
+                no_ws,
+                no_ws_aktual,
+                k.styleno,
+                mi.itemdesc,
+                mi.color,
+                b.qty_out,
+                satuan,
+                CASE
+                    WHEN satuan = 'YRD' THEN ROUND(b.qty_out * 0.9144,2)
+                    ELSE b.qty_out
+                END as qty_out_konversi,
+                CASE
+                    WHEN satuan = 'YRD' THEN 'METER'
+                    WHEN satuan = 'KGM' THEN 'KGM'
+                    ELSE satuan
+                END as satuan_konversi,
+                DATE_FORMAT(penerimaan_cutting.tanggal_terima, '%d-%M-%Y') AS tgl_terima_cutting,
+                penerimaan_cutting.created_by_username AS user_cutting,
+                DATE_FORMAT(bppb_req.bppbdate, '%d-%M-%Y') AS tgl_request,
+                CASE
+                    WHEN penerimaan_cutting.tanggal_terima IS NOT NULL THEN 'TERIMA'
+                    ELSE 'PENDING'
+                END as status_terima
+            FROM signalbit_erp.whs_bppb_h a
+            inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
+            inner join signalbit_erp.masteritem mi on b.id_item = mi.id_item
+            LEFT JOIN (
+                SELECT
+                    jd.id_jo,
+                    ac.kpno,
+                    supplier as buyer,
+                    styleno
+                FROM signalbit_erp.jo_det jd
+                INNER JOIN signalbit_erp.so ON jd.id_so = so.id
+                INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                WHERE jd.cancel = 'N'
+                GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
+            LEFT JOIN penerimaan_cutting ON penerimaan_cutting.whs_bppb_det_id = b.id AND penerimaan_cutting.id_roll = b.id_roll
+            LEFT JOIN signalbit_erp.bppb_req ON bppb_req.bppbno = a.no_req AND bppb_req.id_jo = b.id_jo AND bppb_req.id_item = b.id_item
+            where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and a.tujuan = 'Production - Cutting' and b.status = 'Y'
+        ";
+    }
+
     public function roll_fabric_cutting_in(Request $request)
     {
         $start_date = $request->input('start_date'); // example: 9 (September)
@@ -5773,48 +5830,7 @@ class ReportCuttingController extends Controller
             if ($start_date === null || $end_date === null) {
                 return response()->json(['data' => []]);
             } else {
-                $rawData = DB::select("SELECT
-                    a.no_bppb,
-                    DATE_FORMAT(tgl_bppb, '%d-%M-%Y') AS tgl_bppb_fix,
-                    tgl_bppb,
-                    no_req,
-                    id_roll,
-                    no_roll,
-                    no_roll_buyer,
-                    no_lot,
-                    mi.id_item,
-                    no_ws,
-                    no_ws_aktual,
-                    styleno,
-                    mi.itemdesc,
-                    mi.color,
-                    qty_out,
-                    satuan,
-                            CASE
-                                WHEN satuan = 'YRD' THEN ROUND(qty_out * 0.9144,2)
-                                ELSE qty_out
-                            END as qty_out_konversi,
-                    CASE
-                            WHEN satuan = 'YRD' THEN 'METER'
-                            WHEN satuan = 'KGM' THEN 'KGM'
-                            ELSE satuan
-                            END as satuan_konversi
-                    FROM signalbit_erp.whs_bppb_h a
-                    inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
-                    inner join signalbit_erp.masteritem mi on b.id_item = mi.id_item
-                    LEFT JOIN (SELECT
-                                            jd.id_jo,
-                                            ac.kpno,
-                                supplier as buyer,
-                                styleno
-                                    FROM signalbit_erp.jo_det jd
-                                    INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-                                    INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                                    INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                                    WHERE jd.cancel = 'N'
-                                    GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
-                    where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-                ");
+                $rawData = DB::select($this->buildQueryRollFabricCuttingIn($start_date, $end_date));
 
                 return response()->json([
                     'data' => $rawData // ✅ simplified response
@@ -5845,49 +5861,7 @@ class ReportCuttingController extends Controller
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
-        $data = DB::select("SELECT
-            a.no_bppb,
-            DATE_FORMAT(tgl_bppb, '%d-%M-%Y') AS tgl_bppb_fix,
-            tgl_bppb,
-            no_req,
-            id_roll,
-            no_roll,
-            no_roll_buyer,
-            no_lot,
-            mi.id_item,
-            no_ws,
-            no_ws_aktual,
-            styleno,
-            mi.itemdesc,
-            mi.color,
-            qty_out,
-            satuan,
-                    CASE
-                        WHEN satuan = 'YRD' THEN ROUND(qty_out * 0.9144,2)
-                        ELSE qty_out
-                    END as qty_out_konversi,
-            CASE
-                    WHEN satuan = 'YRD' THEN 'METER'
-                    WHEN satuan = 'KGM' THEN 'KGM'
-                    ELSE satuan
-                    END as satuan_konversi
-            FROM signalbit_erp.whs_bppb_h a
-            inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
-            inner join signalbit_erp.masteritem mi on b.id_item = mi.id_item
-            LEFT JOIN (SELECT
-                                    jd.id_jo,
-                                    ac.kpno,
-                        supplier as buyer,
-                        styleno
-                            FROM signalbit_erp.jo_det jd
-                            INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-                            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                            INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                            WHERE jd.cancel = 'N'
-                            GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
-            where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-
-                ");
+        $data = DB::select($this->buildQueryRollFabricCuttingIn($start_date, $end_date));
 
         $fileName = 'report-penerimaan-fabric-cutting';
 
@@ -5913,8 +5887,12 @@ class ReportCuttingController extends Controller
         $sheet->writeRow(['']);
 
         $header = [
+            'Status',
             'No BPPB',
             'Tgl BPPB',
+            'Tgl Terima',
+            'User',
+            'Tgl Request',
             'No Req',
             'Barcode',
             'No Roll',
@@ -5943,8 +5921,12 @@ class ReportCuttingController extends Controller
         foreach ($data as $row) {
 
             $rows = [
+                $row->status_terima ?: '',
                 $row->no_bppb ?: '',
                 $row->tgl_bppb_fix ?: '',
+                $row->tgl_terima_cutting ?: '',
+                $row->user_cutting ?: '',
+                $row->tgl_request ?: '',
                 $row->no_req ?: '',
                 $row->id_roll ?: '',
                 $row->no_roll ?: '',

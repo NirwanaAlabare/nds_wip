@@ -55,8 +55,12 @@
                 <table id="datatable" class="table table-bordered table-striped table-hover w-100">
                     <thead class="bg-sb">
                         <tr>
+                            <th scope="col" class="text-center align-middle">Status</th>
                             <th scope="col" class="text-center align-middle">No. BPPB</th>
                             <th scope="col" class="text-center align-middle">Tgl. BPPB</th>
+                            <th scope="col" class="text-center align-middle">Tgl Terima</th>
+                            <th scope="col" class="text-center align-middle">User</th>
+                            <th scope="col" class="text-center align-middle">Tgl. Request</th>
                             <th scope="col" class="text-center align-middle">No. Req</th>
                             <th scope="col" class="text-center align-middle">Barcode</th>
                             <th scope="col" class="text-center align-middle">No. Roll</th>
@@ -144,11 +148,29 @@
                     }
                 },
 
-                columns: [{
+                columns: [
+                    {
+                        data: 'status_terima',
+                        render: function(data) {
+                            return data === 'TERIMA'
+                                ? '<span class="badge bg-success">' + data + '</span>'
+                                : '<span class="badge bg-warning text-dark">' + data + '</span>';
+                        }
+                    },
+                    {
                         data: 'no_bppb'
                     },
                     {
                         data: 'tgl_bppb_fix'
+                    },
+                    {
+                        data: 'tgl_terima_cutting'
+                    },
+                    {
+                        data: 'user_cutting'
+                    },
+                    {
+                        data: 'tgl_request'
                     },
                     {
                         data: 'no_req'
