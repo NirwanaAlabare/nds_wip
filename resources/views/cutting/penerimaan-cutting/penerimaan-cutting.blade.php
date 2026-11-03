@@ -60,8 +60,8 @@
                             <th>No. Lot</th>
                             <th>No. Roll</th>
                             <th>No. Roll Buyer</th>
-                            <th>Created By</th>
-                            <th>Created At</th>
+                            <th>User</th>
+                            <th>Detail Tgl Terima</th>
                         </tr>
                     </thead>
                     <tbody>
