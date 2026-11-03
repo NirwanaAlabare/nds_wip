@@ -546,7 +546,7 @@ class PenerimaanCuttingController extends Controller
         // Headers
         $headers = [
             'Tanggal Terima', 'Barcode', 'Qty Out', 'Unit', 'Qty Konv', 'Unit Konv', 'No. Req', 'No. BPPB', 'Tgl. BPPB', 'Tujuan',
-            'No. WS', 'No. WS Act', 'ID Item', 'Style', 'Warna', 'No. Lot', 'No. Roll', 'No. Roll Buyer', 'Created By', 'Created At',
+            'No. WS', 'No. WS Act', 'ID Item', 'Style', 'Warna', 'No. Lot', 'No. Roll', 'No. Roll Buyer', 'User', 'Detail Tgl Terima',
         ];
 
         $sheet->writeRow(['']);
