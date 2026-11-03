@@ -5170,7 +5170,7 @@ class ReportCuttingController extends Controller
                     ROUND(SUM(gr_panel), 2) gr_panel,
                     ROUND(SUM(gr_set), 2) gr_set,
                     ROUND(SUM(retur), 2) retur,
-                    0 adjustment,
+                    ROUND(SUM(adjustment), 2) adjustment,
                     ROUND(SUM(saldo_akhir), 2) saldo_akhir,
                     satuan
                 FROM
@@ -5187,6 +5187,7 @@ class ReportCuttingController extends Controller
                     ROUND(SUM(gr_panel), 2) != 0 OR
                     ROUND(SUM(gr_set), 2) != 0 OR
                     ROUND(SUM(retur), 2) != 0 OR
+                    ROUND(SUM(adjustment), 2) != 0 OR
                     ROUND(SUM(saldo_akhir), 2) != 0
                 ORDER BY
                     barcode ASC,
@@ -5205,7 +5206,7 @@ class ReportCuttingController extends Controller
                     ROUND(SUM(gr_panel), 2) gr_panel,
                     ROUND(SUM(gr_set), 2) gr_set,
                     ROUND(SUM(retur), 2) retur,
-                    0 adjustment,
+                    ROUND(SUM(adjustment), 2) adjustment,
                     ROUND(SUM(saldo_akhir), 2) saldo_akhir,
                     satuan
                 FROM
@@ -5222,6 +5223,7 @@ class ReportCuttingController extends Controller
                     ROUND(SUM(gr_panel), 2) != 0 OR
                     ROUND(SUM(gr_set), 2) != 0 OR
                     ROUND(SUM(retur), 2) != 0 OR
+                    ROUND(SUM(adjustment), 2) != 0 OR
                     ROUND(SUM(saldo_akhir), 2) != 0
                 ORDER BY
                     id_item ASC
@@ -5542,6 +5544,26 @@ class ReportCuttingController extends Controller
                             AND DATE(whs_inmaterial_fabric.tgl_dok) BETWEEN '$start_date' AND '$end_date'
                     group by whs_lokasi_inmaterial.no_barcode, whs_lokasi_inmaterial.id_item, whs_lokasi_inmaterial.satuan
             ),
+            wip_adjustment as (
+                SELECT
+                    id_roll,
+                    id_item,
+                    (CASE
+                            WHEN satuan = 'YRD' THEN 'METER'
+                            ELSE satuan
+                    END) as satuan,
+                    SUM(CASE WHEN tgl_saldo < '$start_date' THEN (CASE WHEN satuan = 'YRD' THEN COALESCE(qty, 0) * 0.9144 ELSE COALESCE(qty, 0) END) ELSE 0 END) qty_adjustment_before,
+                    SUM(CASE WHEN tgl_saldo >= '$start_date' THEN (CASE WHEN satuan = 'YRD' THEN COALESCE(qty, 0) * 0.9144 ELSE COALESCE(qty, 0) END) ELSE 0 END) qty_adjustment
+                FROM
+                    wip_adjustment_fabric_barcode
+                WHERE
+                    tgl_saldo > COALESCE((select MAX(tanggal) from fabric_rekap), '$balance_date')
+                    AND tgl_saldo <= '$end_date'
+                    AND status = 'Y'
+                    AND (type = 'REKAP' OR type IS NULL)
+                GROUP BY
+                    id_roll, id_item, satuan
+            ),
             mutasi_roll_before as (
                 select
                     mutasi_roll.id_roll AS barcode,
@@ -5554,20 +5576,23 @@ class ReportCuttingController extends Controller
                     SUM(gr_panel) gr_panel,
                     SUM(gr_set) gr_set,
                     SUM(retur) retur,
-                    SUM(saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur)) saldo_akhir,
+                    SUM(adjustment) adjustment,
+                    SUM(saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur) + adjustment) saldo_akhir,
                     unit as satuan
                 FROM (
-                    select id_roll, id_item, unit, (saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur) + adjustment) as saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM fabric_rekap
+                    select id_roll, id_item, unit, (saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur) + adjustment) as saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM fabric_rekap
                     UNION ALL
-                    select id_roll, id_item, unit_roll, 0 saldo_awal, qty_in penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM penerimaan_before
+                    select id_roll, id_item, unit_roll, 0 saldo_awal, qty_in penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM penerimaan_before
                     UNION ALL
-                    select id_roll, id_item, unit_roll, 0 saldo_awal, 0 penerimaan, total_pemakaian_roll pemakaian, short_roll short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM manajemen_roll_before
+                    select id_roll, id_item, unit_roll, 0 saldo_awal, 0 penerimaan, total_pemakaian_roll pemakaian, short_roll short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM manajemen_roll_before
                     UNION ALL
-                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, gr_p gr_panel, 0 gr_set, 0 retur FROM gr_p_before
+                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, gr_p gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM gr_p_before
                     UNION ALL
-                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, gr_g gr_set, 0 retur FROM gr_g_before
+                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, gr_g gr_set, 0 retur, 0 adjustment FROM gr_g_before
                     UNION ALL
-                    select no_barcode, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, qty_aktual retur FROM retur_before
+                    select no_barcode, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, qty_aktual retur, 0 adjustment FROM retur_before
+                    UNION ALL
+                    select id_roll, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, qty_adjustment_before adjustment FROM wip_adjustment
                 ) mutasi_roll
                 LEFT JOIN signalbit_erp.masteritem mi ON mutasi_roll.id_item = mi.id_item
                 group by mutasi_roll.id_roll, mutasi_roll.id_item, mutasi_roll.unit
@@ -5584,20 +5609,23 @@ class ReportCuttingController extends Controller
                     SUM(gr_panel) gr_panel,
                     SUM(gr_set) gr_set,
                     SUM(retur) retur,
-                    SUM(saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur)) saldo_akhir,
+                    SUM(adjustment) adjustment,
+                    SUM(saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur) + adjustment) saldo_akhir,
                     satuan
                 FROM (
-                    select barcode as id_roll, id_item, satuan, saldo_akhir as saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM mutasi_roll_before
+                    select barcode as id_roll, id_item, satuan, saldo_akhir as saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM mutasi_roll_before
                     UNION ALL
-                    select id_roll, id_item, unit_roll, 0 saldo_awal, qty_in penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM penerimaan
+                    select id_roll, id_item, unit_roll, 0 saldo_awal, qty_in penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM penerimaan
                     UNION ALL
-                    select id_roll, id_item, unit_roll, 0 saldo_awal, 0 penerimaan, total_pemakaian_roll pemakaian, short_roll short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM manajemen_roll
+                    select id_roll, id_item, unit_roll, 0 saldo_awal, 0 penerimaan, total_pemakaian_roll pemakaian, short_roll short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM manajemen_roll
                     UNION ALL
-                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, gr_p gr_panel, 0 gr_set, 0 retur FROM gr_p
+                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, gr_p gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM gr_p
                     UNION ALL
-                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, gr_g gr_set, 0 retur FROM gr_g
+                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, gr_g gr_set, 0 retur, 0 adjustment FROM gr_g
                     UNION ALL
-                    select no_barcode, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, qty_aktual retur FROM retur
+                    select no_barcode, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, qty_aktual retur, 0 adjustment FROM retur
+                    UNION ALL
+                    select id_roll, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, qty_adjustment adjustment FROM wip_adjustment
                 ) mutasi_roll
                 LEFT JOIN signalbit_erp.masteritem mi ON mutasi_roll.id_item = mi.id_item
                 group by mutasi_roll.id_roll, mutasi_roll.id_item, mutasi_roll.satuan
