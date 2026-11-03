@@ -460,10 +460,10 @@ class ErdService
                         $this->fail('Relasi tidak ditemukan, mungkin sudah dihapus user lain');
                     }
                     $r = $this->cleanRelation($op, $tables, $schema);
-                    $before = $this->relationText($relations[$index]);
+                    $oldText = $this->relationText($relations[$index]);
                     $relations[$index] = ['id' => $op['id']] + $r;
-                    if ($before !== $this->relationText($r)) {
-                        $log = ['relation', "mengubah relasi $before menjadi {$this->relationText($r)}"];
+                    if ($oldText !== $this->relationText($r)) {
+                        $log = ['relation', "mengubah relasi $oldText menjadi {$this->relationText($r)}"];
                     }
                     break;
 
