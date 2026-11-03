@@ -49,23 +49,19 @@
                         Export Excel
                     </a>
                 </div>
-                <div class="mb-3 ms-auto">
-                    <table class="table table-bordered table-sm text-center mb-0">
-                        <thead class="bg-sb">
-                            <tr>
-                                <th class="px-3">Total</th>
-                                <th class="px-3">Pending</th>
-                                <th class="px-3">Terima</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td id="qty-total" class="fw-bold">0</td>
-                                <td id="qty-pending" class="fw-bold">0</td>
-                                <td id="qty-terima" class="fw-bold">0</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="mb-3 ms-auto d-flex gap-4 text-center">
+                    <div>
+                        <div id="qty-total" class="fs-4 fw-bold text-secondary">0</div>
+                        <small class="text-muted">Total</small>
+                    </div>
+                    <div>
+                        <div id="qty-pending" class="fs-4 fw-bold text-secondary">0</div>
+                        <small class="text-muted">Pending</small>
+                    </div>
+                    <div>
+                        <div id="qty-terima" class="fs-4 fw-bold text-secondary">0</div>
+                        <small class="text-muted">Terima</small>
+                    </div>
                 </div>
             </div>
             <div class="table-responsive">
@@ -184,10 +180,11 @@
                 columns: [
                     {
                         data: 'status_terima',
+                        className: 'text-center',
                         render: function(data) {
                             return data === 'TERIMA'
                                 ? '<span class="badge bg-success">' + data + '</span>'
-                                : '<span class="badge bg-warning text-dark">' + data + '</span>';
+                                : '<span class="badge bg-danger">' + data + '</span>';
                         }
                     },
                     {
@@ -257,9 +254,15 @@
                     let status = this.api().column(0, { search: 'applied' }).data().toArray();
                     let terima = status.filter(item => item === 'TERIMA').length;
 
-                    $('#qty-total').text(status.length);
-                    $('#qty-pending').text(status.length - terima);
-                    $('#qty-terima').text(terima);
+                    $('#qty-total').text(status.length)
+                        .toggleClass('text-dark', status.length > 0)
+                        .toggleClass('text-secondary', status.length === 0);
+                    $('#qty-pending').text(status.length - terima)
+                        .toggleClass('text-danger', status.length - terima > 0)
+                        .toggleClass('text-secondary', status.length - terima === 0);
+                    $('#qty-terima').text(terima)
+                        .toggleClass('text-success', terima > 0)
+                        .toggleClass('text-secondary', terima === 0);
                 },
                 initComplete: function() {
                     // Terapkan ulang filter kolom karena tabel dibuat ulang setiap Cari
