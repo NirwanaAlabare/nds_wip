@@ -8125,6 +8125,7 @@ class ReportCuttingController extends Controller
                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
                                         AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                        AND (CASE WHEN COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                                 GROUP BY
                                         form_cut_input.id,
                                         form_cut_input_detail.group_stocker,
@@ -8179,6 +8180,7 @@ class ReportCuttingController extends Controller
                                         AND form_cut_piece_detail.STATUS = 'complete'
                                         AND form_cut_piece_detail.id not in (7207)
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                        AND (CASE WHEN COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                                 GROUP BY
                                         form_cut_piece.id,
                                         form_cut_piece_detail.group_stocker,
@@ -8253,6 +8255,7 @@ class ReportCuttingController extends Controller
                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$start_date."'
                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                        AND (CASE WHEN COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                                 GROUP BY
                                         form_cut_input.id,
                                         form_cut_input_detail.group_stocker,
@@ -8304,6 +8307,7 @@ class ReportCuttingController extends Controller
                                     AND form_cut_reject.tanggal > '2026-04-30'
                                     AND form_cut_reject_detail.qty > 0
                                     AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                    AND (CASE WHEN form_cut_reject.tanggal > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                                 GROUP BY
                                     form_cut_reject.id,
                                     form_cut_reject_detail.id,
@@ -9136,7 +9140,7 @@ class ReportCuttingController extends Controller
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
                                 AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
-                                AND (CASE WHEN COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
+                                AND (CASE WHEN COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_roll,
