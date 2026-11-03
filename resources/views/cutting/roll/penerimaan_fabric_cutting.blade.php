@@ -49,7 +49,24 @@
                         Export Excel
                     </a>
                 </div>
-
+                <div class="mb-3 ms-auto">
+                    <table class="table table-bordered table-sm text-center mb-0">
+                        <thead class="bg-sb">
+                            <tr>
+                                <th class="px-3">Total</th>
+                                <th class="px-3">Pending</th>
+                                <th class="px-3">Terima</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="qty-total" class="fw-bold">0</td>
+                                <td id="qty-pending" class="fw-bold">0</td>
+                                <td id="qty-terima" class="fw-bold">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-striped table-hover w-100">
@@ -112,11 +129,27 @@
         }
     </script>
     <script>
+        let datatable;
+
+        $('#datatable thead tr').clone(true).appendTo('#datatable thead');
+        $('#datatable thead tr:eq(1) th').each(function(i) {
+            $(this).addClass('bg-white').html('<input type="text" class="form-control form-control-sm"/>');
+
+            $('input', this).on('keyup change', function() {
+                if (datatable.column(i).search() !== this.value) {
+                    datatable
+                        .column(i)
+                        .search(this.value)
+                        .draw();
+                }
+            });
+        });
+
         function dataTableReload() {
             let start_date = $('#tgl-awal').val();
             let end_date = $('#tgl-akhir').val();
 
-            const datatable = $("#datatable").DataTable({
+            datatable = $("#datatable").DataTable({
                 destroy: true,
                 ordering: false,
                 responsive: false,
@@ -219,7 +252,23 @@
                     },
 
                 ],
+                drawCallback: function() {
+                    // Ringkasan mengikuti data yang lolos filter
+                    let status = this.api().column(0, { search: 'applied' }).data().toArray();
+                    let terima = status.filter(item => item === 'TERIMA').length;
+
+                    $('#qty-total').text(status.length);
+                    $('#qty-pending').text(status.length - terima);
+                    $('#qty-terima').text(terima);
+                },
                 initComplete: function() {
+                    // Terapkan ulang filter kolom karena tabel dibuat ulang setiap Cari
+                    let api = this.api();
+                    $('tr:eq(1) th input', api.table().header()).each(function(i) {
+                        api.column(i).search(this.value);
+                    });
+                    api.draw();
+
                     // 🔥 PAKSA RECALC SETELAH LOAD
                     setTimeout(() => {
                         this.api().columns.adjust();
