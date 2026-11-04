@@ -20,6 +20,7 @@ use App\Models\Part\Part;
 use App\Models\Part\PartDetail;
 use App\Models\Part\PartForm;
 use App\Models\Stocker\Stocker;
+use App\Models\Stocker\StockerAdditional;
 use App\Models\SignalBit\ActCosting;
 use App\Services\StockerService;
 use App\Services\CuttingService;
