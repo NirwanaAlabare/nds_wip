@@ -663,7 +663,7 @@
                         <div class="col-12 col-md-2">
                             <div class="so-info-item">
                                 <span class="so-info-label"><i class="fas fa-map-marker-alt"></i> Market</span>
-                                <span class="so-info-value" id="market" title="-">-</span>
+                                <span class="so-info-value" id="market"></span>
                             </div>
                         </div>
                     </div>
@@ -729,6 +729,11 @@
                                                 <option value="{{ $size->id }}">{{ $size->size }}</option>
                                             @endforeach
                                         </select>
+                                    </div>
+
+                                    <div class="form-group mb-3">
+                                        <label>Market</label>
+                                        <input type="text" id="add_dest" class="form-control" maxlength="60">
                                     </div>
 
                                     <div class="form-group mb-3">
@@ -1026,7 +1031,7 @@
                 $('#buyer').text(buyer || '-');
                 // $('#style').text(style || '-');
                 $('#style_input_header').val(style || '');
-                $('#market').text(market || '-');
+                $('#market').text(market || '');
 
                 let sortedDetails = res.details.sort((a, b) => {
                     let urutanA = parseInt(a.size_urutan) || 999;
@@ -1068,7 +1073,7 @@
                                 class="form-control form-control-sm input_dest ${destClass}"
                                 data-id="${detail_id}"
                                 data-locked="${isLocked ? 1 : 0}"
-                                value="${item.dest || '-'}"
+                                value="${item.dest || ''}"
                                 ${destReadonly} ${destTitle}>
                         </td>
                         <td class="text-center align-middle">${item.size || '-'}</td>
@@ -1106,7 +1111,7 @@
                         style : item.styleno_prod || '-',
                         desc  : buyer || '-',
                         po    : so_no || '-',
-                        market: item.dest || '-',
+                        market: item.dest || '',
                         ex_fty: item.deldate || '-',
                         fob   : (item.fob !== null && item.fob !== '') ? parseFloat(item.fob) : null,
                         color : item.color || '-',
@@ -1170,6 +1175,7 @@
             let id_size = $('#add_id_size').val();
             let qty = $('#add_qty').val();
             let fob = $('#add_fob').val();
+            let dest = $('#add_dest').val();
 
             if (!id_color || id_color.length === 0 || !id_size || id_size.length === 0 || !qty || qty <= 0) {
                 Swal.fire('Peringatan!', 'Harap pilih minimal 1 Warna, 1 Size, dan isi Qty dengan benar.', 'warning');
@@ -1187,7 +1193,8 @@
                     id_color: id_color,
                     id_size: id_size,
                     qty: qty,
-                    fob: fob
+                    fob: fob,
+                    dest: dest
                 },
                 success: function(res) {
                     if (res.status == 200) {
@@ -1197,6 +1204,7 @@
                         $('#add_id_size').val('').trigger('change');
                         $('#add_qty').val(0);
                         $('#add_fob').val('');
+                        $('#add_dest').val('');
 
                         showDetail(current_so_id);
 
@@ -1302,7 +1310,7 @@
                         <td>${item.id_item || '-'}</td>
                         <td>${item.id_contents || '-'}</td>
                         <td>${item.panel || '-'}</td>
-                        <td>${item.dest || '-'}</td>
+                        <td>${item.dest || ''}</td>
                         <td>${item.product_set || '-'}</td>
                         <td>${item.color_gmt || '-'}</td>
                         <td>${item.size_gmt || '-'}</td>
@@ -1466,7 +1474,7 @@
                             <td>${d.styleno_prod || '-'}</td>
                             <td class="text-right">${Number(d.qty).toLocaleString()}</td>
                             <td class="text-center">${d.deldate_det || '-'}</td>
-                            <td>${d.dest || '-'}</td>
+                            <td>${d.dest || ''}</td>
                         </tr>`;
                 });
                 $('#merge-detail-body').html(rows || '<tr><td colspan="9" class="text-center text-muted">Tidak ada data</td></tr>');
