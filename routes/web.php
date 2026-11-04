@@ -901,8 +901,11 @@ Route::middleware('auth')->group(function () {
     Route::controller(PackingListController::class)->prefix("packing-list")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name('packing-list-karton');
         Route::get('/create', 'create')->name('create-packing-list-karton');
+        Route::get('/create_repeat', 'create_repeat')->name('create-repeat-packing-list-karton');
+        Route::get('/get_used_carton', 'get_used_carton')->name('get-used-carton-packing-list-karton');
         Route::get('/get_po_detail', 'get_po_detail')->name('get-po-detail-packing-list-karton');
         Route::get('/show_preview_packing_list', 'show_preview_packing_list')->name('show_preview_packing_list');
+        Route::post('/store', 'store')->name('store-packing-list-karton');
     });
 
     Route::controller(PackingLineController::class)->prefix("packing-line")->middleware('packing')->group(function () {
