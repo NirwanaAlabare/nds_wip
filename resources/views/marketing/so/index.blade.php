@@ -1034,6 +1034,12 @@
                 $('#market').text(market || '');
 
                 let sortedDetails = res.details.sort((a, b) => {
+                    let byColor = (a.color || '').localeCompare(b.color || '');
+                    if (byColor !== 0) return byColor;
+
+                    let byMarket = (a.dest || '').localeCompare(b.dest || '', undefined, { sensitivity: 'base' });
+                    if (byMarket !== 0) return byMarket;
+
                     let urutanA = parseInt(a.size_urutan) || 999;
                     let urutanB = parseInt(b.size_urutan) || 999;
                     return urutanA - urutanB;
@@ -1094,6 +1100,7 @@
                 tableDetail = $('#table-detail-so').DataTable({
                     "paging": true,
                     "ordering": true,
+                    "order": [],
                     "info": true,
                     "searching": true,
                     "lengthMenu": [[5, 10, 25, -1], [5, 10, 25, "All"]],
