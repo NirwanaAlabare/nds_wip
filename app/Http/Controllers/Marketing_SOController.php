@@ -2202,25 +2202,35 @@ class Marketing_SOController extends Controller
 
             $unit = 'PCS';
 
+            $dest = $this->cleanText($request->dest);
+
+            $existing_keys = $this->activeSoDetRows($id_so)
+                ->map(function ($row) {
+                    return $this->soDetKey($row);
+                })
+                ->flip();
+
             foreach ($id_colors as $id_color) {
                 foreach ($id_sizes as $id_size) {
 
+                    $color_name = DB::connection('mysql_sb')->table('master_colors_gmt')->where('id', $id_color)->value('name');
+                    $size_name = DB::connection('mysql_sb')->table('master_size_new')->where('id', $id_size)->value('size');
 
-                    $exists = DB::connection('mysql_sb')->table('so_det')
-                        ->where('id_so', $id_so)
-                        ->where('id_color', $id_color)
-                        ->where('id_size', $id_size)
-                        ->where('cancel', 'N')
-                        ->first();
+                    $key = $this->soDetKey((object) [
+                        'color'        => $color_name ?? '-',
+                        'size'         => $size_name ?? '-',
+                        'dest'         => $dest,
+                        'product_set'  => $existing_row ? $existing_row->product_set : '-',
+                        'styleno_prod' => $existing_row ? $existing_row->styleno_prod : null,
+                        'deldate_det'  => $existing_row ? $existing_row->deldate_det : null,
+                    ]);
 
-                    if ($exists) {
+                    if ($existing_keys->has($key)) {
                         $skipped_count++;
                         continue;
                     }
 
-
-                    $color_name = DB::connection('mysql_sb')->table('master_colors_gmt')->where('id', $id_color)->value('name');
-                    $size_name = DB::connection('mysql_sb')->table('master_size_new')->where('id', $id_size)->value('size');
+                    $existing_keys->put($key, true);
 
                     $id_inserted = DB::connection('mysql_sb')->table('so_det')->insertGetId([
                         'id_so'       => $id_so,
@@ -2232,7 +2242,7 @@ class Marketing_SOController extends Controller
                         'fob'         => $fob,
                         'unit'        => $unit,
                         'cancel'      => 'N',
-                        'dest'      => $existing_row ? $existing_row->dest : '-',
+                        'dest'      => $dest,
                         'product_set' => $existing_row ? $existing_row->product_set : '-',
                         'barcode'     => $existing_row ? $existing_row->barcode : '-',
                         'reff_no'     => $existing_row ? $existing_row->reff_no : null,
@@ -2253,7 +2263,7 @@ class Marketing_SOController extends Controller
 
             if ($inserted_count === 0 && $skipped_count > 0) {
                 DB::connection('mysql_sb')->rollBack();
-                return response()->json(['status' => 400, 'message' => 'Semua kombinasi warna dan size tersebut sudah ada di SO ini. Silakan edit Qty-nya saja di tabel atas.']);
+                return response()->json(['status' => 400, 'message' => 'Semua kombinasi warna, size, dan market tersebut sudah ada di SO ini. Silakan edit Qty-nya saja di tabel atas.']);
             }
 
             $totalQty = DB::connection('mysql_sb')->table('so_det')
@@ -2299,11 +2309,20 @@ class Marketing_SOController extends Controller
                 ->pluck('id_so_det')
                 ->flip();
 
+            $duplicates = $this->findDuplicateSoDet($this->activeSoDetRows($so_id), $data, $lockedIds);
+            if (!empty($duplicates)) {
+                DB::connection('mysql_sb')->rollBack();
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Warna, size, dan market tidak boleh sama: ' . implode(', ', $duplicates) . '. Bedakan market-nya atau cancel salah satu baris.'
+                ]);
+            }
+
             foreach ($data as $item) {
                 $updateFields = ['qty' => $item['qty'], 'fob' => $item['fob']];
 
                 if (array_key_exists('dest', $item) && !isset($lockedIds[$item['id']])) {
-                    $updateFields['dest'] = $item['dest'];
+                    $updateFields['dest'] = $this->cleanText($item['dest']);
                 }
 
                 DB::connection('mysql_sb')->table('so_det')
@@ -2357,6 +2376,22 @@ class Marketing_SOController extends Controller
             $detail_id = $request->id;
             $action = $request->action;
             $cancel_value = ($action === 'cancel') ? 'Y' : 'N';
+
+            if ($action === 'restore') {
+                $row = DB::connection('mysql_sb')->table('so_det')->where('id', $detail_id)->first();
+                $key = $this->soDetKey($row);
+
+                $isDuplicate = $this->activeSoDetRows($row->id_so)
+                    ->where('id', '!=', $row->id)
+                    ->contains(function ($active) use ($key) {
+                        return $this->soDetKey($active) === $key;
+                    });
+
+                if ($isDuplicate) {
+                    DB::connection('mysql_sb')->rollBack();
+                    return response()->json(['status' => 400, 'message' => 'Tidak bisa restore: warna, size, dan market yang sama sudah aktif di SO ini. Ubah market baris ini atau cancel baris yang aktif dulu.']);
+                }
+            }
 
             DB::connection('mysql_sb')->table('so_det')
                 ->where('id', $detail_id)
@@ -4576,6 +4611,59 @@ class Marketing_SOController extends Controller
             'total'  => $details->count(),
             'filled' => $details->filter(fn($d) => !empty($d->barcode))->count(),
         ]);
+    }
+
+    private function activeSoDetRows($id_so) {
+        return DB::connection('mysql_sb')->table('so_det')
+            ->where('id_so', $id_so)
+            ->where(function ($query) {
+                $query->whereNull('cancel')->orWhere('cancel', '!=', 'Y');
+            })
+            ->get(['id', 'color', 'size', 'dest', 'product_set', 'styleno_prod', 'deldate_det']);
+    }
+
+    private function soDetKey($row) {
+        return mb_strtolower(implode('|', [
+            $this->cleanText($row->color),
+            $this->cleanText($row->size),
+            $this->cleanText($row->dest),
+            $this->cleanText($row->product_set),
+            $this->cleanText($row->styleno_prod),
+            $row->deldate_det,
+        ]));
+    }
+
+    // Hanya menolak duplikat akibat market yang diubah di save ini, duplikat data lama tetap bisa disimpan
+    private function findDuplicateSoDet($activeRows, $data, $lockedIds) {
+        $payload = collect($data)->keyBy('id');
+
+        return $activeRows
+            ->map(function ($row) use ($payload, $lockedIds) {
+                $item = $payload->get($row->id);
+                $after = clone $row;
+
+                if ($item && array_key_exists('dest', $item) && !isset($lockedIds[$row->id])) {
+                    $after->dest = $item['dest'];
+                }
+
+                $key = $this->soDetKey($after);
+                $dest = $this->cleanText($after->dest);
+
+                return (object) [
+                    'label'   => $row->color . ' / ' . $row->size . ' / ' . ($dest === '' ? '(kosong)' : $dest),
+                    'key'     => $key,
+                    'changed' => $key !== $this->soDetKey($row),
+                ];
+            })
+            ->groupBy('key')
+            ->filter(function ($rows) {
+                return $rows->count() > 1 && $rows->contains('changed', true);
+            })
+            ->map(function ($rows) {
+                return $rows->first()->label;
+            })
+            ->values()
+            ->all();
     }
 
     private function logSo($id_so) {
