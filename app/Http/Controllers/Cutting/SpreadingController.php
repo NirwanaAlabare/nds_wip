@@ -800,7 +800,7 @@ class SpreadingController extends Controller
                 SUM(cutting.qty_modify_size) qty_modify_size,
                 SUM(cutting.switching_out) qty_switching_out,
                 SUM(cutting.switching_in) qty_switching_in,
-                SUM(cutting.qty) qty
+                SUM(cutting.qty - cutting.switching_out + cutting.switching_in) qty
             FROM
             (
                 SELECT
