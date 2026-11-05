@@ -5789,8 +5789,14 @@ class ReportCuttingController extends Controller
     }
 
     /// Penerimaan Fabric Cutting
-    private function buildQueryRollFabricCuttingIn($start_date, $end_date)
+    private function buildQueryRollFabricCuttingIn($start_date, $end_date, $terima_from = null, $terima_to = null)
     {
+        $bppb_filter = ($start_date ? " and tgl_bppb >= '$start_date'" : "")
+            . ($end_date ? " and tgl_bppb <= '$end_date'" : "");
+
+        $terima_filter = ($terima_from ? " and penerimaan_cutting.tanggal_terima >= :terima_from" : "")
+            . ($terima_to ? " and penerimaan_cutting.tanggal_terima <= :terima_to" : "");
+
         return "
             SELECT
                 a.no_bppb,
@@ -5842,8 +5848,13 @@ class ReportCuttingController extends Controller
                 GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
             LEFT JOIN penerimaan_cutting ON penerimaan_cutting.whs_bppb_det_id = b.id AND penerimaan_cutting.id_roll = b.id_roll
             LEFT JOIN signalbit_erp.bppb_req ON bppb_req.bppbno = a.no_req AND bppb_req.id_jo = b.id_jo AND bppb_req.id_item = b.id_item
-            where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and a.tujuan = 'Production - Cutting' and b.status = 'Y'
+            where a.tujuan = 'Production - Cutting' and b.status = 'Y'$bppb_filter$terima_filter
         ";
+    }
+
+    private function hasFilterRollFabricCuttingIn(Request $request)
+    {
+        return ($request->start_date && $request->end_date) || $request->terima_from || $request->terima_to;
     }
 
     public function roll_fabric_cutting_in(Request $request)
@@ -5854,11 +5865,14 @@ class ReportCuttingController extends Controller
         $user = Auth::user()->name;
 
         if ($request->ajax()) {
-            // ✅ If bulan or tahun is missing, return no data
-            if ($start_date === null || $end_date === null) {
+            // ✅ If tgl bppb and tgl terima are missing, return no data
+            if (!$this->hasFilterRollFabricCuttingIn($request)) {
                 return response()->json(['data' => []]);
             } else {
-                $rawData = DB::select($this->buildQueryRollFabricCuttingIn($start_date, $end_date));
+                $rawData = DB::select(
+                    $this->buildQueryRollFabricCuttingIn($start_date, $end_date, $request->terima_from, $request->terima_to),
+                    array_filter(['terima_from' => $request->terima_from, 'terima_to' => $request->terima_to])
+                );
 
                 return response()->json([
                     'data' => $rawData // ✅ simplified response
@@ -5886,10 +5900,15 @@ class ReportCuttingController extends Controller
 
     public function export_roll_fabric_cutting_in(Request $request)
     {
+        abort_unless($this->hasFilterRollFabricCuttingIn($request), 422);
+
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
-        $data = DB::select($this->buildQueryRollFabricCuttingIn($start_date, $end_date));
+        $data = DB::select(
+            $this->buildQueryRollFabricCuttingIn($start_date, $end_date, $request->terima_from, $request->terima_to),
+            array_filter(['terima_from' => $request->terima_from, 'terima_to' => $request->terima_to])
+        );
 
         $fileName = 'report-penerimaan-fabric-cutting';
 
@@ -5906,7 +5925,7 @@ class ReportCuttingController extends Controller
         );
 
         $sheet->writeRow(
-            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            ['Periode ' . ($start_date || $end_date ? $start_date . ' s/d ' . $end_date : 'Terima ' . $request->terima_from . ' s/d ' . $request->terima_to)],
             [
                 'font-size' => 12,
             ]
