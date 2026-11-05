@@ -26,9 +26,13 @@ class ProsesOutputController extends Controller
         ]);
     }
 
-    // Pilihan filter dari master_sb_ws: ws (per buyer), style / color / size (per ws)
+    // Pilihan filter dari master_sb_ws: ws (per buyer), style / color / size / status order (per ws)
     public function getFilter(Request $request)
     {
+        if ($request->type == 'status_order') {
+            return $this->statusOrderList([$request->ws]);
+        }
+
         $columns = [
             'ws'    => 'ws',
             'style' => 'styleno',
@@ -69,12 +73,14 @@ class ProsesOutputController extends Controller
         ]);
     }
 
-    // WS yang dipakai: ws terpilih, atau semua ws milik buyer (disaring filter status order jika dipilih)
+    // WS yang dipakai: ws terpilih (status order-nya otomatis, tidak perlu disaring), atau semua ws milik buyer (disaring filter status order jika dipilih)
     private function wsList(Request $request)
     {
-        $wsList = $request->ws
-            ? [$request->ws]
-            : ($request->buyer ? DB::table('master_sb_ws')->where('buyer', $request->buyer)->distinct()->pluck('ws')->all() : []);
+        if ($request->ws) {
+            return [$request->ws];
+        }
+
+        $wsList = $request->buyer ? DB::table('master_sb_ws')->where('buyer', $request->buyer)->distinct()->pluck('ws')->all() : [];
 
         if (!$request->status_order) {
             return $wsList;
