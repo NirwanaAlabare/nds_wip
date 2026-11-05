@@ -1859,6 +1859,8 @@ class CuttingService
      * @param  bool  $force      lanjutkan walaupun form pernah dipakai switching output
      */
     public function generateFormCutInputDetailOutput($formCutId, $force = false) {
+        $isSuperadmin = Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0;
+
         $formCut = DB::table("form_cut_input")->select("id", "no_form", "id_marker")->where("id", $formCutId)->first();
 
         if (!$formCut) {
@@ -1893,10 +1895,18 @@ class CuttingService
             get();
 
         if ($formCutDetailGroups->count() < 1) {
-            return [
-                "status" => 400,
-                "message" => "Form ".$formCut->no_form." belum memiliki detail gelaran.",
-            ];
+            if ($isSuperadmin) {
+                // Menambahkan array/object baru ke collection
+                $formCutDetailGroups->push((object)[
+                    'group_roll' => "",
+                    'total_lembar_gelaran' => 0
+                ]);
+            } else {
+                return [
+                    "status" => 400,
+                    "message" => "Form ".$formCut->no_form." belum memiliki detail gelaran.",
+                ];
+            }
         }
 
         // Marker Detail
@@ -2131,7 +2141,7 @@ class CuttingService
                     }
                 }
 
-                $this->generateFormCutInputDetailOutput($id);
+                $this->generateFormCutInputDetailOutput($id, $force = true);
 
                 app('App\Http\Controllers\General\DashboardController')->cutting_chart_trigger_all(date("Y-m-d"));
                 app('App\Http\Controllers\General\DashboardController')->cutting_trigger_chart_by_mejaid(date("Y-m-d"), (($formCutInputData && $formCutInputData->alokasiMeja) ? $formCutInputData->alokasiMeja->username : null));
