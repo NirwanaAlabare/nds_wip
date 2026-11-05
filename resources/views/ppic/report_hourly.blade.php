@@ -225,7 +225,7 @@
                     </div>
                     <div>
                         <label class="form-label mb-1"><small><b>Cari</b></small></label>
-                        <input type="text" class="form-control" id="txt_search" placeholder="Cari nama / line...">
+                        <input type="text" class="form-control" id="txt_search" placeholder="Cari nama / line / style...">
                     </div>
                     <div>
                         <div id="last-updated" class="text-muted" style="font-size: small;"></div>
@@ -605,7 +605,8 @@
                 const line = String(d.sewing_line ?? '').toLowerCase();
                 const chief = String(d.nm_chief ?? '').toLowerCase();
                 const leader = String(d.nm_leader ?? '').toLowerCase();
-                return line.includes(keyword) || chief.includes(keyword) || leader.includes(keyword);
+                const style = String(d.styleno_prod ?? '').toLowerCase();
+                return line.includes(keyword) || chief.includes(keyword) || leader.includes(keyword) || style.includes(keyword);
             });
         }
 

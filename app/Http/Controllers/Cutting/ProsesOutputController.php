@@ -26,9 +26,13 @@ class ProsesOutputController extends Controller
         ]);
     }
 
-    // Pilihan filter dari master_sb_ws: ws (per buyer), style / color / size (per ws)
+    // Pilihan filter dari master_sb_ws: ws (per buyer), style / color / size / status order (per ws)
     public function getFilter(Request $request)
     {
+        if ($request->type == 'status_order') {
+            return $this->statusOrderList([$request->ws]);
+        }
+
         $columns = [
             'ws'    => 'ws',
             'style' => 'styleno',
@@ -65,15 +69,24 @@ class ProsesOutputController extends Controller
         return response()->json([
             'data'      => $this->queryData($request),
             'qty_order' => $this->queryQtyOrder($request),
+            'status_order' => $this->queryStatusOrder($request),
         ]);
     }
 
-    // WS yang dipakai: ws terpilih, atau semua ws milik buyer
+    // WS yang dipakai: ws terpilih (status order-nya otomatis, tidak perlu disaring), atau semua ws milik buyer (disaring filter status order jika dipilih)
     private function wsList(Request $request)
     {
-        return $request->ws
-            ? [$request->ws]
-            : ($request->buyer ? DB::table('master_sb_ws')->where('buyer', $request->buyer)->distinct()->pluck('ws')->all() : []);
+        if ($request->ws) {
+            return [$request->ws];
+        }
+
+        $wsList = $request->buyer ? DB::table('master_sb_ws')->where('buyer', $request->buyer)->distinct()->pluck('ws')->all() : [];
+
+        if (!$request->status_order) {
+            return $wsList;
+        }
+
+        return array_keys(array_filter($this->statusOrderList($wsList), fn ($status) => $status === $request->status_order));
     }
 
     // Qty order (ppic_master_so.qty_po) per ws / color / size => [ 'ws|color|size' => qty ]
@@ -95,6 +108,24 @@ class ProsesOutputController extends Controller
             ->selectRaw("CONCAT(master_sb_ws.ws, '|', master_sb_ws.color, '|', master_sb_ws.size) row_key, SUM(ppic_master_so.qty_po) qty_po")
             ->pluck('qty_po', 'row_key')
             ->map(fn ($qty) => (float) $qty)
+            ->all();
+    }
+
+    private function queryStatusOrder(Request $request)
+    {
+        return $this->statusOrderList($this->wsList($request));
+    }
+
+    // Status order (act_costing.close_order) per ws => [ 'ws' => 'Open Order' / 'Close Order' ]
+    private function statusOrderList(array $wsList)
+    {
+        return DB::table('master_sb_ws')
+            ->leftJoin('signalbit_erp.act_costing as act', 'master_sb_ws.id_act_cost', '=', 'act.id')
+            ->whereIn('master_sb_ws.ws', $wsList)
+            ->groupBy('master_sb_ws.ws')
+            ->selectRaw('master_sb_ws.ws, MAX(act.close_order) close_order')
+            ->pluck('close_order', 'ws')
+            ->map(fn ($closeOrder) => $closeOrder === 'Y' ? 'Close Order' : 'Open Order')
             ->all();
     }
 
@@ -453,7 +484,7 @@ class ProsesOutputController extends Controller
     private $panelColors = ['#d1e7dd', '#fff3cd', '#f8d7da', '#e2d9f3', '#ffe5d0', '#d2f4ea', '#f7d6e6', '#e2e3e5'];
 
     // Data per panel jadi 1 baris per ws / color / size, panel jadi kolom (sama dengan pivotData di view)
-    private function pivotData($data, $qtyOrder = [])
+    private function pivotData($data, $qtyOrder = [], $statusOrder = [])
     {
         $panels = array_values(array_unique(array_map(fn ($item) => $item->panel ?? '-', $data)));
         sort($panels);
@@ -464,6 +495,7 @@ class ProsesOutputController extends Controller
             $key = $item->ws . '|' . $item->color . '|' . $item->size;
 
             $rows[$key] ??= [
+                'status_order' => $statusOrder[$item->ws] ?? 'Open Order',
                 'buyer'      => $item->buyer,
                 'ws'         => $item->ws,
                 'style'      => $item->style,
@@ -521,9 +553,9 @@ class ProsesOutputController extends Controller
             ], 422);
         }
 
-        [$panels, $rows] = $this->pivotData($data, $this->queryQtyOrder($request));
+        [$panels, $rows] = $this->pivotData($data, $this->queryQtyOrder($request), $this->queryStatusOrder($request));
 
-        $textColumns = ['Buyer', 'WS', 'Style', 'Color', 'Size'];
+        $textColumns = ['Status Order', 'Buyer', 'WS', 'Style', 'Color', 'Size'];
         $panelColumns = array_merge(array_values($this->qtyColumns), ['Output']);
         $endColumns = ['Output Set', 'Qty Order', 'Balance'];
         $totalColumns = count($textColumns) + count($panels) * count($panelColumns) + count($endColumns);
@@ -541,6 +573,7 @@ class ProsesOutputController extends Controller
             'Style' => $request->style,
             'Color' => $request->color,
             'Size'  => $request->size,
+            'Status Order' => $request->status_order,
         ]);
 
         foreach ($filters as $label => $value) {
@@ -598,7 +631,7 @@ class ProsesOutputController extends Controller
         $totals = array_fill(0, $totalColumns, 0);
 
         foreach ($rows as $row) {
-            $values = [$row['buyer'], $row['ws'], $row['style'], $row['color'], $row['size']];
+            $values = [$row['status_order'], $row['buyer'], $row['ws'], $row['style'], $row['color'], $row['size']];
 
             foreach ($panels as $panel) {
                 foreach (array_merge(array_keys($this->qtyColumns), ['output']) as $field) {

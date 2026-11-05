@@ -766,7 +766,7 @@ class WipAdjustmentController extends Controller
                 $value = $row->$field ?? null;
 
                 if ($field == 'status') {
-                    $values[] = $value === 'N' ? 'Tidak Aktif' : 'Aktif';
+                    $values[] = $value === 'N' ? 'Cancel' : 'Aktif';
                 } elseif ($isNumber) {
                     $values[] = (float) ($value ?? 0);
                 } else {
@@ -816,9 +816,12 @@ class WipAdjustmentController extends Controller
             'tgl_saldo' => ["DATE_FORMAT(a.tgl_saldo, '%d-%m-%Y')", []],
         ];
 
-        foreach (array_merge(['id', 'created_at', 'created_by_username', 'status'], $textColumns) as $column) {
+        foreach (array_merge(['id', 'created_at', 'created_by_username'], $textColumns) as $column) {
             $filters[$column] = ["a.$column", []];
         }
+
+        // Search status sesuai tulisan yang tampil di tabel, bukan kode Y/N
+        $filters['status'] = ["CASE WHEN a.status = 'N' THEN 'Cancel' ELSE 'Aktif' END", []];
 
         if (isset($this->fabricTables[$typeReport])) {
             $label = str_replace('_', ' ', $typeReport);
