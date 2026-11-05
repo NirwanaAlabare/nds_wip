@@ -12,7 +12,20 @@
         .wt-card { background: #fff; border: 1px solid var(--wt-line); border-radius: 14px; box-shadow: 0 4px 16px rgba(8, 33, 73, .05); }
 
         /* Hero */
-        .wt-hero { position: relative; overflow: hidden; border-radius: 16px; padding: 22px 26px; color: #fff; background: linear-gradient(120deg, var(--wt-navy), var(--wt-navy-2) 70%, #1c5bb8); }
+        .wt-hero { position: relative; overflow: hidden; border-radius: 16px; padding: 22px 26px; color: #fff; background: linear-gradient(120deg, var(--wt-navy), var(--wt-navy-2) 70%, #1c5bb8); box-shadow: 0 10px 28px rgba(8, 33, 73, .22); }
+        .wt-hero.mood-good { background: linear-gradient(120deg, #0b3a78, #0f6f8f 55%, #0c8f74); }
+        .wt-hero.mood-warn { background: linear-gradient(120deg, #7c3505, #a8530a 55%, #bd6a0c); }
+        .wt-hero.mood-bad { background: linear-gradient(120deg, #6d1421, #981f30 55%, #bb2d3d); }
+        .wt-hero-main { display: flex; align-items: center; gap: 20px; min-width: 0; }
+        .wt-ring { position: relative; flex: none; width: 118px; height: 118px; }
+        .wt-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .wt-ring circle { fill: none; stroke-width: 11; }
+        .wt-ring-track { stroke: rgba(255, 255, 255, .22); }
+        .wt-ring-value { stroke: #fff; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 1.4s cubic-bezier(.22, .8, .3, 1); }
+        .wt-ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05; }
+        .wt-ring-text b { font-size: 27px; font-weight: 800; }
+        .wt-ring-text span { font-size: 11px; font-weight: 600; opacity: .88; }
+        .wt-hero-eta { margin-top: 7px; font-size: 12.5px; color: rgba(255, 255, 255, .88); }
         .wt-hero::after { content: ""; position: absolute; right: -60px; top: -90px; width: 280px; height: 280px; border-radius: 50%; background: rgba(255, 255, 255, .06); }
         .wt-hero > * { position: relative; z-index: 1; }
         .wt-hero > .wt-hero-runner { position: absolute; z-index: 0; bottom: 8px; left: -40px; font-size: 26px; color: rgba(255, 255, 255, .28); animation: wt-hero-run 14s linear infinite; }
@@ -24,9 +37,10 @@
         .wt-alert button:hover { background: rgba(255, 255, 255, .3); }
         @keyframes wt-alert-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, .55); } 50% { box-shadow: 0 0 0 7px rgba(220, 53, 69, 0); } }
         .wt-hero h1 { font-size: 24px; font-weight: 700; margin: 0; }
-        .wt-hero-date { color: #bcd0ee; font-size: 13px; }
-        .wt-verdict { display: inline-flex; align-items: center; gap: 10px; margin-top: 12px; padding: 9px 14px; border-radius: 10px; font-weight: 600; font-size: 14px; background: rgba(255, 255, 255, .12); }
-        .wt-verdict.good i { color: #5fe39a; } .wt-verdict.warn i { color: #ffc65c; } .wt-verdict.bad i { color: #ff8d98; }
+        .wt-hero-date { color: rgba(255, 255, 255, .85); font-size: 13px; }
+        .wt-verdict { display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; padding: 9px 16px; border-radius: 12px; font-weight: 700; font-size: 16.5px; line-height: 1.25; background: #fff; color: var(--wt-ink); box-shadow: 0 6px 16px rgba(0, 0, 0, .18); animation: wt-rise .5s ease both; }
+        .wt-verdict i { font-size: 18px; }
+        .wt-verdict.good i { color: #0c7f3e; } .wt-verdict.warn i { color: #a86700; } .wt-verdict.bad i { color: #c21f30; }
         .wt-hero .btn-light { color: var(--wt-navy); font-weight: 600; }
         .wt-hero .btn-ghost { color: #fff; border: 1px solid rgba(255, 255, 255, .4); font-weight: 600; }
         .wt-hero .btn-ghost:hover { background: rgba(255, 255, 255, .12); color: #fff; }
@@ -34,11 +48,22 @@
 
         /* Tiles */
         .wt-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 14px 0; }
-        .wt-tile { padding: 14px 16px; display: flex; gap: 12px; align-items: center; animation: wt-rise .45s ease both; }
-        .wt-tile-icon { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-size: 16px; }
-        .wt-tile-value { font-size: 23px; font-weight: 700; line-height: 1.1; animation: wt-pop .5s ease both; }
+        .wt-tile { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px; padding: 13px 14px 11px; border-top: 3px solid var(--accent); background: linear-gradient(145deg, var(--tint), #fff 62%); animation: wt-rise .45s ease both; transition: transform .14s, box-shadow .14s; }
+        .wt-tile:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(8, 33, 73, .14); }
+        .wt-tile-top { display: flex; gap: 11px; align-items: center; }
+        .wt-tile-icon { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 16px; color: #fff; background: var(--accent); box-shadow: 0 4px 10px rgba(8, 33, 73, .18); }
+        .wt-tile-value { font-size: 26px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+        .wt-tile-foot { display: flex; align-items: center; height: 26px; margin-top: auto; font-size: 11.5px; color: var(--wt-muted); }
+        .wt-tile-foot b { color: var(--wt-ink); margin: 0 3px; }
+        .wt-trend { position: relative; display: block; width: 100%; height: 26px; }
+        .wt-trend svg { display: block; width: 100%; height: 100%; overflow: visible; }
+        .wt-trend path { vector-effect: non-scaling-stroke; }
+        .wt-trend-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+        .wt-trend-area { fill: var(--accent); opacity: .12; }
+        .wt-trend-dot { position: absolute; right: -2px; width: 8px; height: 8px; margin-top: -4px; border: 2px solid #fff; border-radius: 50%; background: var(--accent); box-sizing: content-box; }
+        .wt-tile-alert { animation: wt-rise .45s ease both, wt-tile-alert 1.6s ease-in-out infinite; }
+        @keyframes wt-tile-alert { 0%, 100% { box-shadow: 0 4px 16px rgba(8, 33, 73, .05), 0 0 0 0 rgba(220, 53, 69, .5); } 50% { box-shadow: 0 4px 16px rgba(8, 33, 73, .05), 0 0 0 7px rgba(220, 53, 69, 0); } }
         .wt-tile:hover .wt-tile-icon { animation: wt-wiggle .5s ease; }
-        @keyframes wt-pop { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.12); } 100% { transform: none; opacity: 1; } }
         @keyframes wt-wiggle { 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
         .wt-tile-label { font-size: 12px; color: var(--wt-muted); }
         @keyframes wt-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -46,8 +71,7 @@
         /* Antrean */
         .wt-tab-count { display: inline-block; min-width: 20px; margin-left: 3px; padding: 0 6px; border-radius: 10px; background: #fff2d6; color: #a86700; font-size: 11.5px; font-weight: 700; }
         .wt-tab-count.empty { background: #eceff4; color: #5b6577; }
-        .wt-tile-link { width: 100%; text-align: left; cursor: pointer; transition: transform .12s, box-shadow .12s; }
-        .wt-tile-link:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(8, 33, 73, .12); }
+        .wt-tile-link { width: 100%; text-align: left; cursor: pointer; }
         .wt-queue-row { display: grid; grid-template-columns: minmax(0, 1fr) 170px 120px 280px; gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--wt-line); font-size: 13px; }
         .wt-queue-row:first-child { border-top: 0; }
         .wt-queue-title { display: block; padding: 0; border: 0; background: none; color: inherit; text-align: left; font-weight: 600; }
@@ -57,25 +81,58 @@
 
         /* Race */
         .wt-section-title { font-size: 15px; font-weight: 700; margin: 0; }
-        .wt-race { padding: 16px 18px 8px; margin-bottom: 14px; }
+        .wt-race { padding: 16px 18px 8px; margin-bottom: 14px; --sky-a: #8fd0ff; --sky-b: #e4f5ff; --ground: #d6dfeb; --hill-far: #b4e0bd; --hill-near: #86cc98; --sun: #f2c94c; --cloud: #fff; --line: rgba(8, 33, 73, .42); }
+        .wt-race[data-sky="morning"] { --sky-a: #cfe9ff; --sky-b: #fff3d6; --hill-far: #c5e6c4; --hill-near: #98d3a4; --sun: #f7b84b; }
+        .wt-race[data-sky="sunset"] { --sky-a: #ff9f73; --sky-b: #ffe0ad; --ground: #d9cdd0; --hill-far: #c99a93; --hill-near: #a0757f; --sun: #e8590c; --cloud: #ffeedd; }
+        .wt-race[data-sky="night"] { --sky-a: #0b1a3b; --sky-b: #2a4575; --ground: #3d4a63; --hill-far: #1e3560; --hill-near: #162a4d; --sun: #f6efc4; --cloud: #5d7199; --line: rgba(255, 255, 255, .6); }
+        .wt-race[data-sky="night"] .wt-runner, .wt-race[data-sky="sunset"] .wt-runner { filter: drop-shadow(0 0 1.5px #fff); }
+        .wt-race[data-sky="night"] .wt-pacer::before { color: #fff; }
+        .wt-race[data-sky="night"] .wt-cp-pole { border-left-color: rgba(255, 255, 255, .45); }
+        .wt-race[data-sky="night"] .wt-bird { color: #9fb2d3; }
+        .wt-race[data-sky="night"] .wt-sun { animation: none; }
+        .wt-race[data-sky="night"] .wt-gate { border-color: #b8c4d9; }
         .wt-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--wt-muted); }
         .wt-lane { display: grid; grid-template-columns: 190px 1fr 190px; gap: 14px; align-items: center; padding: 8px 6px; border-radius: 10px; cursor: pointer; transition: background .15s; }
         .wt-lane:hover { background: var(--wt-soft); }
         .wt-lane.selected { background: #e9f1fe; }
         .wt-lane + .wt-lane { margin-top: 2px; }
+        .wt-division-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .wt-division-chips button { padding: 3px 12px; border: 1px solid var(--wt-line); border-radius: 16px; background: #fff; color: var(--wt-muted); font-size: 12.5px; font-weight: 600; transition: background .12s, color .12s; }
+        .wt-division-chips button:hover { background: var(--wt-soft); }
+        .wt-division-chips button.active { border-color: var(--wt-navy); background: var(--wt-navy); color: #fff; }
+        .wt-division-head { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--wt-navy); }
+        .wt-division-head::after { content: ""; flex: 1; height: 1px; background: var(--wt-line); }
+        .wt-division-head span { font-weight: 600; color: var(--wt-muted); text-transform: none; letter-spacing: 0; }
+        .wt-member-division { width: 150px; flex: none; }
         .wt-person { display: flex; align-items: center; gap: 10px; min-width: 0; }
         .wt-avatar { flex: none; width: 36px; height: 36px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
         .wt-person-name { font-weight: 600; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .wt-person-sub { font-size: 11.5px; color: var(--wt-muted); }
-        .wt-track { position: relative; height: 104px; border-radius: 10px; overflow: hidden; background: linear-gradient(#eaf2ff 0 calc(100% - 28px), #dfe7f2 0); }
+        .wt-track { position: relative; height: 112px; border-radius: 12px; overflow: hidden; background: linear-gradient(var(--sky-a), var(--sky-b) calc(100% - 28px), var(--ground) 0); box-shadow: inset 0 0 0 1px rgba(8, 33, 73, .08); }
+        .wt-hill { position: absolute; left: 0; bottom: 28px; background: var(--hill-near); --hill-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V24C40 6 80 6 120 22S200 38 240 24V40Z'/%3E%3C/svg%3E"); -webkit-mask: var(--hill-shape) 0 0 / var(--hill-w) 100% repeat-x; mask: var(--hill-shape) 0 0 / var(--hill-w) 100% repeat-x; will-change: transform; }
+        .wt-hill.far { --hill-w: 420px; width: calc(100% + 420px); height: 40px; background: var(--hill-far); }
+        .wt-hill.near { --hill-w: 250px; width: calc(100% + 250px); height: 24px; }
+        @keyframes wt-hill-far { to { transform: translateX(-420px); } }
+        @keyframes wt-hill-near { to { transform: translateX(-250px); } }
+        .tier-sprint .wt-hill.far { animation: wt-hill-far 16s linear infinite; } .tier-sprint .wt-hill.near { animation: wt-hill-near 6s linear infinite; }
+        .tier-jog .wt-hill.far { animation: wt-hill-far 34s linear infinite; } .tier-jog .wt-hill.near { animation: wt-hill-near 13s linear infinite; }
+        .tier-walk .wt-hill.far { animation: wt-hill-far 80s linear infinite; } .tier-walk .wt-hill.near { animation: wt-hill-near 30s linear infinite; }
+        .incident-panic .wt-hill, .incident-fixing .wt-hill { animation: none !important; }
+        .wt-gate { position: absolute; z-index: 1; top: 26px; bottom: 22px; border-left: 3px solid #4b5a73; border-right: 3px solid #4b5a73; pointer-events: none; }
+        .wt-gate span { position: absolute; left: -3px; right: -3px; top: 0; height: 13px; border-radius: 3px; background: var(--wt-navy); color: #fff; font-size: 8px; font-weight: 800; line-height: 13px; letter-spacing: .08em; text-align: center; }
+        .wt-gate.start { left: 5px; width: 46px; }
+        .wt-gate.end { right: 18px; width: 46px; }
+        .wt-gate.end span { background: #c21f30; }
+        .wt-star { position: absolute; color: #fff; font-size: 7px; animation: wt-twinkle 2.4s ease-in-out infinite; }
         .wt-track-road { position: absolute; left: 0; right: 0; bottom: 11px; height: 2px; background-image: linear-gradient(90deg, #fff 50%, transparent 50%); background-size: 28px 2px; animation: wt-road var(--road, 0s) linear infinite; }
         @keyframes wt-road { to { background-position-x: -28px; } }
         .wt-finish { position: absolute; z-index: 1; top: 0; bottom: 0; right: 0; width: 16px; background: repeating-conic-gradient(#1b2536 0 25%, #fff 0 50%) 0 0 / 8px 8px; }
-        .wt-pacer { position: absolute; top: 25px; bottom: 0; width: 0; border-left: 2px dashed rgba(8, 33, 73, .4); transition: left 1.2s ease; }
+        .wt-pacer { position: absolute; top: 25px; bottom: 0; width: 0; border-left: 2px dashed var(--line); transition: left 1.2s ease; }
         .wt-pacer::before { content: "\f024"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; top: -3px; left: 1px; font-size: 10px; color: var(--wt-navy); }
         .wt-runner-box { position: absolute; z-index: 2; pointer-events: none; bottom: 3px; width: 54px; height: 56px; left: 0; transition: left 1.3s cubic-bezier(.22, .8, .3, 1); }
         .wt-pct { position: absolute; bottom: 57px; left: 27px; transform: translateX(-50%); padding: 0 6px; border-radius: 9px; background: #fff; box-shadow: 0 1px 3px rgba(8, 33, 73, .2); font-size: 11.5px; font-weight: 700; color: var(--wt-navy); white-space: nowrap; }
         .wt-cp-label { position: absolute; top: 4px; height: 18px; padding: 0 2px 0 6px; border: 0; background: none; font-size: 11.5px; font-weight: 600; line-height: 18px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #5b6577; }
+        .wt-cp-label span { display: inline-block; max-width: 100%; height: 18px; padding: 0 5px; overflow: hidden; border-radius: 6px; background: rgba(255, 255, 255, .86); vertical-align: top; text-overflow: ellipsis; }
         .wt-cp-label:hover { text-decoration: underline; }
         .wt-cp-label.is-hidden { display: none; }
         .wt-cp-pole { position: absolute; top: 23px; bottom: 22px; border-left: 1px dotted #9aa6b8; }
@@ -138,14 +195,14 @@
         @keyframes wt-fix { from { transform: rotate(-30deg); } to { transform: rotate(35deg); } }
 
         /* Dekorasi lintasan */
-        .wt-sun { position: absolute; top: 25px; right: 28px; color: #f2c94c; font-size: 17px; animation: wt-spin 12s linear infinite; }
+        .wt-sun { position: absolute; top: 28px; right: 84px; color: var(--sun); font-size: 19px; animation: wt-spin 12s linear infinite; }
         @keyframes wt-spin { to { transform: rotate(360deg); } }
-        .wt-cloud { position: absolute; left: 100%; color: #fff; font-size: 21px; opacity: .95; animation: wt-drift var(--dur, 20s) linear infinite; }
+        .wt-cloud { position: absolute; left: 100%; color: var(--cloud); font-size: 21px; opacity: .95; animation: wt-drift var(--dur, 20s) linear infinite; }
         .wt-cloud.mini { font-size: 13px; opacity: .8; }
         @keyframes wt-drift { to { left: -40px; } }
         .wt-bird { position: absolute; top: 34px; left: -24px; color: #6d84a8; font-size: 11px; animation: wt-fly 21s linear infinite; }
         @keyframes wt-fly { 0% { left: -24px; transform: translateY(0); } 25% { transform: translateY(-6px); } 50% { transform: translateY(4px); } 75% { transform: translateY(-5px); } 100% { left: 102%; transform: translateY(0); } }
-        .wt-crowd { position: absolute; right: 20px; bottom: 27px; display: flex; gap: 1px; font-size: 13px; opacity: .85; }
+        .wt-crowd { position: absolute; right: 72px; bottom: 27px; display: flex; gap: 1px; font-size: 13px; opacity: .85; }
         .wt-crowd i { animation: wt-crowd 1.6s ease-in-out infinite; }
         .wt-crowd.cheer i { animation-duration: .45s; }
         @keyframes wt-crowd { 50% { transform: translateY(-5px); } }
@@ -153,7 +210,6 @@
         .wt-balloon::after { content: ""; position: absolute; left: 6px; top: 16px; height: 9px; border-left: 1px solid rgba(8, 33, 73, .35); }
         @keyframes wt-balloon { 0% { bottom: -18px; transform: translateX(0); opacity: 1; } 50% { transform: translateX(7px); } 100% { bottom: 110px; transform: translateX(-4px); opacity: .6; } }
         .wt-spark { position: absolute; color: #f2c94c; font-size: 11px; animation: wt-twinkle 1.2s ease-in-out infinite; }
-        .wt-crown { color: #e0a400; }
         .wt-say { position: absolute; z-index: 3; left: 49px; bottom: 30px; padding: 1px 8px; border-radius: 9px; background: #fff; box-shadow: 0 1px 4px rgba(8, 33, 73, .22); color: var(--wt-ink); font-size: 10.5px; font-weight: 600; white-space: nowrap; }
         .wt-say.left { left: auto; right: 49px; }
         .wt-say.pop { animation: wt-say .35s ease; }
@@ -202,27 +258,44 @@
 
         /* Kanban */
         .wt-kanban { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 6px; }
-        .wt-col { background: var(--wt-soft); border-radius: 12px; padding: 10px; min-height: 240px; transition: outline .1s; }
+        .wt-col { background: var(--wt-soft); border-top: 3px solid var(--col); border-radius: 12px; padding: 10px; min-height: 240px; transition: outline .1s; }
         .wt-col.over { outline: 2px dashed var(--wt-blue); }
         .wt-col-head { display: flex; justify-content: space-between; font-weight: 700; font-size: 13px; padding: 2px 4px 9px; }
-        .wt-kcard { background: #fff; border-radius: 10px; border-left: 4px solid var(--wt-gray); padding: 9px 11px; margin-bottom: 9px; font-size: 12.5px; box-shadow: 0 1px 4px rgba(8, 33, 73, .08); cursor: grab; }
-        .wt-kcard:hover { box-shadow: 0 4px 12px rgba(8, 33, 73, .14); }
+        .wt-kcard { background: #fff; border-radius: 10px; border-left: 5px solid var(--wt-gray); padding: 9px 11px; margin-bottom: 9px; font-size: 12.5px; box-shadow: 0 1px 4px rgba(8, 33, 73, .08); cursor: grab; transition: transform .14s, box-shadow .14s; }
+        .wt-kcard:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(8, 33, 73, .16); }
         .wt-kcard.b-aman, .wt-kcard.b-selesai { border-left-color: var(--wt-green); } .wt-kcard.b-mepet { border-left-color: var(--wt-amber); } .wt-kcard.b-telat, .wt-kcard.b-selesai_telat { border-left-color: var(--wt-red); }
 
         /* Timeline */
-        .wt-gantt { overflow-x: auto; }
-        .wt-gantt-inner { position: relative; min-width: 980px; }
-        .wt-gantt-row { display: grid; grid-template-columns: 220px 1fr; align-items: center; min-height: 34px; border-bottom: 1px solid var(--wt-line); }
-        .wt-gantt-group { font-weight: 700; font-size: 12.5px; background: var(--wt-soft); padding: 6px 10px; border-radius: 6px; margin-top: 8px; }
-        .wt-gantt-label { font-size: 12px; padding: 4px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-        .wt-gantt-area { position: relative; height: 32px; }
-        .wt-gantt-head { position: relative; height: 40px; }
-        .wt-gantt-tick { position: absolute; top: 20px; transform: translateX(-50%); font-size: 10.5px; color: var(--wt-muted); white-space: nowrap; }
-        .wt-gantt-bar { position: absolute; top: 8px; height: 16px; border-radius: 6px; background: #d5dfee; overflow: hidden; cursor: pointer; }
-        .wt-gantt-bar span { display: block; height: 100%; }
-        .wt-gantt-over { position: absolute; top: 8px; height: 16px; border-radius: 0 6px 6px 0; background: repeating-linear-gradient(45deg, #ffb3bb 0 5px, #ffe3e6 5px 10px); }
-        .wt-gantt-today { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--wt-red); z-index: 2; pointer-events: none; }
-        .wt-gantt-today::before { content: "Hari ini"; position: absolute; top: -1px; left: 4px; font-size: 10px; color: var(--wt-red); font-weight: 700; white-space: nowrap; }
+        .wt-tl-scroll { overflow-x: auto; }
+        .wt-tl { position: relative; width: max-content; min-width: 100%; }
+        .wt-tl-row { display: grid; border-bottom: 1px solid var(--wt-line); transition: background .1s; }
+        .wt-tl-row.drop-target .wt-tl-area { background-color: #e9f1fe; box-shadow: inset 0 0 0 2px var(--wt-blue); }
+        .wt-tl-head .wt-tl-area { height: 42px; background: none; }
+        .wt-tl-side { position: sticky; left: 0; z-index: 4; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; padding: 4px 10px; background: #fff; box-shadow: 1px 0 0 var(--wt-line); }
+        .wt-tl-person { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; }
+        .wt-tl-person b { overflow: hidden; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+        .wt-tl-more { align-self: flex-start; padding: 0 7px; border: 1px solid var(--wt-line); border-radius: 10px; background: #fff; color: #1b5fc1; font-size: 11px; font-weight: 700; }
+        .wt-tl-more:hover { background: var(--wt-soft); }
+        .wt-tl-division { position: sticky; left: 0; width: max-content; padding: 10px 10px 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--wt-navy); }
+        .wt-tl-area { position: relative; background-image: linear-gradient(90deg, var(--wt-line) 1px, transparent 1px); background-size: var(--day) 100%; }
+        .wt-tl-tick { position: absolute; top: 22px; font-size: 10.5px; color: var(--wt-muted); text-align: center; white-space: nowrap; }
+        .wt-tl-todaycol { position: absolute; top: 0; bottom: 0; z-index: 0; background: rgba(220, 53, 69, .07); border-left: 2px solid var(--wt-red); pointer-events: none; }
+        .wt-tl-todaylabel { position: absolute; top: 3px; z-index: 1; color: var(--wt-red); font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+        .wt-tl-bar { position: absolute; z-index: 2; height: 24px; padding: 0 12px 0 6px; overflow: hidden; border: 1px solid #cfd8e6; border-left: 4px solid var(--wt-gray); border-radius: 6px; background: #f4f7fc; color: var(--wt-ink); font-size: 11.5px; font-weight: 600; line-height: 22px; text-align: left; white-space: nowrap; box-shadow: 0 1px 3px rgba(8, 33, 73, .16); transition: box-shadow .12s, transform .12s; }
+        .wt-tl-bar:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(8, 33, 73, .28); }
+        .wt-tl-avatar { display: inline-grid; width: 17px; height: 17px; margin-right: 4px; font-size: 7.5px; vertical-align: 1px; }
+        .wt-tl-bar.can-drag { cursor: grab; touch-action: pan-y; }
+        .wt-tl-bar.dragging { z-index: 5; cursor: grabbing; opacity: .92; box-shadow: 0 8px 20px rgba(8, 33, 73, .35); transition: none; }
+        .wt-tl-fill { position: absolute; left: 0; top: 0; bottom: 0; background: #dbe2ee; }
+        .wt-tl-text { position: relative; display: block; overflow: hidden; text-overflow: ellipsis; }
+        .wt-tl-text i { color: var(--wt-red); }
+        .wt-tl-handle { position: absolute; top: 0; right: 0; bottom: 0; width: 9px; cursor: ew-resize; background: linear-gradient(90deg, transparent 3px, rgba(8, 33, 73, .22) 3px 4px, transparent 4px 6px, rgba(8, 33, 73, .22) 6px 7px, transparent 7px); }
+        .tl-aman, .tl-selesai { border-color: #7fd6a4; border-left-color: var(--wt-green); background: #e3f8ec; } .tl-aman .wt-tl-fill, .tl-selesai .wt-tl-fill { background: #86dfab; }
+        .tl-mepet { border-color: #f0c672; border-left-color: var(--wt-amber); background: #fff4dc; } .tl-mepet .wt-tl-fill { background: #fbcb6e; }
+        .tl-telat, .tl-selesai_telat { border-color: #f3a3ab; border-left-color: var(--wt-red); background: #ffe8ea; } .tl-telat .wt-tl-fill, .tl-selesai_telat .wt-tl-fill { background: #fba9b1; }
+        .tl-selesai, .tl-selesai_telat, .tl-ditolak { opacity: .7; }
+        .wt-tl-over { position: absolute; z-index: 1; height: 24px; border-radius: 0 6px 6px 0; background: repeating-linear-gradient(45deg, #ffb3bb 0 5px, #ffe3e6 5px 10px); pointer-events: none; }
+        .wt-tl-tip { position: fixed; z-index: 2000; display: none; padding: 4px 10px; border-radius: 8px; background: var(--wt-navy); color: #fff; font-size: 12px; font-weight: 600; white-space: nowrap; pointer-events: none; }
 
         /* Modal */
         .wt-form .form-control { font-size: 13px; }
@@ -248,16 +321,30 @@
         .wt-guide-dot { display: inline-block; width: 12px; height: 12px; margin-right: 3px; border-radius: 50%; vertical-align: -1px; }
 
         /* Confetti */
-        .wt-confetti { position: fixed; top: -12px; width: 9px; height: 13px; z-index: 2000; pointer-events: none; animation: wt-fall var(--dur) ease-in forwards; }
+        .wt-confetti { position: fixed; top: -12px; width: 9px; height: 13px; z-index: 2200; pointer-events: none; animation: wt-fall var(--dur) ease-in forwards; }
         @keyframes wt-fall { to { transform: translate(var(--drift), 105vh) rotate(760deg); opacity: .8; } }
+
+        .wt-party { position: fixed; inset: 0; z-index: 2100; display: grid; place-items: center; padding: 16px; background: rgba(8, 20, 45, .62); backdrop-filter: blur(4px); cursor: pointer; animation: wt-party-in .25s ease both; }
+        .wt-party.out { opacity: 0; transition: opacity .3s; }
+        @keyframes wt-party-in { from { opacity: 0; } }
+        .wt-party-card { width: min(430px, 100%); padding: 28px 26px 24px; border-radius: 22px; background: #fff; color: var(--wt-ink); text-align: center; box-shadow: 0 24px 60px rgba(0, 0, 0, .4); animation: wt-party-pop .55s cubic-bezier(.2, 1.5, .4, 1) both; }
+        @keyframes wt-party-pop { from { opacity: 0; transform: scale(.55) translateY(30px); } }
+        .wt-party-trophy { width: 84px; height: 84px; margin: 0 auto 12px; display: grid; place-items: center; border-radius: 50%; color: #fff; font-size: 38px; background: linear-gradient(145deg, #f7b84b, #e08a00); box-shadow: 0 0 0 9px #fff3d6; animation: wt-party-bounce 1s ease-in-out infinite alternate; }
+        @keyframes wt-party-bounce { to { transform: translateY(-7px) rotate(-5deg); } }
+        .wt-party-head { font-size: 25px; font-weight: 800; color: var(--wt-navy); }
+        .wt-party-title { margin: 5px 0 12px; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+        .wt-party-who { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
 
         @media (max-width: 991.98px) {
             .wt-lane { grid-template-columns: 1fr; gap: 6px; }
             .wt-queue-row { grid-template-columns: 1fr; gap: 6px; }
             .wt-hero { padding: 18px; }
+            .wt-ring { width: 92px; height: 92px; }
+            .wt-ring-text b { font-size: 21px; }
+            .wt-verdict { font-size: 14.5px; }
         }
         @media (prefers-reduced-motion: reduce) {
-            .wt *, .wt-confetti { animation: none !important; transition: none !important; }
+            .wt *, .wt-confetti, .wt-party, .wt-party * { animation: none !important; transition: none !important; }
         }
     </style>
 @endsection
@@ -271,14 +358,22 @@
             <i class="fa-solid fa-star wt-twinkle" style="top: 30%; left: 70%; animation-delay: 1.5s;" aria-hidden="true"></i>
             <i class="fa-solid fa-star wt-twinkle" style="top: 72%; left: 34%; animation-delay: 2s;" aria-hidden="true"></i>
             <div class="d-flex flex-wrap justify-content-between gap-3">
-                <div>
-                    <h1><i class="fa-solid fa-person-running"></i> Work Tracker</h1>
-                    <div class="wt-hero-date" id="wt-date"></div>
-                    <div class="wt-verdict" id="wt-verdict"><i class="fa-solid fa-spinner fa-spin"></i> Memuat...</div>
+                <div class="wt-hero-main">
+                    <div class="wt-ring" id="wt-ring" role="img" aria-label="Progress tim">
+                        <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="wt-ring-track" cx="60" cy="60" r="52"/><circle class="wt-ring-value" id="wt-ring-value" cx="60" cy="60" r="52" pathLength="100"/></svg>
+                        <div class="wt-ring-text"><b id="wt-ring-pct">0%</b><span>Progress tim</span></div>
+                    </div>
+                    <div style="min-width:0">
+                        <h1><i class="fa-solid fa-person-running"></i> Work Tracker</h1>
+                        <div class="wt-hero-date" id="wt-date"></div>
+                        <div class="wt-verdict" id="wt-verdict"><i class="fa-solid fa-spinner fa-spin"></i> Memuat...</div>
+                        <div class="wt-hero-eta" id="wt-eta"></div>
+                    </div>
                 </div>
                 <div class="d-flex flex-wrap align-items-start gap-2">
+                    <a class="btn btn-ghost btn-sm" href="{{ route('work-tracker-dashboard') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
                     <button class="btn btn-ghost btn-sm" id="wt-btn-guide" data-bs-toggle="modal" data-bs-target="#wt-guide-modal"><i class="fa-solid fa-circle-question"></i> Panduan</button>
-                    <button class="btn btn-ghost btn-sm" id="wt-btn-programmer"><i class="fa-solid fa-users"></i> Programmer</button>
+                    <button class="btn btn-ghost btn-sm" id="wt-btn-programmer"><i class="fa-solid fa-users"></i> Anggota</button>
                     <button class="btn btn-light btn-sm" id="wt-btn-add"><i class="fa-solid fa-plus"></i> Tambah Kerjaan</button>
                 </div>
             </div>
@@ -295,7 +390,7 @@
 
         <div class="wt-card wt-race">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                <h2 class="wt-section-title"><i class="fa-solid fa-flag-checkered"></i> Arena Programmer</h2>
+                <h2 class="wt-section-title"><i class="fa-solid fa-flag-checkered"></i> Arena Tim</h2>
                 <div class="wt-legend">
                     <span><i class="fa-solid fa-person-running text-success"></i> Ngebut: aman</span>
                     <span><i class="fa-solid fa-person-running text-warning"></i> Jogging: mepet</span>
@@ -304,6 +399,7 @@
                     <span><i class="fa-solid fa-circle-check text-success"></i> Pos = kerjaan</span>
                 </div>
             </div>
+            <div class="wt-division-chips" id="wt-division-chips"></div>
             <div id="wt-lanes"></div>
         </div>
 
@@ -326,10 +422,11 @@
                 <div class="wt-report-only d-none"><label>Dari</label><input type="date" class="form-control" id="wt-f-from"></div>
                 <div class="wt-report-only d-none"><label>Sampai</label><input type="date" class="form-control" id="wt-f-to"></div>
                 <div><label>Cari</label><input type="search" class="form-control" id="wt-f-search" placeholder="Judul, modul, peminta..."></div>
-                <div id="wt-f-programmer-box"><label>Programmer</label><select class="wt-select" id="wt-f-programmer"></select></div>
+                <div id="wt-f-division-box"><label>Divisi</label><select class="wt-select" id="wt-f-division"></select></div>
+                <div id="wt-f-programmer-box"><label>Anggota</label><select class="wt-select" id="wt-f-programmer"></select></div>
                 <div><label>Jenis</label>
                     <select class="wt-select" id="wt-f-type">
-                        <option value="">Semua jenis</option><option value="plan">Plan</option><option value="bug">Bug</option><option value="request">Request</option>
+                        <option value="">Semua jenis</option><option value="plan">Plan</option><option value="bug">Masalah</option><option value="request">Request</option>
                     </select>
                 </div>
                 <div id="wt-f-status-box"><label>Status</label>
@@ -365,11 +462,11 @@
                     <input type="hidden" name="id">
                     <div class="row g-3">
                         <div class="col-md-4"><label>Jenis</label>
-                            <select class="wt-select-modal" name="type" id="wt-i-type"><option value="plan">Plan</option><option value="bug">Bug</option><option value="request">Request</option></select>
+                            <select class="wt-select-modal" name="type" id="wt-i-type"><option value="plan">Plan</option><option value="bug">Masalah</option><option value="request">Request</option></select>
                         </div>
                         <div class="col-md-8"><label>Judul kerjaan</label><input class="form-control" name="title" maxlength="200" required></div>
                         <div class="col-md-4"><label>Modul</label><input class="form-control" name="module" maxlength="100" placeholder="Contoh: Cutting"></div>
-                        <div class="col-md-4"><label>Programmer</label><select class="wt-select-modal" name="programmer_id" id="wt-i-programmer"></select></div>
+                        <div class="col-md-4"><label>Anggota</label><select class="wt-select-modal" name="programmer_id" id="wt-i-programmer"></select></div>
                         <div class="col-md-4 wt-not-plan"><label>Level</label>
                             <select class="wt-select-modal" name="level" id="wt-i-level"><option value="">Belum ditentukan</option><option value="major">Major</option><option value="minor">Minor</option><option value="tidak">Tidak dikerjakan</option></select>
                         </div>
@@ -439,7 +536,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body wt-guide">
-                    <p>Work Tracker adalah papan untuk mencatat semua kerjaan programmer dan melihat apakah kerjaan itu akan selesai tepat waktu. Bayangkan tiap programmer sedang lomba lari: makin banyak kerjaan yang beres, makin dekat ke garis finish.</p>
+                    <p>Work Tracker adalah papan untuk mencatat semua kerjaan tim, seperti Programmer, IE, dan SA, dan melihat apakah kerjaan itu akan selesai tepat waktu. Bayangkan tiap anggota sedang lomba lari: makin banyak kerjaan yang beres, makin dekat ke garis finish.</p>
 
                     <div class="accordion" id="wt-guide-list">
                         <div class="accordion-item">
@@ -447,9 +544,9 @@
                             <div id="wt-g-start" class="accordion-collapse collapse show" data-bs-parent="#wt-guide-list">
                                 <div class="accordion-body">
                                     <ol>
-                                        <li><b>Daftarkan programmer.</b> Klik tombol <b>Programmer</b> di atas, pilih orangnya, pilih warna, lalu klik <b>Tambahkan</b>.</li>
+                                        <li><b>Daftarkan anggota.</b> Klik tombol <b>Anggota</b> di atas, pilih orangnya, pilih divisinya, pilih warna, lalu klik <b>Tambahkan</b>. Kalau divisinya belum ada, ketik saja nama divisi baru.</li>
                                         <li><b>Catat kerjaan.</b> Klik <b>Tambah Kerjaan</b>, isi judul, tanggal mulai, dan target selesai. Estimasi hari terisi sendiri.</li>
-                                        <li><b>Tugaskan.</b> Pilih programmer di form. Kalau belum tahu siapa yang mengerjakan, kosongkan saja. Kerjaan akan menunggu di tab <b>Antrean</b>.</li>
+                                        <li><b>Tugaskan.</b> Pilih anggota di form. Kalau belum tahu siapa yang mengerjakan, kosongkan saja. Kerjaan akan menunggu di tab <b>Antrean</b>.</li>
                                         <li><b>Update tiap hari.</b> Klik kerjaannya, geser persen progress, tulis catatan singkat, lalu klik <b>Simpan Progress</b>. Saat mencapai 100%, kerjaan otomatis selesai.</li>
                                     </ol>
                                     <div class="wt-guide-tip"><i class="fa-solid fa-lightbulb"></i> Yang paling penting adalah rutin mengisi progress. Prediksi hanya akurat kalau progress-nya terbaru.</div>
@@ -461,7 +558,7 @@
                             <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#wt-g-arena"><i class="fa-solid fa-person-running"></i> Cara membaca Arena</button></h2>
                             <div id="wt-g-arena" class="accordion-collapse collapse" data-bs-parent="#wt-guide-list">
                                 <div class="accordion-body">
-                                    <p>Tiap baris adalah satu programmer. Posisi pelari menunjukkan progress gabungan semua kerjaannya.</p>
+                                    <p>Tiap baris adalah satu anggota. Posisi pelari menunjukkan progress gabungan semua kerjaannya.</p>
                                     <table class="table table-sm align-middle">
                                         <thead><tr><th>Yang terlihat</th><th>Artinya</th></tr></thead>
                                         <tbody>
@@ -470,7 +567,6 @@
                                             <tr><td class="text-nowrap"><i class="fa-solid fa-person-walking text-danger"></i> <b>Ayo kejar</b></td><td>Waktunya kurang. Perlu dikejar, dibantu, atau targetnya dibicarakan ulang.</td></tr>
                                             <tr><td class="text-nowrap"><i class="fa-solid fa-mug-hot text-secondary"></i> <b>Santai</b></td><td>Belum ada kerjaan. Bisa diberi tugas baru.</td></tr>
                                             <tr><td class="text-nowrap"><i class="fa-solid fa-trophy text-warning"></i> <b>Semua beres</b></td><td>Semua kerjaan aktifnya sudah selesai.</td></tr>
-                                            <tr><td class="text-nowrap"><i class="fa-solid fa-crown text-warning"></i> <b>Mahkota</b></td><td>Progress tertinggi saat ini.</td></tr>
                                             <tr><td class="text-nowrap"><i class="fa-solid fa-flag"></i> <b>Bendera</b></td><td>Posisi yang seharusnya sudah dicapai hari ini. Pelari di belakang bendera berarti tertinggal.</td></tr>
                                         </tbody>
                                     </table>
@@ -481,7 +577,7 @@
                                         <span><span class="wt-guide-dot" style="background: var(--wt-red);"></span> Diprediksi telat</span>
                                         <span><span class="wt-guide-dot" style="background: #9aa6b8;"></span> Belum dimulai</span>
                                     </div>
-                                    <p class="mt-2 mb-0 small text-muted">Pelari bisa berada di depan lingkaran yang belum selesai kalau programmer mengerjakan beberapa hal sekaligus. Warna lingkaran tetap menunjukkan status sebenarnya.</p>
+                                    <p class="mt-2 mb-0 small text-muted">Pelari bisa berada di depan lingkaran yang belum selesai kalau anggota mengerjakan beberapa hal sekaligus. Warna lingkaran tetap menunjukkan status sebenarnya.</p>
                                 </div>
                             </div>
                         </div>
@@ -510,11 +606,11 @@
                             <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#wt-g-urgent"><i class="fa-solid fa-road-barrier"></i> Ada masalah mendesak</button></h2>
                             <div id="wt-g-urgent" class="accordion-collapse collapse" data-bs-parent="#wt-guide-list">
                                 <div class="accordion-body">
-                                    <p>Kalau ada <b>Bug</b> berlevel <b>Major</b> yang belum selesai dan targetnya hari ini atau sudah lewat, peringatan merah muncul di atas halaman dan rintangan muncul di lintasan programmernya.</p>
+                                    <p>Kalau ada <b>Masalah</b> berlevel <b>Major</b> yang belum selesai dan targetnya hari ini atau sudah lewat, peringatan merah muncul di atas halaman dan rintangan muncul di lintasan programmernya.</p>
                                     <ul class="mb-0">
-                                        <li><b>Pelari panik:</b> ada bug mendesak yang belum mulai dikerjakan.</li>
-                                        <li><b>Pelari membetulkan rintangan:</b> bug sedang dikerjakan.</li>
-                                        <li><b>Pelari melompat:</b> bug sudah selesai, dan rintangannya hilang.</li>
+                                        <li><b>Pelari panik:</b> ada masalah mendesak yang belum mulai dikerjakan.</li>
+                                        <li><b>Pelari membetulkan rintangan:</b> masalah sedang dikerjakan.</li>
+                                        <li><b>Pelari melompat:</b> masalah sudah selesai, dan rintangannya hilang.</li>
                                     </ul>
                                 </div>
                             </div>
@@ -525,10 +621,10 @@
                             <div id="wt-g-tabs" class="accordion-collapse collapse" data-bs-parent="#wt-guide-list">
                                 <div class="accordion-body">
                                     <ul class="mb-0">
-                                        <li><b>Daftar:</b> semua kerjaan, yang paling bermasalah di atas. Programmer bisa langsung diganti dari sini.</li>
+                                        <li><b>Daftar:</b> semua kerjaan, yang paling bermasalah di atas. Anggota bisa langsung diganti dari sini.</li>
                                         <li><b>Kanban:</b> kartu kerjaan per status. Tarik kartu ke kolom lain untuk mengubah statusnya.</li>
-                                        <li><b>Timeline:</b> jadwal kerjaan per programmer. Arsiran merah menunjukkan perkiraan keterlambatan.</li>
-                                        <li><b>Antrean:</b> kerjaan yang belum punya programmer. Pilih orangnya di dropdown, dan kerjaan langsung tersimpan.</li>
+                                        <li><b>Timeline:</b> jadwal kerjaan per anggota. Klik batang untuk membuka detail, geser untuk memindah jadwal atau anggota, dan tarik garis di ujung kanan untuk mengubah target. Arsiran merah menunjukkan perkiraan keterlambatan.</li>
+                                        <li><b>Antrean:</b> kerjaan yang belum punya anggota. Pilih orangnya di dropdown, dan kerjaan langsung tersimpan.</li>
                                         <li><b>Laporan:</b> daftar kerjaan per periode. Klik <b>Export Excel</b> untuk mengunduhnya.</li>
                                     </ul>
                                 </div>
@@ -541,14 +637,14 @@
                                 <div class="accordion-body">
                                     <dl class="mb-0">
                                         <dt>Plan</dt><dd>Kerjaan yang sudah direncanakan.</dd>
-                                        <dt>Bug</dt><dd>Masalah atau error di sistem.</dd>
+                                        <dt>Masalah</dt><dd>Kendala atau error yang perlu dibereskan.</dd>
                                         <dt>Request</dt><dd>Permintaan dari user, misalnya tambah kolom di laporan.</dd>
-                                        <dt>Major / Minor</dt><dd>Besar atau kecilnya dampak bug atau request.</dd>
-                                        <dt>Tidak dikerjakan</dt><dd>Bug atau request yang diputuskan tidak dikerjakan. Alasannya wajib diisi.</dd>
+                                        <dt>Major / Minor</dt><dd>Besar atau kecilnya dampak masalah atau request.</dd>
+                                        <dt>Tidak dikerjakan</dt><dd>Masalah atau request yang diputuskan tidak dikerjakan. Alasannya wajib diisi.</dd>
                                         <dt>Estimasi</dt><dd>Perkiraan lama pengerjaan dalam hari. Terisi otomatis dari tanggal, dan sebaiknya diubah kalau pengerjaan sebenarnya lebih singkat.</dd>
                                         <dt>Pace</dt><dd>Kecepatan kerja, yaitu rata-rata persen progress per hari.</dd>
                                         <dt>Sisa beban</dt><dd>Perkiraan jumlah hari kerja yang masih dibutuhkan.</dd>
-                                        <dt>Tersedia</dt><dd>Jumlah hari dari hari ini sampai target terjauh programmer itu.</dd>
+                                        <dt>Tersedia</dt><dd>Jumlah hari dari hari ini sampai target terjauh anggota itu.</dd>
                                     </dl>
                                 </div>
                             </div>
@@ -560,12 +656,13 @@
                                 <div class="accordion-body">
                                     <dl class="mb-0">
                                         <dt>Bagaimana cara menghapus kerjaan?</dt><dd>Klik kerjaannya, klik <b>Edit Kerjaan</b>, lalu klik <b>Hapus</b> di kiri bawah.</dd>
-                                        <dt>Bagaimana cara memindahkan kerjaan ke programmer lain?</dt><dd>Di tab <b>Daftar</b>, ganti nama pada kolom Programmer.</dd>
+                                        <dt>Bagaimana cara memindahkan kerjaan ke anggota lain?</dt><dd>Di tab <b>Daftar</b>, ganti nama pada kolom Anggota.</dd>
                                         <dt>Bagaimana cara menandai kerjaan selesai?</dt><dd>Geser progress ke 100%, atau tarik kartunya ke kolom <b>Selesai</b> di tab Kanban.</dd>
                                         <dt>Bagaimana cara menolak request?</dt><dd>Di form Edit, pilih level <b>Tidak dikerjakan</b> dan isi alasannya. Bisa juga dengan menarik kartunya ke kolom <b>Ditolak</b> di tab Kanban.</dd>
                                         <dt>Kerjaan lama tidak muncul, ke mana?</dt><dd>Kerjaan yang selesai atau ditolak lebih dari 60 hari lalu masuk arsip. Nyalakan <b>Tampilkan arsip</b>, atau cari lewat tab <b>Laporan</b>.</dd>
                                         <dt>Kenapa pelari saya berjalan pelan padahal kerjaan terkendali?</dt><dd>Periksa progress dan estimasinya. Kalau beberapa kerjaan dikerjakan bersamaan, estimasi otomatis bisa terlalu besar. Ubah angkanya sesuai lama pengerjaan sebenarnya.</dd>
-                                        <dt>Bagaimana melihat kerjaan satu programmer saja?</dt><dd>Klik barisnya di Arena. Klik sekali lagi untuk kembali melihat semua.</dd>
+                                        <dt>Bagaimana melihat kerjaan satu divisi saja?</dt><dd>Klik nama divisinya, misalnya <b>IE</b>, di atas Arena. Filter ini juga berlaku di tab bawah.</dd>
+                                        <dt>Bagaimana melihat kerjaan satu anggota saja?</dt><dd>Klik barisnya di Arena. Klik sekali lagi untuk kembali melihat semua.</dd>
                                     </dl>
                                 </div>
                             </div>
@@ -584,13 +681,16 @@
         <div class="modal-dialog">
             <form class="modal-content wt-form" id="wt-programmer-form">
                 <div class="modal-header">
-                    <h5 class="modal-title">Programmer</h5>
+                    <h5 class="modal-title">Anggota Tim</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
                     <div id="wt-programmer-list" class="mb-3"></div>
                     <label>Tambah dari user</label>
                     <select id="wt-p-user" class="mb-2"></select>
+                    <label class="mt-2">Divisi</label>
+                    <select id="wt-p-division"></select>
+                    <div class="wt-sub mt-1">Pilih divisi, atau ketik nama divisi baru.</div>
                     <label class="mt-2">Warna</label>
                     <div class="wt-color" id="wt-p-colors"></div>
                 </div>
@@ -616,13 +716,14 @@
                 report: @json(route('report-work-tracker')),
                 exportExcel: @json(route('export-work-tracker')),
                 assign: @json(route('assign-work-tracker')),
+                reschedule: @json(route('reschedule-work-tracker')),
                 remove: @json(route('delete-work-tracker')),
                 programmerStore: @json(route('store-programmer-work-tracker')),
                 programmerDelete: @json(route('delete-programmer-work-tracker')),
             };
             const COLORS = ['#2f80ed', '#9b51e0', '#f2994a', '#27ae60', '#eb5757', '#00a3a3', '#d6336c', '#5c6ac4'];
-            const TYPE_LABEL = { plan: 'Plan', bug: 'Bug', request: 'Request' };
-            const TYPE_ICON = { plan: 'fa-compass-drafting', bug: 'fa-bug', request: 'fa-comment-dots' };
+            const TYPE_LABEL = { plan: 'Plan', bug: 'Masalah', request: 'Request' };
+            const TYPE_ICON = { plan: 'fa-compass-drafting', bug: 'fa-triangle-exclamation', request: 'fa-comment-dots' };
             const LEVEL_LABEL = { major: 'Major', minor: 'Minor', tidak: 'Tidak' };
             const STATUS_LABEL = { baru: 'Baru', dikerjakan: 'Dikerjakan', selesai: 'Selesai', ditolak: 'Ditolak' };
             const HEALTH_LABEL = { aman: 'Aman', mepet: 'Mepet', telat: 'Telat', selesai: 'Selesai', selesai_telat: 'Selesai telat', ditolak: 'Ditolak', belum_dinilai: 'Belum dinilai' };
@@ -637,7 +738,7 @@
             };
             const TIER_TITLE = { sprint: 'Ngebut!', jog: 'Jaga pace', walk: 'Ayo kejar!', rest: 'Belum ada kerjaan', finish: 'Semua beres!' };
 
-            const state = { board: null, demo: false, view: 'list', selected: null, color: COLORS[0], current: null, pos: {}, jumpers: [], urgentIds: [], reportItems: [], reportTimer: null, reportSeq: 0, statusBeforeReport: null, estimateManual: false };
+            const state = { timelineOpen: {}, drag: null, justDragged: false, division: '', board: null, demo: false, view: 'list', selected: null, color: COLORS[0], current: null, pos: {}, jumpers: [], urgentIds: [], reportItems: [], reportTimer: null, reportSeq: 0, statusBeforeReport: null, estimateManual: false, tileValues: {}, ringPct: 0 };
             const $view = $('#wt-view');
 
             function esc(value) {
@@ -747,6 +848,38 @@
                     kind = 'warn'; icon = 'fa-hourglass-half'; text = s.tight + ' kerjaan mepet target, jaga pace';
                 }
                 $('#wt-verdict').attr('class', 'wt-verdict ' + kind).html('<i class="fa-solid ' + icon + '"></i> ' + esc(text));
+                $('.wt-hero').removeClass('mood-good mood-warn mood-bad').addClass('mood-' + kind);
+                $('#wt-eta').text(s.active && s.latest_predicted ? 'Perkiraan semua kerjaan aktif selesai: ' + fmt(s.latest_predicted, true) : '');
+
+                $('#wt-ring').attr('aria-label', 'Progress tim ' + s.progress + '%');
+                countUp(document.getElementById('wt-ring-pct'), state.ringPct, s.progress, function (v) { return Math.round(v) + '%'; });
+                state.ringPct = s.progress;
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        document.getElementById('wt-ring-value').style.strokeDashoffset = 100 - s.progress;
+                    });
+                });
+            }
+
+            function reducedMotion() {
+                return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            }
+
+            function countUp(el, from, to, format) {
+                cancelAnimationFrame(el.wtCount);
+                if (reducedMotion() || from === to) {
+                    el.textContent = format(to);
+                    return;
+                }
+                const DURATION = 900;
+                const begin = performance.now();
+                el.textContent = format(from);
+                const step = function (now) {
+                    const t = Math.min(1, (now - begin) / DURATION);
+                    el.textContent = format(from + (to - from) * (1 - Math.pow(1 - t, 3)));
+                    if (t < 1) el.wtCount = requestAnimationFrame(step);
+                };
+                el.wtCount = requestAnimationFrame(step);
             }
 
             function assignOptionText(p) {
@@ -755,12 +888,25 @@
                 return p.name + ' (' + (p.available_days === null ? load : load + ', tersedia ' + p.available_days) + ')';
             }
 
+            function memberDivisions() {
+                return state.board.divisions.filter(function (d) {
+                    return state.board.programmers.some(function (p) { return p.division === d; });
+                });
+            }
+
+            function programmerOptions(optionHtml) {
+                return memberDivisions().map(function (d) {
+                    const members = state.board.programmers.filter(function (p) { return p.division === d; });
+                    return '<optgroup label="' + esc(d) + '">' + members.map(optionHtml).join('') + '</optgroup>';
+                }).join('');
+            }
+
             function assignSelect(item, emptyText) {
                 const current = item.programmer_id === null ? '' : Number(item.programmer_id);
-                const options = state.board.programmers.map(function (p) {
+                const options = programmerOptions(function (p) {
                     return '<option value="' + p.id + '" data-name="' + esc(p.name) + '"' + (p.id === current ? ' selected' : '') + '>' + esc(assignOptionText(p)) + '</option>';
-                }).join('');
-                return '<div class="wt-assign"><select class="wt-assign-select" data-id="' + item.id + '" data-current="' + current + '" aria-label="Programmer untuk ' + esc(item.title) + '"><option value="">' + esc(emptyText) + '</option>' + options + '</select></div>';
+                });
+                return '<div class="wt-assign"><select class="wt-assign-select" data-id="' + item.id + '" data-current="' + current + '" aria-label="Anggota untuk ' + esc(item.title) + '"><option value="">' + esc(emptyText) + '</option>' + options + '</select></div>';
             }
 
             function initAssignSelects($root) {
@@ -804,7 +950,7 @@
                     const target = i.target_date ? '<span class="' + (overdue ? 'wt-queue-overdue' : '') + '">Target ' + fmt(i.target_date) + '</span>' : '<span class="wt-sub">Belum ada target</span>';
                     return '<div class="wt-queue-row"><div style="min-width:0"><button type="button" class="wt-queue-title" data-item="' + i.id + '">' + esc(i.title) + '</button><div class="wt-sub">' + esc([i.code, i.module].filter(Boolean).join(' · ')) + '</div></div>' +
                         '<div>' + typeChip(i) + ' ' + levelChip(i) + (i.urgent ? ' <span class="wt-chip h-telat">Mendesak</span>' : '') + '</div><div>' + target + '</div>' +
-                        '<div>' + (noProgrammer ? '<span class="wt-sub">Tambah programmer dulu</span>' : assignSelect(i, 'Pilih programmer')) + '</div></div>';
+                        '<div>' + (noProgrammer ? '<span class="wt-sub">Tambah anggota dulu</span>' : assignSelect(i, 'Pilih anggota')) + '</div></div>';
                 }).join(''));
                 initAssignSelects($view);
             }
@@ -812,7 +958,7 @@
             function setView(view) {
                 state.view = view;
                 $('#wt-tabs button').each(function () { $(this).toggleClass('active', this.dataset.view === view); });
-                $('#wt-f-programmer-box, #wt-f-health-box').toggleClass('d-none', view === 'queue');
+                $('#wt-f-division-box, #wt-f-programmer-box, #wt-f-health-box').toggleClass('d-none', view === 'queue');
                 $('#wt-f-status-box').toggleClass('d-none', view === 'queue' || view === 'kanban');
                 $('.wt-report-only').toggleClass('d-none', view !== 'report');
 
@@ -836,7 +982,7 @@
 
             function reportParams() {
                 const params = {
-                    from: $('#wt-f-from').val(), to: $('#wt-f-to').val(), programmer: $('#wt-f-programmer').val(), type: $('#wt-f-type').val(),
+                    from: $('#wt-f-from').val(), to: $('#wt-f-to').val(), division: $('#wt-f-division').val(), programmer: $('#wt-f-programmer').val(), type: $('#wt-f-type').val(),
                     status: $('#wt-f-status').val(), level: $('#wt-f-level').val(), health: $('#wt-f-health').val(), search: $('#wt-f-search').val(),
                 };
                 if (state.demo) params.demo = 1;
@@ -872,11 +1018,11 @@
                 const rows = items.map(function (i) {
                     const sub = [i.code, i.module, i.requester ? 'dari ' + i.requester + (i.requester_dept ? ' (' + i.requester_dept + ')' : '') : null].filter(Boolean).join(' · ');
                     return '<tr data-id="' + i.id + '"><td><div class="wt-title">' + esc(i.title) + '</div><div class="wt-sub">' + esc(sub) + '</div></td>' +
-                        '<td>' + typeChip(i) + ' ' + levelChip(i) + '</td><td>' + esc(i.programmer_name || 'Belum ditugaskan') + '</td>' +
+                        '<td>' + typeChip(i) + ' ' + levelChip(i) + '</td><td>' + esc(i.programmer_name || 'Belum ditugaskan') + (i.programmer_division ? '<div class="wt-sub">' + esc(i.programmer_division) + '</div>' : '') + '</td>' +
                         '<td>' + esc(STATUS_LABEL[i.status]) + '</td><td><b>' + Number(i.progress) + '%</b></td>' +
                         '<td>' + fmt(i.start_date, true) + '</td><td>' + fmt(i.target_date, true) + '</td><td>' + fmt(i.finished_at, true) + '</td><td>' + healthChip(i) + '</td></tr>';
                 }).join('');
-                $view.html(header + '<div class="table-responsive"><table class="wt-table"><thead><tr><th>Kerjaan</th><th>Jenis</th><th>Programmer</th><th>Status</th><th>Progress</th><th>Mulai</th><th>Target</th><th>Selesai</th><th>Kondisi</th></tr></thead><tbody>' + rows + '</tbody></table></div>');
+                $view.html(header + '<div class="table-responsive"><table class="wt-table"><thead><tr><th>Kerjaan</th><th>Jenis</th><th>Anggota</th><th>Status</th><th>Progress</th><th>Mulai</th><th>Target</th><th>Selesai</th><th>Kondisi</th></tr></thead><tbody>' + rows + '</tbody></table></div>');
             }
 
             function assignProgrammer(id, programmerId) {
@@ -888,23 +1034,44 @@
                 if (request) request.always(load);
             }
 
+            function sparkline(values) {
+                const max = Math.max.apply(null, values.concat([1]));
+                const y = function (v) { return 24 - v / max * 21; };
+                const x = function (n) { return n / (values.length - 1) * 100; };
+                const line = values.map(function (v, n) { return (n ? 'L' : 'M') + x(n) + ' ' + y(v); }).join(' ');
+                const text = values.map(num).join(', ');
+                return '<span class="wt-trend" role="img" title="7 hari terakhir: ' + text + '" aria-label="Tren 7 hari terakhir: ' + text + '">' +
+                    '<svg viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"><path class="wt-trend-area" d="' + line + ' L100 26 L0 26 Z"/><path class="wt-trend-line" d="' + line + '"/></svg>' +
+                    '<span class="wt-trend-dot" style="top:' + y(values[values.length - 1]) + 'px"></span></span>';
+            }
+
             function renderTiles() {
                 const s = state.board.summary;
+                const urgentCount = (s.urgent || []).length;
+                const ofActive = s.active ? 'dari<b>' + s.active + '</b>kerjaan aktif' : 'Belum ada kerjaan aktif';
                 const tiles = [
-                    ['Kerjaan aktif', s.active, 'fa-layer-group', '#e7f0ff', '#1b5fc1'],
-                    ['Diprediksi telat', s.late, 'fa-fire', '#ffe3e6', '#c21f30'],
-                    ['Mepet target', s.tight, 'fa-hourglass-half', '#fff2d6', '#a86700'],
-                    ['Bug terbuka', s.bugs_open, 'fa-bug', '#ffe9ec', '#c92a3c'],
-                    ['Request baru', s.requests_new, 'fa-comment-dots', '#f1e9ff', '#7338c9'],
-                    ['Sisa beban (hari)', num(s.effort_left), 'fa-stopwatch', '#e0f7ea', '#0c7f3e'],
-                    ['Belum ditugaskan', s.unassigned, 'fa-inbox', '#fff2d6', '#a86700', 'queue'],
+                    { key: 'active', label: 'Kerjaan aktif', value: s.active, icon: 'fa-layer-group', tint: '#e7f0ff', accent: '#1b5fc1', trend: true },
+                    { key: 'late', label: 'Diprediksi telat', value: s.late, icon: 'fa-fire', tint: '#ffe3e6', accent: '#c21f30', foot: ofActive, alert: s.late > 0 },
+                    { key: 'tight', label: 'Mepet target', value: s.tight, icon: 'fa-hourglass-half', tint: '#fff2d6', accent: '#a86700', foot: ofActive },
+                    { key: 'bugs_open', label: urgentCount ? 'Masalah terbuka, ' + urgentCount + ' mendesak' : 'Masalah terbuka', value: s.bugs_open, icon: 'fa-triangle-exclamation', tint: '#ffe9ec', accent: '#c92a3c', trend: true, alert: urgentCount > 0 },
+                    { key: 'requests_new', label: 'Request baru', value: s.requests_new, icon: 'fa-comment-dots', tint: '#f1e9ff', accent: '#7338c9', trend: true },
+                    { key: 'effort_left', label: 'Sisa beban (hari)', value: s.effort_left, icon: 'fa-stopwatch', tint: '#e0f7ea', accent: '#0c7f3e', trend: true },
+                    { key: 'unassigned', label: 'Belum ditugaskan', value: s.unassigned, icon: 'fa-inbox', tint: '#fff2d6', accent: '#a86700', foot: s.unassigned ? 'Klik untuk mengatur' : 'Semua sudah punya anggota', goto: 'queue' },
                 ];
                 $('#wt-tiles').html(tiles.map(function (t, i) {
-                    const link = t[5] ? ' wt-tile-link" role="button" tabindex="0" title="Buka tab Antrean" data-goto="' + t[5] : '';
-                    return '<div class="wt-card wt-tile' + link + '" style="animation-delay:' + (i * 50) + 'ms">' +
-                        '<div class="wt-tile-icon" style="background:' + t[3] + ';color:' + t[4] + '"><i class="fa-solid ' + t[2] + '"></i></div>' +
-                        '<div><div class="wt-tile-value">' + esc(t[1]) + '</div><div class="wt-tile-label">' + esc(t[0]) + '</div></div></div>';
+                    const link = t.goto ? ' wt-tile-link" role="button" tabindex="0" title="Buka tab Antrean" data-goto="' + t.goto : '';
+                    const foot = t.trend ? sparkline(s.trend[t.key]) : t.foot;
+                    return '<div class="wt-card wt-tile' + (t.alert ? ' wt-tile-alert' : '') + link + '" style="--tint:' + t.tint + ';--accent:' + t.accent + ';animation-delay:' + (i * 50) + 'ms">' +
+                        '<div class="wt-tile-top"><div class="wt-tile-icon"><i class="fa-solid ' + t.icon + '"></i></div>' +
+                        '<div><div class="wt-tile-value" data-key="' + t.key + '"></div><div class="wt-tile-label">' + esc(t.label) + '</div></div></div>' +
+                        '<div class="wt-tile-foot">' + foot + '</div></div>';
                 }).join(''));
+                tiles.forEach(function (t) {
+                    countUp(document.querySelector('.wt-tile-value[data-key="' + t.key + '"]'), state.tileValues[t.key] || 0, Number(t.value), function (v) {
+                        return t.key === 'effort_left' ? num(Math.round(v * 10) / 10) : String(Math.round(v));
+                    });
+                    state.tileValues[t.key] = Number(t.value);
+                });
             }
 
             function runnerSvg(p) {
@@ -929,13 +1096,28 @@
                     '</g></svg>';
             }
 
+            // Langit Arena mengikuti jam di komputer pengguna
+            function skyNow() {
+                const hour = new Date().getHours();
+                if (hour >= 5 && hour < 10) return 'morning';
+                if (hour >= 10 && hour < 15) return 'day';
+                if (hour >= 15 && hour < 18) return 'sunset';
+                return 'night';
+            }
+
             function trackDecor(p, index) {
                 const speed = { sprint: 9, jog: 16, walk: 30, rest: 46, finish: 22 }[p.tier];
-                let html = '<i class="fa-solid fa-sun wt-sun"></i>' +
+                const night = skyNow() === 'night';
+                let html = '<div class="wt-hill far" style="animation-delay:-' + (index * 7) + 's"></div><div class="wt-hill near" style="animation-delay:-' + (index * 3) + 's"></div>' +
+                    (night ? [[8, 16], [24, 36], [41, 22], [58, 40], [73, 18]].map(function (star, n) {
+                        return '<i class="fa-solid fa-star wt-star" style="left:' + star[0] + '%;top:' + (star[1] + 12) + 'px;animation-delay:' + (n * .5) + 's"></i>';
+                    }).join('') : '') +
+                    '<i class="fa-solid ' + (night ? 'fa-moon' : 'fa-sun') + ' wt-sun"></i>' +
                     '<i class="fa-solid fa-cloud wt-cloud" style="top:26px;--dur:' + speed + 's;animation-delay:-' + (index * 3 + 2) + 's"></i>' +
                     '<i class="fa-solid fa-cloud wt-cloud mini" style="top:44px;--dur:' + (speed * 1.5) + 's;animation-delay:-' + (index * 5 + 9) + 's"></i>' +
                     '<i class="fa-solid fa-dove wt-bird" style="animation-delay:-' + (index * 6 + 4) + 's"></i>';
                 const cheering = p.tier === 'finish' || p.progress >= 70;
+                html += '<div class="wt-gate start"><span>START</span></div><div class="wt-gate end"><span>FINISH</span></div>';
                 html += '<div class="wt-crowd' + (cheering ? ' cheer' : '') + '" title="Penonton">' + ['#eb5757', '#2f80ed', '#f2c94c', '#27ae60', '#9b51e0'].map(function (color, n) {
                     return '<i class="fa-solid fa-person" style="color:' + color + ';animation-delay:' + (n * .12) + 's"></i>';
                 }).join('') + '</div>';
@@ -997,7 +1179,7 @@
                     const labelLeft = 'calc((100% - 72px) * ' + (c.start_position / 100) + ' + 27px)';
                     const labelWidth = 'calc((100% - 72px) * ' + ((c.position - c.start_position) / 100) + ')';
                     const title = esc(c.code + ' ' + c.title + ' | ' + c.progress + '% | Target ' + fmt(c.target_date) + ' | ' + HEALTH_LABEL[c.health]);
-                    return '<button type="button" class="wt-cp-label cp-' + kind + '" data-item="' + c.id + '" title="' + title + '" style="left:' + labelLeft + ';width:' + labelWidth + '">' + esc(c.title) + '</button>' +
+                    return '<button type="button" class="wt-cp-label cp-' + kind + '" data-item="' + c.id + '" title="' + title + '" style="left:' + labelLeft + ';width:' + labelWidth + '"><span>' + esc(c.title) + '</span></button>' +
                         '<div class="wt-cp-pole" style="left:' + center + '"></div>' +
                         '<button type="button" class="wt-cp cp-' + kind + '" data-item="' + c.id + '" title="' + title + '" aria-label="' + title + '" style="left:' + center + '"><i class="fa-solid ' + icons[kind] + '"></i></button>';
                 }).join('');
@@ -1011,39 +1193,58 @@
                 });
             }
 
+            function renderDivisionChips() {
+                const divisions = memberDivisions();
+                if (divisions.length < 2) {
+                    $('#wt-division-chips').empty();
+                    return;
+                }
+                $('#wt-division-chips').html([''].concat(divisions).map(function (d) {
+                    return '<button type="button" data-division="' + esc(d) + '" class="' + (state.division === d ? 'active' : '') + '">' + esc(d || 'Semua') + '</button>';
+                }).join(''));
+            }
+
             function renderLanes() {
+                $('.wt-race').attr('data-sky', skyNow());
                 const programmers = state.board.programmers;
                 if (!programmers.length) {
-                    $('#wt-lanes').html('<div class="wt-empty"><i class="fa-solid fa-person-running"></i>Belum ada programmer di arena.<div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">' +
-                        '<button class="btn btn-sb btn-sm" id="wt-empty-programmer"><i class="fa-solid fa-user-plus"></i> Tambah Programmer</button>' +
+                    $('#wt-division-chips').empty();
+                    $('#wt-lanes').html('<div class="wt-empty"><i class="fa-solid fa-person-running"></i>Belum ada anggota di arena.<div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">' +
+                        '<button class="btn btn-sb btn-sm" id="wt-empty-programmer"><i class="fa-solid fa-user-plus"></i> Tambah Anggota</button>' +
                         '<button class="btn btn-outline-secondary btn-sm" id="wt-demo-start"><i class="fa-solid fa-eye"></i> Lihat Contoh Tampilan</button></div></div>');
                     return;
                 }
 
                 const road = { sprint: '.45s', jog: '1s', walk: '2.6s', rest: '0s', finish: '0s' };
-                const contenders = programmers.filter(function (p) { return p.active > 0 && p.progress > 0; });
-                const leader = contenders.length > 1 ? contenders.reduce(function (best, p) { return p.progress > best.progress ? p : best; }) : null;
 
-                $('#wt-lanes').html(programmers.map(function (p, index) {
+                const laneHtml = function (p, index) {
                     const selected = state.selected === p.id ? ' selected' : '';
                     const incident = p.incident ? ' incident-' + p.incident : '';
                     const pos = 'calc((100% - 72px) * ' + (p.progress / 100) + ')';
                     const pacerLeft = 'calc((100% - 72px) * ' + (p.expected_progress / 100) + ' + 27px)';
                     const pacer = p.active ? '<div class="wt-pacer" data-left="' + pacerLeft + '" style="left:' + (state.pos[p.id] ? pacerLeft : '27px') + '" title="Posisi seharusnya hari ini: ' + p.expected_progress + '%"></div>' : '';
                     const jump = state.jumpers.includes(p.id) ? ' jump' : '';
-                    const crown = leader && leader.id === p.id ? '<i class="fa-solid fa-crown wt-crown" title="Progress tertinggi"></i> ' : '';
                     const obstacle = p.incident ? '<div class="wt-obstacle" style="left:min((100% - 72px) * ' + (p.progress / 100) + ' + 60px, 100% - 56px)" title="' + esc(p.urgent[0].title) + '"><i class="fa-solid fa-road-barrier"></i></div>' : '';
                     const sayCorner = p.progress >= 70 ? ' left' : '';
-                    return '<div class="wt-lane tier-' + p.tier + incident + selected + '" data-programmer="' + p.id + '" title="Klik untuk filter kerjaan programmer ini">' +
+                    return '<div class="wt-lane tier-' + p.tier + incident + selected + '" data-programmer="' + p.id + '" title="Klik untuk filter kerjaan anggota ini">' +
                         '<div class="wt-person"><div class="wt-avatar" style="background:' + esc(p.color) + '">' + esc(initials(p.name)) + '</div>' +
                         '<div style="min-width:0"><div class="wt-person-name">' + esc(p.name) + '</div>' +
                         '<div class="wt-person-sub">' + p.active + ' aktif' + (p.late ? ', ' + p.late + ' telat' : '') + '</div></div></div>' +
                         '<div class="wt-track">' + trackDecor(p, index) + '<div class="wt-track-road" style="--road:' + (p.incident ? '0s' : road[p.tier]) + '"></div>' + pacer +
                         checkpointsHtml(p) + obstacle + '<div class="wt-finish"></div>' +
                         '<div class="wt-runner-box' + jump + '" data-programmer-box="' + p.id + '" data-left="' + pos + '" style="left:' + (state.pos[p.id] || '0') + '">' +
-                        '<div class="wt-pct">' + crown + p.progress + '%</div>' +
+                        '<div class="wt-pct">' + p.progress + '%</div>' +
                         '<div class="wt-say' + sayCorner + '" data-kind="' + sayKind(p) + '">' + esc((SAY[sayKind(p)] || [''])[0]) + '</div>' + runnerSvg(p) + '</div></div>' +
                         '<div class="wt-lane-note tier-' + p.tier + (p.incident ? ' incident' : '') + '">' + laneNote(p) + '</div></div>';
+                };
+
+                renderDivisionChips();
+                let laneIndex = 0;
+                $('#wt-lanes').html(memberDivisions().filter(function (d) {
+                    return !state.division || state.division === d;
+                }).map(function (d) {
+                    const members = programmers.filter(function (p) { return p.division === d; });
+                    return '<div class="wt-division-head">' + esc(d) + ' <span>' + members.length + ' orang</span></div>' + members.map(function (p) { return laneHtml(p, laneIndex++); }).join('');
                 }).join(''));
                 fitCheckpointLabels();
 
@@ -1067,6 +1268,10 @@
                 const queueView = state.view === 'queue';
 
                 return state.board.items.filter(function (i) {
+                    if (!queueView && state.division) {
+                        const owner = programmerOf(i);
+                        if (!owner || owner.division !== state.division) return false;
+                    }
                     if (!queueView && (programmer === 'none' ? i.programmer_id !== null : (programmer && Number(i.programmer_id) !== Number(programmer)))) return false;
                     if (type && i.type !== type) return false;
                     if (level === 'none' ? i.level !== null : (level && i.level !== level)) return false;
@@ -1128,11 +1333,12 @@
                         '<td>' + fmt(i.predicted_date) + '</td>' +
                         '<td>' + healthChip(i) + '<div class="wt-sub mt-1">' + esc(i.message) + '</div></td></tr>';
                 }).join('');
-                $view.html('<div class="table-responsive"><table class="wt-table"><thead><tr><th>Kerjaan</th><th>Jenis</th><th>Programmer</th><th>Progress</th><th>Target</th><th>Prediksi</th><th>Kondisi</th></tr></thead><tbody>' + rows + '</tbody></table></div>');
+                $view.html('<div class="table-responsive"><table class="wt-table"><thead><tr><th>Kerjaan</th><th>Jenis</th><th>Anggota</th><th>Progress</th><th>Target</th><th>Prediksi</th><th>Kondisi</th></tr></thead><tbody>' + rows + '</tbody></table></div>');
                 initAssignSelects($view);
             }
 
             function renderKanban(items) {
+                const COLUMN_COLOR = { baru: '#8a94a6', dikerjakan: '#2f80ed', selesai: '#12a150', ditolak: '#dc3545' };
                 const html = Object.keys(STATUS_LABEL).map(function (status) {
                     const own = items.filter(function (i) { return i.status === status; });
                     const cards = own.map(function (i) {
@@ -1140,72 +1346,234 @@
                             '<div class="d-flex justify-content-between gap-1 mb-1">' + typeChip(i) + levelChip(i) + '</div>' +
                             '<div class="wt-title mb-1">' + esc(i.title) + '</div>' +
                             '<div class="wt-bar mb-1"><span class="fill-' + esc(i.health) + '" style="width:' + Number(i.progress) + '%"></span></div>' +
-                            '<div class="d-flex justify-content-between wt-sub"><span>' + Number(i.progress) + '% · ' + fmt(i.target_date) + '</span>' + (programmerOf(i) ? '<span>' + esc(initials(programmerOf(i).name)) + '</span>' : '') + '</div></div>';
+                            '<div class="d-flex justify-content-between align-items-center wt-sub"><span>' + Number(i.progress) + '% · ' + fmt(i.target_date) + '</span>' + (programmerOf(i) ? '<span class="wt-avatar wt-mini-avatar" title="' + esc(programmerOf(i).name) + '" style="background:' + esc(programmerOf(i).color) + '">' + esc(initials(programmerOf(i).name)) + '</span>' : '') + '</div></div>';
                     }).join('');
-                    return '<div class="wt-col" data-status="' + status + '"><div class="wt-col-head"><span>' + STATUS_LABEL[status] + '</span><span class="text-muted">' + own.length + '</span></div>' + cards + '</div>';
+                    return '<div class="wt-col" data-status="' + status + '" style="--col:' + COLUMN_COLOR[status] + '"><div class="wt-col-head"><span>' + STATUS_LABEL[status] + '</span><span class="text-muted">' + own.length + '</span></div>' + cards + '</div>';
                 }).join('');
                 $view.html('<div class="wt-kanban">' + html + '</div>');
             }
 
             function renderTimeline(items) {
+                const LANE_HEIGHT = 28;
+                const MAX_LANES = 3;
+                const SIDE_WIDTH = 170;
                 const today = state.board.today;
-                const dated = items.filter(function (i) { return i.start_date || i.target_date || i.predicted_date; });
-                if (!dated.length) {
+                const shiftIso = function (iso, n) {
+                    const date = parseDate(iso);
+                    date.setDate(date.getDate() + n);
+                    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+                };
+
+                const bars = items.filter(function (i) { return i.start_date || i.target_date || i.predicted_date; }).map(function (i) {
+                    const start = i.start_date || i.target_date || i.predicted_date;
+                    const planEnd = i.target_date || i.predicted_date || start;
+                    const end = planEnd < start ? start : planEnd;
+                    const overrun = i.health === 'telat' && i.predicted_date && i.predicted_date > end ? i.predicted_date : null;
+                    return { item: i, start: start, end: end, overrun: overrun, visualEnd: overrun || end };
+                });
+
+                // Rentang waktu diberi ruang kosong supaya batang bisa digeser melewati tanggal terakhir
+                let min = shiftIso(today, -1), max = shiftIso(today, 13);
+                bars.forEach(function (b) {
+                    if (b.start < min) min = b.start;
+                    if (b.visualEnd > max) max = b.visualEnd;
+                });
+                max = shiftIso(max, 3);
+                const span = days(min, max) + 1;
+                const dayW = Math.max(38, ($view.width() - SIDE_WIDTH) / span);
+                const areaWidth = span * dayW;
+                const rowStyle = 'grid-template-columns:' + SIDE_WIDTH + 'px ' + areaWidth + 'px;--day:' + dayW + 'px';
+                const todayLeft = days(min, today) * dayW;
+                const todayMark = '<div class="wt-tl-todaycol" style="left:' + todayLeft + 'px;width:' + dayW + 'px"></div>';
+
+                const step = Math.max(1, Math.ceil(56 / dayW));
+                let ticks = '';
+                for (let d = 0; d < span; d += step) {
+                    ticks += '<span class="wt-tl-tick" style="left:' + (d * dayW) + 'px;width:' + dayW + 'px">' + fmt(shiftIso(min, d)) + '</span>';
+                }
+
+                const rowHtml = function (key, name, color, own) {
+                    // Batang yang tanggalnya bentrok turun ke tingkat berikutnya
+                    const laneEnds = [];
+                    const placed = own.slice().sort(function (a, b) {
+                        return a.start < b.start ? -1 : (a.start > b.start ? 1 : a.item.id - b.item.id);
+                    }).map(function (b) {
+                        let lane = laneEnds.findIndex(function (end) { return end < b.start; });
+                        if (lane === -1) {
+                            lane = laneEnds.length;
+                            laneEnds.push(b.visualEnd);
+                        } else {
+                            laneEnds[lane] = b.visualEnd;
+                        }
+                        return { bar: b, lane: lane };
+                    });
+                    const expanded = !!state.timelineOpen[key];
+                    const hidden = expanded ? 0 : placed.filter(function (p) { return p.lane >= MAX_LANES; }).length;
+                    const shown = placed.filter(function (p) { return expanded || p.lane < MAX_LANES; });
+                    const lanes = Math.max(1, laneEnds.length === 0 ? 1 : (expanded ? laneEnds.length : Math.min(MAX_LANES, laneEnds.length)));
+
+                    const barsHtml = shown.map(function (p) {
+                        const b = p.bar;
+                        const i = b.item;
+                        const top = 4 + p.lane * LANE_HEIGHT;
+                        const left = days(min, b.start) * dayW + 1;
+                        const width = (days(b.start, b.end) + 1) * dayW - 2;
+                        const canDrag = ['baru', 'dikerjakan'].includes(i.status);
+                        const owner = programmerOf(i);
+                        const tip = i.code + ' ' + i.title + ' | ' + fmt(b.start) + ' sampai ' + fmt(b.end) + ' | ' + i.progress + '% | ' + HEALTH_LABEL[i.health];
+                        const over = b.overrun ? '<div class="wt-tl-over" style="top:' + top + 'px;left:' + (left + width) + 'px;width:' + (days(b.end, b.overrun) * dayW) + 'px"></div>' : '';
+                        return over + '<button type="button" class="wt-tl-bar tl-' + esc(i.health) + (canDrag ? ' can-drag' : '') + '" data-id="' + i.id + '" data-start="' + b.start + '" data-end="' + b.end + '" data-owner="' + (owner ? owner.id : '') + '" title="' + esc(tip) + '" style="top:' + top + 'px;left:' + left + 'px;width:' + width + 'px">' +
+                            '<span class="wt-tl-fill" style="width:' + Number(i.progress) + '%"></span>' +
+                            '<span class="wt-tl-text">' + (owner ? '<span class="wt-avatar wt-tl-avatar" style="background:' + esc(owner.color) + '">' + esc(initials(owner.name)) + '</span>' : '') + (i.urgent ? '<i class="fa-solid fa-road-barrier"></i> ' : '') + esc(i.title) + '</span>' +
+                            (canDrag ? '<span class="wt-tl-handle" title="Tarik untuk mengubah target"></span>' : '') + '</button>';
+                    }).join('');
+
+                    const moreButton = hidden > 0 ? '<button type="button" class="wt-tl-more" data-row="' + esc(key) + '">+' + hidden + ' lainnya</button>' : (expanded ? '<button type="button" class="wt-tl-more" data-row="' + esc(key) + '">Ringkas</button>' : '');
+                    return '<div class="wt-tl-row" data-row-key="' + esc(key) + '" data-programmer-id="' + (key === 'none' ? '' : esc(key)) + '" data-name="' + esc(name) + '" style="' + rowStyle + '">' +
+                        '<div class="wt-tl-side"><div class="wt-tl-person"><span class="wt-avatar wt-mini-avatar" style="background:' + esc(color) + '">' + esc(initials(name)) + '</span><b title="' + esc(name) + '">' + esc(name) + '</b></div>' + moreButton + '</div>' +
+                        '<div class="wt-tl-area" style="height:' + (8 + lanes * LANE_HEIGHT) + 'px">' + todayMark + barsHtml + '</div></div>';
+                };
+
+                const programmerFilter = $('#wt-f-programmer').val();
+                const barsOf = function (id) {
+                    return bars.filter(function (b) { return (b.item.programmer_id === null ? null : Number(b.item.programmer_id)) === id; });
+                };
+                const body = memberDivisions().filter(function (d) {
+                    return (!state.division || state.division === d) && programmerFilter !== 'none';
+                }).map(function (d) {
+                    const members = state.board.programmers.filter(function (p) {
+                        return p.division === d && (!programmerFilter || Number(programmerFilter) === p.id);
+                    });
+                    if (!members.length) return '';
+                    return '<div class="wt-tl-division">' + esc(d) + '</div>' + members.map(function (p) {
+                        return rowHtml(String(p.id), p.name, p.color, barsOf(p.id));
+                    }).join('');
+                }).join('');
+                const unassigned = barsOf(null);
+                const showUnassigned = !state.division && (!programmerFilter || programmerFilter === 'none') && (unassigned.length || state.board.programmers.length);
+                const bottom = showUnassigned ? '<div class="wt-tl-division">Belum ditugaskan</div>' + rowHtml('none', 'Belum ditugaskan', '#9aa6b8', unassigned) : '';
+
+                if (!body && !bottom) {
                     $view.html('<div class="wt-empty"><i class="fa-solid fa-chart-gantt"></i>Belum ada kerjaan dengan tanggal.</div>');
                     return;
                 }
 
-                let min = today, max = today;
-                dated.forEach(function (i) {
-                    [i.start_date, i.target_date, i.predicted_date].forEach(function (d) {
-                        if (!d) return;
-                        if (d < min) min = d;
-                        if (d > max) max = d;
+                $view.html('<div class="wt-sub mb-2"><i class="fa-solid fa-hand-pointer"></i> Klik batang untuk membuka detail. Geser untuk memindah jadwal atau anggota. Tarik garis di ujung kanan untuk mengubah target.</div>' +
+                    '<div class="wt-tl-scroll"><div class="wt-tl" data-day-width="' + dayW + '">' +
+                    '<div class="wt-tl-row wt-tl-head" style="' + rowStyle + '"><div class="wt-tl-side"></div><div class="wt-tl-area">' + todayMark +
+                    '<span class="wt-tl-todaylabel" style="left:' + (todayLeft + 4) + 'px">Hari ini</span>' + ticks + '</div></div>' + body + bottom + '</div></div>' +
+                    '<div class="wt-tl-tip" id="wt-tl-tip"></div>');
+            }
+
+            function startBarDrag(e) {
+                const native = e.originalEvent;
+                if (native.button !== 0) return;
+                const bar = e.currentTarget;
+                try {
+                    bar.setPointerCapture(native.pointerId);
+                } catch (error) {
+                    // Sebagian browser menolak capture, geser tetap jalan selama pointer di atas batang
+                }
+                state.drag = {
+                    bar: bar,
+                    id: Number(bar.dataset.id),
+                    mode: $(native.target).closest('.wt-tl-handle').length ? 'resize' : 'move',
+                    x: native.clientX,
+                    y: native.clientY,
+                    left: parseFloat(bar.style.left),
+                    width: parseFloat(bar.style.width),
+                    dayW: Number($(bar).closest('.wt-tl').data('dayWidth')),
+                    originRow: bar.closest('.wt-tl-row'),
+                    targetRow: bar.closest('.wt-tl-row'),
+                    delta: 0,
+                    moved: false,
+                };
+            }
+
+            function dragDates(drag) {
+                const item = state.board.items.find(function (i) { return i.id === drag.id; });
+                const shift = function (iso) {
+                    const date = parseDate(iso);
+                    date.setDate(date.getDate() + drag.delta);
+                    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+                };
+                if (drag.mode === 'resize') {
+                    return { start: item.start_date, target: shift(drag.bar.dataset.end), shownStart: drag.bar.dataset.start, shownEnd: shift(drag.bar.dataset.end) };
+                }
+                // Tanggal yang masih kosong tetap kosong, kecuali kerjaan belum punya tanggal sama sekali
+                const start = item.start_date || !item.target_date ? shift(drag.bar.dataset.start) : null;
+                const target = item.target_date ? shift(item.target_date) : null;
+                return { start: start, target: target, shownStart: shift(drag.bar.dataset.start), shownEnd: shift(drag.bar.dataset.end) };
+            }
+
+            function moveBarDrag(e) {
+                const drag = state.drag;
+                if (!drag) return;
+                const native = e.originalEvent;
+                const dx = native.clientX - drag.x;
+                const dy = native.clientY - drag.y;
+                if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+                drag.moved = true;
+                drag.bar.classList.add('dragging');
+                drag.delta = Math.round(dx / drag.dayW);
+
+                if (drag.mode === 'resize') {
+                    const minDelta = 1 - Math.round((drag.width + 2) / drag.dayW);
+                    drag.delta = Math.max(minDelta, drag.delta);
+                    drag.bar.style.width = (drag.width + drag.delta * drag.dayW) + 'px';
+                } else {
+                    drag.bar.style.transform = 'translate(' + (drag.delta * drag.dayW) + 'px,' + dy + 'px)';
+                    const under = document.elementsFromPoint(native.clientX, native.clientY).find(function (el) {
+                        return el.classList.contains('wt-tl-row') && el.dataset.rowKey;
                     });
-                });
-                const span = Math.max(7, days(min, max) + 2);
-                const percent = function (iso) { return (days(min, iso) / span) * 100; };
-                const dayWidth = 100 / span;
-                const step = Math.max(1, Math.ceil(span / 14));
-                let ticks = '';
-                for (let d = 0; d < span; d += step) {
-                    const date = parseDate(min);
-                    date.setDate(date.getDate() + d);
-                    ticks += '<span class="wt-gantt-tick" style="left:' + (d / span * 100) + '%">' + date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + '</span>';
+                    if (under && under !== drag.targetRow) {
+                        drag.targetRow = under;
+                    }
+                    $('.wt-tl-row').removeClass('drop-target');
+                    if (drag.targetRow !== drag.originRow) drag.targetRow.classList.add('drop-target');
                 }
 
-                const groups = state.board.programmers.map(function (p) { return { id: p.id, name: p.name, color: p.color }; });
-                groups.push({ id: null, name: 'Belum ditugaskan', color: '#9aa6b8' });
+                const dates = dragDates(drag);
+                const person = drag.targetRow !== drag.originRow ? ' ke ' + drag.targetRow.dataset.name : '';
+                $('#wt-tl-tip').text(fmt(dates.shownStart) + ' sampai ' + fmt(dates.shownEnd) + person).css({ display: 'block', left: native.clientX + 14, top: native.clientY + 14 });
+            }
 
-                const fills = { aman: '#12a150', selesai: '#12a150', mepet: '#e08a00', telat: '#dc3545', selesai_telat: '#dc3545', belum_dinilai: '#7f8ca1', ditolak: '#7f8ca1' };
-                const body = groups.map(function (g) {
-                    const own = dated.filter(function (i) { return (i.programmer_id === null ? null : Number(i.programmer_id)) === g.id; });
-                    if (!own.length) return '';
-                    return '<div class="wt-gantt-group" style="border-left:4px solid ' + esc(g.color) + '">' + esc(g.name) + '</div>' + own.map(function (i) {
-                        const start = i.start_date || i.target_date || i.predicted_date;
-                        const planEnd = i.target_date || i.predicted_date || start;
-                        const end = planEnd < start ? start : planEnd;
-                        let over = '';
-                        if (i.health === 'telat' && i.predicted_date && i.predicted_date > end) {
-                            const overStart = percent(end) + dayWidth;
-                            over = '<div class="wt-gantt-over" style="left:' + overStart + '%;width:' + (days(end, i.predicted_date) * dayWidth) + '%" title="Prediksi telat sampai ' + fmt(i.predicted_date) + '"></div>';
-                        }
-                        return '<div class="wt-gantt-row" data-id="' + i.id + '"><div class="wt-gantt-label" title="' + esc(i.title) + '">' + esc(i.title) + '</div>' +
-                            '<div class="wt-gantt-area"><div class="wt-gantt-bar" style="left:' + percent(start) + '%;width:' + ((days(start, end) + 1) * dayWidth) + '%" title="' + esc(fmt(start) + ' sampai ' + fmt(end) + ', ' + i.progress + '%') + '">' +
-                            '<span style="width:' + Number(i.progress) + '%;background:' + fills[i.health] + '"></span></div>' + over + '</div></div>';
-                    }).join('');
-                }).join('');
+            function endBarDrag() {
+                const drag = state.drag;
+                if (!drag) return;
+                state.drag = null;
+                $('#wt-tl-tip').hide();
+                if (!drag.moved) return;
 
-                const inner = '<div class="wt-gantt"><div class="wt-gantt-inner"><div class="wt-gantt-row" style="border:0"><div></div><div class="wt-gantt-head">' + ticks + '</div></div>' + body +
-                    '<div class="wt-gantt-today-wrap" style="position:absolute;top:0;bottom:0;left:220px;right:0;pointer-events:none"><div class="wt-gantt-today" style="left:' + percent(today) + '%"></div></div></div></div>';
-                $view.html(inner);
+                // Klik yang menyusul setelah menggeser tidak boleh membuka detail
+                state.justDragged = true;
+                setTimeout(function () { state.justDragged = false; }, 50);
+
+                const changedPerson = drag.targetRow !== drag.originRow;
+                if (drag.delta === 0 && !changedPerson) {
+                    renderView();
+                    return;
+                }
+                if (guardDemo()) {
+                    renderView();
+                    return;
+                }
+
+                const dates = dragDates(drag);
+                const payload = { id: drag.id, start_date: dates.start || '', target_date: dates.target || '' };
+                if (changedPerson) payload.programmer_id = drag.targetRow.dataset.programmerId;
+                const request = post(ROUTES.reschedule, payload, function (res) { toast(res.message); });
+                if (request) request.always(load);
             }
 
             function fillProgrammerSelects() {
                 const programmers = state.board.programmers;
                 const filterValue = $('#wt-f-programmer').val();
-                const options = programmers.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + '</option>'; }).join('');
-                $('#wt-f-programmer').html('<option value="">Semua programmer</option><option value="none">Belum ditugaskan</option>' + options).val(filterValue || '').trigger('change.select2');
+                const options = programmerOptions(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + '</option>'; });
+                const divisionValue = $('#wt-f-division').val();
+                $('#wt-f-division').html('<option value="">Semua divisi</option>' + memberDivisions().map(function (d) { return '<option value="' + esc(d) + '">' + esc(d) + '</option>'; }).join('')).val(divisionValue || '').trigger('change.select2');
+                state.division = $('#wt-f-division').val() || '';
+                $('#wt-f-programmer').html('<option value="">Semua anggota</option><option value="none">Belum ditugaskan</option>' + options).val(filterValue || '').trigger('change.select2');
                 $('#wt-i-programmer').html('<option value="">Belum ditugaskan</option>' + options).trigger('change.select2');
             }
 
@@ -1247,7 +1615,7 @@
                 $('#wt-d-code').text(item.code);
                 $('#wt-d-title').text(item.title);
                 const pairs = [
-                    ['Programmer', programmerOf(item) ? programmerOf(item).name : 'Belum ditugaskan'], ['Mulai', fmt(item.start_date, true)], ['Target', fmt(item.target_date, true)],
+                    ['Anggota', programmerOf(item) ? programmerOf(item).name : 'Belum ditugaskan'], ['Mulai', fmt(item.start_date, true)], ['Target', fmt(item.target_date, true)],
                     ['Prediksi', fmt(item.predicted_date, true)], ['Pace', item.pace ? num(item.pace) + '% per hari' : '-'], ['Sisa beban', item.effort_left !== null ? num(item.effort_left) + ' hari' : '-'],
                 ];
                 let info = '<div class="d-flex flex-wrap gap-2 mb-2">' + typeChip(item) + levelChip(item) + healthChip(item) + '<span class="wt-sub align-self-center">' + esc(item.message) + '</span></div>' +
@@ -1277,10 +1645,13 @@
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('wt-detail-modal')).show();
             }
 
-            function celebrate() {
-                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            function celebrate(item) {
+                if (reducedMotion()) {
+                    toast('Mantap, ' + item.title + ' beres!');
+                    return;
+                }
                 const colors = ['#2f80ed', '#12a150', '#f2c94c', '#eb5757', '#9b51e0'];
-                for (let n = 0; n < 70; n++) {
+                for (let n = 0; n < 110; n++) {
                     const piece = document.createElement('div');
                     piece.className = 'wt-confetti';
                     piece.style.left = Math.random() * 100 + 'vw';
@@ -1291,16 +1662,30 @@
                     document.body.appendChild(piece);
                     setTimeout(function () { piece.remove(); }, 3800);
                 }
-                toast('Mantap, satu kerjaan beres!');
+
+                const owner = programmerOf(item);
+                const who = owner ? '<div class="wt-party-who"><span class="wt-avatar wt-mini-avatar" style="background:' + esc(owner.color) + '">' + esc(initials(owner.name)) + '</span>' + esc(owner.name) + '</div>' : '';
+                const $party = $('<div class="wt-party" role="status"><div class="wt-party-card"><div class="wt-party-trophy"><i class="fa-solid fa-trophy"></i></div>' +
+                    '<div class="wt-party-head">Mantap, beres!</div><div class="wt-party-title">' + esc(item.title) + '</div>' + who + '</div></div>');
+                const close = function () {
+                    clearTimeout($party.data('timer'));
+                    $(document).off('keydown.wtParty');
+                    $party.addClass('out');
+                    setTimeout(function () { $party.remove(); }, 300);
+                };
+                $party.on('click', close).data('timer', setTimeout(close, 3000));
+                $(document).on('keydown.wtParty', function (e) { if (e.key === 'Escape') close(); });
+                $('body').append($party);
             }
 
             function moveStatus(id, status) {
                 const item = state.board.items.find(function (i) { return i.id === id; });
                 if (!item || item.status === status) return;
+                if (state.demo && status === 'selesai') celebrate(item);
                 if (guardDemo()) return;
                 const send = function (reason) {
                     post(ROUTES.status, { id: id, status: status, reason: reason }, function (res) {
-                        if (res.just_finished) celebrate();
+                        if (res.just_finished) celebrate(item);
                         load();
                     });
                 };
@@ -1324,11 +1709,25 @@
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('wt-programmer-modal')).show();
             }
 
+            function divisionOptions(selected) {
+                return state.board.divisions.map(function (d) {
+                    return '<option value="' + esc(d) + '"' + (d === selected ? ' selected' : '') + '>' + esc(d) + '</option>';
+                }).join('');
+            }
+
+            function initDivisionSelect($select) {
+                $select.select2({ theme: 'bootstrap4', width: '100%', tags: true, dropdownParent: $('#wt-programmer-modal') });
+            }
+
             function renderProgrammerList() {
+                $('#wt-programmer-list .wt-member-select.select2-hidden-accessible').select2('destroy');
+                $('#wt-p-division').html(divisionOptions($('#wt-p-division').val() || state.board.divisions[0])).trigger('change.select2');
                 $('#wt-programmer-list').html(state.board.programmers.length ? state.board.programmers.map(function (p) {
                     return '<div class="d-flex align-items-center gap-2 py-1"><span class="wt-avatar wt-mini-avatar" style="background:' + esc(p.color) + '">' + esc(initials(p.name)) + '</span><span class="flex-grow-1 small fw-bold">' + esc(p.name) + '</span>' +
+                        '<div class="wt-member-division"><select class="wt-member-select" aria-label="Divisi ' + esc(p.name) + '" data-user="' + p.user_id + '" data-color="' + esc(p.color) + '" data-current="' + esc(p.division) + '">' + divisionOptions(p.division) + '</select></div>' +
                         '<button type="button" class="btn btn-sm btn-link text-danger p-0" data-remove-programmer="' + p.id + '" aria-label="Nonaktifkan ' + esc(p.name) + '"><i class="fa-solid fa-user-minus"></i></button></div>';
-                }).join('') : '<div class="wt-sub">Belum ada programmer.</div>');
+                }).join('') : '<div class="wt-sub">Belum ada anggota.</div>');
+                initDivisionSelect($('#wt-programmer-list .wt-member-select'));
             }
 
             function loadUsers() {
@@ -1343,6 +1742,7 @@
             // Events
             $('.wt-select').select2({ theme: 'bootstrap4', width: '100%', minimumResultsForSearch: 8 }).on('change', renderView);
             $('.wt-select-modal').select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $('#wt-item-modal') });
+            initDivisionSelect($('#wt-p-division'));
             $('#wt-p-user').select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $('#wt-programmer-modal'), placeholder: 'Pilih user' });
             $('#wt-f-search').on('input', renderView);
             $('#wt-f-from, #wt-f-to').on('change', renderView);
@@ -1357,6 +1757,21 @@
             $('#wt-lanes').on('click', '[data-item]', function (e) {
                 e.stopPropagation();
                 openDetail(Number(this.dataset.item));
+            });
+
+            $('#wt-division-chips').on('click', '[data-division]', function () {
+                $('#wt-f-division').val(this.dataset.division).trigger('change');
+            });
+
+            $('#wt-f-division').on('change', function () {
+                state.division = this.value || '';
+                const owner = state.board.programmers.find(function (p) { return p.id === state.selected; });
+                if (state.division && owner && owner.division !== state.division) {
+                    state.selected = null;
+                    $('#wt-f-programmer').val('').trigger('change.select2');
+                }
+                renderLanes();
+                renderView();
             });
 
             $('#wt-lanes').on('click', '.wt-lane', function () {
@@ -1385,9 +1800,24 @@
                 load();
             });
 
-            $view.on('click', 'tbody tr, .wt-kcard, .wt-gantt-row[data-id]', function (e) {
-                if ($(e.target).closest('.wt-assign').length) return;
+            $view.on('click', 'tbody tr, .wt-kcard, .wt-tl-bar', function (e) {
+                if ($(e.target).closest('.wt-assign').length || state.justDragged) return;
                 openDetail(Number(this.dataset.id));
+            });
+            $view.on('pointerdown', '.wt-tl-bar.can-drag', startBarDrag);
+            $view.on('pointermove', '.wt-tl-bar.can-drag', moveBarDrag);
+            $view.on('pointerup', '.wt-tl-bar.can-drag', endBarDrag);
+            $view.on('pointercancel', '.wt-tl-bar.can-drag', function () {
+                state.drag = null;
+                $('#wt-tl-tip').hide();
+                renderView();
+            });
+            $view.on('click', '.wt-tl-more', function () {
+                state.timelineOpen[this.dataset.row] = !state.timelineOpen[this.dataset.row];
+                renderView();
+            });
+            $(window).on('resize', function () {
+                if (state.view === 'timeline' && !state.drag) renderView();
             });
             $view.on('click', '.wt-queue-title', function () { openDetail(Number(this.dataset.item)); });
             $('#wt-tiles').on('click keydown', '[data-goto]', function (e) {
@@ -1455,10 +1885,11 @@
 
             $('#wt-progress-form').on('submit', function (e) {
                 e.preventDefault();
-                post(ROUTES.progress, { id: state.current.id, progress: $('#wt-range').val(), note: $('#wt-note').val() }, function (res) {
+                const item = state.current;
+                post(ROUTES.progress, { id: item.id, progress: $('#wt-range').val(), note: $('#wt-note').val() }, function (res) {
                     bootstrap.Modal.getOrCreateInstance(document.getElementById('wt-detail-modal')).hide();
                     toast(res.message);
-                    if (res.just_finished) celebrate();
+                    if (res.just_finished) celebrate(item);
                     load();
                 });
             });
@@ -1482,16 +1913,28 @@
                     toast('Pilih user dulu', 'warning');
                     return;
                 }
-                post(ROUTES.programmerStore, { user_id: userId, color: state.color }, function (res) {
+                post(ROUTES.programmerStore, { user_id: userId, color: state.color, division: $('#wt-p-division').val() }, function (res) {
                     toast(res.message);
                     load().done(function () { renderProgrammerList(); loadUsers(); });
+                });
+            });
+
+            $('#wt-programmer-list').on('change', '.wt-member-select', function () {
+                if (this.value === this.dataset.current) return;
+                if (guardDemo()) {
+                    renderProgrammerList();
+                    return;
+                }
+                post(ROUTES.programmerStore, { user_id: this.dataset.user, color: this.dataset.color, division: this.value }, function (res) {
+                    toast(res.message);
+                    load().done(renderProgrammerList);
                 });
             });
 
             $('#wt-programmer-list').on('click', '[data-remove-programmer]', function () {
                 const id = this.dataset.removeProgrammer;
                 if (guardDemo()) return;
-                Swal.fire({ icon: 'warning', title: 'Nonaktifkan programmer ini?', text: 'Kerjaan yang masih aktif akan kembali ke Belum ditugaskan.', showCancelButton: true, confirmButtonText: 'Nonaktifkan', cancelButtonText: 'Batal', confirmButtonColor: '#dc3545' }).then(function (r) {
+                Swal.fire({ icon: 'warning', title: 'Nonaktifkan anggota ini?', text: 'Kerjaan yang masih aktif akan kembali ke Belum ditugaskan.', showCancelButton: true, confirmButtonText: 'Nonaktifkan', cancelButtonText: 'Batal', confirmButtonColor: '#dc3545' }).then(function (r) {
                     if (!r.isConfirmed) return;
                     post(ROUTES.programmerDelete, { id: id }, function (res) {
                         toast(res.message);
@@ -1500,7 +1943,11 @@
                 });
             });
 
-            load();
+            // Dashboard membuka kerjaan tertentu lewat ?item=ID
+            const itemFromLink = Number(new URLSearchParams(window.location.search).get('item'));
+            load().done(function () {
+                if (itemFromLink) openDetail(itemFromLink);
+            });
         })();
     </script>
 @endsection

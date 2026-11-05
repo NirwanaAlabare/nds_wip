@@ -4,6 +4,7 @@ namespace App\Http\Controllers\General;
 
 use App\Http\Controllers\Controller;
 use App\Exports\WorkTrackerExport;
+use App\Services\WorkTrackerDashboardService;
 use App\Services\WorkTrackerService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -28,6 +29,32 @@ class WorkTrackerController extends Controller
         return view('general.tools.work-tracker', ['containerFluid' => true]);
     }
 
+    public function dashboard()
+    {
+        return view('general.tools.work-tracker-dashboard', ['containerFluid' => true]);
+    }
+
+    public function dashboardData(Request $request, WorkTrackerDashboardService $dashboard)
+    {
+        $filters = $request->validate([
+            'division' => 'nullable|string|max:50',
+            'period' => ['nullable', Rule::in(WorkTrackerDashboardService::PERIODS)],
+        ]);
+        $today = Carbon::today();
+
+        if ($request->boolean('demo')) {
+            return response()->json($dashboard->demo($today, $filters));
+        }
+
+        $items = DB::table('work_items')->whereNull('deleted_at')->get();
+        $logs = DB::table('work_item_logs')
+            ->whereIn('work_item_id', $items->pluck('id'))
+            ->get(['id', 'work_item_id', 'progress_before', 'progress_after', 'created_at']);
+        $divisions = DB::table('work_programmers')->pluck('division', 'id');
+
+        return response()->json($dashboard->build($items, $logs, $this->activeProgrammers(), $divisions, $today, $filters));
+    }
+
     public function data(Request $request)
     {
         $today = Carbon::today();
@@ -45,7 +72,12 @@ class WorkTrackerController extends Controller
             });
         }
 
-        return response()->json($this->tracker->board($query->get(), $this->activeProgrammers(), $today));
+        $items = $query->get();
+        $logs = DB::table('work_item_logs')
+            ->whereIn('work_item_id', $items->pluck('id'))
+            ->get(['id', 'work_item_id', 'progress_before', 'progress_after', 'status', 'created_at']);
+
+        return response()->json($this->tracker->board($items, $this->activeProgrammers(), $today, $logs));
     }
 
     public function report(Request $request)
@@ -66,6 +98,7 @@ class WorkTrackerController extends Controller
             'from' => 'required|date',
             'to' => 'required|date|after_or_equal:from',
             'programmer' => 'nullable|string|max:20',
+            'division' => 'nullable|string|max:50',
             'type' => ['nullable', Rule::in(array_keys(WorkTrackerService::TYPE_LABEL))],
             'status' => ['nullable', Rule::in(array_merge(['open'], array_keys(WorkTrackerService::STATUS_LABEL)))],
             'level' => ['nullable', Rule::in(array_merge(['none'], array_keys(WorkTrackerService::LEVEL_LABEL)))],
@@ -82,8 +115,9 @@ class WorkTrackerController extends Controller
         $names = DB::table('work_programmers')
             ->join('users', 'users.id', '=', 'work_programmers.user_id')
             ->pluck('users.name', 'work_programmers.id');
+        $divisions = DB::table('work_programmers')->pluck('division', 'id');
 
-        return $this->tracker->report(DB::table('work_items')->whereNull('deleted_at')->get(), $names, $today, $filters);
+        return $this->tracker->report(DB::table('work_items')->whereNull('deleted_at')->get(), $names, $divisions, $today, $filters);
     }
 
     public function users()
@@ -100,14 +134,24 @@ class WorkTrackerController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|integer|exists:users,id',
             'color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'division' => 'required|string|max:50',
         ]);
 
-        DB::table('work_programmers')->updateOrInsert(
-            ['user_id' => $validated['user_id']],
-            ['color' => $validated['color'], 'is_active' => true, 'updated_at' => now(), 'created_at' => now()]
-        );
+        $existing = DB::table('work_programmers')->distinct()->pluck('division');
+        $values = [
+            'color' => $validated['color'],
+            'division' => $this->tracker->normalizeDivision($validated['division'], $existing),
+            'is_active' => true,
+            'updated_at' => now(),
+        ];
 
-        return response()->json(['status' => 200, 'message' => 'Programmer ditambahkan']);
+        if (DB::table('work_programmers')->where('user_id', $validated['user_id'])->exists()) {
+            DB::table('work_programmers')->where('user_id', $validated['user_id'])->update($values);
+        } else {
+            DB::table('work_programmers')->insert(array_merge($values, ['user_id' => $validated['user_id'], 'created_at' => now()]));
+        }
+
+        return response()->json(['status' => 200, 'message' => 'Anggota disimpan']);
     }
 
     // Programmer dinonaktifkan, bukan dihapus. Kerjaan aktifnya kembali ke belum ditugaskan.
@@ -121,7 +165,7 @@ class WorkTrackerController extends Controller
                 ->update(['programmer_id' => null, 'updated_at' => now()]);
         });
 
-        return response()->json(['status' => 200, 'message' => 'Programmer dinonaktifkan']);
+        return response()->json(['status' => 200, 'message' => 'Anggota dinonaktifkan']);
     }
 
     public function store(Request $request)
@@ -308,6 +352,55 @@ class WorkTrackerController extends Controller
         return response()->json(['status' => 200, 'message' => $programmerId ? 'Kerjaan ditugaskan' : 'Penugasan dilepas']);
     }
 
+    // Dipakai Timeline saat batang digeser: mengubah tanggal, dan anggota kalau dipindah ke baris lain
+    public function reschedule(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer',
+            'start_date' => 'nullable|date',
+            'target_date' => 'nullable|date|after_or_equal:start_date',
+            'programmer_id' => ['nullable', 'integer', Rule::exists('work_programmers', 'id')->where('is_active', true)],
+        ], ['target_date.after_or_equal' => 'Target tidak boleh sebelum tanggal mulai']);
+
+        $start = $validated['start_date'] ?? null;
+        $target = $validated['target_date'] ?? null;
+        $movesPerson = $request->exists('programmer_id');
+        $programmerId = $validated['programmer_id'] ?? null;
+
+        DB::transaction(function () use ($validated, $start, $target, $movesPerson, $programmerId) {
+            $item = DB::table('work_items')->where('id', $validated['id'])->whereNull('deleted_at')->lockForUpdate()->first();
+            abort_if(!$item, 404, 'Kerjaan tidak ditemukan');
+            abort_if(!in_array($item->status, WorkTrackerService::ACTIVE), 422, 'Hanya kerjaan yang belum selesai yang bisa digeser');
+
+            $changes = $this->tracker->rescheduleChanges($item, $start, $target);
+            $notes = [];
+
+            if ($item->start_date !== $start || $item->target_date !== $target) {
+                $notes[] = 'Jadwal diubah: ' . ($item->start_date ?: '-') . ' s/d ' . ($item->target_date ?: '-') . ' menjadi ' . ($start ?: '-') . ' s/d ' . ($target ?: '-');
+            }
+
+            if ($movesPerson && (int) $item->programmer_id !== (int) $programmerId) {
+                $changes['programmer_id'] = $programmerId;
+                $name = $programmerId
+                    ? DB::table('work_programmers')->join('users', 'users.id', '=', 'work_programmers.user_id')->where('work_programmers.id', $programmerId)->value('users.name')
+                    : null;
+                $notes[] = $name ? "Ditugaskan ke {$name}" : 'Penugasan dilepas';
+            }
+
+            if (!$notes) {
+                return;
+            }
+
+            DB::table('work_items')->where('id', $item->id)->update(array_merge($changes, [
+                'updated_by' => auth()->user()->username,
+                'updated_at' => now(),
+            ]));
+            $this->log($item->id, $item->progress, $item->progress, $item->status, implode('. ', $notes));
+        });
+
+        return response()->json(['status' => 200, 'message' => 'Jadwal disimpan']);
+    }
+
     public function delete(Request $request)
     {
         $validated = $request->validate(['id' => 'required|integer']);
@@ -333,7 +426,7 @@ class WorkTrackerController extends Controller
             ->join('users', 'users.id', '=', 'work_programmers.user_id')
             ->where('work_programmers.is_active', true)
             ->orderBy('users.name')
-            ->get(['work_programmers.id', 'work_programmers.user_id', 'work_programmers.color', 'users.name']);
+            ->get(['work_programmers.id', 'work_programmers.user_id', 'work_programmers.division', 'work_programmers.color', 'users.name']);
     }
 
     protected function log($itemId, $before, $after, $status, $note)

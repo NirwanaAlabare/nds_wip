@@ -8,13 +8,15 @@ use Carbon\Carbon;
 class WorkTrackerService
 {
     const ACTIVE = ['baru', 'dikerjakan'];
-    const PREFIX = ['plan' => 'PLN', 'bug' => 'BUG', 'request' => 'REQ'];
-    const TYPE_LABEL = ['plan' => 'Plan', 'bug' => 'Bug', 'request' => 'Request'];
+    const PREFIX = ['plan' => 'PLN', 'bug' => 'MSL', 'request' => 'REQ'];
+    const DEFAULT_DIVISIONS = ['Programmer', 'IE', 'SA'];
+    const TYPE_LABEL = ['plan' => 'Plan', 'bug' => 'Masalah', 'request' => 'Request'];
     const LEVEL_LABEL = ['major' => 'Major', 'minor' => 'Minor', 'tidak' => 'Tidak dikerjakan'];
     const STATUS_LABEL = ['baru' => 'Baru', 'dikerjakan' => 'Dikerjakan', 'selesai' => 'Selesai', 'ditolak' => 'Ditolak'];
     const HEALTH_LABEL = ['aman' => 'Aman', 'mepet' => 'Mepet', 'telat' => 'Telat', 'selesai' => 'Selesai', 'selesai_telat' => 'Selesai telat', 'ditolak' => 'Ditolak', 'belum_dinilai' => 'Belum dinilai'];
     const TIGHT_SLACK_DAYS = 1;
     const BEHIND_POINTS = 10; // selisih persen dari posisi seharusnya yang membuat pelari tidak lagi dianggap ngebut
+    const TREND_DAYS = 7;
 
     public function code($item)
     {
@@ -35,7 +37,21 @@ class WorkTrackerService
         return null;
     }
 
-    // Masalah mendesak: Bug Major yang belum selesai dan targetnya hari ini atau sudah lewat
+    // Besar-kecil huruf disamakan dengan divisi yang sudah ada supaya "ie" dan "IE" tidak jadi dua divisi
+    public function normalizeDivision($raw, $existing = [])
+    {
+        $name = trim(preg_replace('/\s+/', ' ', $raw));
+
+        foreach (array_merge(self::DEFAULT_DIVISIONS, collect($existing)->all()) as $division) {
+            if (mb_strtolower($division) === mb_strtolower($name)) {
+                return $division;
+            }
+        }
+
+        return mb_strlen($name) <= 3 ? mb_strtoupper($name) : mb_convert_case($name, MB_CASE_TITLE);
+    }
+
+    // Masalah mendesak: Masalah Major yang belum selesai dan targetnya hari ini atau sudah lewat
     public function isUrgent($item, Carbon $today)
     {
         return $item->type === 'bug'
@@ -139,7 +155,7 @@ class WorkTrackerService
     }
 
     // Menyusun seluruh data halaman: item teranalisis, ringkasan per programmer, dan ringkasan tim
-    public function board($items, $programmers, Carbon $today)
+    public function board($items, $programmers, Carbon $today, $logs = [])
     {
         $today = $today->copy()->startOfDay();
 
@@ -147,17 +163,78 @@ class WorkTrackerService
             return array_merge((array) $item, $this->analyzeItem($item, $today));
         })->values();
 
+        $logsByItem = collect($logs)->sortBy(function ($log) {
+            return sprintf('%s|%010d', $log->created_at, $log->id);
+        })->groupBy('work_item_id');
+
         $programmerRows = collect($programmers)->map(function ($programmer) use ($analyzed, $today) {
             $own = $analyzed->where('programmer_id', $programmer->id);
             return $this->summarizeProgrammer($programmer, $own, $today);
         })->values();
 
+        $summary = $this->summarizeTeam($analyzed, $programmerRows, $today);
+
         return [
             'today' => $today->toDateString(),
             'items' => $analyzed,
             'programmers' => $programmerRows,
-            'summary' => $this->summarizeTeam($analyzed, $programmerRows),
+            'divisions' => collect(self::DEFAULT_DIVISIONS)->merge(collect($programmers)->pluck('division'))->unique()->values(),
+            'summary' => array_merge($summary, ['trend' => $this->trend($analyzed, $logsByItem, $today, $summary)]),
         ];
+    }
+
+    // Isi kotak angka selama 7 hari terakhir, disusun ulang dari riwayat. Titik terakhir selalu sama dengan angka di kotak.
+    protected function trend($items, $logsByItem, Carbon $today, array $summary)
+    {
+        $series = ['active' => [], 'bugs_open' => [], 'requests_new' => [], 'effort_left' => []];
+
+        for ($offset = self::TREND_DAYS - 1; $offset >= 1; $offset--) {
+            $date = $today->copy()->subDays($offset)->toDateString();
+            $point = ['active' => 0, 'bugs_open' => 0, 'requests_new' => 0, 'effort_left' => 0];
+
+            foreach ($items as $item) {
+                $logs = $logsByItem->get($item['id'], collect());
+                $first = collect($logs)->first();
+                $createdAt = substr((string) $item['created_at'], 0, 10);
+
+                if ($createdAt > $date && (!$first || substr($first->created_at, 0, 10) > $date)) {
+                    continue;
+                }
+
+                $status = 'baru';
+                $progress = 0;
+
+                foreach ($logs as $log) {
+                    if (substr($log->created_at, 0, 10) > $date) {
+                        break;
+                    }
+                    $status = $log->status;
+                    $progress = (int) $log->progress_after;
+                }
+
+                if ($item['type'] === 'request' && $status === 'baru') {
+                    $point['requests_new']++;
+                }
+
+                if (!in_array($status, self::ACTIVE)) {
+                    continue;
+                }
+
+                $point['active']++;
+                $point['bugs_open'] += $item['type'] === 'bug' ? 1 : 0;
+                $point['effort_left'] += ($item['effort'] ?: 0) * (100 - $progress) / 100;
+            }
+
+            foreach ($series as $key => $values) {
+                $series[$key][] = round($point[$key], 1);
+            }
+        }
+
+        foreach ($series as $key => $values) {
+            $series[$key][] = $summary[$key];
+        }
+
+        return $series;
     }
 
     protected function summarizeProgrammer($programmer, $own, Carbon $today)
@@ -192,6 +269,7 @@ class WorkTrackerService
             'id' => $programmer->id,
             'user_id' => $programmer->user_id,
             'name' => $programmer->name,
+            'division' => $programmer->division,
             'color' => $programmer->color,
             'active' => $active->count(),
             'in_progress' => $active->where('status', 'dikerjakan')->count(),
@@ -296,14 +374,26 @@ class WorkTrackerService
         return 'sprint';
     }
 
-    protected function summarizeTeam($items, $programmers)
+    protected function summarizeTeam($items, $programmers, Carbon $today)
     {
         $active = $items->whereIn('status', self::ACTIVE);
         $shortfall = round($programmers->sum(function ($p) {
             return $p['gap_days'] !== null && $p['gap_days'] < 0 ? abs($p['gap_days']) : 0;
         }), 1);
 
+        // Sama seperti progress per anggota: kerjaan aktif ditambah yang selesai bulan ini, ditimbang beban kerja
+        $counted = $active->merge($items->where('status', 'selesai')->filter(function ($item) use ($today) {
+            return $item['finished_at'] && Carbon::parse($item['finished_at'])->isSameMonth($today);
+        }));
+        $weight = $counted->sum(function ($item) {
+            return $item['effort'] ?: 1;
+        });
+        $weighted = $counted->sum(function ($item) {
+            return ($item['effort'] ?: 1) * (int) $item['progress'];
+        });
+
         return [
+            'progress' => $weight > 0 ? (int) round($weighted / $weight) : 0,
             'active' => $active->count(),
             'in_progress' => $active->where('status', 'dikerjakan')->count(),
             'late' => $active->where('health', 'telat')->count(),
@@ -320,17 +410,33 @@ class WorkTrackerService
     }
 
     // Data contoh untuk melihat tampilan tanpa menulis ke database
-    protected function demoData(Carbon $today)
+    // Perubahan jadwal dari Timeline. Estimasi yang masih sama dengan rentang tanggal ikut menyesuaikan, estimasi buatan user tidak disentuh.
+    public function rescheduleChanges($item, $start, $target)
+    {
+        $changes = ['start_date' => $start, 'target_date' => $target];
+
+        if ($item->estimate_days !== null && $item->start_date && $item->target_date && $start && $target) {
+            $oldRange = Carbon::parse($item->start_date)->diffInDays(Carbon::parse($item->target_date), false) + 1;
+
+            if ((float) $item->estimate_days === (float) $oldRange) {
+                $changes['estimate_days'] = Carbon::parse($start)->diffInDays(Carbon::parse($target), false) + 1;
+            }
+        }
+
+        return $changes;
+    }
+
+    public function demoData(Carbon $today)
     {
         $d = function ($offset) use ($today) {
             return $today->copy()->addDays($offset)->toDateString();
         };
 
         $programmers = [
-            (object) ['id' => 1, 'user_id' => 0, 'name' => 'Programmer A', 'color' => '#2f80ed'],
-            (object) ['id' => 2, 'user_id' => 0, 'name' => 'Programmer B', 'color' => '#9b51e0'],
-            (object) ['id' => 3, 'user_id' => 0, 'name' => 'Programmer C', 'color' => '#f2994a'],
-            (object) ['id' => 4, 'user_id' => 0, 'name' => 'Programmer D', 'color' => '#27ae60'],
+            (object) ['id' => 1, 'user_id' => 0, 'name' => 'Anggota A', 'division' => 'Programmer', 'color' => '#2f80ed'],
+            (object) ['id' => 2, 'user_id' => 0, 'name' => 'Anggota B', 'division' => 'Programmer', 'color' => '#9b51e0'],
+            (object) ['id' => 3, 'user_id' => 0, 'name' => 'Anggota C', 'division' => 'IE', 'color' => '#f2994a'],
+            (object) ['id' => 4, 'user_id' => 0, 'name' => 'Anggota D', 'division' => 'SA', 'color' => '#27ae60'],
         ];
 
         // id, tipe, judul, modul, peminta, dept, level, status, programmer, mulai, target, estimasi, progress, selesai
@@ -371,19 +477,49 @@ class WorkTrackerService
     {
         [$items, $programmers] = $this->demoData($today);
 
-        return $this->board($items, $programmers, $today);
+        return $this->board($items, $programmers, $today, $this->demoLogs($items, $today));
+    }
+
+    public function demoLogs($items, Carbon $today)
+    {
+        $logs = [];
+
+        foreach ($items as $item) {
+            if (!$item->start_date || (int) $item->progress === 0) {
+                continue;
+            }
+
+            $start = Carbon::parse($item->start_date);
+            $end = $item->finished_at ? Carbon::parse($item->finished_at) : $today->copy();
+            $days = max(1, $start->diffInDays($end) + 1);
+
+            for ($i = 0; $i < $days; $i++) {
+                $after = (int) round($item->progress * ($i + 1) / $days);
+                $logs[] = (object) [
+                    'id' => count($logs) + 1,
+                    'work_item_id' => $item->id,
+                    'progress_before' => (int) round($item->progress * $i / $days),
+                    'progress_after' => $after,
+                    'status' => $after >= 100 ? 'selesai' : 'dikerjakan',
+                    'created_at' => $start->copy()->addDays($i)->toDateTimeString(),
+                ];
+            }
+        }
+
+        return $logs;
     }
 
     public function demoReport(Carbon $today, array $filters)
     {
         [$items, $programmers] = $this->demoData($today);
         $names = collect($programmers)->pluck('name', 'id');
+        $divisions = collect($programmers)->pluck('division', 'id');
 
-        return $this->report($items, $names, $today, $filters);
+        return $this->report($items, $names, $divisions, $today, $filters);
     }
 
     // Daftar kerjaan untuk tab Laporan dan export Excel: kerjaan yang berjalan pada periode dan cocok dengan filter
-    public function report($items, $names, Carbon $today, array $filters)
+    public function report($items, $names, $divisions, Carbon $today, array $filters)
     {
         $today = $today->copy()->startOfDay();
         $from = $filters['from'];
@@ -395,9 +531,10 @@ class WorkTrackerService
             $end = $item->status === 'selesai' ? $item->finished_at : ($item->status === 'ditolak' ? substr($item->updated_at, 0, 10) : null);
 
             return $begin <= $to && (!$end || $end >= $from);
-        })->map(function ($item) use ($today, $names) {
+        })->map(function ($item) use ($today, $names, $divisions) {
             return array_merge((array) $item, $this->analyzeItem($item, $today), [
                 'programmer_name' => $item->programmer_id ? ($names[$item->programmer_id] ?? null) : null,
+                'programmer_division' => $item->programmer_id ? ($divisions[$item->programmer_id] ?? null) : null,
             ]);
         })->filter(function ($row) use ($filters, $search) {
             $programmer = $filters['programmer'] ?? null;
@@ -405,19 +542,20 @@ class WorkTrackerService
             $level = $filters['level'] ?? null;
 
             if ($programmer === 'none' ? $row['programmer_id'] !== null : ($programmer && (int) $row['programmer_id'] !== (int) $programmer)) return false;
+            if (!empty($filters['division']) && $row['programmer_division'] !== $filters['division']) return false;
             if (!empty($filters['type']) && $row['type'] !== $filters['type']) return false;
             if ($status === 'open' ? !in_array($row['status'], self::ACTIVE) : ($status && $row['status'] !== $status)) return false;
             if ($level === 'none' ? $row['level'] !== null : ($level && $row['level'] !== $level)) return false;
             if (!empty($filters['health']) && $row['health'] !== $filters['health']) return false;
 
             if ($search !== '') {
-                $haystack = mb_strtolower(implode(' ', [$row['code'], $row['title'], $row['module'], $row['requester'], $row['requester_dept'], $row['programmer_name']]));
+                $haystack = mb_strtolower(implode(' ', [$row['code'], $row['title'], $row['module'], $row['requester'], $row['requester_dept'], $row['programmer_name'], $row['programmer_division']]));
                 if (mb_strpos($haystack, $search) === false) return false;
             }
 
             return true;
         })->sortBy(function ($row) {
-            return sprintf('%s|%s|%010d', mb_strtolower($row['programmer_name'] ?: "\u{FFFF}"), $row['start_date'] ?: '9999-12-31', $row['id']);
+            return sprintf('%s|%s|%s|%010d', mb_strtolower($row['programmer_division'] ?: "\u{FFFF}"), mb_strtolower($row['programmer_name'] ?: "\u{FFFF}"), $row['start_date'] ?: '9999-12-31', $row['id']);
         })->values();
     }
 }

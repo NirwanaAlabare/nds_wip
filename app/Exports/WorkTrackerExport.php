@@ -28,7 +28,7 @@ class WorkTrackerExport implements FromArray, WithHeadings, WithEvents, WithTitl
     public function headings(): array
     {
         return [
-            'No', 'Kode', 'Jenis', 'Kerjaan', 'Modul', 'Programmer', 'Peminta', 'Departemen', 'Level', 'Status',
+            'No', 'Kode', 'Jenis', 'Kerjaan', 'Modul', 'Anggota', 'Divisi', 'Peminta', 'Departemen', 'Level', 'Status',
             'Progress (%)', 'Mulai', 'Target', 'Selesai', 'Prediksi Selesai', 'Estimasi (hari)', 'Kondisi', 'Keterangan', 'Alasan Ditolak', 'Catatan',
         ];
     }
@@ -43,6 +43,7 @@ class WorkTrackerExport implements FromArray, WithHeadings, WithEvents, WithTitl
                 $this->text($row['title']),
                 $this->text($row['module']),
                 $this->text($row['programmer_name'] ?: 'Belum ditugaskan'),
+                $this->text($row['programmer_division']),
                 $this->text($row['requester']),
                 $this->text($row['requester_dept']),
                 WorkTrackerService::LEVEL_LABEL[$row['level']] ?? '',
