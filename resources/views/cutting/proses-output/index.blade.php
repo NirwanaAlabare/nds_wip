@@ -38,7 +38,7 @@
             border-bottom-width: 0 !important;
         }
 
-        /* Bagian header bayangan di bawah Buyer - Size ikut freeze (class & left diisi fixFrozenLeft) */
+        /* Bagian header bayangan di bawah Status Order - Size ikut freeze (class & left diisi fixFrozenLeft) */
         .dataTables_scrollBody thead th.frozen-clone {
             position: sticky;
             z-index: 2;
@@ -51,7 +51,7 @@
             background: transparent !important;
         }
 
-        /* Kolom freeze (Buyer - Size) */
+        /* Kolom freeze (Status Order - Size) */
         #list-table tbody td.dtfc-fixed-left {
             z-index: 1;
         }
@@ -113,6 +113,15 @@
                     <label class="form-label"><small>Size</small></label>
                     <select id="size_filter" class="form-control form-control-sm select2bs4" style="width: 170px;">
                         <option value="">Semua Size</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label"><small>Status Order</small></label>
+                    <select id="status_order_filter" class="form-control form-control-sm select2bs4" style="width: 170px;">
+                        <option value="">Semua Status</option>
+                        <option value="Open Order">Open Order</option>
+                        <option value="Close Order">Close Order</option>
                     </select>
                 </div>
 
@@ -204,7 +213,7 @@
 
         // Kolom teks (1 baris per buyer / ws / style / color / size)
         const textColumns = [
-            ['Buyer', 'buyer'], ['WS', 'ws'], ['Style', 'style'], ['Color', 'color'], ['Size', 'size'],
+            ['Status Order', 'status_order'], ['Buyer', 'buyer'], ['WS', 'ws'], ['Style', 'style'], ['Color', 'color'], ['Size', 'size'],
         ];
 
         // Sub kolom tiap panel: [judul, field dari server]
@@ -229,7 +238,7 @@
         }
 
         // Data server (1 baris per panel) jadi 1 baris per buyer / ws / color / size, panel jadi kolom
-        function pivotData(data, qtyOrder = {}) {
+        function pivotData(data, qtyOrder = {}, statusOrder = {}) {
             const panels = [...new Set(data.map(item => item.panel ?? '-'))].sort();
             const rows = new Map();
 
@@ -238,6 +247,7 @@
 
                 if (!rows.has(key)) {
                     rows.set(key, {
+                        status_order: statusOrder[item.ws] ?? 'Open Order',
                         buyer: item.buyer, ws: item.ws, style: item.style, color: item.color, size: item.size,
                         size_order: Number(item.size_order) || 0, panels: {},
                     });
@@ -454,7 +464,16 @@
             const panelColumns = [...qtyColumns, ['Output', 'output']];
 
             const columns = [
-                ...textColumns.map(([title, data]) => ({ title, data })),
+                ...textColumns.map(([title, data]) => ({
+                    title,
+                    data,
+                    className: data === 'status_order' ? 'text-center' : '',
+                    render: function (value, type) {
+                        if (type !== 'display' || data !== 'status_order') return value;
+
+                        return `<span class="badge text-nowrap ${value === 'Close Order' ? 'bg-danger' : 'bg-success'}">${value}</span>`;
+                    }
+                })),
                 ...panels.flatMap((panel, p) => panelColumns.map(([title, field]) => ({
                     title,
                     data: null,
@@ -527,7 +546,6 @@
                 scrollY: '300px',
                 scrollX: true,
                 scrollCollapse: false,
-                // Freeze Buyer, WS, Style, Color, Size
                 fixedColumns: {
                     left: textColumns.length
                 },
@@ -574,7 +592,7 @@
                 columns.map(col => col.nodes().toArray()),
                 columns.map(col => [col.header()]),
                 columns.map(col => [col.footer()]),
-                // Header bayangan di body scroll: baris pertama, sel Buyer - Size (rowspan)
+                // Header bayangan di body scroll: baris pertama, sel Status Order - Size (rowspan)
                 $('.dataTables_scrollBody thead tr:first-child th').slice(0, columns.length).addClass('frozen-clone')
                     .toArray().map(th => [th]),
             ];
@@ -618,6 +636,7 @@
                 style: $('#style_filter').val(),
                 color: $('#color_filter').val(),
                 size: $('#size_filter').val(),
+                status_order: $('#status_order_filter').val(),
             };
 
             if (!params.buyer && !params.ws) {
@@ -703,7 +722,7 @@
                     $('#btnSearch').prop('disabled', true);
                 },
                 success: function (res) {
-                    const { panels, rows } = pivotData(res.data, res.qty_order);
+                    const { panels, rows } = pivotData(res.data, res.qty_order, res.status_order);
 
                     buildListTable(panels, rows);
                 },
