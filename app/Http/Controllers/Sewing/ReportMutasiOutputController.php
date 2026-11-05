@@ -250,7 +250,7 @@ class ReportMutasiOutputController extends Controller
                                         allocation IN ('SEWING', 'spotcleaning', 'mending')
                                         AND (a.updated_at >= '$start_date 00:00:00') AND (a.updated_at <= '$end_date 23:59:59')
                                         AND defect_status IN ('REWORKED','REJECTED')
-                                        AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id is null ELSE 1=1 END)
+                                        AND (CASE WHEN a.updated_at >= '2026-10-01 00:00:00' THEN reject_in.id is null ELSE 1=1 END)
                                     GROUP BY
                                         a.so_det_id,
                                         date(a.updated_at)
@@ -273,13 +273,19 @@ class ReportMutasiOutputController extends Controller
                 select
                 a.so_det_id,
                 date(a.updated_at) tgl_reject,
-                SUM(CASE WHEN a.output_defect_id > 0 AND a.updated_at > '2026-10-31 23:59:59' AND a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_defect_awal,
-                SUM(CASE WHEN a.output_defect_id > 0 AND a.updated_at > '2026-10-31 23:59:59' AND a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_defect,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'SEWING' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_defect_awal,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'SEWING' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_defect,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'spotcleaning' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_spotcleaning_awal,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'spotcleaning' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_spotcleaning,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'mending' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_mending_awal,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'mending' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_mending,
                 SUM(CASE WHEN a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_reject_awal,
                 SUM(CASE WHEN a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_sew_reject
                 from signalbit_erp.output_undo a
                 inner join signalbit_erp.output_reject_in reject_in on reject_in.reject_id = a.output_reject_id and reject_in.output_type = 'qc' and reject_in.status = 'reworked'
                 inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                left join signalbit_erp.output_defects od on od.id = a.output_defect_id
+                left JOIN signalbit_erp.output_defect_types dt ON dt.id = od.defect_type_id
                 where a.updated_at >= '2026-09-01 00:00:00' and a.updated_at <= '$end_date 23:59:59' and mp.cancel = 'N'
                 group by a.so_det_id, date(a.updated_at)
             ),
@@ -339,7 +345,7 @@ class ReportMutasiOutputController extends Controller
                                         allocation IN ('SEWING', 'spotcleaning', 'mending')
                                         AND (a.updated_at >= '$start_date 00:00:00') AND (a.updated_at <= '$end_date 23:59:59')
                                         AND defect_status IN ('REWORKED','REJECTED')
-                                        AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id is null ELSE 1=1 END)
+                                        AND (CASE WHEN a.updated_at >= '2026-10-01 00:00:00' THEN reject_in.id is null ELSE 1=1 END)
                                     GROUP BY
                                         a.so_det_id,
                                         date(a.updated_at)
@@ -362,13 +368,19 @@ class ReportMutasiOutputController extends Controller
                 select
                 a.so_det_id,
                 date(a.updated_at) tgl_reject,
-                SUM(CASE WHEN a.output_defect_id > 0 AND a.updated_at > '2026-10-31 23:59:59' AND a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_defect_awal,
-                SUM(CASE WHEN a.output_defect_id > 0 AND a.updated_at > '2026-10-31 23:59:59' AND a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_defect,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'SEWING' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_defect_awal,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'SEWING' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_defect,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'spotcleaning' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_spotcleaning_awal,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'spotcleaning' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_spotcleaning,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'mending' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_mending_awal,
+                SUM(CASE WHEN a.output_defect_id > 0 AND dt.allocation = 'mending' AND a.updated_at >= '2026-10-01 00:00:00' AND a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_mending,
                 SUM(CASE WHEN a.updated_at < '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_reject_awal,
                 SUM(CASE WHEN a.updated_at >= '$start_date 00:00:00' THEN 1 ELSE 0 END) qty_fin_reject
                 from signalbit_erp.output_undo_packing a
                 inner join signalbit_erp.output_reject_in reject_in on reject_in.reject_id = a.output_reject_id and reject_in.output_type = 'packing' and reject_in.status = 'reworked'
                 inner join signalbit_erp.master_plan mp on a.master_plan_id = mp.id
+                left join signalbit_erp.output_defects_packing odp on odp.id = a.output_defect_id
+                left JOIN signalbit_erp.output_defect_types dt ON dt.id = odp.defect_type_id
                 where a.updated_at >= '2026-09-01 00:00:00' and a.updated_at <= '$end_date 23:59:59' and mp.cancel = 'N'
                 group by a.so_det_id, date(a.updated_at)
             ),
@@ -1400,7 +1412,7 @@ class ReportMutasiOutputController extends Controller
                     LEFT JOIN output_secondary_master ON output_secondary_master.id = secondary_proses_per_proses.secondary_id
                     UNION ALL
                     SELECT
-                        tgl_reject, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, qty_sew_defect AS input_rework_sewing, 0 AS input_rework_spotcleaning, 0 AS input_rework_mending,
+                        tgl_reject, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, qty_sew_defect AS input_rework_sewing, qty_sew_spotcleaning AS input_rework_spotcleaning, qty_sew_mending AS input_rework_mending,
                         0 AS defect_sewing, 0 AS defect_spotcleaning, 0 AS defect_mending, qty_sew_reject, 0 AS qty_finishing,
                         0 AS input_rework_sewing_f, 0 AS input_rework_spotcleaning_f, 0 AS input_rework_mending_f,
                         0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
@@ -1427,7 +1439,7 @@ class ReportMutasiOutputController extends Controller
                     SELECT
                         tgl_reject, so_det_id, 0 AS qty_loading, 0 AS qty_sewing, 0 AS input_rework_sewing, 0 AS input_rework_spotcleaning, 0 AS input_rework_mending,
                         0 AS defect_sewing, 0 AS defect_spotcleaning, 0 AS defect_mending, 0 AS qty_sew_reject, 0 AS qty_finishing,
-                        qty_fin_defect AS input_rework_sewing_f, 0 AS input_rework_spotcleaning_f, 0 AS input_rework_mending_f,
+                        qty_fin_defect AS input_rework_sewing_f, qty_fin_spotcleaning AS input_rework_spotcleaning_f, qty_fin_mending AS input_rework_mending_f,
                         0 AS defect_sewing_f, 0 AS defect_spotcleaning_f, 0 AS defect_mending_f,
                         qty_fin_reject,
                         0 AS total_in_sp, 0 AS rft_sp, 0 AS defect_sp, 0 AS rework_sp, 0 AS reject_sp, 0 AS reject_defect_sp,
