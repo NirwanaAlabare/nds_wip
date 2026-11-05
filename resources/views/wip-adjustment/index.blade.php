@@ -519,7 +519,7 @@
                     className: 'text-center',
                     render: function (data) {
                         return data === 'N'
-                            ? '<span class="badge-soft badge-soft-danger">Tidak Aktif</span>'
+                            ? '<span class="badge-soft badge-soft-danger">Cancel</span>'
                             : '<span class="badge-soft badge-soft-success">Aktif</span>';
                     }
                 },
