@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\General\ErdController;
+use App\Http\Controllers\General\WorkTrackerController;
 use App\Http\Controllers\General\GeneralController;
 use App\Http\Controllers\General\InjectAdjustmentController;
 use App\Http\Controllers\General\LockController;
@@ -167,6 +168,22 @@ Route::middleware('auth')->group(function () {
         Route::post('/undo/{id}', 'undo')->name('undo-erd');
         Route::get('/preview/{id}', 'preview')->name('preview-erd');
         Route::post('/apply/{id}', 'apply')->name('apply-erd');
+    });
+
+    Route::controller(WorkTrackerController::class)->prefix("work-tracker")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name("work-tracker");
+        Route::get('/data', 'data')->name('data-work-tracker');
+        Route::get('/report', 'report')->name('report-work-tracker');
+        Route::get('/export', 'export')->name('export-work-tracker');
+        Route::get('/users', 'users')->name('users-work-tracker');
+        Route::get('/logs/{id}', 'logs')->name('logs-work-tracker');
+        Route::post('/store', 'store')->name('store-work-tracker');
+        Route::post('/progress', 'updateProgress')->name('progress-work-tracker');
+        Route::post('/status', 'updateStatus')->name('status-work-tracker');
+        Route::post('/assign', 'assign')->name('assign-work-tracker');
+        Route::post('/delete', 'delete')->name('delete-work-tracker');
+        Route::post('/programmer/store', 'storeProgrammer')->name('store-programmer-work-tracker');
+        Route::post('/programmer/delete', 'deleteProgrammer')->name('delete-programmer-work-tracker');
     });
 
     Route::controller(SwitchingController::class)->prefix("switching")->middleware("admin")->group(function () {

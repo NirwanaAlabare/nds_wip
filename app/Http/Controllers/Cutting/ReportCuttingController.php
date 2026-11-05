@@ -5560,7 +5560,7 @@ class ReportCuttingController extends Controller
                     tgl_saldo > COALESCE((select MAX(tanggal) from fabric_rekap), '$balance_date')
                     AND tgl_saldo <= '$end_date'
                     AND status = 'Y'
-                    AND (type = 'REKAP' OR type IS NULL)
+                    -- AND (type = 'REKAP' OR type IS NULL)
                 GROUP BY
                     id_roll, id_item, satuan
             ),
