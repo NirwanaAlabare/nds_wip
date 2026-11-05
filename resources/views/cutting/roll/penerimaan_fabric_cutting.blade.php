@@ -17,6 +17,9 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="{{ asset('plugins/flatpickr/flatpickr.min.css') }}">
 @endsection
 
 @section('content')
@@ -35,6 +38,13 @@
                     <label class="form-label"><small><b>Tgl Akhir</b></small></label>
                     <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
                         value="{{ date('Y-m-d') }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><small><b>Tgl Terima</b></small></label>
+                    <div class="input-group input-group-sm flex-nowrap" style="min-width: 230px;">
+                        <input type="text" class="form-control bg-white" id="tgl-terima" placeholder="Pilih Tanggal">
+                        <button type="button" class="btn btn-outline-secondary" onclick="terimaPicker.clear()"><i class="fas fa-times"></i></button>
+                    </div>
                 </div>
                 <div class="mb-3">
                     <a class="btn btn-outline-primary position-relative btn-sm" id= "btn-cari" name="btn-cari"
@@ -106,6 +116,7 @@
     <script src="{{ asset('plugins/datatables 2.0/dataTables.fixedColumns.min.js') }}"></script>
     <script src="{{ asset('plugins/datatables-rowsgroup/dataTables.rowsGroup.js') }}"></script>
     <script src="{{ asset('plugins/export_excel_js/exceljs.min.js') }}"></script>
+    <script src="{{ asset('plugins/flatpickr/flatpickr.min.js') }}"></script>
     <script>
         // Select2 Autofocus
         $(document).on('select2:open', () => {
@@ -127,6 +138,30 @@
     <script>
         let datatable;
 
+        let terimaPicker = flatpickr('#tgl-terima', {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            locale: { rangeSeparator: ' s/d ' }
+        });
+
+        function getTerimaRange() {
+            // Satu tanggal saja dianggap filter satu hari
+            let [from = '', to = from] = terimaPicker.selectedDates.map((date) => terimaPicker.formatDate(date, 'Y-m-d'));
+
+            return { from, to };
+        }
+
+        // Tgl Awal & Akhir boleh kosong selama Tgl Terima terisi
+        function validateFilter() {
+            if (($('#tgl-awal').val() && $('#tgl-akhir').val()) || getTerimaRange().from) {
+                return true;
+            }
+
+            Swal.fire('Filter Belum Lengkap', 'Isi Tgl Awal dan Tgl Akhir, atau isi Tgl Terima.', 'warning');
+
+            return false;
+        }
+
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
             $(this).addClass('bg-white').html('<input type="text" class="form-control form-control-sm"/>');
@@ -142,8 +177,13 @@
         });
 
         function dataTableReload() {
+            if (!validateFilter()) {
+                return;
+            }
+
             let start_date = $('#tgl-awal').val();
             let end_date = $('#tgl-akhir').val();
+            let terima = getTerimaRange();
 
             datatable = $("#datatable").DataTable({
                 destroy: true,
@@ -167,9 +207,11 @@
                     data(d) {
                         d.start_date = start_date;
                         d.end_date = end_date;
+                        d.terima_from = terima.from;
+                        d.terima_to = terima.to;
                     },
                     dataSrc(json) {
-                        if (start_date && end_date) Swal.close();
+                        Swal.close();
                         return json.data;
                     },
                     error() {
@@ -307,8 +349,13 @@
 
 
         function export_excel() {
+            if (!validateFilter()) {
+                return;
+            }
+
             let start_date = $('#tgl-awal').val();
             let end_date = $('#tgl-akhir').val();
+            let terima = getTerimaRange();
             Swal.fire({
                 title: 'Please Wait...',
                 html: 'Exporting Data...',
@@ -323,7 +370,9 @@
                 url: '{{ route('export_roll_fabric_cutting_in') }}',
                 data: {
                     start_date: start_date,
-                    end_date: end_date
+                    end_date: end_date,
+                    terima_from: terima.from,
+                    terima_to: terima.to
                 },
                 xhrFields: {
                     responseType: 'blob'
@@ -340,7 +389,7 @@
                     var blob = new Blob([response]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Laporan Penerimaan Fabric Cutting " + start_date + " _ " + end_date +
+                    link.download = "Laporan Penerimaan Fabric Cutting " + (start_date || terima.from) + " _ " + (end_date || terima.to) +
                         ".xlsx";
                     link.click();
                 },
