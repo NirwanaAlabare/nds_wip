@@ -250,7 +250,7 @@ class ReportMutasiOutputController extends Controller
                                         allocation IN ('SEWING', 'spotcleaning', 'mending')
                                         AND (a.updated_at >= '$start_date 00:00:00') AND (a.updated_at <= '$end_date 23:59:59')
                                         AND defect_status IN ('REWORKED','REJECTED')
-                                        AND (CASE WHEN a.updated_at >= '2026-10-01 00:00:00' THEN reject_in.id is null ELSE 1=1 END)
+                                        AND (CASE WHEN c.id is not null and c.updated_at >= '2026-10-01 00:00:00' THEN reject_in.id is null ELSE 1=1 END)
                                     GROUP BY
                                         a.so_det_id,
                                         date(a.updated_at)
@@ -345,7 +345,7 @@ class ReportMutasiOutputController extends Controller
                                         allocation IN ('SEWING', 'spotcleaning', 'mending')
                                         AND (a.updated_at >= '$start_date 00:00:00') AND (a.updated_at <= '$end_date 23:59:59')
                                         AND defect_status IN ('REWORKED','REJECTED')
-                                        AND (CASE WHEN a.updated_at >= '2026-10-01 00:00:00' THEN reject_in.id is null ELSE 1=1 END)
+                                        AND (CASE WHEN c.id is not null and c.updated_at >= '2026-10-01 00:00:00' THEN reject_in.id is null ELSE 1=1 END)
                                     GROUP BY
                                         a.so_det_id,
                                         date(a.updated_at)
