@@ -118,7 +118,7 @@
 
                 <div>
                     <label class="form-label"><small>Status Order</small></label>
-                    <select id="status_order_filter" class="form-control form-control-sm select2bs4" style="width: 170px;">
+                    <select id="status_order_filter" class="form-control form-control-sm select2bs4" style="width: 170px;" disabled>
                         <option value="">Semua Status</option>
                         <option value="Open Order">Open Order</option>
                         <option value="Close Order">Close Order</option>
@@ -200,15 +200,32 @@
             });
         }
 
+        // Status order selalu terkunci: terisi otomatis saat WS dipilih, kosong saat WS belum dipilih
+        function loadStatusOrder(ws) {
+            const $select = $('#status_order_filter');
+
+            $select.val('').trigger('change.select2');
+
+            if (!ws) return;
+
+            $.get('{{ route('get-filter-proses-output') }}', { type: 'status_order', ws }, function (res) {
+                if ($('#ws_filter').val() !== ws) return;
+
+                $select.val(res[ws] ?? 'Open Order').trigger('change.select2');
+            });
+        }
+
         // Buyer berubah: daftar WS ikut buyer, style / color / size dikosongkan
         $('#buyer_filter').on('change', function () {
             loadFilter('ws', { buyer: this.value });
             ['style', 'color', 'size'].forEach(type => loadFilter(type, {}));
+            loadStatusOrder('');
         });
 
-        // WS berubah: style / color / size ikut WS
+        // WS berubah: style / color / size & status order ikut WS
         $('#ws_filter').on('change', function () {
             ['style', 'color', 'size'].forEach(type => loadFilter(type, { ws: this.value }));
+            loadStatusOrder(this.value);
         });
 
         // Kolom teks (1 baris per buyer / ws / style / color / size)

@@ -26,9 +26,13 @@ class ProsesOutputController extends Controller
         ]);
     }
 
-    // Pilihan filter dari master_sb_ws: ws (per buyer), style / color / size (per ws)
+    // Pilihan filter dari master_sb_ws: ws (per buyer), style / color / size / status order (per ws)
     public function getFilter(Request $request)
     {
+        if ($request->type == 'status_order') {
+            return $this->statusOrderList([$request->ws]);
+        }
+
         $columns = [
             'ws'    => 'ws',
             'style' => 'styleno',
