@@ -169,9 +169,20 @@
     <!-- ApexCharts -->
     <script src="{{ asset('plugins/apexcharts/apexcharts.min.js') }}"></script>
     <script>
-        $('.select2bs4').select2({
+        $('.select2bs4').not('#status_order_filter').select2({
             theme: 'bootstrap4',
             width: 'resolve'
+        })
+
+        // Status order tampil sebagai badge, warnanya sama dengan kolom Status Order di tabel
+        $('#status_order_filter').select2({
+            theme: 'bootstrap4',
+            width: 'resolve',
+            templateSelection: function (state) {
+                if (!state.id) return state.text;
+
+                return $('<span>').addClass(`badge text-nowrap ${state.id === 'Close Order' ? 'bg-danger' : 'bg-success'}`).css('font-size', '12px').text(state.text);
+            }
         })
 
         $('.select2-container--bootstrap4 .select2-selection--single').css({
