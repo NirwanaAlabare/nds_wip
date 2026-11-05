@@ -35,7 +35,17 @@ class DefectSpotcleaningOutReportController extends Controller
                     INNER JOIN signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
                     LEFT JOIN signalbit_erp.output_undo c ON c.output_defect_id = a.id
                     LEFT JOIN signalbit_erp.output_reject_in reject_in ON reject_in.reject_id = c.output_reject_id AND reject_in.output_type = 'qc' AND reject_in.status = 'reworked' AND reject_in.updated_at <= a.updated_at
-                    WHERE allocation = 'spotcleaning' AND (a.updated_at >= '$startDate 00:00:00') AND (a.updated_at <= '$endDate 23:59:59') AND defect_status IN ('REWORKED','REJECTED') AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id IS NULL ELSE 1=1 END)
+                    WHERE allocation = 'spotcleaning' AND (a.updated_at >= '$startDate 00:00:00') AND (a.updated_at <= '$endDate 23:59:59') AND defect_status IN ('REWORKED','REJECTED') AND (CASE WHEN c.id IS NOT NULL AND c.updated_at >= '2026-10-01 00:00:00' THEN reject_in.id IS NULL ELSE 1=1 END)
+                    GROUP BY a.so_det_id
+                    UNION ALL
+                    /* Undo reject (reworked) yang berasal dari defect, mulai 2026-10-01 */
+                    SELECT a.so_det_id AS so_det_id, COUNT(a.id) AS input_rework_spotcleaning
+                    FROM signalbit_erp.output_undo a
+                    INNER JOIN signalbit_erp.output_reject_in reject_in ON reject_in.reject_id = a.output_reject_id AND reject_in.output_type = 'qc' AND reject_in.status = 'reworked'
+                    INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
+                    LEFT JOIN signalbit_erp.output_defects od ON od.id = a.output_defect_id
+                    LEFT JOIN signalbit_erp.output_defect_types dt ON dt.id = od.defect_type_id
+                    WHERE a.output_defect_id > 0 AND dt.allocation = 'spotcleaning' AND a.updated_at >= '2026-10-01 00:00:00' AND (a.updated_at >= '$startDate 00:00:00') AND (a.updated_at <= '$endDate 23:59:59') AND mp.cancel = 'N'
                     GROUP BY a.so_det_id
                 ) defect GROUP BY so_det_id
             ),
@@ -47,7 +57,17 @@ class DefectSpotcleaningOutReportController extends Controller
                     INNER JOIN signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
                     LEFT JOIN signalbit_erp.output_undo_packing c ON c.output_defect_id = a.id
                     LEFT JOIN signalbit_erp.output_reject_in reject_in ON reject_in.reject_id = c.output_reject_id AND reject_in.output_type = 'packing' AND reject_in.status = 'reworked' AND reject_in.updated_at <= a.updated_at
-                    WHERE allocation = 'spotcleaning' AND (a.updated_at >= '$startDate 00:00:00') AND (a.updated_at <= '$endDate 23:59:59') AND defect_status IN ('REWORKED','REJECTED') AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id IS NULL ELSE 1=1 END)
+                    WHERE allocation = 'spotcleaning' AND (a.updated_at >= '$startDate 00:00:00') AND (a.updated_at <= '$endDate 23:59:59') AND defect_status IN ('REWORKED','REJECTED') AND (CASE WHEN c.id IS NOT NULL AND c.updated_at >= '2026-10-01 00:00:00' THEN reject_in.id IS NULL ELSE 1=1 END)
+                    GROUP BY a.so_det_id
+                    UNION ALL
+                    /* Undo reject (reworked) yang berasal dari defect, mulai 2026-10-01 */
+                    SELECT a.so_det_id AS so_det_id, COUNT(a.id) AS input_rework_spotcleaning
+                    FROM signalbit_erp.output_undo_packing a
+                    INNER JOIN signalbit_erp.output_reject_in reject_in ON reject_in.reject_id = a.output_reject_id AND reject_in.output_type = 'packing' AND reject_in.status = 'reworked'
+                    INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
+                    LEFT JOIN signalbit_erp.output_defects_packing odp ON odp.id = a.output_defect_id
+                    LEFT JOIN signalbit_erp.output_defect_types dt ON dt.id = odp.defect_type_id
+                    WHERE a.output_defect_id > 0 AND dt.allocation = 'spotcleaning' AND a.updated_at >= '2026-10-01 00:00:00' AND (a.updated_at >= '$startDate 00:00:00') AND (a.updated_at <= '$endDate 23:59:59') AND mp.cancel = 'N'
                     GROUP BY a.so_det_id
                 ) defect GROUP BY so_det_id
             ),

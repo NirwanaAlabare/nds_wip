@@ -129,7 +129,7 @@
                             <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Output</th>
                             <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Adjustment</th>
                             <th class="text-center align-middle finishing-old" style="background-color: #5DADE2;">Saldo Akhir</th>
-                            
+
                             <!-- Finishing - Pasang Kancing -->
                             <th class="text-center align-middle finishing-process" style="background-color: #90EE90;">Saldo Awal</th>
                             <th class="text-center align-middle finishing-process" style="background-color: #90EE90;">Terima</th>
@@ -212,7 +212,7 @@
                             <th class="text-center align-middle" style="background-color: #FFA94D;">Keluar Packing</th>
                             <th class="text-center align-middle" style="background-color: #FFA94D;">Adjustment</th>
                             <th class="text-center align-middle" style="background-color: #FFA94D;">Saldo Akhir</th>
-                            
+
                             <th class="text-center align-middle" style="background-color: pink;">Saldo Awal</th>
                             <th class="text-center align-middle" style="background-color: pink;">Terima</th>
                             <th class="text-center align-middle" style="background-color: pink;">Keluar Sewing</th>

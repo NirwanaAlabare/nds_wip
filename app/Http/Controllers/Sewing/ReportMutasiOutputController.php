@@ -1748,8 +1748,8 @@ class ReportMutasiOutputController extends Controller
 
                         0 AS qty_sewing_awal,
                         qty_sew_defect_awal AS input_rework_sewing_awal,
-                        0 AS input_rework_spotcleaning_awal,
-                        0 AS input_rework_mending_awal,
+                        qty_sew_spotcleaning_awal AS input_rework_spotcleaning_awal,
+                        qty_sew_mending_awal AS input_rework_mending_awal,
                         0 AS defect_sewing_awal,
                         0 AS defect_spotcleaning_awal,
                         0 AS defect_mending_awal,
@@ -1807,8 +1807,8 @@ class ReportMutasiOutputController extends Controller
 
                         0 AS qty_finishing_awal,
                         qty_fin_defect_awal AS input_rework_sewing_f_awal,
-                        0 AS input_rework_spotcleaning_f_awal,
-                        0 AS input_rework_mending_f_awal,
+                        qty_fin_spotcleaning_awal AS input_rework_spotcleaning_f_awal,
+                        qty_fin_mending_awal AS input_rework_mending_f_awal,
                         0 AS defect_sewing_f_awal,
                         0 AS defect_spotcleaning_f_awal,
                         0 AS defect_mending_f_awal,
