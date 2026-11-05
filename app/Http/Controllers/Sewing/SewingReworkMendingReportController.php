@@ -26,10 +26,16 @@ class SewingReworkMendingReportController extends Controller
         $bindings = [$startDate . ' 00:00:00', $endDate . ' 23:59:59'];
         $buyerFilter = !empty($buyer) ? "AND ms.supplier = ?" : "";
         if (!empty($buyer)) $bindings[] = $buyer;
+        // Binding kedua untuk union undo
+        $bindings = array_merge($bindings, $bindings);
 
         $sql = "
             SELECT
-                ms.supplier AS buyer, ac.kpno AS ws, ac.styleno AS style, sd.color, sd.size,
+                buyer, ws, style, color, size,
+                SUM(qty_rework_mending) AS qty_rework_mending
+            FROM (
+            SELECT
+                ms.supplier AS buyer, ac.kpno AS ws, ac.styleno AS style, sd.color, sd.size, msn.urutan,
                 COUNT(a.id) AS qty_rework_mending
             FROM signalbit_erp.output_defects a
             INNER JOIN signalbit_erp.output_defect_types b ON a.defect_type_id = b.id
@@ -45,11 +51,40 @@ class SewingReworkMendingReportController extends Controller
               AND a.defect_status IN ('REWORKED', 'REJECTED')
               AND a.updated_at >= ?
               AND a.updated_at <= ?
-              AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id IS NULL ELSE 1=1 END)
+              AND (CASE WHEN c.id IS NOT NULL AND c.updated_at >= '2026-10-01 00:00:00' THEN reject_in.id IS NULL ELSE 1=1 END)
               AND jd.cancel = 'N'
               $buyerFilter
             GROUP BY ms.supplier, ac.kpno, ac.styleno, sd.color, sd.size, msn.urutan
-            ORDER BY buyer ASC, ws ASC, color ASC, msn.urutan ASC
+
+            UNION ALL
+
+            /* Undo reject (reworked) yang berasal dari defect, mulai 2026-10-01 */
+            SELECT
+                ms.supplier AS buyer, ac.kpno AS ws, ac.styleno AS style, sd.color, sd.size, msn.urutan,
+                COUNT(a.id) AS qty_rework_mending
+            FROM signalbit_erp.output_undo a
+            INNER JOIN signalbit_erp.output_reject_in reject_in ON reject_in.reject_id = a.output_reject_id AND reject_in.output_type = 'qc' AND reject_in.status = 'reworked'
+            INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
+            LEFT JOIN signalbit_erp.output_defects od ON od.id = a.output_defect_id
+            LEFT JOIN signalbit_erp.output_defect_types dt ON dt.id = od.defect_type_id
+            INNER JOIN signalbit_erp.so_det sd ON a.so_det_id = sd.id
+            INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+            INNER JOIN signalbit_erp.jo_det jd ON so.id = jd.id_so
+            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+            INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+            LEFT JOIN signalbit_erp.master_size_new msn ON sd.size = msn.size
+            WHERE a.output_defect_id > 0
+              AND dt.allocation = 'mending'
+              AND a.updated_at >= '2026-10-01 00:00:00'
+              AND a.updated_at >= ?
+              AND a.updated_at <= ?
+              AND mp.cancel = 'N'
+              AND jd.cancel = 'N'
+              $buyerFilter
+            GROUP BY ms.supplier, ac.kpno, ac.styleno, sd.color, sd.size, msn.urutan
+            ) rework
+            GROUP BY buyer, ws, style, color, size, urutan
+            ORDER BY buyer ASC, ws ASC, color ASC, urutan ASC
         ";
 
         return DB::connection('mysql_sb')->select($sql, $bindings);

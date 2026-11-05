@@ -27,6 +27,8 @@ class FinishingReworkMendingReportController extends Controller
         $bindings = [$startDate . ' 00:00:00', $endDate . ' 23:59:59'];
         $buyerFilter = !empty($buyer) ? "AND ms.supplier = ?" : "";
         if (!empty($buyer)) $bindings[] = $buyer;
+        // Binding kedua untuk union undo
+        $bindings = array_merge($bindings, $bindings);
 
         $sql = "
             SELECT
@@ -49,9 +51,35 @@ class FinishingReworkMendingReportController extends Controller
               AND a.defect_status in ('REWORKED', 'REJECTED')
               AND a.updated_at >= ?
               AND a.updated_at <= ?
-              AND (CASE WHEN a.updated_at > '2026-10-31 23:59:59' THEN reject_in.id IS NULL ELSE 1=1 END)
+              AND (CASE WHEN c.id IS NOT NULL AND c.updated_at >= '2026-10-01 00:00:00' THEN reject_in.id IS NULL ELSE 1=1 END)
               $buyerFilter
             GROUP BY ms.supplier, ac.kpno, ac.styleno, sd.color, sd.size, msn.urutan
+            UNION ALL
+            /* Undo reject (reworked) yang berasal dari defect, mulai 2026-10-01 */
+            SELECT
+                ms.supplier AS buyer,
+                ac.kpno AS ws,
+                ac.styleno AS style,
+                sd.color,
+                sd.size,
+                COUNT(a.id) AS jumlah
+            FROM signalbit_erp.output_undo_packing a
+            INNER JOIN signalbit_erp.output_reject_in reject_in ON reject_in.reject_id = a.output_reject_id AND reject_in.output_type = 'packing' AND reject_in.status = 'reworked'
+            INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
+            LEFT JOIN signalbit_erp.output_defects_packing odp ON odp.id = a.output_defect_id
+            LEFT JOIN signalbit_erp.output_defect_types dt ON dt.id = odp.defect_type_id
+            INNER JOIN signalbit_erp.so_det sd ON a.so_det_id = sd.id
+            INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+            INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+            WHERE a.output_defect_id > 0
+              AND dt.allocation = 'mending'
+              AND a.updated_at >= '2026-10-01 00:00:00'
+              AND a.updated_at >= ?
+              AND a.updated_at <= ?
+              AND mp.cancel = 'N'
+              $buyerFilter
+            GROUP BY ms.supplier, ac.kpno, ac.styleno, sd.color, sd.size
             UNION ALL
             select buyer, ws, styleno style, color, size, COALESCE(input_rework_mending_f,0) jumlah from signalbit_erp.inject_mutasi_sewing where input_rework_mending_f > 0 AND type_saldo = 'FINISHING' AND tgl_saldo >= '$startDate' AND tgl_saldo <= '$endDate'
             ORDER BY buyer ASC, ws ASC, color ASC
