@@ -76,6 +76,14 @@ class PenerimaanCuttingController extends Controller
                 $data->where('penerimaan_cutting.tanggal_terima', '<=', $tglAkhir);
             }
 
+            if ($request->bppbFrom) {
+                $data->where('whs_bppb_h.tgl_bppb', '>=', $request->bppbFrom);
+            }
+
+            if ($request->bppbTo) {
+                $data->where('whs_bppb_h.tgl_bppb', '<=', $request->bppbTo);
+            }
+
             return DataTables::query($data)
                 ->filterColumn('tanggal_terima', function ($query, $keyword) {
                     $query->whereRaw("
@@ -528,6 +536,12 @@ class PenerimaanCuttingController extends Controller
                     $join->on('buyer_ws.id_jo', '=', 'signalbit_erp.whs_bppb_det.id_jo');
                 }
             )
+            ->when($request->bppbFrom, function ($query, $bppbFrom) {
+                $query->where('whs_bppb_h.tgl_bppb', '>=', $bppbFrom);
+            })
+            ->when($request->bppbTo, function ($query, $bppbTo) {
+                $query->where('whs_bppb_h.tgl_bppb', '<=', $bppbTo);
+            })
             ->whereBetween('penerimaan_cutting.created_at', [
                 $from . ' 00:00:00',
                 $to . ' 23:59:59'
