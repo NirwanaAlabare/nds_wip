@@ -528,10 +528,9 @@ class PenerimaanCuttingController extends Controller
                     $join->on('buyer_ws.id_jo', '=', 'signalbit_erp.whs_bppb_det.id_jo');
                 }
             )
-            ->whereBetween('penerimaan_cutting.created_at', [
-                $from . ' 00:00:00',
-                $to . ' 23:59:59'
-            ])->get();
+            ->whereBetween('penerimaan_cutting.tanggal_terima', [$from, $to])
+            ->orderBy('penerimaan_cutting.created_at', 'desc')
+            ->get();
 
         // Create Excel file using FastExcel
         $excel = FastExcel::create('data');
