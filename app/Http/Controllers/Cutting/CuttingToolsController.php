@@ -25,6 +25,7 @@ use App\Models\SignalBit\ActCosting;
 use App\Services\StockerService;
 use App\Services\CuttingService;
 use App\Services\CuttingPieceService;
+use App\Services\CuttingFabricRekapService;
 use App\Imports\ImportCuttingManual;
 use App\Imports\ImportSaldoAwalCutting;
 use App\Imports\ImportSaldoAwalCuttingDetail;
@@ -1176,6 +1177,28 @@ class CuttingToolsController extends Controller
             'status' => 200,
             'data' => $data
         ]);
+    }
+
+    private function validateRekapCustom(Request $request)
+    {
+        $request->validate([
+            'date_from' => 'required|date',
+            'date_to' => 'required|date|after_or_equal:date_from|before:today',
+        ], [
+            'date_from.required' => 'Tanggal awal harus diisi.',
+            'date_to.required' => 'Tanggal akhir harus diisi.',
+            'date_to.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.',
+            'date_to.before' => 'Tanggal akhir harus sebelum hari ini.',
+        ]);
+    }
+
+    public function rekapFabricCustom(Request $request, CuttingFabricRekapService $cuttingFabricRekapService)
+    {
+        $this->validateRekapCustom($request);
+
+        set_time_limit(0);
+
+        return $cuttingFabricRekapService->runRekapCustom($request->date_from, $request->date_to);
     }
 
     public function importCuttingManual(Request $request)
