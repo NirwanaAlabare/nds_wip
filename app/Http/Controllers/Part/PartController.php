@@ -2374,7 +2374,7 @@ class PartController extends Controller
             leftJoin("part_custom as pcust", function ($join) {
                 $join->on("pcust.part_id", "=", "part.id");
                 $join->on("pcust.part_detail_id", "=", "part_detail.id");
-                $join->on("pcust.color", "=", "part.color");
+                $join->on("pcust.color", "=", "master_sb_ws.color");
             })->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
@@ -2403,7 +2403,8 @@ class PartController extends Controller
                 $query->whereRaw("COALESCE(pcust.set_part_status, part_detail.part_status) = ?", [$request->part_status]);
             })->
             whereNotNull("part.act_costing_id")->
-            where("part_detail.part_status", "!=", "complement")->
+            where("part.panel_status", "!=", "complement")->
+            where(DB::raw("COALESCE(pcust.set_part_status, part_detail.part_status)"), "!=", "complement")->
             whereRaw("COALESCE(part_detail.status, 'active') = 'active'")->
             groupByRaw("
                 master_sb_ws.id_act_cost,

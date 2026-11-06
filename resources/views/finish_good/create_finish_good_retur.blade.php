@@ -178,7 +178,7 @@
                                     <div class="form-group">
                                         <label>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;</label>
                                         <div class="input-group">
-                                            <a class="btn btn-outline-primary btn-sm"
+                                            <a class="btn btn-outline-primary btn-sm" id="btn_insert_tmp"
                                                 onclick="inserttmp();dataTableDetKartonReload()">
                                                 <i class="fas fa-filter"></i>
                                             </a>
@@ -397,6 +397,13 @@
         }
 
         function inserttmp() {
+            let btn = $('#btn_insert_tmp');
+            // cegah request ganda selama insert sebelumnya belum selesai
+            if (btn.hasClass('disabled')) {
+                return;
+            }
+            btn.addClass('disabled');
+
             let cbobuyer = $('#cbobuyer').val();
             let cbopo = $('#cbopo').val();
             let cbonotes = $('#cbonotes').val();
@@ -415,6 +422,9 @@
                 success: function(response) {
                     dataTableDetKartonReload();
                     dataTableSummaryReload();
+                },
+                complete: function() {
+                    btn.removeClass('disabled');
                 },
             });
         }

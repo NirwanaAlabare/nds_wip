@@ -89,8 +89,11 @@ class ReportController extends Controller
         $groupBy = $request->groupBy;
         $order = $request->order;
         $buyer = $request->buyer;
+        $color = $request->color;
+        $line = $request->line;
+        $size = $request->size;
 
-        return Excel::download(new OrderOutputExport($dateFrom, $dateTo, $outputType, $groupBy, $order, $buyer), 'order_output.xlsx');
+        return Excel::download(new OrderOutputExport($dateFrom, $dateTo, $outputType, $groupBy, $order, $buyer, $color, $line, $size), 'order_output.xlsx');
     }
 
     public function exportDefectInOut(Request $request) {
