@@ -720,6 +720,9 @@
                     groupBy:$("#group-by").val(),
                     order:order,
                     buyer:buyer,
+                    color:$("#color").val(),
+                    line:$("#line").val(),
+                    size:$("#size").val(),
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
