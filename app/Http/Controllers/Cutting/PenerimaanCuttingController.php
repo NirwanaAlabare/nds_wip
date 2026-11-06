@@ -542,7 +542,7 @@ class PenerimaanCuttingController extends Controller
             ->when($request->bppbTo, function ($query, $bppbTo) {
                 $query->where('whs_bppb_h.tgl_bppb', '<=', $bppbTo);
             })
-            ->whereBetween('penerimaan_cutting.created_at', [
+            ->whereBetween('penerimaan_cutting.tanggal_terima', [
                 $from . ' 00:00:00',
                 $to . ' 23:59:59'
             ])->get();
