@@ -81,16 +81,32 @@
 
         /* Race */
         .wt-section-title { font-size: 15px; font-weight: 700; margin: 0; }
-        .wt-race { padding: 16px 18px 8px; margin-bottom: 14px; --sky-a: #8fd0ff; --sky-b: #e4f5ff; --ground: #d6dfeb; --hill-far: #b4e0bd; --hill-near: #86cc98; --sun: #f2c94c; --cloud: #fff; --line: rgba(8, 33, 73, .42); }
-        .wt-race[data-sky="morning"] { --sky-a: #cfe9ff; --sky-b: #fff3d6; --hill-far: #c5e6c4; --hill-near: #98d3a4; --sun: #f7b84b; }
-        .wt-race[data-sky="sunset"] { --sky-a: #ff9f73; --sky-b: #ffe0ad; --ground: #d9cdd0; --hill-far: #c99a93; --hill-near: #a0757f; --sun: #e8590c; --cloud: #ffeedd; }
-        .wt-race[data-sky="night"] { --sky-a: #0b1a3b; --sky-b: #2a4575; --ground: #3d4a63; --hill-far: #1e3560; --hill-near: #162a4d; --sun: #f6efc4; --cloud: #5d7199; --line: rgba(255, 255, 255, .6); }
-        .wt-race[data-sky="night"] .wt-runner, .wt-race[data-sky="sunset"] .wt-runner { filter: drop-shadow(0 0 1.5px #fff); }
-        .wt-race[data-sky="night"] .wt-pacer::before { color: #fff; }
-        .wt-race[data-sky="night"] .wt-cp-pole { border-left-color: rgba(255, 255, 255, .45); }
-        .wt-race[data-sky="night"] .wt-bird { color: #9fb2d3; }
-        .wt-race[data-sky="night"] .wt-sun { animation: none; }
-        .wt-race[data-sky="night"] .wt-gate { border-color: #b8c4d9; }
+        /* Suasana langit (data-sky) mengikuti jam, pemandangan (data-scene) berganti tiap hari, warna bukit diredupkan lewat --shade */
+        .wt-race { padding: 16px 18px 8px; margin-bottom: 14px; --sky-a: #6fc0ff; --sky-b: #ddf2ff; --ground: #d6dfeb; --hill-far: #b4e0bd; --hill-near: #86cc98; --prop: #4f9a5e; --sun: #ffd23f; --sun-top: 18px; --sun-size: 22px; --cloud: #fff; --shade: none; --line: rgba(8, 33, 73, .42); }
+        .wt-race[data-sky="dawn"] { --sky-a: #5d4f8f; --sky-b: #f5b3a8; --ground: #d3cbd8; --sun: #ff9e7a; --sun-top: 54px; --sun-size: 20px; --cloud: #f6cfdb; --shade: brightness(.78) saturate(.7); }
+        .wt-race[data-sky="morning"] { --sky-a: #cfe9ff; --sky-b: #fff3d6; --sun: #f7b84b; --sun-top: 38px; --sun-size: 19px; --shade: brightness(1.04); }
+        .wt-race[data-sky="afternoon"] { --sky-a: #9cc8ef; --sky-b: #ffe6bf; --sun: #f5a524; --sun-top: 30px; --sun-size: 20px; --shade: sepia(.18) brightness(.97); }
+        .wt-race[data-sky="sunset"] { --sky-a: #ff9f73; --sky-b: #ffe0ad; --ground: #d9cdd0; --sun: #e8590c; --sun-top: 50px; --sun-size: 24px; --cloud: #ffeedd; --shade: sepia(.45) saturate(1.1) brightness(.78) hue-rotate(-18deg); }
+        .wt-race[data-sky="night"] { --sky-a: #0b1a3b; --sky-b: #2a4575; --ground: #3d4a63; --sun: #f6efc4; --sun-top: 26px; --sun-size: 18px; --cloud: #5d7199; --shade: brightness(.42) saturate(.6) hue-rotate(50deg); --line: rgba(255, 255, 255, .6); }
+        .wt-race[data-sky="midnight"] { --sky-a: #040a1c; --sky-b: #13244a; --ground: #2b3549; --sun: #ece6c6; --sun-top: 14px; --sun-size: 17px; --cloud: #34456a; --shade: brightness(.3) saturate(.5) hue-rotate(50deg); --line: rgba(255, 255, 255, .6); }
+        .wt-race[data-dark] .wt-runner, .wt-race[data-sky="sunset"] .wt-runner { filter: drop-shadow(0 0 1.5px #fff); }
+        .wt-race[data-dark] .wt-pacer::before { color: #fff; }
+        .wt-race[data-dark] .wt-cp-pole { border-left-color: rgba(255, 255, 255, .45); }
+        .wt-race[data-dark] .wt-bird { color: #9fb2d3; }
+        .wt-race[data-dark] .wt-sun { animation: none; }
+        .wt-race[data-dark] .wt-gate { border-color: #b8c4d9; }
+        .wt-race[data-scene="beach"] { --hill-far: #4fb3d9; --hill-near: #f0d9a4; --prop: #e8590c; }
+        .wt-race[data-scene="beach"] .wt-hill.far { --hill-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V14C20 10 40 10 60 14S100 18 120 14S160 10 180 14S220 18 240 14V40Z'/%3E%3C/svg%3E"); height: 28px; }
+        .wt-race[data-scene="beach"] .wt-hill.near { --hill-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V26C60 12 120 12 180 24S230 30 240 26V40Z'/%3E%3C/svg%3E"); height: 14px; }
+        .wt-race[data-scene="city"] { --hill-far: #9fb0c8; --hill-near: #8fc79c; --prop: #4f9a5e; }
+        .wt-race[data-scene="city"] .wt-hill.far { --hill-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V22H18V10H34V18H46V4H62V16H78V24H92V8H110V20H124V12H140V26H152V6H170V18H186V14H202V22H216V10H232V22H240V40Z'/%3E%3C/svg%3E"); height: 46px; }
+        .wt-race[data-scene="city"] .wt-hill.near { height: 12px; }
+        .wt-race[data-dark][data-scene="city"] .wt-hill.far { filter: none; background-color: #1c2a47; background-image: radial-gradient(#ffd76a 1px, transparent 1.6px); background-size: 9px 8px; }
+        .wt-race[data-scene="paddy"] { --hill-far: #8fc98a; --hill-near: #b8d65a; --prop: #c9a227; }
+        .wt-race[data-scene="paddy"] .wt-hill.far { height: 30px; }
+        .wt-race[data-scene="paddy"] .wt-hill.near { --hill-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V22H60V16H120V22H180V16H240V22V40Z'/%3E%3C/svg%3E"); height: 16px; background-image: repeating-linear-gradient(90deg, rgba(40, 90, 20, .22) 0 2px, transparent 2px 9px); }
+        .wt-scene { margin-left: 8px; padding: 2px 9px; border-radius: 10px; background: var(--wt-soft); color: var(--wt-muted); font-size: 11.5px; font-weight: 600; vertical-align: middle; white-space: nowrap; }
+        .wt-scene i { margin-right: 3px; }
         .wt-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--wt-muted); }
         .wt-lane { display: grid; grid-template-columns: 190px 1fr 190px; gap: 14px; align-items: center; padding: 8px 6px; border-radius: 10px; cursor: pointer; transition: background .15s; }
         .wt-lane:hover { background: var(--wt-soft); }
@@ -109,7 +125,7 @@
         .wt-person-name { font-weight: 600; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .wt-person-sub { font-size: 11.5px; color: var(--wt-muted); }
         .wt-track { position: relative; height: 112px; border-radius: 12px; overflow: hidden; background: linear-gradient(var(--sky-a), var(--sky-b) calc(100% - 28px), var(--ground) 0); box-shadow: inset 0 0 0 1px rgba(8, 33, 73, .08); }
-        .wt-hill { position: absolute; left: 0; bottom: 28px; background: var(--hill-near); --hill-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V24C40 6 80 6 120 22S200 38 240 24V40Z'/%3E%3C/svg%3E"); -webkit-mask: var(--hill-shape) 0 0 / var(--hill-w) 100% repeat-x; mask: var(--hill-shape) 0 0 / var(--hill-w) 100% repeat-x; will-change: transform; }
+        .wt-hill { position: absolute; left: 0; bottom: 28px; background: var(--hill-near); --hill-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 40' preserveAspectRatio='none'%3E%3Cpath d='M0 40V24C40 6 80 6 120 22S200 38 240 24V40Z'/%3E%3C/svg%3E"); -webkit-mask: var(--hill-shape) 0 0 / var(--hill-w) 100% repeat-x; mask: var(--hill-shape) 0 0 / var(--hill-w) 100% repeat-x; filter: var(--shade); will-change: transform; }
         .wt-hill.far { --hill-w: 420px; width: calc(100% + 420px); height: 40px; background: var(--hill-far); }
         .wt-hill.near { --hill-w: 250px; width: calc(100% + 250px); height: 24px; }
         @keyframes wt-hill-far { to { transform: translateX(-420px); } }
@@ -195,7 +211,27 @@
         @keyframes wt-fix { from { transform: rotate(-30deg); } to { transform: rotate(35deg); } }
 
         /* Dekorasi lintasan */
-        .wt-sun { position: absolute; top: 28px; right: 84px; color: var(--sun); font-size: 19px; animation: wt-spin 12s linear infinite; }
+        .wt-sun { position: absolute; top: var(--sun-top); right: 84px; color: var(--sun); font-size: var(--sun-size); animation: wt-spin 12s linear infinite; }
+        .wt-race[data-sky="dawn"] .wt-star { opacity: .5; }
+        .wt-prop { position: absolute; left: 100%; bottom: 25px; color: var(--prop); font-size: 15px; filter: var(--shade); animation: wt-drift var(--pdur, 30s) linear infinite; animation-delay: calc(var(--pdur, 30s) * var(--at, 0) * -1); }
+        .wt-prop.small { font-size: 11px; }
+        .tier-sprint .wt-prop { --pdur: 14s; } .tier-jog .wt-prop { --pdur: 30s; } .tier-walk .wt-prop { --pdur: 70s; }
+        .tier-rest .wt-prop, .tier-finish .wt-prop, .incident-panic .wt-prop, .incident-fixing .wt-prop { animation-play-state: paused; }
+        .wt-boat { position: absolute; left: 100%; bottom: 36px; color: #fff; font-size: 13px; filter: var(--shade); animation: wt-drift 46s linear infinite; }
+
+        /* Tema hari khusus */
+        .wt-bunting { position: absolute; left: 0; right: 0; top: 0; filter: drop-shadow(0 1px 1px rgba(8, 33, 73, .35)); pointer-events: none; }
+        .wt-bunting i { display: block; height: 10px; background: repeating-linear-gradient(90deg, #dc3545 0 16px, #fff 16px 32px); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 10'%3E%3Cpath d='M0 0H16L8 10Z'/%3E%3C/svg%3E") 0 0 / 16px 10px repeat-x; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 10'%3E%3Cpath d='M0 0H16L8 10Z'/%3E%3C/svg%3E") 0 0 / 16px 10px repeat-x; }
+        .wt-firework { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: currentColor; box-shadow: 0 -12px, 8px -8px, 12px 0, 8px 8px, 0 12px, -8px 8px, -12px 0, -8px -8px; animation: wt-firework 1.9s ease-out infinite; }
+        @keyframes wt-firework { 0% { opacity: 0; transform: scale(.15); } 15% { opacity: 1; } 70% { opacity: .9; transform: scale(1.3); } 100% { opacity: 0; transform: scale(1.5) translateY(4px); } }
+        .wt-sky-note { position: absolute; color: #9b51e0; font-size: 12px; animation: wt-sky-note 3.2s ease-in-out infinite; }
+        @keyframes wt-sky-note { 0% { opacity: 0; transform: translateY(10px); } 30%, 70% { opacity: 1; } 100% { opacity: 0; transform: translate(10px, -10px) rotate(14deg); } }
+        .wt-race[data-dark] .wt-sky-note { color: #d9b8ff; }
+        .wt-plane { position: absolute; top: 30px; left: 100%; display: flex; align-items: center; gap: 3px; color: #4b5a73; font-size: 13px; white-space: nowrap; animation: wt-plane 26s linear infinite; }
+        .wt-plane i { transform: scaleX(-1); }
+        .wt-plane span { padding: 0 7px; border-radius: 3px; background: #fff; box-shadow: 0 1px 3px rgba(8, 33, 73, .25); color: var(--wt-navy); font-size: 10px; font-weight: 700; line-height: 15px; }
+        .wt-race[data-dark] .wt-plane { color: #c7d2e6; }
+        @keyframes wt-plane { to { left: -260px; } }
         @keyframes wt-spin { to { transform: rotate(360deg); } }
         .wt-cloud { position: absolute; left: 100%; color: var(--cloud); font-size: 21px; opacity: .95; animation: wt-drift var(--dur, 20s) linear infinite; }
         .wt-cloud.mini { font-size: 13px; opacity: .8; }
@@ -387,7 +423,7 @@
 
         <div class="wt-card wt-race">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                <h2 class="wt-section-title"><i class="fa-solid fa-flag-checkered"></i> Arena Tim</h2>
+                <h2 class="wt-section-title"><i class="fa-solid fa-flag-checkered"></i> Arena Tim<span class="wt-scene" id="wt-scene"></span></h2>
                 <div class="wt-legend">
                     <span><i class="fa-solid fa-person-running text-success"></i> Ngebut: aman</span>
                     <span><i class="fa-solid fa-person-running text-warning"></i> Jogging: mepet</span>
@@ -719,7 +755,11 @@
                 programmerStore: @json(route('store-programmer-work-tracker')),
                 programmerDelete: @json(route('delete-programmer-work-tracker')),
             };
-            const COLORS = ['#2f80ed', '#9b51e0', '#f2994a', '#27ae60', '#eb5757', '#00a3a3', '#d6336c', '#5c6ac4'];
+            const COLORS = [
+                '#2f80ed', '#9b51e0', '#f2994a', '#27ae60', '#eb5757', '#00a3a3', '#d6336c', '#5c6ac4',
+                '#0ea5e9', '#c026d3', '#d97706', '#65a30d', '#be123c', '#0891b2', '#3b6e9e', '#b45309',
+                '#1e3a8a', '#6d28d9', '#8b5e3c', '#166534', '#7f1d1d', '#0f766e', '#475569', '#6b7a1f'
+            ];
             const TYPE_LABEL = { plan: 'Plan', bug: 'Masalah', request: 'Request' };
             const TYPE_ICON = { plan: 'fa-compass-drafting', bug: 'fa-triangle-exclamation', request: 'fa-comment-dots' };
             const LEVEL_LABEL = { major: 'Major', minor: 'Minor', tidak: 'Tidak' };
@@ -1090,26 +1130,92 @@
                     '</g></svg>';
             }
 
-            // Langit Arena mengikuti jam di komputer pengguna
-            function skyNow() {
-                const hour = new Date().getHours();
-                if (hour >= 5 && hour < 10) return 'morning';
-                if (hour >= 10 && hour < 15) return 'day';
-                if (hour >= 15 && hour < 18) return 'sunset';
-                return 'night';
+            // Suasana Arena mengikuti jam & tanggal di komputer pengguna, dicek ulang tiap menit
+            const SKY_LABEL = { dawn: 'Subuh', morning: 'Pagi', day: 'Siang', afternoon: 'Sore', sunset: 'Senja', night: 'Malam', midnight: 'Tengah malam' };
+            const SCENES = ['hills', 'beach', 'city', 'paddy'];
+            const SCENE_LABEL = { hills: 'Perbukitan', beach: 'Pantai', city: 'Kota', paddy: 'Sawah' };
+            const SPECIAL_LABEL = { newyear: 'Tahun baru', merdeka: 'Bulan kemerdekaan', monthend: 'Akhir bulan', friday: 'Jumat sore' };
+            const STARS = [[8, 16], [24, 36], [41, 22], [58, 40], [73, 18], [15, 30], [33, 12], [50, 34], [66, 26], [82, 38]];
+
+            function skyAt(hour) {
+                if (hour >= 4 && hour < 6) return 'dawn';
+                if (hour >= 6 && hour < 10) return 'morning';
+                if (hour >= 10 && hour < 14) return 'day';
+                if (hour >= 14 && hour < 16) return 'afternoon';
+                if (hour >= 16 && hour < 18) return 'sunset';
+                if (hour >= 18 && hour < 22) return 'night';
+                return 'midnight';
+            }
+
+            function ambienceNow() {
+                const now = new Date();
+                const hour = now.getHours(), date = now.getDate(), month = now.getMonth();
+                const lastDay = new Date(now.getFullYear(), month + 1, 0).getDate();
+                const dayNumber = Math.floor(Date.UTC(now.getFullYear(), month, date) / 864e5);
+                const specials = [];
+                if ((month === 11 && date === 31 && hour >= 18) || (month === 0 && date === 1)) specials.push('newyear');
+                if (month === 7) specials.push('merdeka');
+                if (date >= lastDay - 1) specials.push('monthend');
+                if (now.getDay() === 5 && hour >= 15) specials.push('friday');
+                const sky = skyAt(hour);
+                return { sky: sky, dark: sky === 'night' || sky === 'midnight', scene: SCENES[dayNumber % SCENES.length], specials: specials };
+            }
+
+            function ambienceKey(a) {
+                return a.sky + '|' + a.scene + '|' + a.specials.join(',');
+            }
+
+            function applyAmbience() {
+                const a = state.ambience = ambienceNow();
+                $('.wt-race').attr({ 'data-sky': a.sky, 'data-scene': a.scene, 'data-dark': a.dark ? '1' : null });
+                $('#wt-scene').html('<i class="fa-solid ' + (a.dark ? 'fa-moon' : 'fa-sun') + '"></i>' +
+                    esc([SKY_LABEL[a.sky], SCENE_LABEL[a.scene]].concat(a.specials.map(function (s) { return SPECIAL_LABEL[s]; })).join(' · ')));
+            }
+
+            function sceneProps(scene, index) {
+                const at = function (n) { return ((index * 0.37 + n) % 1).toFixed(2); };
+                const prop = function (icon, n, extra) {
+                    return '<i class="fa-solid ' + icon + ' wt-prop' + (extra || '') + '" style="--at:' + at(n) + '"></i>';
+                };
+                if (scene === 'beach') return '<i class="fa-solid fa-sailboat wt-boat" style="animation-delay:-' + (index * 9 + 5) + 's"></i>' + prop('fa-umbrella-beach', 0.2);
+                if (scene === 'city') return prop('fa-tree', 0.1, ' small') + prop('fa-tree', 0.6, ' small');
+                if (scene === 'paddy') return prop('fa-wheat-awn', 0.15) + prop('fa-wheat-awn', 0.45, ' small') + prop('fa-wheat-awn', 0.8);
+                return prop('fa-tree', 0.25) + prop('fa-tree', 0.7, ' small');
+            }
+
+            function specialDecor(specials, index) {
+                let html = '';
+                if (specials.includes('merdeka')) html += '<div class="wt-bunting"><i></i></div>';
+                if (specials.includes('newyear')) {
+                    html += [[18, 22, '#f2c94c'], [44, 14, '#eb5757'], [67, 28, '#56ccf2']].map(function (f, n) {
+                        return '<span class="wt-firework" style="left:' + f[0] + '%;top:' + f[1] + 'px;color:' + f[2] + ';animation-delay:' + ((n * .6 + index * .3) % 1.9).toFixed(1) + 's"></span>';
+                    }).join('');
+                }
+                if (specials.includes('friday')) {
+                    html += [[22, 30], [48, 22], [70, 34]].map(function (pos, n) {
+                        return '<i class="fa-solid fa-music wt-sky-note" style="left:' + pos[0] + '%;top:' + pos[1] + 'px;animation-delay:' + (n * 1.1) + 's"></i>';
+                    }).join('');
+                }
+                if (specials.includes('monthend')) {
+                    html += '<div class="wt-plane" style="animation-delay:-' + (index * 7 + 3) + 's"><i class="fa-solid fa-plane"></i><span>Akhir bulan, tetap semangat!</span></div>';
+                }
+                return html;
             }
 
             function trackDecor(p, index) {
                 const speed = { sprint: 9, jog: 16, walk: 30, rest: 46, finish: 22 }[p.tier];
-                const night = skyNow() === 'night';
-                let html = '<div class="wt-hill far" style="animation-delay:-' + (index * 7) + 's"></div><div class="wt-hill near" style="animation-delay:-' + (index * 3) + 's"></div>' +
-                    (night ? [[8, 16], [24, 36], [41, 22], [58, 40], [73, 18]].map(function (star, n) {
+                const a = state.ambience || ambienceNow();
+                const starCount = { dawn: 3, night: 5, midnight: 10 }[a.sky] || 0;
+                let html = STARS.slice(0, starCount).map(function (star, n) {
                         return '<i class="fa-solid fa-star wt-star" style="left:' + star[0] + '%;top:' + (star[1] + 12) + 'px;animation-delay:' + (n * .5) + 's"></i>';
-                    }).join('') : '') +
-                    '<i class="fa-solid ' + (night ? 'fa-moon' : 'fa-sun') + ' wt-sun"></i>' +
+                    }).join('') +
+                    '<i class="fa-solid ' + (a.dark ? 'fa-moon' : 'fa-sun') + ' wt-sun"></i>' +
+                    '<div class="wt-hill far" style="animation-delay:-' + (index * 7) + 's"></div><div class="wt-hill near" style="animation-delay:-' + (index * 3) + 's"></div>' +
+                    sceneProps(a.scene, index) +
                     '<i class="fa-solid fa-cloud wt-cloud" style="top:26px;--dur:' + speed + 's;animation-delay:-' + (index * 3 + 2) + 's"></i>' +
                     '<i class="fa-solid fa-cloud wt-cloud mini" style="top:44px;--dur:' + (speed * 1.5) + 's;animation-delay:-' + (index * 5 + 9) + 's"></i>' +
-                    '<i class="fa-solid fa-dove wt-bird" style="animation-delay:-' + (index * 6 + 4) + 's"></i>';
+                    '<i class="fa-solid fa-dove wt-bird" style="animation-delay:-' + (index * 6 + 4) + 's"></i>' +
+                    specialDecor(a.specials, index);
                 const cheering = p.tier === 'finish' || p.progress >= 70;
                 html += '<div class="wt-gate start"><span>START</span></div><div class="wt-gate end"><span>FINISH</span></div>';
                 html += '<div class="wt-crowd' + (cheering ? ' cheer' : '') + '" title="Penonton">' + ['#eb5757', '#2f80ed', '#f2c94c', '#27ae60', '#9b51e0'].map(function (color, n) {
@@ -1199,7 +1305,7 @@
             }
 
             function renderLanes() {
-                $('.wt-race').attr('data-sky', skyNow());
+                applyAmbience();
                 const programmers = state.board.programmers;
                 if (!programmers.length) {
                     $('#wt-division-chips').empty();
@@ -1845,6 +1951,10 @@
                 }
             });
             setInterval(updateSay, 4000);
+            // Suasana Arena dicek tiap menit, lintasan hanya digambar ulang kalau suasananya berganti
+            setInterval(function () {
+                if (state.board && state.ambience && ambienceKey(ambienceNow()) !== ambienceKey(state.ambience)) renderLanes();
+            }, 60000);
 
             $('#wt-i-type').on('change', function () { $('.wt-not-plan').toggleClass('d-none', this.value === 'plan'); });
             $('#wt-i-level').on('change', function () { $('#wt-i-reason-box').toggleClass('d-none', this.value !== 'tidak'); });
