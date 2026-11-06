@@ -343,9 +343,6 @@
             .wt-ring-text b { font-size: 21px; }
             .wt-verdict { font-size: 14.5px; }
         }
-        @media (prefers-reduced-motion: reduce) {
-            .wt *, .wt-confetti, .wt-party, .wt-party * { animation: none !important; transition: none !important; }
-        }
     </style>
 @endsection
 
@@ -662,6 +659,7 @@
                                         <dt>Kerjaan lama tidak muncul, ke mana?</dt><dd>Kerjaan yang selesai atau ditolak lebih dari 60 hari lalu masuk arsip. Nyalakan <b>Tampilkan arsip</b>, atau cari lewat tab <b>Laporan</b>.</dd>
                                         <dt>Kenapa pelari saya berjalan pelan padahal kerjaan terkendali?</dt><dd>Periksa progress dan estimasinya. Kalau beberapa kerjaan dikerjakan bersamaan, estimasi otomatis bisa terlalu besar. Ubah angkanya sesuai lama pengerjaan sebenarnya.</dd>
                                         <dt>Bagaimana melihat kerjaan satu divisi saja?</dt><dd>Klik nama divisinya, misalnya <b>IE</b>, di atas Arena. Filter ini juga berlaku di tab bawah.</dd>
+                                        <dt>Kenapa pelarinya tidak bergerak?</dt><dd>Pelari memang diam kalau anggota belum punya kerjaan atau semua kerjaannya sudah selesai. Kalau ada kerjaan tetapi tetap diam, muat ulang halaman dengan <b>Ctrl+F5</b>.</dd>
                                         <dt>Bagaimana melihat kerjaan satu anggota saja?</dt><dd>Klik barisnya di Arena. Klik sekali lagi untuk kembali melihat semua.</dd>
                                     </dl>
                                 </div>
@@ -861,13 +859,9 @@
                 });
             }
 
-            function reducedMotion() {
-                return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            }
-
             function countUp(el, from, to, format) {
                 cancelAnimationFrame(el.wtCount);
-                if (reducedMotion() || from === to) {
+                if (from === to) {
                     el.textContent = format(to);
                     return;
                 }
@@ -1646,10 +1640,6 @@
             }
 
             function celebrate(item) {
-                if (reducedMotion()) {
-                    toast('Mantap, ' + item.title + ' beres!');
-                    return;
-                }
                 const colors = ['#2f80ed', '#12a150', '#f2c94c', '#eb5757', '#9b51e0'];
                 for (let n = 0; n < 110; n++) {
                     const piece = document.createElement('div');
