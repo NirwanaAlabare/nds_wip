@@ -422,7 +422,7 @@ class DcReportController extends Controller
     }
 
     public function buildQueryMutasiWipDcSet($dateFrom, $dateTo){
-        
+
         $dcQuery = $this->buildQuery($dateFrom, $dateTo);
 
         return "
