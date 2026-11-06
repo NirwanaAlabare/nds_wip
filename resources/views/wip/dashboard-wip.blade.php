@@ -276,8 +276,9 @@
             position: relative;
             overflow: hidden;
             border-radius: 20px;
-            padding: 28px;
-            margin-bottom: 26px;
+            padding: 36px 40px;
+            margin: 6px 0 28px;
+            scroll-margin-top: 90px;
             color: #fff;
             background: linear-gradient(120deg, #4338ca, #6d28d9, #9333ea, #4f46e5);
             background-size: 300% 300%;
@@ -412,7 +413,7 @@
         }
 
         @media (max-width: 767.98px) {
-            .hub-hero { padding: 22px 18px; }
+            .hub-hero { padding: 26px 22px; }
             .hub-hero-title { font-size: 24px; }
             .hub-hero .hub-search { width: 100%; }
             .hub-hero-side { text-align: left; }
@@ -448,6 +449,14 @@
             animation: hubRise .55s cubic-bezier(.2, .8, .2, 1) both;
             animation-delay: min(calc(var(--i, 0) * 35ms), 800ms);
         }
+
+        /* hero: animasi masuk + gradien bergerak (jangan saling menimpa) */
+        .hub-hero.hub-rise {
+            animation: hubRise .55s cubic-bezier(.2, .8, .2, 1) both, hubGradient 14s ease infinite;
+        }
+
+        /* elemen yang di-scroll tur tidak tertutup navbar sticky */
+        .line-tile, .menu-card, .hub-guide-btn, .hub-search { scroll-margin-top: 90px; }
 
         @keyframes hubRise {
             from { opacity: 0; transform: translateY(14px); }
@@ -574,7 +583,7 @@
         @media (prefers-reduced-motion: reduce) {
             .line-tile, .menu-card, .line-tile-arrow, .menu-card-cta i { transition: none; }
             .line-tile:hover, .menu-card:hover { transform: none; }
-            .hub-hero, .hub-blob, .hub-rise, .tour-spot::after, .tour-pop.tour-in { animation: none; }
+            .hub-hero, .hub-hero.hub-rise, .hub-blob, .hub-rise, .tour-spot::after, .tour-pop.tour-in { animation: none; }
             .tour-spot, .tour-pop { transition: none; }
         }
 
