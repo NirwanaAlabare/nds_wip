@@ -4008,7 +4008,7 @@ class Marketing_SOController extends Controller
                     UPPER(TRIM(COALESCE(bmd.rule_bom, ''))) as rule_bom,
                     TRIM(COALESCE(bmd.notes, '')) as notes,
                     MAX(bmd.id_supplier) as id_supplier,
-                    MAX(bmd.qty) as cons,
+                    bmd.qty as cons,
                     MAX(bmd.unit) as unit,
                     COUNT(*) as jumlah_baris_source,
                     COUNT(DISTINCT bmd.id_supplier) as jumlah_supplier_beda
@@ -4029,7 +4029,8 @@ class Marketing_SOController extends Controller
                     CASE WHEN acd.type = 'Manufacturing' THEN mi.id_item ELSE COALESCE(mi.id_gen, mi.id_item) END,
                     bmd.shell,
                     UPPER(TRIM(COALESCE(bmd.rule_bom, ''))),
-                    TRIM(COALESCE(bmd.notes, ''))
+                    TRIM(COALESCE(bmd.notes, '')),
+                    bmd.qty
             ", [$id_jo, $id_bom, $id]);
 
             // ==========================================
@@ -4057,13 +4058,14 @@ class Marketing_SOController extends Controller
 
             // Helper: bikin key matching yang konsisten & ternormalisasi,
             // dipakai baik untuk existing_map maupun required_items.
-            $makeKey = function ($id_so_det, $id_item, $id_panel, $rule_bom, $notes) {
+            $makeKey = function ($id_so_det, $id_item, $id_panel, $rule_bom, $notes, $cons) {
                 return implode('|', [
                     $id_so_det,
                     $id_item,
                     $id_panel ?? '',
                     strtoupper(trim($rule_bom ?? '')),
                     trim($notes ?? ''),
+                    number_format((float) $cons, 6, '.', ''),
                 ]);
             };
 
@@ -4088,7 +4090,7 @@ class Marketing_SOController extends Controller
             $existing_map = [];
             $posno_map = [];
             foreach ($existing_items as $item) {
-                $key = $makeKey($item->id_so_det, $item->id_item, $item->id_panel, $item->rule_bom, $item->notes);
+                $key = $makeKey($item->id_so_det, $item->id_item, $item->id_panel, $item->rule_bom, $item->notes, $item->cons);
                 if (isset($existing_map[$key])) { continue; }
                 $existing_map[$key] = $item;
 
@@ -4106,7 +4108,7 @@ class Marketing_SOController extends Controller
             $update_count = 0;
 
             foreach ($required_items as $req) {
-                $key = $makeKey($req->id_so_det, $req->id_item, $req->id_panel, $req->rule_bom, $req->notes);
+                $key = $makeKey($req->id_so_det, $req->id_item, $req->id_panel, $req->rule_bom, $req->notes, $req->cons);
 
                 if (isset($existing_map[$key])) {
                     // ---- UPDATE EXISTING ITEM ----

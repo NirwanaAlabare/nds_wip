@@ -243,6 +243,12 @@ return [
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
             'days' => 360,
         ],
+        'rekapFabric' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/rekapFabric/rekapFabric.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 360,
+        ],
         'formCutPieceChainedQty' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/formCutPiece/formCutPieceChainedQty.log'),

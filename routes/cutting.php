@@ -532,6 +532,9 @@ Route::middleware('auth')->group(function () {
             // Restore from activity log
             Route::post('/restore-activity-log', 'restoreActivityLog')->name('restore-activity-log');
 
+            // Rekap Custom
+            Route::post('/rekap-fabric-custom', 'rekapFabricCustom')->name('rekap-fabric-custom');
+
             // Import Cutting Manual
             Route::post('/preview-import-cutting-manual', 'previewImportCuttingManual')->name('preview-import-cutting-manual');
             Route::post('/import-cutting-manual', 'importCuttingManual')->name('import-cutting-manual');

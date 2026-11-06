@@ -243,6 +243,15 @@
                         </div>
                     </a>
                 </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="openRekapCustom('fabric')">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Rekap Fabric Barcode</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -1116,6 +1125,33 @@
                 <!-- Footer -->
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- Rekap Custom --}}
+    <div class="modal fade" id="rekapCustomModal" tabindex="-1" aria-labelledby="rekapCustomLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rekapCustomLabel">Rekap Custom</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="rekap_custom_type">
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Awal</label>
+                        <input type="date" class="form-control" id="rekap_custom_date_from" max="{{ date('Y-m-d', strtotime('-1 day')) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Akhir</label>
+                        <input type="date" class="form-control" id="rekap_custom_date_to" max="{{ date('Y-m-d', strtotime('-1 day')) }}">
+                    </div>
+                    <small class="text-muted" id="rekap_custom_note"></small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" onclick="runRekapCustom()"><i class="fa-solid fa-gears"></i> Jalankan</button>
                 </div>
             </div>
         </div>
@@ -3290,6 +3326,118 @@
                             html: (response && response.message ? response.message : 'Terjadi kesalahan.'),
                             showCancelButton: false,
                             showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        });
+                    }
+                });
+            });
+        }
+
+        const rekapCustomConfig = {
+            fabric: {
+                title: 'Rekap Fabric Barcode',
+                url: "{{ route('rekap-fabric-custom') }}",
+                note: 'Hanya untuk tanggal setelah 30 September 2026 dan periode yang sudah closing. Saldo diambil dari report Mutasi Fabric Barcode. Rekap yang sudah ada di periode ini dihapus lalu diisi ulang, rekap sesudahnya yang sudah ada ikut diperbarui berurutan.',
+                // Default 2 bulan sebelum hari ini (sama dengan jadwal), paling awal Oktober 2026
+                dateFrom: "{{ max(now()->subMonthsNoOverflow(2)->startOfMonth()->toDateString(), '2026-10-01') }}",
+                dateTo: "{{ max(now()->subMonthsNoOverflow(2)->endOfMonth()->toDateString(), '2026-10-31') }}",
+            },
+        };
+
+        function openRekapCustom(type) {
+            document.getElementById("rekap_custom_type").value = type;
+            document.getElementById("rekapCustomLabel").innerText = rekapCustomConfig[type].title;
+            document.getElementById("rekap_custom_note").innerText = rekapCustomConfig[type].note;
+            document.getElementById("rekap_custom_date_from").value = rekapCustomConfig[type].dateFrom || "";
+            document.getElementById("rekap_custom_date_to").value = rekapCustomConfig[type].dateTo || "";
+
+            bootstrap.Modal.getOrCreateInstance(document.getElementById("rekapCustomModal")).show();
+        }
+
+        function runRekapCustom() {
+            const config = rekapCustomConfig[document.getElementById("rekap_custom_type").value];
+            const dateFrom = document.getElementById("rekap_custom_date_from").value;
+            const dateTo = document.getElementById("rekap_custom_date_to").value;
+
+            if (!dateFrom || !dateTo) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan',
+                    html: 'Tanggal awal dan akhir harus diisi.',
+                    confirmButtonText: 'Oke',
+                });
+
+                return;
+            }
+
+            Swal.fire({
+                title: 'Mulai ' + config.title + '?',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Periode <b>' + dateFrom + '</b> s/d <b>' + dateTo + '</b>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'JALANKAN',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                let elapsedInterval = null;
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Menjalankan ' + config.title + '... <br><br> <b>0</b>s elapsed...',
+                    didOpen: () => {
+                        Swal.showLoading();
+
+                        let elapsed = 0;
+                        const elapsedElement = Swal.getPopup().querySelector("b");
+                        elapsedInterval = setInterval(() => {
+                            elapsed++;
+                            elapsedElement.textContent = elapsed;
+                        }, 1000);
+                    },
+                    allowOutsideClick: false,
+                });
+
+                $.ajax({
+                    type: "post",
+                    url: config.url,
+                    data: {
+                        date_from: dateFrom,
+                        date_to: dateTo,
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        clearInterval(elapsedInterval);
+
+                        if (response.status == 200) {
+                            bootstrap.Modal.getOrCreateInstance(document.getElementById("rekapCustomModal")).hide();
+                        }
+
+                        Swal.fire({
+                            icon: response.status == 200 ? 'success' : 'error',
+                            title: response.status == 200 ? 'Berhasil' : 'Gagal',
+                            html: response.message ? response.message : 'Terjadi kesalahan.',
+                            confirmButtonText: 'Oke',
+                        });
+                    },
+                    error: function (jqXHR) {
+                        clearInterval(elapsedInterval);
+
+                        console.error(jqXHR);
+
+                        let response = jqXHR.responseJSON;
+                        let message = response && response.message ? response.message : 'Terjadi kesalahan.';
+                        if (response && response.errors) {
+                            message = Object.values(response.errors).flat().join('<br>');
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: message,
                             confirmButtonText: 'Oke',
                         });
                     }

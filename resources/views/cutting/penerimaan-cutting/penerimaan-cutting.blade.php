@@ -9,6 +9,9 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="{{ asset('plugins/flatpickr/flatpickr.min.css') }}">
 @endsection
 
 @section('content')
@@ -21,11 +24,18 @@
                 <div class="d-flex align-items-end gap-3 mb-3">
                     <div>
                         <label class="form-label small">Tanggal Awal</label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" onchange="dataTableReload()">
+                        <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal">
                     </div>
                     <div>
                         <label class="form-label small">Tanggal Akhir</label>
-                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}" onchange="dataTableReload()">
+                        <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" value="{{ date('Y-m-d') }}">
+                    </div>
+                    <div>
+                        <label class="form-label small">Tgl. BPPB</label>
+                        <div class="input-group input-group-sm flex-nowrap" style="min-width: 230px;">
+                            <input type="text" class="form-control bg-white" id="tgl-bppb" placeholder="Pilih Tanggal">
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearBppbRange()"><i class="fa fa-times"></i></button>
+                        </div>
                     </div>
                     <div>
                         <button class="btn btn-primary btn-sm" onclick="dataTableReload()"><i class="fa fa-search"></i></button>
@@ -42,6 +52,7 @@
                     <thead>
                         <tr>
                             <th>Action</th>
+                            <th>Tgl. BPPB</th>
                             <th>Tanggal Terima</th>
                             <th>Barcode</th>
                             <th>Qty Out</th>
@@ -50,7 +61,6 @@
                             <th>Unit Konv</th>
                             <th>No. Req</th>
                             <th>No. BPPB</th>
-                            <th>Tgl. BPPB</th>
                             <th>Tujuan</th>
                             <th>No. WS</th>
                             <th>No. WS Act</th>
@@ -81,6 +91,9 @@
 
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+    <!-- Flatpickr -->
+    <script src="{{ asset('plugins/flatpickr/flatpickr.min.js') }}"></script>
     <script>
         $('.select2').select2()
         $('.select2bs4').select2({
@@ -97,12 +110,43 @@
             let oneWeeksBeforeYear = oneWeeksBefore.getFullYear();
             let oneWeeksBeforeFull = oneWeeksBeforeYear + '-' + oneWeeksBeforeMonth + '-' + oneWeeksBeforeDate;
 
-            $("#tgl-awal").val(oneWeeksBeforeFull).trigger("change");
+            $("#tgl-awal").val(oneWeeksBeforeFull);
+            dataTableReload();
 
             window.addEventListener("focus", () => {
                 $('#datatable').DataTable().ajax.reload(null, false);
             });
         });
+
+        let bppbFrom = '';
+        let bppbTo = '';
+
+        function setBppbRange(from, to) {
+            if (bppbFrom === from && bppbTo === to) {
+                return;
+            }
+
+            bppbFrom = from;
+            bppbTo = to;
+            // dataTableReload();
+        }
+
+        let bppbPicker = flatpickr('#tgl-bppb', {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            locale: { rangeSeparator: ' s/d ' },
+            onClose: (selectedDates, dateStr, instance) => {
+                // Satu tanggal saja dianggap filter satu hari
+                let [from = '', to = from] = selectedDates.map((date) => instance.formatDate(date, 'Y-m-d'));
+
+                setBppbRange(from, to);
+            }
+        });
+
+        function clearBppbRange() {
+            bppbPicker.clear();
+            setBppbRange('', '');
+        }
 
         $('#datatable thead tr').clone(true).appendTo('#datatable thead');
         $('#datatable thead tr:eq(1) th').each(function(i) {
@@ -135,11 +179,16 @@
                 data: function(d) {
                     d.dateFrom = $('#tgl-awal').val();
                     d.dateTo = $('#tgl-akhir').val();
+                    d.bppbFrom = bppbFrom;
+                    d.bppbTo = bppbTo;
                 },
             },
             columns: [
                 {
                     data: 'id'
+                },
+                {
+                    data: 'tanggal_bppb'
                 },
                 {
                     data: 'tanggal_terima'
@@ -164,9 +213,6 @@
                 },
                 {
                     data: 'no_bppb'
-                },
-                {
-                    data: 'tanggal_bppb'
                 },
                 {
                     data: 'tujuan'
@@ -247,7 +293,9 @@
                 type: "post",
                 data: {
                     from : $("#tgl-awal").val(),
-                    to : $("#tgl-akhir").val()
+                    to : $("#tgl-akhir").val(),
+                    bppbFrom : bppbFrom,
+                    bppbTo : bppbTo
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function (res) {

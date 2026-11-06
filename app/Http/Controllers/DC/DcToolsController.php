@@ -179,7 +179,19 @@ class DcToolsController extends Controller
     }
 
     public function runRekapDc(Request $request, DcService $dcService) {
-        $result = $dcService->runRekap();
+        $request->validate([
+            'date_from' => 'required|date',
+            'date_to' => 'required|date|after_or_equal:date_from|before:today',
+        ], [
+            'date_from.required' => 'Tanggal awal harus diisi.',
+            'date_to.required' => 'Tanggal akhir harus diisi.',
+            'date_to.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.',
+            'date_to.before' => 'Tanggal akhir harus sebelum hari ini.',
+        ]);
+
+        set_time_limit(0);
+
+        $result = $dcService->runRekap($request->date_to, $request->date_from);
 
         return array(
             'status' => $result['status'],

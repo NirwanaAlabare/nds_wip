@@ -38,7 +38,10 @@ class RekapDC extends Command
      */
     public function handle()
     {
+        // Merekap 2 bulan sebelumnya, misalnya dijalankan 30 November maka periodenya September
+        $period = now()->subMonthsNoOverflow(2);
+
         $dcService = new DcService();
-        $dcService->runRekap();
+        $dcService->runRekap($period->copy()->endOfMonth()->toDateString(), $period->copy()->startOfMonth()->toDateString());
     }
 }

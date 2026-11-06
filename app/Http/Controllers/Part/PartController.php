@@ -2367,14 +2367,29 @@ class PartController extends Controller
                 COALESCE(GROUP_CONCAT(DISTINCT multi_master_secondary.proses ORDER BY multi_master_secondary.proses SEPARATOR ', '), master_secondary.proses) proses,
                 DATE_FORMAT(MIN(part_detail.created_at), '%Y-%m-%d %H:%i') created_at_text
             ")->
-            leftJoin("part_detail as pd_com", "pd_com.id", "=", "part_detail.from_part_detail")->
-            leftJoin("part as p_com", "p_com.id", "=", "pd_com.part_id")->
             leftJoin("part", "part.id", "=", "part_detail.part_id")->
             leftJoin("master_sb_ws", "master_sb_ws.id_act_cost", "=", "part.act_costing_id")->
             leftJoin("part_custom as pcust", function ($join) {
                 $join->on("pcust.part_id", "=", "part.id");
                 $join->on("pcust.part_detail_id", "=", "part_detail.id");
-                $join->on("pcust.color", "=", "part.color");
+                $join->on("pcust.color", "=", "master_sb_ws.color");
+            })->
+            // com
+            leftJoin("part_detail as pd_com", function ($join) {
+                $join->on("pd_com.id", "=", "part_detail.from_part_detail");
+                $join->whereRaw("part_detail.part_status = 'complement'");
+            })->
+            leftJoin("part as p_com", "p_com.id", "=", "pd_com.part_id")->
+            // main
+            leftJoin("part_detail as pd_main", function ($join) {
+                $join->on("pd_main.from_part_detail", "=", "part_detail.id");
+                $join->whereRaw("part_detail.part_status != 'complement'");
+            })->
+            leftJoin("part as p_main", "p_main.id", "=", "pd_main.part_id")->
+            leftJoin("part_custom as pcust_main", function ($join) {
+                $join->on("pcust_main.part_id", "=", "p_main.id");
+                $join->on("pcust_main.part_detail_id", "=", "pd_main.id");
+                $join->on("pcust_main.color", "=", "master_sb_ws.color");
             })->
             leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")->
             leftJoin("master_secondary", "master_secondary.id", "=", "part_detail.master_secondary_id")->
@@ -2403,7 +2418,8 @@ class PartController extends Controller
                 $query->whereRaw("COALESCE(pcust.set_part_status, part_detail.part_status) = ?", [$request->part_status]);
             })->
             whereNotNull("part.act_costing_id")->
-            where("part_detail.part_status", "!=", "complement")->
+            whereRaw("( ( part.panel_status = 'complement' AND (pcust_main.set_part_status is null OR pcust_main.set_part_status = 'complement') ) OR part.panel_status != 'complement' ) ")->
+            whereRaw("COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement'")->
             whereRaw("COALESCE(part_detail.status, 'active') = 'active'")->
             groupByRaw("
                 master_sb_ws.id_act_cost,
