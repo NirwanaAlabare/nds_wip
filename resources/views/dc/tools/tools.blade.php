@@ -90,7 +90,7 @@
                     </a>
                 </div>
                 <div class="col-md-4">
-                    <a type="button" class="home-item" onclick="runRekapDc()">
+                    <a type="button" class="home-item" onclick="openRekapDc()">
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Mulai Rekap DC</h5>
@@ -169,6 +169,33 @@
                     </div>
                     {{-- <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
                     <button type="button" class="btn btn-sb-secondary" onclick="resetStockerId()"><i class="fa fa-rotate-left"></i> UNDO</button> --}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rekap DC -->
+    <div class="modal fade" id="rekapDcModal" tabindex="-1" aria-labelledby="rekapDcModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="rekapDcModalLabel">Rekap DC</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Awal</label>
+                        <input type="date" class="form-control" id="rekap-dc-date-from" max="{{ date('Y-m-d', strtotime('-1 day')) }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Akhir</label>
+                        <input type="date" class="form-control" id="rekap-dc-date-to" max="{{ date('Y-m-d', strtotime('-1 day')) }}">
+                    </div>
+                    <small class="text-muted">Rekap yang sudah ada di periode ini dihapus lalu diisi ulang. Rekap sesudahnya yang sudah ada ikut diperbarui berurutan, rekap baru tidak dibuat.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" onclick="runRekapDc()"><i class="fa-solid fa-gears"></i> Jalankan</button>
                 </div>
             </div>
         </div>
@@ -311,10 +338,32 @@
             });
         }
 
+        function openRekapDc() {
+            // Default 2 bulan sebelum hari ini, sama dengan periode jadwal dc:rekap
+            document.getElementById("rekap-dc-date-from").value = "{{ now()->subMonthsNoOverflow(2)->startOfMonth()->toDateString() }}";
+            document.getElementById("rekap-dc-date-to").value = "{{ now()->subMonthsNoOverflow(2)->endOfMonth()->toDateString() }}";
+
+            bootstrap.Modal.getOrCreateInstance(document.getElementById("rekapDcModal")).show();
+        }
+
         function runRekapDc() {
+            const dateFrom = document.getElementById("rekap-dc-date-from").value;
+            const dateTo = document.getElementById("rekap-dc-date-to").value;
+
+            if (!dateFrom || !dateTo) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan',
+                    html: 'Tanggal awal dan akhir harus diisi.',
+                    confirmButtonText: 'Oke',
+                });
+
+                return;
+            }
+
             Swal.fire({
                 title: 'Mulai Rekap DC?',
-                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan menjalankan rekap DC?',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Periode <b>' + dateFrom + '</b> s/d <b>' + dateTo + '</b>',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'JALANKAN',
@@ -322,6 +371,8 @@
                 confirmButtonColor: "#dc3545"
             }).then((result) => {
                 if (result.isConfirmed) {
+                    let estimatedTimeInterval = null;
+
                     Swal.fire({
                         title: 'Please Wait...',
                         html: 'Menjalankan Rekap DC...  <br><br> <b>0</b>s elapsed...',
@@ -341,9 +392,35 @@
                     $.ajax({
                         type: "post",
                         url: "{{ route('run-rekap-dc') }}",
+                        data: {
+                            date_from: dateFrom,
+                            date_to: dateTo,
+                        },
                         dataType: "json",
+                        error: function (jqXHR) {
+                            clearInterval(estimatedTimeInterval);
+                            console.error(jqXHR);
+
+                            let response = jqXHR.responseJSON;
+                            let message = response && response.message ? response.message : 'Terjadi kesalahan';
+                            if (response && response.errors) {
+                                message = Object.values(response.errors).flat().join('<br>');
+                            }
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                html: message,
+                                confirmButtonText: 'Oke',
+                                confirmButtonColor: "#082149",
+                            });
+                        },
                         success: function (response) {
+                            clearInterval(estimatedTimeInterval);
+
                             if (response.status == 200) {
+                                bootstrap.Modal.getOrCreateInstance(document.getElementById("rekapDcModal")).hide();
+
                                 Swal.fire({
                                     icon: 'info',
                                     title: 'INFO',

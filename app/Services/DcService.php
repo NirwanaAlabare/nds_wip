@@ -2734,8 +2734,10 @@ class DcService
                                             COALESCE(saldo_akhir_secondary_luar, 0) kirim_secondary_luar,
                                             0 AS terima_repaired_secondary_luar,
                                             0 AS terima_good_secondary_luar,
-                                            COALESCE(terima_repaired_secondary_luar, 0) AS terima_repaired_secondary_luar_new,
-                                            COALESCE(terima_good_secondary_luar, 0) AS terima_good_secondary_luar_new,
+                                            -- Saldo transit dihitung dari total penerimaan sejak 2026-07-01, jadi yang
+                                            -- dibawa kolom kumulatifnya. Baris sebelum Juli NULL, dihitung 0.
+                                            COALESCE(terima_repaired_secondary_luar_kumulatif, 0) AS terima_repaired_secondary_luar_new,
+                                            COALESCE(terima_good_secondary_luar_kumulatif, 0) AS terima_good_secondary_luar_new,
                                             0 loading_qty,
                                             0 saldo_akhir,
                                             CURRENT_TIMESTAMP() created_at,
@@ -3807,6 +3809,8 @@ class DcService
                         saldo_akhir_secondary_dalam,
                         saldo_awal_secondary_luar,
                         saldo_akhir_secondary_luar,
+                        terima_repaired_secondary_luar_kumulatif,
+                        terima_good_secondary_luar_kumulatif,
                         created_at,
                         updated_at
                 )
@@ -4022,6 +4026,8 @@ class DcService
                     saldo_akhir_secondary_dalam,
                     (CASE WHEN '".$dateFrom."' < '2026-07-01' THEN saldo_awal_secondary_luar ELSE new_saldo_awal_secondary_luar END) as saldo_awal_secondary_luar,
                     (CASE WHEN '".$dateFrom."' < '2026-07-01' THEN saldo_akhir_secondary_luar ELSE new_saldo_akhir_secondary_luar END) as saldo_akhir_secondary_luar,
+                    terima_repaired_secondary_luar_kumulatif,
+                    terima_good_secondary_luar_kumulatif,
                     created_at,
                     updated_at
                 from (
@@ -4140,6 +4146,19 @@ class DcService
                             + kirim_secondary_luar
                             - qty_transit_terima_secondary_luar
                         ) AS new_saldo_akhir_secondary_luar,
+                        -- Total penerimaan sejak 2026-07-01, dipakai saldo transit di buildQuery()
+                        (
+                            CASE
+                            WHEN '".$dateFrom."' < '2026-07-01' THEN NULL
+                            ELSE COALESCE(terima_repaired_secondary_luar_before_new, 0) + COALESCE(terima_repaired_secondary_luar, 0)
+                            END
+                        ) AS terima_repaired_secondary_luar_kumulatif,
+                        (
+                            CASE
+                            WHEN '".$dateFrom."' < '2026-07-01' THEN NULL
+                            ELSE COALESCE(terima_good_secondary_luar_before_new, 0) + COALESCE(terima_good_secondary_luar, 0)
+                            END
+                        ) AS terima_good_secondary_luar_kumulatif,
                         0 as qty_adjustment_before,
                         0 qty_adjustment,
                         0 as switching_in_before,
@@ -4179,6 +4198,8 @@ class DcService
                         saldo_akhir_secondary_dalam = VALUES(saldo_akhir_secondary_dalam),
                         saldo_awal_secondary_luar = VALUES(saldo_awal_secondary_luar),
                         saldo_akhir_secondary_luar = VALUES(saldo_akhir_secondary_luar),
+                        terima_repaired_secondary_luar_kumulatif = VALUES(terima_repaired_secondary_luar_kumulatif),
+                        terima_good_secondary_luar_kumulatif = VALUES(terima_good_secondary_luar_kumulatif),
                         updated_at = VALUES(updated_at);
         ";
     }
@@ -4192,10 +4213,19 @@ class DcService
     public function runRekap($dateTo = null, $dateFrom = null): array
     {
         try {
+            // Tanpa parameter (schedule & tombol DC Tools) tidak melakukan apa pun, supaya
+            // rekap yang sudah ada tidak terhapus. Periode diisi dari DC Tools atau jadwal.
+            if (!$dateFrom && !$dateTo) {
+                Log::channel('rekapDC')->info("Rekap DC dilewati karena periode tidak diisi.");
+
+                return [
+                    'status' => 200,
+                    'message' => 'Rekap DC tidak dijalankan karena periode tidak diisi. Isi periodenya di DC Tools.',
+                ];
+            }
+
             // Only rekap up to 30 days before today, leaving the most recent window untouched
             $dateTo = $dateTo ?: ($this->rekapEndDate ?: now()->subDays(30)->toDateString());
-            $dateFrom = '2026-07-01';
-            $dateTo = '2026-07-31';
             if (!$dateFrom) {
                 // Kursor dibaca dari tabel yang sama dengan tujuan INSERT di
                 // buildRekapQuery(). Kalau keduanya beda tabel, dateFrom dihitung dari
@@ -4230,21 +4260,70 @@ class DcService
                 ];
             }
 
-            // Populate the rekap table with aggregated data
-            $query = $this->buildRekapQuery($dateFrom, $dateTo);
+            // Hanya periode yang sudah closing yang boleh direkap. Rekap sesudahnya yang
+            // ikut diperbarui juga harus sudah closing, jadi yang dicek tanggal terakhirnya.
+            $lastRekapDateInChain = DB::table($this->rekapTable)
+                ->where('tanggal', '>', $dateTo)
+                ->max('tanggal') ?: $dateTo;
 
-            DB::insert($query);
+            if (!checkClosingDate($lastRekapDateInChain)) {
+                Log::channel('rekapDC')->info("Rekap DC periode ".$dateFrom." s/d ".$dateTo." ditolak karena ".$lastRekapDateInChain." belum closing.");
 
-            Log::channel('rekapDC')->info("Rekap DC ".$this->rekapTable." periode ".$dateFrom." s/d ".$dateTo." berhasil diupdate.");
-            Log::channel('rekapDC')->info("Query yang dijalankan: \n" . $query);
+                return [
+                    'status' => 400,
+                    'message' => 'Rekap DC tidak dijalankan karena periode s/d '.$lastRekapDateInChain.' belum closing. Closing terakhir: '.periodeClosing().'.',
+                ];
+            }
+
+            // Rekap sesudah periode ini yang sudah ada menyimpan saldo awal dari angka
+            // lama, jadi ikut direkap ulang berurutan. Periodenya dimulai H+1 dari rekap
+            // sebelumnya, sama seperti kursor di atas. Rekap baru tidak dibuat di sini.
+            // Semua dalam satu transaksi supaya tabel tidak pernah setengah diperbarui.
+            $periods = DB::transaction(function () use ($dateFrom, $dateTo) {
+                $periods = [$this->rekapPeriod($dateFrom, $dateTo)];
+
+                $nextRekapDates = DB::table($this->rekapTable)
+                    ->where('tanggal', '>', $dateTo)
+                    ->distinct()
+                    ->orderBy('tanggal')
+                    ->pluck('tanggal');
+
+                $previousDate = $dateTo;
+                foreach ($nextRekapDates as $nextRekapDate) {
+                    $periods[] = $this->rekapPeriod(Carbon::parse($previousDate)->addDay()->toDateString(), $nextRekapDate);
+
+                    $previousDate = $nextRekapDate;
+                }
+
+                return $periods;
+            });
+
+            foreach ($periods as $period) {
+                Log::channel('rekapDC')->info("Rekap DC ".$this->rekapTable." periode ".$period['date_from']." s/d ".$period['date_to']." menghapus ".$period['deleted']." baris lama.");
+                Log::channel('rekapDC')->info("Rekap DC ".$this->rekapTable." periode ".$period['date_from']." s/d ".$period['date_to']." berhasil diupdate.");
+                Log::channel('rekapDC')->info("Query yang dijalankan: \n" . $period['query']);
+            }
+
+            $message = 'Rekap DC periode '.$dateFrom.' s/d '.$dateTo.' berhasil diupdate.';
+            if (count($periods) > 1) {
+                $message .= '<br>Rekap sesudahnya ikut diperbarui: '.implode(', ', array_map(function ($period) {
+                    return $period['date_from'].' s/d '.$period['date_to'];
+                }, array_slice($periods, 1))).'.';
+            }
 
             return [
                 'status' => 200,
-                'message' => 'Rekap DC periode '.$dateFrom.' s/d '.$dateTo.' berhasil diupdate.',
+                'message' => $message,
                 'additional' => [
                     'table' => $this->rekapTable,
                     'date_from' => $dateFrom,
                     'date_to' => $dateTo,
+                    'periods' => array_map(function ($period) {
+                        return [
+                            'date_from' => $period['date_from'],
+                            'date_to' => $period['date_to'],
+                        ];
+                    }, $periods),
                 ],
             ];
         } catch (\Throwable $e) {
@@ -4255,5 +4334,28 @@ class DcService
                 'message' => 'Gagal mengupdate Rekap DC: ' . $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Hapus rekap satu periode lalu isi ulang. Rekap sebelum dateFrom jangan ikut
+     * terhapus karena saldo awal dibaca dari sana. Dipanggil di dalam transaksi
+     * runRekap().
+     */
+    protected function rekapPeriod($dateFrom, $dateTo): array
+    {
+        $query = $this->buildRekapQuery($dateFrom, $dateTo);
+
+        $deleted = DB::table($this->rekapTable)
+            ->whereBetween('tanggal', [$dateFrom, $dateTo])
+            ->delete();
+
+        DB::insert($query);
+
+        return [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'deleted' => $deleted,
+            'query' => $query,
+        ];
     }
 }
