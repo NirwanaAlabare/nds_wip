@@ -36,7 +36,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
         // Helper konversi tanggal
         $dateConvert = function ($date) {
             if (empty($date)) return null;
-            
+
             if (is_numeric($date)) {
                 return Date::excelToDateTimeObject($date);
             }
@@ -210,7 +210,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
             }
 
             if (!($partDetailInfo && isset($partDetailInfo[0]))) {
-                throw new Exception("Gagal mendapatkan data Part Detail Info pada baris ke-{$i}");
+                throw new Exception("Gagal mendapatkan data Part Detail Info pada baris ke-{($i-1)}");
             }
 
             // 3. Simpan Data Stocker
