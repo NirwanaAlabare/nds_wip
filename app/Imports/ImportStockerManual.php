@@ -69,27 +69,28 @@ class ImportStockerManual implements ToCollection, WithStartRow
             $color            = $row[2] ?? null;
             $size             = $row[3] ?? null;
             $panelText        = $row[4] ?? null;
-            $partText         = $row[5] ?? null;
-            $mainComplement   = $row[6] ?? null;
-            $complementPart   = $row[7] ?? null;
-            $secondaryTujuan  = $row[8] ?? null;
-            $secondaryProcess = $row[9] ?? null;
-            $partStatus       = $row[10] ?? null;
-            // $row[11] = shade (tidak dipakai, shade diisi $batch)
-            $stockerQty       = $row[12] ?? 0;
-            $stockerNotes     = $row[13] ?? null;
-            $stockerStatus    = $row[14] ?? null;
-            $tanggal          = $row[15] ?? null;
-            $dcQty            = $row[16] ?? 0;
-            $secInhouseInQty  = $row[17] ?? 0;
-            $secInhouseOutQty = $row[18] ?? 0;
-            $secInQty         = $row[19] ?? 0;
-            $wipOutQty        = $row[20] ?? 0;
-            $wipOutTanggal    = $row[21] ?? null;
-            $loadingQty       = $row[22] ?? 0;
-            $loadingTanggal   = $row[23] ?? null;
-            $loadingLine      = $row[24] ?? null;
-            $loadingBon       = $row[25] ?? null;
+            $panelStatus      = $row[5] ?? null;
+            $partText         = $row[6] ?? null;
+            $mainComplement   = $row[7] ?? null;
+            $complementPart   = $row[8] ?? null;
+            $secondaryTujuan  = $row[9] ?? null;
+            $secondaryProcess = $row[10] ?? null;
+            $partStatus       = $row[11] ?? null;
+            // $row[12] = shade (tidak dipakai, shade diisi $batch)
+            $stockerQty       = $row[13] ?? 0;
+            $stockerNotes     = $row[14] ?? null;
+            $stockerStatus    = $row[15] ?? null;
+            $tanggal          = $row[16] ?? null;
+            $dcQty            = $row[17] ?? 0;
+            $secInhouseInQty  = $row[18] ?? 0;
+            $secInhouseOutQty = $row[19] ?? 0;
+            $secInQty         = $row[20] ?? 0;
+            $wipOutQty        = $row[21] ?? 0;
+            $wipOutTanggal    = $row[22] ?? null;
+            $loadingQty       = $row[23] ?? 0;
+            $loadingTanggal   = $row[24] ?? null;
+            $loadingLine      = $row[25] ?? null;
+            $loadingBon       = $row[26] ?? null;
 
             // Validasi data penting
             if (empty($actCostingWs)) {
@@ -126,6 +127,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
             $namaBagian = trim($partBagian[1] ?? '');
 
             $mainComplement = $mainComplement ? strtolower(trim($mainComplement)) : null;
+            $panelStatus    = $panelStatus ? strtolower(trim($panelStatus)) : null;
 
             $partDetailFilter = "";
             $partDetailParams = [$actCostingWs, $panelText, $namaPart];
@@ -154,6 +156,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                     ->leftJoin("part", "part.id", "=", "part_detail.part_id")
                     ->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")
                     ->where("part.act_costing_ws", $actCostingWs)
+                    ->where("part.panel", "!=", $panelText)
                     ->where("master_part.nama_part", $namaComplementPart)
                     ->when($bagComplementPart, function ($query) use ($bagComplementPart) {
                         $query->where("master_part.bag", $bagComplementPart);
@@ -161,6 +164,8 @@ class ImportStockerManual implements ToCollection, WithStartRow
                     ->where(function ($query) {
                         $query->whereNull("part_detail.part_status")->orWhere("part_detail.part_status", "!=", "complement");
                     })
+                    // Utamakan part dari panel complement
+                    ->orderByRaw("CASE WHEN part.panel_status = 'complement' THEN 0 ELSE 1 END")
                     ->first();
 
                 if (!$fromPartDetail) {
@@ -207,6 +212,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         "color" => $orderInfo[0]->color,
                         "panel_id" => $panel ? $panel->id : null,
                         "panel" => $panelText,
+                        "panel_status" => $panelStatus,
                         "buyer" => $orderInfo[0]->buyer,
                         "style" => $orderInfo[0]->style,
                         "created_by" => Auth::user()->id,
@@ -289,6 +295,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
                     "cons" => '0.01',
                     "unit" => 'METER',
                     "part_status" => ($mainComplement ? $mainComplement : 'regular'),
+                    "part_status_notes" => ($part->panel_status == 'complement' && $mainComplement == 'main' ? 'main' : 'regular'),
                     "from_part_detail" => ($fromPartDetail ? $fromPartDetail->id : null),
                     "status" => ($partStatus ? $partStatus : 'inactive'),
                     "created_at" => Carbon::now(),
