@@ -3613,7 +3613,7 @@ class DcService
                 color,
                 size,
                 panel,
-                nama_part,
+                (CASE WHEN nama_part IS NULL OR nama_part = '' THEN '-' ELSE nama_part END) nama_part,
                 SUM(current_saldo_awal) current_saldo_awal,
                 SUM(adjustment_before) adjustment_before,
                 SUM(switching_in_before) switching_in_before,
@@ -3766,9 +3766,9 @@ class DcService
                 select * from form_list
             ) dc
             group by
-                ws, color, size, panel, COALESCE(nama_part, '')
+                ws, color, size, panel, (CASE WHEN nama_part IS NULL OR nama_part = '' THEN '-' ELSE nama_part END)
             order by
-                ws, color, size, panel, COALESCE(nama_part, '')
+                ws, color, size, panel, (CASE WHEN nama_part IS NULL OR nama_part = '' THEN '-' ELSE nama_part END)
         ";
 
         return $query;
