@@ -341,385 +341,518 @@ class PackingLineController extends Controller
         return view('packing.packing_wip_packing_line', ['page' => 'dashboard-packing', "containerFluid" => true, "subPageGroup" => "packing-line", "subPage" => "wip_packing_line"]);
     }
 
-    public function wip_packing_line_detail(Request $request)
+    private const WIP_QTY_COLUMNS = [
+        'saldo_awal', 'terima_good', 'terima_reject', 'keluar_central', 'keluar_temporary',
+        'switching_out', 'switching_in', 'adjustment', 'saldo_akhir',
+    ];
+
+    private const WIP_TANPA_LINE = 'TANPA LINE';
+    private const WIP_TANPA_PO = 'TANPA PO';
+
+    // WS ini tidak ditampilkan selama statusnya Close Order
+    private const WIP_WS_DISEMBUNYIKAN = ['AMZ/1025/017', 'AMZ/1025/018'];
+
+    // Saldo awal dari saldo_wip_packing_line (posisi akhir hari tgl ini), transaksi dihitung mulai besoknya.
+    // Transaksi sebelum hari ini masuk ke saldo awal, kolom terima/keluar/switching/adjustment hanya hari ini.
+    public const WIP_TGL_SALDO = '2026-11-01';
+
+    // sementara untuk pengecekan: hanya saldo snapshot, transaksi/switching/adjustment setelahnya belum ditambahkan
+    private const WIP_HANYA_SALDO = false;
+
+    private function wipPackingLineRows($today, $withTempDate = false)
     {
-        $po          = preg_replace('/\s+/', ' ', trim((string) $request->po));
-        $line        = $request->line;
-        $today       = date('Y-m-d');
-        $todayEnd    = $today . ' 23:59:59';
-        $filterMonth = 6; // ganti angka ini untuk filter bulan lain
+        $tglSaldo  = self::WIP_TGL_SALDO;
+        $mulai     = date('Y-m-d', strtotime($tglSaldo . ' +1 day'));
+        $todayEnd  = $today . ' 23:59:59';
+        $tanpaLine = self::WIP_TANPA_LINE;
+        $tanpaPo   = self::WIP_TANPA_PO;
 
-        $po_esc   = addslashes($po);
-        $line_esc = addslashes($line);
+        // subquery ini berat, hanya dipakai saat export
+        $tglShipmentTemp = $withTempDate ? "(
+                        SELECT DATE(MIN(o.created_at))
+                        FROM output_rfts_packing_po o
+                        WHERE o.created_by_line = x.line
+                            AND o.so_det_id = x.so_det_id
+                            AND o.alokasi = 'temporary packing'
+                    )" : "NULL";
 
-        try {
-            $cacheKey = 'wip_detail_' . md5($po_esc . '|' . $line_esc) . '_' . $today;
+        $sumber = self::WIP_HANYA_SALDO
+            ? "SELECT * FROM s"
+            : "SELECT * FROM s UNION ALL SELECT * FROM m UNION ALL SELECT * FROM g";
 
-            $data = Cache::remember($cacheKey, 60, function () use ($today, $todayEnd, $po_esc, $line_esc, $filterMonth) {
-                return DB::connection('mysql_sb')->select("
-            WITH m AS (
+        return DB::connection('mysql_sb')->select("
+            WITH s AS (
+                SELECT
+                    CASE WHEN po = 'TEMPORARY PACKING' THEN NULL ELSE id_ppic_master_so END AS id_ppic,
+                    TRIM(REGEXP_REPLACE(po, '[[:space:]]+', ' ')) AS po,
+                    tgl_shipment,
+                    line,
+                    so_det_id,
+                    ws, buyer, styleno, color, size,
+                    qty AS saldo_awal, 0 AS terima_good, 0 AS terima_reject, 0 AS keluar_central, 0 AS keluar_temporary
+                FROM laravel_nds.saldo_wip_packing_line
+                WHERE tgl_saldo = '$tglSaldo'
+            ),
+            m (id_ppic, po, tgl_shipment, line, so_det_id, ws, buyer, styleno, color, size, saldo_awal, terima_good, terima_reject, keluar_central, keluar_temporary) AS (
                 SELECT
                     a.po_id,
-                    TRIM(REGEXP_REPLACE(p.po, '[[:space:]]+', ' ')) AS po,
-                    a.created_by_line   AS line,
-                    a.so_det_id         AS so_det_id,
-                    COUNT(*)            AS qty_packing_line
+                    TRIM(REGEXP_REPLACE(p.po, '[[:space:]]+', ' ')),
+                    p.tgl_shipment,
+                    a.created_by_line,
+                    a.so_det_id,
+                    NULL, NULL, NULL, NULL, NULL,
+                    SUM(a.type IN ('RFT', 'REJECT') AND a.updated_at < '$today'),
+                    SUM(a.type = 'RFT' AND a.updated_at >= '$today'),
+                    SUM(a.type = 'REJECT' AND a.updated_at >= '$today'),
+                    0, 0
                 FROM output_rfts_packing_po a
                 INNER JOIN laravel_nds.ppic_master_so p ON a.po_id = p.id
-                WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
-                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                  AND TRIM(REGEXP_REPLACE(p.po, '[[:space:]]+', ' ')) = '$po_esc'
-                  AND a.created_by_line = '$line_esc'
+                WHERE a.updated_at BETWEEN '$mulai' AND '$todayEnd'
+                  AND COALESCE(a.alokasi, '') != 'temporary packing'
                 GROUP BY a.po_id, a.created_by_line, a.so_det_id
 
                 UNION ALL
 
                 SELECT
-                    a.po_id,
-                    'TEMPORARY PACKING' AS po,
-                    a.created_by_line   AS line,
-                    a.so_det_id         AS so_det_id,
-                    COUNT(*)            AS qty_packing_line
-                FROM output_rfts_packing_po a
-                WHERE a.updated_at BETWEEN '$today' AND '$todayEnd' AND a.alokasi = 'temporary packing'
-                  AND a.created_by_line = '$line_esc' AND '$po_esc' = 'TEMPORARY PACKING'
-                GROUP BY a.po_id, a.created_by_line, a.so_det_id
-            ),
-            g AS (
-                SELECT
-                    a.id_ppic_master_so,
-                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
-                    a.line,
-                    a.id_so_det         AS so_det_id,
-                    SUM(a.qty)          AS qty_trf_gmt
-                FROM laravel_nds.packing_trf_garment a
-                INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE a.tgl_trans = '$today'
-                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                  AND TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) = '$po_esc'
-                  AND a.line = '$line_esc'
-                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
-
-                UNION ALL
-                
-                SELECT
-                    a.id_ppic_master_so,
-                    UPPER(TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' '))) AS po,
-                    a.line,
-                    a.id_so_det         AS so_det_id,
-                    SUM(a.qty)          AS qty_trf_gmt
-                FROM laravel_nds.packing_trf_garment a
-                WHERE a.tgl_trans = '$today'
-                    AND TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) = '$po_esc'
-                    AND a.line = '$line_esc'
-                    AND a.tujuan = 'Temporary Packing'
-                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
-            ),
-            mut AS (
-                SELECT
-                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po, a.line, a.so_det_id,
-                    a.selisih AS sa, 0 AS qty_packing_line, 0 AS qty_trf_gmt
-                FROM mut_packing_line_to_trf_gmt a
-                INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                  AND TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) = '$po_esc' AND a.line = '$line_esc' AND a.po != 'TEMPORARY PACKING'
-                UNION ALL
-                SELECT
-                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
-                    a.line,
+                    NULL, 'TEMPORARY PACKING', NULL,
+                    a.created_by_line,
                     a.so_det_id,
-                    a.selisih           AS sa,
-                    0                   AS qty_packing_line,
-                    0                   AS qty_trf_gmt
-                FROM mut_packing_line_to_trf_gmt a
-                WHERE a.line = '$line_esc' AND a.po = 'TEMPORARY PACKING' AND '$po_esc' = 'TEMPORARY PACKING'
+                    NULL, NULL, NULL, NULL, NULL,
+                    SUM(a.type IN ('RFT', 'REJECT') AND a.updated_at < '$today'),
+                    SUM(a.type = 'RFT' AND a.updated_at >= '$today'),
+                    SUM(a.type = 'REJECT' AND a.updated_at >= '$today'),
+                    0, 0
+                FROM output_rfts_packing_po a
+                WHERE a.updated_at BETWEEN '$mulai' AND '$todayEnd' AND a.alokasi = 'temporary packing'
+                GROUP BY a.created_by_line, a.so_det_id
+            ),
+            g (id_ppic, po, tgl_shipment, line, so_det_id, ws, buyer, styleno, color, size, saldo_awal, terima_good, terima_reject, keluar_central, keluar_temporary) AS (
+                SELECT
+                    a.id_ppic_master_so,
+                    TRIM(REGEXP_REPLACE(p.po, '[[:space:]]+', ' ')),
+                    p.tgl_shipment,
+                    a.line,
+                    a.id_so_det,
+                    NULL, NULL, NULL, NULL, NULL,
+                    -SUM(IF(a.tgl_trans < '$today', a.qty, 0)), 0, 0, SUM(IF(a.tgl_trans = '$today', a.qty, 0)), 0
+                FROM laravel_nds.packing_trf_garment a
+                INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
+                WHERE a.tgl_trans BETWEEN '$mulai' AND '$today'
+                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
+
                 UNION ALL
-                SELECT po, line, so_det_id, 0, qty_packing_line, 0 FROM m
+
+                SELECT
+                    NULL, '$tanpaPo', NULL,
+                    a.line,
+                    a.id_so_det,
+                    NULL, NULL, NULL, NULL, NULL,
+                    -SUM(IF(a.tgl_trans < '$today', a.qty, 0)), 0, 0, SUM(IF(a.tgl_trans = '$today', a.qty, 0)), 0
+                FROM laravel_nds.packing_trf_garment a
+                WHERE a.tgl_trans BETWEEN '$mulai' AND '$today'
+                  AND a.line = '$tanpaLine' AND a.id_ppic_master_so IS NULL
+                  AND COALESCE(a.tujuan, '') != 'Temporary Packing'
+                GROUP BY a.line, a.id_so_det
+
                 UNION ALL
-                SELECT po, line, so_det_id, 0, 0, qty_trf_gmt     FROM g
+
+                SELECT
+                    NULL, 'TEMPORARY PACKING', NULL,
+                    a.line,
+                    a.id_so_det,
+                    NULL, NULL, NULL, NULL, NULL,
+                    -SUM(IF(a.tgl_trans < '$today', a.qty, 0)), 0, 0, 0, SUM(IF(a.tgl_trans = '$today', a.qty, 0))
+                FROM laravel_nds.packing_trf_garment a
+                WHERE a.tgl_trans BETWEEN '$mulai' AND '$today' AND a.tujuan = 'Temporary Packing'
+                GROUP BY a.line, a.id_so_det
+            ),
+            u AS (
+                $sumber
+            ),
+            x AS (
+                SELECT
+                    MAX(id_ppic)        AS id_ppic,
+                    MAX(po)             AS po,
+                    MAX(tgl_shipment)   AS tgl_shipment,
+                    line,
+                    MAX(so_det_id)      AS so_det_id,
+                    MAX(ws)             AS ws,
+                    MAX(buyer)          AS buyer,
+                    MAX(styleno)        AS styleno,
+                    MAX(color)          AS color,
+                    MAX(size)           AS size,
+                    SUM(saldo_awal)         AS saldo_awal,
+                    SUM(terima_good)        AS terima_good,
+                    SUM(terima_reject)      AS terima_reject,
+                    SUM(keluar_central)     AS keluar_central,
+                    SUM(keluar_temporary)   AS keluar_temporary
+                FROM u
+                WHERE line IS NOT NULL AND line != ''
+                GROUP BY line,
+                    COALESCE(so_det_id, CONCAT_WS('|', ws, buyer, styleno, color, size)),
+                    COALESCE(id_ppic, po)
             )
             SELECT
-                mut.so_det_id,
-                ws,
-                COALESCE(d.buyer,   '-') AS buyer,
-                COALESCE(d.color,   '-') AS color,
-                COALESCE(d.size,    '-') AS size,
-                COALESCE(d.styleno, '-') AS styleno,
-                SUM(sa)                                             AS qty_sa,
-                SUM(qty_packing_line)                               AS qty_output,
-                SUM(qty_trf_gmt)                                    AS qty_trf,
-                SUM(sa) + SUM(qty_packing_line) - SUM(qty_trf_gmt) AS selisih
-            FROM mut
-            LEFT JOIN laravel_nds.master_sb_ws d ON mut.so_det_id = d.id_so_det
-            LEFT JOIN laravel_nds.master_size_new msn on d.size = msn.size
-            WHERE mut.line IS NOT NULL AND mut.line != ''
-            GROUP BY mut.so_det_id
-            ORDER BY ws asc, d.color asc, urutan asc
+                x.so_det_id,
+                x.po,
+                CASE WHEN x.po = 'TEMPORARY PACKING' THEN COALESCE($tglShipmentTemp, x.tgl_shipment) ELSE x.tgl_shipment END AS tgl_shipment,
+                x.line,
+                COALESCE(d.ws,      x.ws,      '-') AS ws,
+                COALESCE(d.buyer,   x.buyer,   '-') AS buyer,
+                COALESCE(d.color,   x.color,   '-') AS color,
+                COALESCE(d.size,    x.size,    '-') AS size,
+                COALESCE(d.styleno, x.styleno, '-') AS styleno,
+                x.saldo_awal,
+                x.terima_good,
+                x.terima_reject,
+                x.keluar_central,
+                x.keluar_temporary,
+                0                       AS switching_out,
+                0                       AS switching_in,
+                0                       AS adjustment,
+                x.saldo_awal + x.terima_good + x.terima_reject - x.keluar_central - x.keluar_temporary AS saldo_akhir
+            FROM x
+            LEFT JOIN laravel_nds.master_sb_ws d ON x.so_det_id = d.id_so_det
+            LEFT JOIN laravel_nds.master_size_new msn ON COALESCE(d.size, x.size) = msn.size
+            WHERE x.saldo_awal != 0
+            OR x.terima_good != 0
+            OR x.terima_reject != 0
+            OR x.keluar_central != 0
+            OR x.keluar_temporary != 0
+            ORDER BY x.line, x.po, ws, color, msn.urutan
         ");
-            });
+    }
 
-            return response()->json($data);
+    private function wipNormalize($value)
+    {
+        return strtoupper(trim((string) $value));
+    }
+
+    private function wipItemKey($row, $style)
+    {
+        return implode('|', array_map([$this, 'wipNormalize'], [$row->ws, $row->color, $style, $row->size, $row->buyer]));
+    }
+
+    // Switching & adjustment setelah tgl saldo per item, sumbernya tidak punya line/PO
+    private function wipSwitchingAdjustment($today)
+    {
+        $mulai = date('Y-m-d', strtotime(self::WIP_TGL_SALDO . ' +1 day'));
+
+        $data = DB::select("
+            SELECT no_ws AS ws, color, style, size, buyer,
+                SUM(IF(tgl_saldo < ?, qty, 0)) AS qty_sebelum,
+                SUM(IF(tgl_saldo = ?, qty, 0)) AS qty_hari_ini,
+                'adjustment' AS jenis
+            FROM wip_adjustment
+            WHERE type_report = 'PACKING' AND status = 'Y' AND tgl_saldo BETWEEN ? AND ?
+            GROUP BY no_ws, color, style, size, buyer
+
+            UNION ALL
+
+            SELECT from_no_ws, from_color, from_style, from_size, from_buyer,
+                SUM(IF(from_tgl_saldo < ?, qty, 0)),
+                SUM(IF(from_tgl_saldo = ?, qty, 0)),
+                'switching_out'
+            FROM wip_switching_adj
+            WHERE type_report = 'PACKING' AND from_tgl_saldo BETWEEN ? AND ?
+            GROUP BY from_no_ws, from_color, from_style, from_size, from_buyer
+
+            UNION ALL
+
+            SELECT no_ws, color, style, size, buyer,
+                SUM(IF(tgl_saldo < ?, qty, 0)),
+                SUM(IF(tgl_saldo = ?, qty, 0)),
+                'switching_in'
+            FROM wip_switching_adj
+            WHERE type_report = 'PACKING' AND tgl_saldo BETWEEN ? AND ?
+            GROUP BY no_ws, color, style, size, buyer
+        ", [
+            $today, $today, $mulai, $today,
+            $today, $today, $mulai, $today,
+            $today, $today, $mulai, $today,
+        ]);
+
+        $kosong = ['adjustment' => 0, 'switching_out' => 0, 'switching_in' => 0];
+        $mutasi = [];
+        foreach ($data as $d) {
+            $key = $this->wipItemKey($d, $d->style);
+            if (!isset($mutasi[$key])) {
+                $mutasi[$key] = ['item' => $d, 'sebelum' => $kosong, 'hari_ini' => $kosong];
+            }
+            $mutasi[$key]['sebelum'][$d->jenis]  += (int) $d->qty_sebelum;
+            $mutasi[$key]['hari_ini'][$d->jenis] += (int) $d->qty_hari_ini;
+        }
+
+        return $mutasi;
+    }
+
+    // Baris TANPA LINE digabung per item, ditambah switching & adjustment, lalu WS close order tertentu disembunyikan
+    private function wipPackingLineSusun(array $rows, $today)
+    {
+        if (self::WIP_HANYA_SALDO) {
+            return $this->wipSembunyikanCloseOrder($rows);
+        }
+
+        $perLine   = [];
+        $tanpaLine = [];
+        foreach ($rows as $row) {
+            if ($row->line !== self::WIP_TANPA_LINE) {
+                $perLine[] = $row;
+                continue;
+            }
+
+            $key = $this->wipItemKey($row, $row->styleno);
+            if (!isset($tanpaLine[$key])) {
+                $tanpaLine[$key] = $row;
+                continue;
+            }
+
+            // utamakan baris yang PO-nya dari snapshot
+            $utama  = $tanpaLine[$key];
+            $tambah = $row;
+            if ($utama->po === self::WIP_TANPA_PO && $row->po !== self::WIP_TANPA_PO) {
+                [$utama, $tambah] = [$row, $utama];
+            }
+            foreach (self::WIP_QTY_COLUMNS as $column) {
+                $utama->{$column} = (int) $utama->{$column} + (int) $tambah->{$column};
+            }
+            $tanpaLine[$key] = $utama;
+        }
+
+        foreach ($this->wipSwitchingAdjustment($today) as $key => $mutasi) {
+            if (!isset($tanpaLine[$key])) {
+                $tanpaLine[$key] = (object) ([
+                    'so_det_id'    => null,
+                    'po'           => self::WIP_TANPA_PO,
+                    'tgl_shipment' => null,
+                    'line'         => self::WIP_TANPA_LINE,
+                    'ws'           => $mutasi['item']->ws,
+                    'buyer'        => $mutasi['item']->buyer,
+                    'color'        => $mutasi['item']->color,
+                    'size'         => $mutasi['item']->size,
+                    'styleno'      => $mutasi['item']->style,
+                ] + array_fill_keys(self::WIP_QTY_COLUMNS, 0));
+            }
+
+            $item     = $tanpaLine[$key];
+            $sebelum  = $mutasi['sebelum'];
+            $hariIni  = $mutasi['hari_ini'];
+            $netoLalu = $sebelum['switching_in'] - $sebelum['switching_out'] + $sebelum['adjustment'];
+            $netoKini = $hariIni['switching_in'] - $hariIni['switching_out'] + $hariIni['adjustment'];
+
+            $item->saldo_awal    = (int) $item->saldo_awal + $netoLalu;
+            $item->switching_out = (int) $item->switching_out + $hariIni['switching_out'];
+            $item->switching_in  = (int) $item->switching_in + $hariIni['switching_in'];
+            $item->adjustment    = (int) $item->adjustment + $hariIni['adjustment'];
+            $item->saldo_akhir   = (int) $item->saldo_akhir + $netoLalu + $netoKini;
+        }
+
+        $rows = array_merge($perLine, array_values(array_filter($tanpaLine, function ($item) {
+            foreach (self::WIP_QTY_COLUMNS as $column) {
+                if ($item->{$column} != 0) {
+                    return true;
+                }
+            }
+            return false;
+        })));
+
+        return $this->wipSembunyikanCloseOrder($rows);
+    }
+
+    private function wipSembunyikanCloseOrder(array $rows)
+    {
+        $statusOrder = $this->wipStatusOrder(self::WIP_WS_DISEMBUNYIKAN);
+        $wsCloseOrder = array_map([$this, 'wipNormalize'], array_keys(array_filter($statusOrder, function ($status) {
+            return $status === 'Close Order';
+        })));
+
+        return array_values(array_filter($rows, function ($row) use ($wsCloseOrder) {
+            return !in_array($this->wipNormalize($row->ws), $wsCloseOrder, true);
+        }));
+    }
+
+    private function wipCacheKey($today)
+    {
+        return 'wip_packing_line_saldo_' . $today . '_' . self::WIP_TGL_SALDO;
+    }
+
+    // dipanggil setelah transfer garment disimpan supaya qty WIP langsung terbarui
+    public function wipLupakanCache()
+    {
+        Cache::forget($this->wipCacheKey(date('Y-m-d')));
+    }
+
+    private function wipPackingLineData($today)
+    {
+        return Cache::remember($this->wipCacheKey($today), 300, function () use ($today) {
+            return $this->wipPackingLineSusun($this->wipPackingLineRows($today), $today);
+        });
+    }
+
+    public function wipPackingLineTanpaLineData()
+    {
+        return array_values(array_filter($this->wipPackingLineData(date('Y-m-d')), function ($row) {
+            return $row->line === self::WIP_TANPA_LINE && $row->po === self::WIP_TANPA_PO;
+        }));
+    }
+
+    public function wipPackingLineByLinePo($line, $po)
+    {
+        $line = $this->wipNormalize($line);
+        $po   = $this->wipNormalize(preg_replace('/\s+/', ' ', (string) $po));
+
+        return array_values(array_filter($this->wipPackingLineData(date('Y-m-d')), function ($row) use ($line, $po) {
+            return $this->wipNormalize($row->line) === $line && $this->wipNormalize($row->po) === $po;
+        }));
+    }
+
+    // Pilihan line / PO tujuan Packing Central: baris yang punya PO dan masih punya saldo (termasuk TANPA LINE ber-PO)
+    private function wipPackingLineCentralRows()
+    {
+        return array_values(array_filter($this->wipPackingLineData(date('Y-m-d')), function ($row) {
+            return $row->po !== self::WIP_TANPA_PO
+                && $this->wipNormalize($row->po) !== 'TEMPORARY PACKING'
+                && (int) $row->saldo_akhir > 0;
+        }));
+    }
+
+    public function wipPackingLineCentralByLine($line)
+    {
+        $line = $this->wipNormalize($line);
+
+        return array_values(array_filter($this->wipPackingLineCentralRows(), function ($row) use ($line) {
+            return $this->wipNormalize($row->line) === $line;
+        }));
+    }
+
+    public function wipPackingLineCentralByPo($po)
+    {
+        $po = $this->wipNormalize(preg_replace('/\s+/', ' ', (string) $po));
+
+        return array_values(array_filter($this->wipPackingLineCentralRows(), function ($row) use ($po) {
+            return $this->wipNormalize($row->po) === $po;
+        }));
+    }
+
+    // Pilihan tujuan Temporary Packing: baris PO TEMPORARY PACKING yang masih punya saldo, bisa difilter line
+    public function wipPackingLineTemporaryRows($line = null)
+    {
+        $line = $line ? $this->wipNormalize($line) : null;
+
+        return array_values(array_filter($this->wipPackingLineData(date('Y-m-d')), function ($row) use ($line) {
+            return $this->wipNormalize($row->po) === 'TEMPORARY PACKING'
+                && (int) $row->saldo_akhir > 0
+                && ($line === null || $this->wipNormalize($row->line) === $line);
+        }));
+    }
+
+    private function wipStatusOrder(array $wsList)
+    {
+        return DB::table('master_sb_ws as m')
+            ->leftJoin('signalbit_erp.act_costing as act', 'm.id_act_cost', '=', 'act.id')
+            ->selectRaw('m.ws, MAX(act.close_order) AS close_order')
+            ->whereIn('m.ws', array_values(array_unique($wsList)))
+            ->groupBy('m.ws')
+            ->pluck('close_order', 'ws')
+            ->map(function ($closeOrder) {
+                return $closeOrder === 'Y' ? 'Close Order' : 'Open Order';
+            })
+            ->all();
+    }
+
+    public function wip_packing_line_detail(Request $request)
+    {
+        $po    = $this->wipNormalize(preg_replace('/\s+/', ' ', (string) $request->po));
+        $line  = $this->wipNormalize($request->line);
+        $today = date('Y-m-d');
+
+        try {
+            $data = [];
+            foreach ($this->wipPackingLineData($today) as $row) {
+                if ($this->wipNormalize($row->po) !== $po || $this->wipNormalize($row->line) !== $line) {
+                    continue;
+                }
+
+                $key = $this->wipItemKey($row, $row->styleno);
+                if (!isset($data[$key])) {
+                    $data[$key] = [
+                        'buyer'   => $row->buyer,
+                        'ws'      => $row->ws ?? '-',
+                        'styleno' => $row->styleno,
+                        'color'   => $row->color,
+                        'size'    => $row->size,
+                    ] + array_fill_keys(self::WIP_QTY_COLUMNS, 0);
+                }
+                foreach (self::WIP_QTY_COLUMNS as $column) {
+                    $data[$key][$column] += (int) $row->{$column};
+                }
+            }
+
+            $statusOrder = $this->wipStatusOrder(array_column($data, 'ws'));
+
+            foreach ($data as $key => $item) {
+                $data[$key]['status_order'] = $statusOrder[$item['ws']] ?? 'Open Order';
+            }
+
+            return response()->json(array_values($data));
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    public function wip_packing_line_data()
+    public function wip_packing_line_data(Request $request)
     {
-        $today       = date('Y-m-d');
-        $todayEnd    = $today . ' 23:59:59';
-        $filterMonth = 6; // ganti angka ini untuk filter bulan lain
+        $today = date('Y-m-d');
 
-        $raw = Cache::remember('wip_packing_line_' . $today, 60, function () use ($today, $todayEnd, $filterMonth) {
-            return DB::connection('mysql_sb')->select("
-            WITH m AS (
-                SELECT
-                    a.po_id,
-                    TRIM(REGEXP_REPLACE(p.po, '[[:space:]]+', ' ')) AS po,
-                    a.created_by_line   AS line,
-                    a.so_det_id         AS so_det_id,
-                    COUNT(*)            AS qty_packing_line
-                FROM output_rfts_packing_po a
-                INNER JOIN laravel_nds.ppic_master_so p ON a.po_id = p.id
-                WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
-                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                GROUP BY a.po_id, a.created_by_line, a.so_det_id
-
-                UNION ALL
-
-                SELECT
-                    a.po_id,
-                    'TEMPORARY PACKING' AS po,
-                    a.created_by_line   AS line,
-                    a.so_det_id         AS so_det_id,
-                    COUNT(*)            AS qty_packing_line
-                FROM output_rfts_packing_po a
-                WHERE a.updated_at BETWEEN '$today' AND '$todayEnd' AND a.alokasi = 'temporary packing'
-                GROUP BY a.po_id, a.created_by_line, a.so_det_id
-            ),
-            g AS (
-                SELECT
-                    a.id_ppic_master_so,
-                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
-                    a.line,
-                    a.id_so_det         AS so_det_id,
-                    SUM(a.qty)          AS qty_trf_gmt
-                FROM laravel_nds.packing_trf_garment a
-                INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE a.tgl_trans = '$today'
-                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
-
-                UNION ALL
-                
-                SELECT
-                    a.id_ppic_master_so,
-                    UPPER(TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' '))) AS po,
-                    a.line,
-                    a.id_so_det         AS so_det_id,
-                    SUM(a.qty)          AS qty_trf_gmt
-                FROM laravel_nds.packing_trf_garment a
-                WHERE a.tgl_trans = '$today' AND a.tujuan = 'Temporary Packing'
-                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
-            ),
-            mut AS (
-                SELECT
-                    a.id_ppic_master_so,
-                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
-                    a.line,
-                    a.so_det_id,
-                    a.selisih           AS sa,
-                    0                   AS qty_packing_line,
-                    0                   AS qty_trf_gmt
-                FROM mut_packing_line_to_trf_gmt a
-                INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth AND a.po != 'TEMPORARY PACKING'
-                UNION ALL
-                SELECT
-                    a.id_ppic_master_so,
-                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
-                    a.line,
-                    a.so_det_id,
-                    a.selisih           AS sa,
-                    0                   AS qty_packing_line,
-                    0                   AS qty_trf_gmt
-                FROM mut_packing_line_to_trf_gmt a
-                WHERE a.po = 'TEMPORARY PACKING'
-                UNION ALL
-                SELECT
-                    po_id               AS id_ppic_master_so,
-                    po,
-                    line,
-                    so_det_id,
-                    0                   AS sa,
-                    qty_packing_line,
-                    0                   AS qty_trf_gmt
-                FROM m
-                UNION ALL
-                SELECT
-                    id_ppic_master_so,
-                    po,
-                    line,
-                    so_det_id,
-                    0                   AS sa,
-                    0                   AS qty_packing_line,
-                    qty_trf_gmt
-                FROM g
-            )
-            SELECT
-                po,
-                line,
-                SUM(sa)                                             AS qty_sa,
-                SUM(qty_packing_line)                               AS qty_output,
-                SUM(qty_trf_gmt)                                    AS qty_trf,
-                SUM(sa) + SUM(qty_packing_line) - SUM(qty_trf_gmt) AS selisih
-            FROM mut
-            WHERE line IS NOT NULL AND line != ''
-            GROUP BY po, line
-            HAVING SUM(sa) != 0
-            OR SUM(qty_packing_line) != 0
-            OR SUM(qty_trf_gmt) != 0
-            ORDER BY line, po
-        ");
-        });
+        // tombol Refresh: ambil data baru, jangan pakai cache
+        if ($request->boolean('refresh')) {
+            Cache::forget($this->wipCacheKey($today));
+        }
 
         $grouped   = [];
         $total_wip = 0;
-        foreach ($raw as $row) {
-            $grouped[$row->line][] = [
-                'po'         => $row->po,
-                'qty_sa'     => (int) $row->qty_sa,
-                'qty_output' => (int) $row->qty_output,
-                'qty_trf'    => (int) $row->qty_trf,
-                'wip'        => (int) $row->selisih,
-            ];
-            $total_wip += (int) $row->selisih;
+        foreach ($this->wipPackingLineData($today) as $row) {
+            $lineKey = $this->wipNormalize($row->line);
+            $poKey   = $this->wipNormalize($row->po);
+
+            if (!isset($grouped[$lineKey][$poKey])) {
+                $grouped[$lineKey][$poKey] = [
+                    'line'       => $row->line,
+                    'po'         => $row->po,
+                    'qty_sa'     => 0,
+                    'qty_output' => 0,
+                    'qty_trf'    => 0,
+                    'wip'        => 0,
+                ];
+            }
+            $grouped[$lineKey][$poKey]['qty_sa']     += (int) $row->saldo_awal;
+            $grouped[$lineKey][$poKey]['qty_output'] += (int) $row->terima_good + (int) $row->terima_reject;
+            $grouped[$lineKey][$poKey]['qty_trf']    += (int) $row->keluar_central + (int) $row->keluar_temporary;
+            $grouped[$lineKey][$poKey]['wip']        += (int) $row->saldo_akhir;
+            $total_wip += (int) $row->saldo_akhir;
+        }
+
+        $lines = [];
+        foreach ($grouped as $items) {
+            $items = array_values($items);
+            $lines[$items[0]['line']] = array_map(function ($item) {
+                unset($item['line']);
+                return $item;
+            }, $items);
         }
 
         return response()->json([
-            'lines'     => $grouped,
+            'lines'     => $lines,
             'total_wip' => $total_wip,
         ]);
     }
 
     public function wip_packing_line_export()
     {
-        $today       = date('Y-m-d');
-        $todayEnd    = $today . ' 23:59:59';
-        $filterMonth = 6; // ganti angka ini untuk export bulan lain
+        $today = date('Y-m-d');
 
-        $data = DB::connection('mysql_sb')->select("
-            WITH m AS (
-                SELECT
-                    a.po_id,
-                    TRIM(REGEXP_REPLACE(p.po, '[[:space:]]+', ' ')) AS po,
-                    tgl_shipment,
-                    a.created_by_line   AS line,
-                    a.so_det_id         AS so_det_id,
-                    COUNT(*)            AS qty_packing_line
-                FROM output_rfts_packing_po a
-                INNER JOIN laravel_nds.ppic_master_so p ON a.po_id = p.id
-                WHERE a.updated_at BETWEEN '$today' AND '$todayEnd'
-                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                GROUP BY a.po_id, a.created_by_line, a.so_det_id
-                
-                UNION ALL
-
-                SELECT
-                    a.po_id,
-                    'TEMPORARY PACKING' AS po,
-                    DATE(a.created_at)  AS tgl_shipment,
-                    a.created_by_line   AS line,
-                    a.so_det_id         AS so_det_id,
-                    COUNT(*)            AS qty_packing_line
-                FROM output_rfts_packing_po a
-                WHERE a.updated_at BETWEEN '$today' AND '$todayEnd' AND a.alokasi = 'temporary packing'
-                GROUP BY a.po_id, a.created_by_line, a.so_det_id
-            ),
-            g AS (
-                SELECT
-                    a.id_ppic_master_so,
-                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
-                    tgl_shipment,
-                    a.line,
-                    a.id_so_det         AS so_det_id,
-                    SUM(a.qty)          AS qty_trf_gmt
-                FROM laravel_nds.packing_trf_garment a
-                INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE a.tgl_trans = '$today'
-                  AND YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth
-                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
-
-                UNION ALL
-                
-                SELECT
-                    a.id_ppic_master_so,
-                    UPPER(TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' '))) AS po,
-                    a.tgl_trans AS tgl_shipment,
-                    a.line,
-                    a.id_so_det         AS so_det_id,
-                    SUM(a.qty)          AS qty_trf_gmt
-                FROM laravel_nds.packing_trf_garment a
-                WHERE a.tgl_trans = '$today' AND a.tujuan = 'Temporary Packing'
-                GROUP BY a.id_ppic_master_so, a.line, a.id_so_det
-            ),
-            mut AS (
-                SELECT
-                    a.id_ppic_master_so,
-                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po, a.line, a.so_det_id, tgl_shipment,
-                    a.selisih AS sa, 0 AS qty_packing_line, 0 AS qty_trf_gmt
-                FROM mut_packing_line_to_trf_gmt a
-                INNER JOIN laravel_nds.ppic_master_so p ON a.id_ppic_master_so = p.id
-                WHERE YEAR(p.tgl_shipment) >= 2026 AND MONTH(p.tgl_shipment) >= $filterMonth AND a.po != 'TEMPORARY PACKING'
-                UNION ALL
-                SELECT
-                    a.id_ppic_master_so,
-                    TRIM(REGEXP_REPLACE(a.po, '[[:space:]]+', ' ')) AS po,
-                    a.line,
-                    a.so_det_id,
-                    (
-                        SELECT DATE(o.created_at)
-                        FROM output_rfts_packing_po o
-                        WHERE o.created_by_line = a.line
-                            AND o.so_det_id = a.so_det_id
-                            AND UPPER(o.alokasi) = a.po
-                        ORDER BY o.created_at ASC
-                        LIMIT 1
-                    ) AS tgl_shipment,
-                    a.selisih           AS sa,
-                    0                   AS qty_packing_line,
-                    0                   AS qty_trf_gmt
-                FROM mut_packing_line_to_trf_gmt a
-                WHERE a.po = 'TEMPORARY PACKING'
-                UNION ALL
-                SELECT po_id, po, line, so_det_id, tgl_shipment, 0, qty_packing_line, 0 FROM m
-                UNION ALL
-                SELECT id_ppic_master_so, po, line, so_det_id, tgl_shipment, 0, 0, qty_trf_gmt FROM g
-            )
-            SELECT
-                mut.so_det_id,
-                po,
-                tgl_shipment,
-                line,
-                ws,
-                COALESCE(d.buyer,   '-') AS buyer,
-                COALESCE(d.color,   '-') AS color,
-                COALESCE(d.size,    '-') AS size,
-                COALESCE(d.styleno, '-') AS styleno,
-                SUM(sa)                                             AS qty_sa,
-                SUM(qty_packing_line)                               AS qty_output,
-                SUM(qty_trf_gmt)                                    AS qty_trf,
-                SUM(sa) + SUM(qty_packing_line) - SUM(qty_trf_gmt) AS selisih
-            FROM mut
-            LEFT JOIN laravel_nds.master_sb_ws d ON mut.so_det_id = d.id_so_det
-            LEFT JOIN laravel_nds.master_size_new msn on d.size = msn.size
-            WHERE mut.line IS NOT NULL AND mut.line != ''
-            GROUP BY mut.so_det_id,po, line, tgl_shipment
-            HAVING SUM(sa) != 0
-            OR SUM(qty_packing_line) != 0
-            OR SUM(qty_trf_gmt) != 0
-            ORDER BY  line, po, ws,  d.color, urutan
-        ");
+        $data = $this->wipPackingLineSusun($this->wipPackingLineRows($today, true), $today);
+        $statusOrder = $this->wipStatusOrder(array_column($data, 'ws'));
 
         $filename = 'WIP_Packing_Line_' . $today;
         $excel    = FastExcel::create($filename);
@@ -731,7 +864,7 @@ class PackingLineController extends Controller
 
         /* ── Header ── */
         $sheet->writeRow(
-            ['Line', 'PO', 'Tgl Shipment', 'Buyer', 'WS', 'Style', 'Color', 'Size', 'SA', 'Output ▲', 'Transfer ▼', 'WIP'],
+            ['Line', 'PO', 'Tgl Shipment', 'Status', 'Buyer', 'WS', 'Style', 'Color', 'Size', 'Saldo Awal', 'Terima Good', 'Terima Reject', 'Keluar Packing Central', 'Keluar Temporary Packing', 'Switching OUT', 'Switching IN', 'Adjustment', 'Saldo Akhir'],
             [
                 'font-style' => 'bold',
                 'border'     => 'thin',
@@ -746,7 +879,7 @@ class PackingLineController extends Controller
         /* ── Data rows (mulai baris 4: title, kosong, header) ── */
         $rowNum = 4;
         foreach ($data as $row) {
-            $wip      = (float) $row->selisih;
+            $wip      = (float) $row->saldo_akhir;
             $wipColor = $wip < 0 ? '#CC2C2C' : ($wip > 0 ? '#1A7F4B' : '#888888');
 
             $sheet->writeRow(
@@ -754,20 +887,26 @@ class PackingLineController extends Controller
                     $row->line    ?? '-',
                     $row->po      ?? '-',
                     $row->tgl_shipment ?? '-',
+                    $statusOrder[$row->ws] ?? 'Open Order',
                     $row->buyer   ?? '-',
                     $row->ws      ?? '-',
                     $row->styleno ?? '-',
                     $row->color   ?? '-',
                     $row->size    ?? '-',
-                    (float) $row->qty_sa,
-                    (float) $row->qty_output,
-                    (float) $row->qty_trf,
+                    (float) $row->saldo_awal,
+                    (float) $row->terima_good,
+                    (float) $row->terima_reject,
+                    (float) $row->keluar_central,
+                    (float) $row->keluar_temporary,
+                    (float) $row->switching_out,
+                    (float) $row->switching_in,
+                    (float) $row->adjustment,
                     $wip,
                 ],
                 ['border' => 'thin']
             );
 
-            $sheet->setCellStyle('L' . $rowNum, ['color' => $wipColor, 'font-style' => 'bold']);
+            $sheet->setCellStyle('R' . $rowNum, ['color' => $wipColor, 'font-style' => 'bold']);
             $rowNum++;
         }
 
@@ -777,15 +916,21 @@ class PackingLineController extends Controller
                 'A' => 16,
                 'B' => 14,
                 'C' => 22,
-                'D' => 16,
-                'E' => 20,
-                'F' => 18,
-                'G' => 10,
-                'H' => 12,
+                'D' => 14,
+                'E' => 16,
+                'F' => 20,
+                'G' => 18,
+                'H' => 10,
                 'I' => 12,
-                'J' => 14,
-                'K' => 12,
+                'J' => 12,
+                'K' => 14,
                 'L' => 12,
+                'M' => 12,
+                'N' => 14,
+                'O' => 14,
+                'P' => 12,
+                'Q' => 12,
+                'R' => 12,
             ] as $col => $width
         ) {
             $sheet->setColWidth($col, $width);

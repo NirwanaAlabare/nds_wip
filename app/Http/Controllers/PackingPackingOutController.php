@@ -919,120 +919,17 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
             // hasil tot_out akan ikut ter-update.
             // =========================================================
 
-            $cek_stok = DB::select("
-                SELECT
-                    SUM(
-                        COALESCE(pack_in.tot_in, 0)
-                        + COALESCE(pack_switch_in.qty_switch_masuk, 0)
-                        - COALESCE(pack_out.tot_out, 0)
-                        - COALESCE(pack_switch.qty_switch, 0)
-                        - COALESCE(pack_out_gudang_stok.qty, 0)
-                    ) AS tot_s
+            // Stok = Saldo Akhir Detail Transaksi WIP PO (snapshot saldo_wip_packing_central + transaksi)
+            // untuk PO ini dan item (ws/style/color/size) dari barcode + dest yang di-scan
+            $so_det_scan = DB::table('ppic_master_so')
+                ->where('barcode', $barcode)
+                ->where('po', $cek_dest_po)
+                ->where('dest', $dest)
+                ->pluck('id_so_det')
+                ->all();
 
-                FROM ppic_master_so p
-
-                LEFT JOIN
-                (
-                    SELECT
-                        SUM(packing_packing_in.qty) AS tot_in,
-                        packing_packing_in.id_ppic_master_so,
-                        packing_packing_in.id_so_det
-
-                    FROM packing_packing_in
-
-                    INNER JOIN ppic_master_so
-                        ON ppic_master_so.id = packing_packing_in.id_ppic_master_so
-
-                    WHERE ppic_master_so.barcode = '$barcode'
-                    AND ppic_master_so.po = '$cek_dest_po'
-                    AND ppic_master_so.dest = '$dest'
-                    AND packing_packing_in.sumber = 'Sewing'
-
-                    GROUP BY
-                        packing_packing_in.id_ppic_master_so,
-                        packing_packing_in.id_so_det
-                ) pack_in
-                    ON p.id = pack_in.id_ppic_master_so
-                     AND p.id_so_det = pack_in.id_so_det
-
-                LEFT JOIN
-                (
-                    SELECT
-                        COUNT(*) AS tot_out,
-                        a.id_ppic,
-                        a.id_so_det
-
-                    FROM packing_packing_out_scan a
-
-                    INNER JOIN ppic_master_so p
-                        ON a.barcode = p.barcode
-                        AND a.po = p.po
-                        AND a.dest = p.dest
-                        AND a.id_so_det = p.id_so_det
-
-                    WHERE p.barcode = '$barcode'
-                    AND p.po = '$cek_dest_po'
-                    AND p.dest = '$dest'
-
-                    GROUP BY
-                        a.id_ppic,
-                        a.id_so_det
-                ) pack_out
-                    ON p.id = pack_out.id_ppic
-                    AND p.id_so_det = pack_out.id_so_det
-
-                LEFT JOIN
-                (
-                    SELECT
-                        asal_ppic_master_so_id,
-                        asal_so_det_id,
-                        SUM(qty_switch) AS qty_switch
-
-                    FROM packing_central_switching
-
-                    GROUP BY
-                        asal_ppic_master_so_id,
-                        asal_so_det_id
-                ) pack_switch
-                    ON p.id = pack_switch.asal_ppic_master_so_id
-                    AND p.id_so_det = pack_switch.asal_so_det_id
-
-                LEFT JOIN
-                (
-                    SELECT
-                        tujuan_ppic_master_so_id,
-                        tujuan_so_det_id,
-                        SUM(qty_switch) AS qty_switch_masuk
-
-                    FROM packing_central_switching
-
-                    GROUP BY
-                        tujuan_ppic_master_so_id,
-                        tujuan_so_det_id
-                ) pack_switch_in
-                    ON p.id = pack_switch_in.tujuan_ppic_master_so_id
-                    AND p.id_so_det = pack_switch_in.tujuan_so_det_id
-
-                LEFT JOIN
-                (
-                    SELECT
-                        ppic_master_so_id,
-                        so_det_id,
-                        SUM(qty) AS qty
-                    FROM packing_out_gudang_stok
-                    WHERE lokasi_asal = 'PACKING CENTRAL'
-                    GROUP BY
-                        ppic_master_so_id,
-                        so_det_id
-                ) pack_out_gudang_stok
-                    ON p.id = pack_out_gudang_stok.ppic_master_so_id
-                    AND p.id_so_det = pack_out_gudang_stok.so_det_id
-                WHERE p.barcode = '$barcode'
-                AND p.po = '$cek_dest_po'
-                AND p.dest = '$dest'
-            ");
-
-            $cek_stok_fix = $cek_stok[0]->tot_s ?? 0;
+            $cek_stok_fix = app(PackingCentralSwitchingController::class)
+                ->saldoAkhirDetailTransaksi($cek_dest_po, $so_det_scan);
 
             // =========================================================
             // CEK STOK
