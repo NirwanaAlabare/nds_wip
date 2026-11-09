@@ -152,6 +152,15 @@
                     </a>
                 </div>
                 <div class="col-md-4">
+                    <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#undoImportStockerManualModal">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-gears"></i> Undo Import Stocker Manual</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
                     <a type="button" class="home-item" data-bs-toggle="modal" data-bs-target="#rearrangeGroup">
                         <div class="card">
                             <div class="card-body">
@@ -498,9 +507,10 @@
                                             <th>Color</th>
                                             <th>Size</th>
                                             <th>Panel</th>
+                                            <th>Panel Status</th>
                                             <th>Part Detail</th>
                                             <th>Main/Complement</th>
-                                            <th>Complement Part</th>
+                                            <th>Part Complement</th>
                                             <th>Tujuan</th>
                                             <th>Proses</th>
                                             <th>Part Status</th>
@@ -607,6 +617,61 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
                     <button type="button" class="btn btn-sb" onclick="undoStockerAdditional()"><i class="fa fa-rotate-left"></i> Undo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Undo Import Stocker Manual -->
+    <div class="modal fade" id="undoImportStockerManualModal" tabindex="-1" aria-labelledby="undoImportStockerManualModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb">
+                    <h1 class="modal-title fs-5" id="undoImportStockerManualModalLabel">Undo Import Stocker Manual</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Cari Berdasarkan</label>
+                        <div class="input-group">
+                            <select class="form-select" id="type_undo_import_stocker_manual" style="max-width: 200px;" onchange="resetUndoImportStockerManual();">
+                                <option value="stocker">ID Stocker / Batch</option>
+                                <option value="notes">Notes</option>
+                            </select>
+                            <input type="text" class="form-control" id="stocker_undo_import_stocker_manual" placeholder="STK-xxxx / batch inject / notes" onkeydown="if (event.key == 'Enter') checkUndoImportStockerManual();">
+                            <button type="button" class="btn btn-sb-secondary" onclick="checkUndoImportStockerManual()"><i class="fa fa-search"></i> Cek</button>
+                        </div>
+                        <small class="text-muted">ID Stocker / Batch : semua stocker dalam batch inject yang sama akan di-undo. Notes : semua stocker inject dengan notes yang sama persis akan di-undo (bisa lebih dari satu batch).</small>
+                    </div>
+                    <div id="result_undo_import_stocker_manual" class="d-none">
+                        <div class="mb-3">
+                            <label class="form-label">Batch</label>
+                            <textarea class="form-control" id="batch_undo_import_stocker_manual" rows="2" readonly></textarea>
+                        </div>
+                        <p class="mb-2" id="summary_undo_import_stocker_manual"></p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm w-100">
+                                <thead>
+                                    <tr>
+                                        <th>ID Stocker</th>
+                                        <th>WS</th>
+                                        <th>Color</th>
+                                        <th>Size</th>
+                                        <th>Panel</th>
+                                        <th>Qty</th>
+                                        <th>Notes</th>
+                                        <th>Tanggal</th>
+                                        <th>Created By</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table_undo_import_stocker_manual"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-times"></i> Batal</button>
+                    <button type="button" class="btn btn-sb" id="button_undo_import_stocker_manual" onclick="undoImportStockerManual()" disabled><i class="fa fa-rotate-left"></i> Undo</button>
                 </div>
             </div>
         </div>
@@ -1168,6 +1233,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Data Stocker berhasil diupload',
+                            html: (res.additional && res.additional.batch ? 'Batch : <b>' + res.additional.batch + '</b>' : ''),
                             showCancelButton: false,
                             showConfirmButton: true,
                             confirmButtonText: 'Oke',
@@ -1306,6 +1372,134 @@
                 error: function (jqXHR) {
                     console.error(jqXHR);
                 }
+            });
+        }
+
+        // Undo Import Stocker Manual
+        let undoImportStockerManualParam = null;
+
+        function resetUndoImportStockerManual() {
+            undoImportStockerManualParam = null;
+            $('#result_undo_import_stocker_manual').addClass('d-none');
+            $('#batch_undo_import_stocker_manual').val('');
+            $('#summary_undo_import_stocker_manual').html('');
+            $('#table_undo_import_stocker_manual').html('');
+            $('#button_undo_import_stocker_manual').prop('disabled', true);
+        }
+
+        function checkUndoImportStockerManual() {
+            resetUndoImportStockerManual();
+
+            let param = {
+                type: $('#type_undo_import_stocker_manual').val(),
+                value: $('#stocker_undo_import_stocker_manual').val()
+            };
+
+            $.ajax({
+                type: "get",
+                url: "{{ route('check-undo-import-stocker-manual') }}",
+                data: param,
+                dataType: "json",
+                success: function (response) {
+                    if (response.status != 200) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: response.message,
+                        });
+
+                        return;
+                    }
+
+                    let data = response.data;
+
+                    // Simpan parameter yang sudah dicek, supaya undo sesuai dengan data yang ditampilkan
+                    undoImportStockerManualParam = param;
+
+                    $('#batch_undo_import_stocker_manual').val(data.batch.join('\n'));
+                    $('#summary_undo_import_stocker_manual').html(
+                        '<b>' + data.batch.length + '</b> Batch, ' +
+                        '<b>' + data.stockers.length + '</b> Stocker, ' +
+                        '<b>' + data.dc_in + '</b> DC In, ' +
+                        '<b>' + data.secondary_inhouse_in + '</b> Secondary Inhouse In, ' +
+                        '<b>' + data.secondary_inhouse + '</b> Secondary Inhouse Out, ' +
+                        '<b>' + data.secondary_in + '</b> Secondary In, ' +
+                        '<b>' + data.wip_out + '</b> WIP Out, ' +
+                        '<b>' + data.loading_line + '</b> Loading Line'
+                    );
+
+                    let rows = '';
+                    data.stockers.forEach((item) => {
+                        rows += '<tr>' +
+                            '<td>' + item.id_qr_stocker + '</td>' +
+                            '<td>' + (item.act_costing_ws ?? '') + '</td>' +
+                            '<td>' + (item.color ?? '') + '</td>' +
+                            '<td>' + (item.size ?? '') + '</td>' +
+                            '<td>' + (item.panel ?? '') + '</td>' +
+                            '<td>' + (item.qty ?? '') + '</td>' +
+                            '<td>' + (item.notes ?? '') + '</td>' +
+                            '<td>' + (item.created_at ?? '') + '</td>' +
+                            '<td>' + (item.created_by_username ?? '') + '</td>' +
+                        '</tr>';
+                    });
+                    $('#table_undo_import_stocker_manual').html(rows);
+
+                    $('#result_undo_import_stocker_manual').removeClass('d-none');
+                    $('#button_undo_import_stocker_manual').prop('disabled', false);
+                },
+                error: function (jqXHR) {
+                    console.error(jqXHR);
+                }
+            });
+        }
+
+        function undoImportStockerManual() {
+            let param = undoImportStockerManualParam;
+
+            if (!param) {
+                return;
+            }
+
+            Swal.fire({
+                title: 'Undo Import Stocker Manual',
+                html: '<span class="text-danger"><b>Critical</b></span> <br> Yakin akan menghapus semua stocker beserta DC, Secondary, WIP Out dan Loading dari ' + (param.type == 'notes' ? 'notes' : 'batch/stocker') + ' <b>' + param.value + '</b>?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'UNDO',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#dc3545"
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    type: "delete",
+                    url: "{{ route('undo-import-stocker-manual') }}",
+                    data: param,
+                    dataType: "json",
+                    success: function (response) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        Swal.fire({
+                            icon: (response.status == 200 ? 'success' : 'error'),
+                            title: (response.status == 200 ? 'Berhasil' : 'Gagal'),
+                            html: response.message,
+                        });
+
+                        if (response.status == 200) {
+                            resetUndoImportStockerManual();
+                            $('#stocker_undo_import_stocker_manual').val('');
+                        }
+                    },
+                    error: function (jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        console.error(jqXHR);
+                    }
+                });
             });
         }
 
@@ -1495,6 +1689,7 @@
                             item.color,
                             item.size,
                             item.panel,
+                            item.panel_status,
                             item.part_detail,
                             item.main_complement,
                             item.complement_part,
