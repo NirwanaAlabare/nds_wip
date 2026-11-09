@@ -499,7 +499,11 @@
                                             <th>Size</th>
                                             <th>Panel</th>
                                             <th>Part Detail</th>
+                                            <th>Main/Complement</th>
+                                            <th>Complement Part</th>
+                                            <th>Tujuan</th>
                                             <th>Proses</th>
+                                            <th>Part Status</th>
                                             <th>Shade</th>
                                             <th>Qty Stocker</th>
                                             <th>Notes</th>
@@ -1492,7 +1496,11 @@
                             item.size,
                             item.panel,
                             item.part_detail,
+                            item.main_complement,
+                            item.complement_part,
+                            item.tujuan,
                             item.proses,
+                            item.part_status,
                             item.shade,
                             item.qty_stocker,
                             item.notes,

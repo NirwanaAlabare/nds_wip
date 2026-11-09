@@ -342,7 +342,9 @@
         .wt-log::before { content: ""; position: absolute; left: -6px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--wt-blue); }
         .wt-range { width: 100%; accent-color: var(--wt-blue); }
         .wt-range-value { font-size: 28px; font-weight: 700; color: var(--wt-navy); }
-        .select2-container { width: 100% !important; }
+        /* Hanya kotak pilihannya yang selebar kolom; daftar yang melayang (dropdown) tetap selebar kotaknya */
+        .select2.select2-container { width: 100% !important; }
+        .select2-container--open .select2-dropdown { max-width: calc(100vw - 32px); }
 
         /* Panduan */
         .wt-guide { font-size: 13.5px; }
