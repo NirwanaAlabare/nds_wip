@@ -433,52 +433,52 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND bppbdate >= '{$tanggal_saldo_awal} 00:00:00'
                     AND bppbdate < '{$tgl_awal} 00:00:00'
                     AND id_supplier NOT IN (458 , 927 , 2053)
-                    AND bppbdate < '2026-09-01'
+                    -- AND bppbdate < '2026-09-01'
                 GROUP BY
                     id_so_det
 
-                UNION ALL
+                -- UNION ALL
 
-                SELECT
-                    data.id_so_det AS so_det_id,
-                    0, 0, 0, 0, 0, 0,
-                    SUM( data.qty ) AS pc_saldo_awal_masuk,
-                    0, 0, 0, 0
-                FROM (
-                    SELECT
-                        a.id,
-                        a.id_so_det,
-                        tgl_pengeluaran,
-                        a.qty
-                        from laravel_nds.fg_fg_out a
-                        inner join signalbit_erp.so_det sd on a.id_so_det = sd.id
-                        inner join signalbit_erp.so on sd.id_so = so.id
-                        inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
-                        inner join laravel_nds.ppic_master_so p on a.id_ppic_master_so = p.id
-                        left join signalbit_erp.master_size_new msn on sd.size = msn.size
-                        where tgl_pengeluaran >='{$tanggal_saldo_awal}' and tgl_pengeluaran < '{$tgl_awal}' and a.status = 'RETUR'
-                        and tgl_pengeluaran >= '2026-09-01'
-                        group by
-                        no_sb,
-                        tgl_pengeluaran,
-                        concat((DATE_FORMAT(a.tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(a.tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(a.tgl_pengeluaran,  '%Y')),
-                        a.po,
-                        a.barcode,
-                        ac.kpno,
-                        sd.color,
-                        sd.size,
-                        no_carton,
-                        a.qty,
-                        a.notes,
-                        a.buyer,
-                        invno,
-                        remark,
-                        jenis_dok,
-                        a.created_at,
-                        a.created_by
-                ) data
-                GROUP BY
-                    id_so_det
+                -- SELECT
+                --     data.id_so_det AS so_det_id,
+                --     0, 0, 0, 0, 0, 0,
+                --     SUM( data.qty ) AS pc_saldo_awal_masuk,
+                --     0, 0, 0, 0
+                -- FROM (
+                --     SELECT
+                --         a.id,
+                --         a.id_so_det,
+                --         tgl_pengeluaran,
+                --         a.qty
+                --         from laravel_nds.fg_fg_out a
+                --         inner join signalbit_erp.so_det sd on a.id_so_det = sd.id
+                --         inner join signalbit_erp.so on sd.id_so = so.id
+                --         inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+                --         inner join laravel_nds.ppic_master_so p on a.id_ppic_master_so = p.id
+                --         left join signalbit_erp.master_size_new msn on sd.size = msn.size
+                --         where tgl_pengeluaran >='{$tanggal_saldo_awal}' and tgl_pengeluaran < '{$tgl_awal}' and a.status = 'RETUR'
+                --         and tgl_pengeluaran >= '2026-09-01'
+                --         group by
+                --         no_sb,
+                --         tgl_pengeluaran,
+                --         concat((DATE_FORMAT(a.tgl_pengeluaran,  '%d')), '-', left(DATE_FORMAT(a.tgl_pengeluaran,  '%M'),3),'-',DATE_FORMAT(a.tgl_pengeluaran,  '%Y')),
+                --         a.po,
+                --         a.barcode,
+                --         ac.kpno,
+                --         sd.color,
+                --         sd.size,
+                --         no_carton,
+                --         a.qty,
+                --         a.notes,
+                --         a.buyer,
+                --         invno,
+                --         remark,
+                --         jenis_dok,
+                --         a.created_at,
+                --         a.created_by
+                -- ) data
+                -- GROUP BY
+                --     id_so_det
 
                 UNION ALL
 
@@ -1889,6 +1889,272 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
 
         return $query;
 
+    }
+
+    // Versi ringkas buildQueryMutasiPacking: hanya bagian packing line, tanpa transit, packing temporary, packing central.
+    // Trf garment ke Temporary Packing tetap dihitung karena mengurangi saldo packing line (saldo_akhir_adj).
+    public function buildQuerySaldoPackingLine($tgl_awal, $tgl_akhir, $tanggal_saldo_awal){
+
+        $selisihHari = (strtotime($tgl_akhir) - strtotime($tgl_awal)) / 86400;
+
+        if ($selisihHari < 7) {
+            $tgl_akhir_before = date('Y-m-d', strtotime($tgl_awal . ' -1 day'));
+            $tgl_current_before = $tgl_awal;
+        } else {
+            $tgl_akhir_before = date('Y-m-d', strtotime($tgl_akhir . ' -7 days'));
+            $tgl_current_before = date('Y-m-d', strtotime($tgl_akhir_before . ' +1 day'));
+        }
+
+        return DB::select("
+            WITH trx_union ( so_det_id, pl_saldo_awal_masuk, pl_saldo_awal_keluar, pl_rft, pl_reject, pl_keluar ) AS (
+
+            /* ================= SALDO AWAL (INJECT) ================= */
+                SELECT
+                    id_so_det AS so_det_id,
+                    saldo AS pl_saldo_awal_masuk,
+                    0, 0, 0, 0
+                FROM
+                    sa_report_pck
+                WHERE
+                    tgl_saldo = '{$tanggal_saldo_awal}'
+                    AND type = 'packing_line'
+
+                UNION ALL
+
+            /* ================= PACKING LINE SALDO AWAL MASUK (HISTORY) ================= */
+                SELECT
+                    so_det_id,
+                    SUM(qty) AS pl_saldo_awal_masuk,
+                    0, 0, 0, 0
+                FROM
+                    saldo_packing_line
+                WHERE
+                    so_det_id IS NOT NULL
+                    AND tgl_trans >= '{$tanggal_saldo_awal}'
+                    AND tgl_trans < '{$tgl_awal}'
+                GROUP BY
+                    so_det_id
+
+                UNION ALL
+
+            /* ================= PACKING LINE SALDO AWAL KELUAR (HISTORY TRF GARMENT) ================= */
+                SELECT
+                    pms.id_so_det AS so_det_id,
+                    0 AS pl_saldo_awal_masuk,
+                    SUM( tg.qty ) AS pl_saldo_awal_keluar,
+                    0, 0, 0
+                FROM
+                    laravel_nds.packing_trf_garment tg
+                    JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
+                WHERE
+                    pms.id_so_det IS NOT NULL
+                    AND tg.tgl_trans >= '{$tanggal_saldo_awal} 00:00:00'
+                    AND tg.tgl_trans < '{$tgl_awal} 00:00:00'
+                GROUP BY
+                    pms.id_so_det
+
+                UNION ALL
+
+            /* ================= PACKING LINE PERIODE MASUK ================= */
+                SELECT
+                    so_det_id,
+                    0, 0,
+                    SUM(IF(type = 'RFT', qty, 0)) AS pl_rft,
+                    SUM(IF(type = 'REJECT', qty, 0)) AS pl_reject,
+                    0
+                FROM
+                    saldo_packing_line
+                WHERE
+                    so_det_id IS NOT NULL
+                    AND tgl_trans BETWEEN '{$tgl_awal}' AND '{$tgl_akhir_before}'
+                GROUP BY
+                    so_det_id
+
+                UNION ALL
+
+                SELECT
+                    so_det_id,
+                    0, 0,
+                    SUM( type = 'RFT' ) AS pl_rft,
+                    SUM( type = 'REJECT' ) AS pl_reject,
+                    0
+                FROM
+                    signalbit_erp.output_rfts_packing_po
+                WHERE
+                    so_det_id IS NOT NULL
+                    AND updated_at BETWEEN '{$tgl_current_before} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                GROUP BY
+                    so_det_id
+
+                UNION ALL
+
+            /* ================= PACKING LINE PERIODE KELUAR (TRF GARMENT) ================= */
+                SELECT
+                    pms.id_so_det AS so_det_id,
+                    0, 0, 0, 0,
+                    SUM( tg.qty ) AS pl_keluar
+                FROM
+                    laravel_nds.packing_trf_garment tg
+                    JOIN ppic_master_so pms ON pms.id = tg.id_ppic_master_so
+                WHERE
+                    pms.id_so_det IS NOT NULL
+                    AND tg.tgl_trans BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                GROUP BY
+                    pms.id_so_det
+            ),
+
+            final_query as (
+                SELECT
+                    msn.urutan,
+                    msw.ws,
+                    msw.color,
+                    msw.styleno AS style,
+                    msw.size,
+                    msw.buyer,
+                    (SUM( pl_saldo_awal_masuk ) - SUM( pl_saldo_awal_keluar )) AS pl_saldo_awal,
+                    SUM( pl_rft ) AS pl_rft,
+                    SUM( pl_reject ) AS pl_reject,
+                    SUM( pl_keluar ) AS pl_keluar
+                FROM
+                    trx_union t
+                    INNER JOIN master_sb_ws msw ON msw.id_so_det = t.so_det_id
+                    LEFT JOIN master_size_new msn ON msn.size = msw.size
+                GROUP BY
+                    msn.urutan,
+                    msw.ws,
+                    msw.color,
+                    msw.styleno,
+                    msw.size,
+                    msw.buyer
+            ),
+
+            main_select as (
+                select
+                    urutan, ws, color, style, a.size, buyer,
+                    sum(pl_saldo_awal) pl_saldo_awal, sum(pl_rft) pl_rft, sum(pl_reject) pl_reject, sum(pl_keluar) pl_keluar,
+                    (SUM(pl_saldo_awal) + SUM(pl_rft) + SUM(pl_reject) - SUM(pl_keluar)) pl_saldo_akhir
+                from
+                (
+                    select * from final_query
+
+                    UNION ALL
+
+                    select msn.urutan, ws, color, styleno style, a.size, buyer,
+                    COALESCE(packing_saldo_awal, 0) pl_saldo_awal, COALESCE(packing_rft,0) pl_rft, COALESCE(packing_reject, 0) pl_reject, COALESCE(packing_keluar, 0) pl_keluar
+                    from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+
+                    UNION ALL
+
+                    select msn.urutan, ws, color, styleno style, a.size, buyer,
+                    (COALESCE(packing_saldo_awal, 0)+COALESCE(packing_rft, 0)+COALESCE(packing_reject, 0)-COALESCE(packing_keluar, 0)) pl_saldo_awal,
+                    0 pl_rft,
+                    0 pl_reject, 0 pl_keluar
+                    from signalbit_erp.inject_mutasi_sewing a LEFT JOIN master_size_new msn ON msn.size = a.size where type_saldo = 'PACKING' and tgl_saldo < '{$tgl_awal}'
+                ) a
+                GROUP BY urutan, ws, color, style, size, buyer
+            )
+
+            select
+                ws, color, style, a.size, buyer,
+                SUM(pl_saldo_awal) + SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) - SUM(qty_terima_temporary_before) saldo_awal_adjusment,
+                sum(pl_rft) pl_rft,
+                sum(pl_reject) pl_reject,
+                sum(pl_keluar) pl_keluar,
+                SUM(qty_terima_temporary) pl_keluar_temporary,
+                SUM(qty_adjustment) qty_adjustment,
+                SUM(switching_in) switching_in,
+                SUM(switching_out) switching_out,
+                (SUM(qty_adjustment_before) + SUM(switching_in_before) - SUM(switching_out_before) - SUM(qty_terima_temporary_before)) + SUM(pl_saldo_akhir) + (SUM(qty_adjustment) + SUM(switching_in) - SUM(switching_out) - SUM(qty_terima_temporary)) saldo_akhir_adj
+            from
+            (
+                select
+                    ws, color, style, size, buyer,
+                    pl_saldo_awal, pl_rft, pl_reject, pl_keluar, pl_saldo_akhir,
+                    0 as qty_adjustment_before,
+                    0 as qty_adjustment,
+                    0 as switching_in_before,
+                    0 as switching_in,
+                    0 as switching_out_before,
+                    0 as switching_out,
+                    0 as qty_terima_temporary_before,
+                    0 as qty_terima_temporary
+                from main_select
+
+                UNION ALL
+
+                select
+                    no_ws ws, color, style, size, buyer,
+                    0, 0, 0, 0, 0,
+                    SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) qty_adjustment_before,
+                    SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as qty_adjustment,
+                    0, 0, 0, 0, 0, 0
+                FROM
+                    wip_adjustment
+                WHERE
+                    tgl_saldo <= '{$tgl_akhir}'
+                    AND type_report = 'PACKING'
+                    AND status = 'Y'
+                GROUP BY
+                    ws, color, size, panel, part
+
+                UNION ALL
+
+                select
+                    from_no_ws ws, from_color, from_style, from_size, from_buyer,
+                    0, 0, 0, 0, 0,
+                    0, 0, 0, 0,
+                    SUM(IF(from_tgl_saldo < '{$tgl_awal}',qty,0)) switching_out_before,
+                    SUM(IF(from_tgl_saldo >= '{$tgl_awal}',qty,0)) as switching_out,
+                    0, 0
+                FROM
+                    wip_switching_adj
+                where
+                    from_tgl_saldo <= '{$tgl_akhir}' and
+                    type_report = 'PACKING'
+                GROUP BY
+                    from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
+
+                UNION ALL
+
+                select
+                    no_ws ws, color, style, size, buyer,
+                    0, 0, 0, 0, 0,
+                    0, 0,
+                    SUM(IF(tgl_saldo < '{$tgl_awal}',qty,0)) switching_in_before,
+                    SUM(IF(tgl_saldo >= '{$tgl_awal}',qty,0)) as switching_in,
+                    0, 0, 0, 0
+                FROM
+                    wip_switching_adj
+                WHERE
+                    tgl_saldo <= '{$tgl_akhir}' and
+                    type_report = 'PACKING'
+                GROUP BY
+                    from_no_ws, from_color, from_size, from_panel, from_part,
+                    no_ws, color, size, panel, part
+
+                UNION ALL
+
+                SELECT
+                    master_sb_ws.ws,
+                    master_sb_ws.color,
+                    master_sb_ws.styleno AS style,
+                    master_sb_ws.size,
+                    master_sb_ws.buyer,
+                    0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0,
+                    SUM(IF(tgl_trans < '{$tgl_awal}', packing_trf_garment.qty,0)) AS qty_terima_temporary_before,
+                    SUM(IF(tgl_trans >= '{$tgl_awal}', packing_trf_garment.qty,0)) AS qty_terima_temporary
+                FROM
+                    packing_trf_garment
+                LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_trf_garment.id_so_det
+                WHERE
+                    tgl_trans <= '{$tgl_akhir}' and
+                    tujuan = 'Temporary Packing'
+                GROUP BY
+                    master_sb_ws.ws, master_sb_ws.color, master_sb_ws.styleno, master_sb_ws.size, master_sb_ws.buyer
+            ) a
+            GROUP BY ws, color, style, size, buyer ORDER BY ws, color, buyer
+        ");
     }
 
     public function packing_rep_packing_mutasi_wip(Request $request)
