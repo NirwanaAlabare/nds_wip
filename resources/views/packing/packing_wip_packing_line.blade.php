@@ -192,7 +192,7 @@
         <div class="wip-meta">
             <span>Update: <b id="last-update">—</b></span>
             <span>Auto: <b id="countdown">120</b>s</span>
-            <button id="refresh-btn" onclick="loadWip()">
+            <button id="refresh-btn" onclick="loadWip(true)">
                 <i class="fas fa-sync-alt"></i> Refresh
             </button>
             <button id="export-btn"
@@ -222,7 +222,7 @@
 </div>
 {{-- Modal Detail PO --}}
 <div class="modal fade" id="modalDetailPO" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width:96vw;">
         <div class="modal-content">
             <div class="modal-header" id="modal-header-po" style="background:linear-gradient(135deg,#4361ee,#3a0ca3);">
                 <div>
@@ -258,29 +258,40 @@
                         <div class="spinner-border spinner-border-sm me-2"></div> Memuat detail...
                     </div>
                     <div id="modal-table-wrap" style="display:none;">
-                        <div style="overflow-y:auto; max-height:calc(100vh - 320px);">
+                        <div style="overflow-y:auto; max-height:calc(100vh - 250px);">
                         <table class="table table-bordered table-hover table-sm mb-0" style="font-size:13px;">
                             <thead class="table-dark" style="position:sticky;top:0;z-index:5;">
                                 <tr>
+                                    <th>Status</th>
                                     <th>Buyer</th>
                                     <th>WS</th>
                                     <th>Style</th>
                                     <th>Color</th>
                                     <th>Size</th>
-                                    <th class="text-end">SA</th>
-                                    <th class="text-end">Output ▲</th>
-                                    <th class="text-end">Transfer ▼</th>
-                                    <th class="text-end">WIP</th>
+                                    <th class="text-end">Saldo Awal</th>
+                                    <th class="text-end">Terima Good</th>
+                                    <th class="text-end">Terima Reject</th>
+                                    <th class="text-end">Keluar Packing Central</th>
+                                    <th class="text-end">Keluar Temporary Packing</th>
+                                    <th class="text-end">Switching OUT</th>
+                                    <th class="text-end">Switching IN</th>
+                                    <th class="text-end">Adjustment</th>
+                                    <th class="text-end">Saldo Akhir</th>
                                 </tr>
                             </thead>
                             <tbody id="modal-tbody"></tbody>
                             <tfoot style="position:sticky;bottom:0;z-index:5;">
                                 <tr class="fw-bold table-secondary">
-                                    <td colspan="5">Total</td>
-                                    <td class="text-end" id="ft-sa">0</td>
-                                    <td class="text-end" id="ft-out">0</td>
-                                    <td class="text-end" id="ft-trf">0</td>
-                                    <td class="text-end" id="ft-wip">0</td>
+                                    <td colspan="6">Total</td>
+                                    <td class="text-end" id="ft-saldo_awal">0</td>
+                                    <td class="text-end" id="ft-terima_good">0</td>
+                                    <td class="text-end" id="ft-terima_reject">0</td>
+                                    <td class="text-end" id="ft-keluar_central">0</td>
+                                    <td class="text-end" id="ft-keluar_temporary">0</td>
+                                    <td class="text-end" id="ft-switching_out">0</td>
+                                    <td class="text-end" id="ft-switching_in">0</td>
+                                    <td class="text-end" id="ft-adjustment">0</td>
+                                    <td class="text-end" id="ft-saldo_akhir">0</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -418,31 +429,32 @@ function openDetail(el) {
             $('#modal-loading').hide();
             if (!rows.length) { $('#modal-empty').show(); return; }
 
-            var totSa = 0, totOut = 0, totTrf = 0, totWip = 0;
+            var qtyCols = ['saldo_awal', 'terima_good', 'terima_reject', 'keluar_central', 'keluar_temporary', 'switching_out', 'switching_in', 'adjustment'];
+            var totals = {}, totWip = 0;
+            $.each(qtyCols, function(_, c) { totals[c] = 0; });
             $.each(rows, function(_, r) {
-                var w = Number(r.selisih);
-                totSa  += Number(r.qty_sa);
-                totOut += Number(r.qty_output);
-                totTrf += Number(r.qty_trf);
+                var w = Number(r.saldo_akhir);
+                var qtyCells = '';
+                $.each(qtyCols, function(_, c) {
+                    totals[c] += Number(r[c]);
+                    qtyCells += '<td class="text-end">' + fmt(r[c]) + '</td>';
+                });
                 totWip += w;
                 $('#modal-tbody').append(
                     '<tr>' +
+                    '<td><span class="badge text-nowrap ' + (r.status_order === 'Close Order' ? 'bg-danger' : 'bg-success') + '">' + r.status_order + '</span></td>' +
                     '<td>' + r.buyer   + '</td>' +
                     '<td>' + r.ws      + '</td>' +
                     '<td>' + r.styleno + '</td>' +
                     '<td>' + r.color   + '</td>' +
                     '<td>' + r.size    + '</td>' +
-                    '<td class="text-end">' + fmt(r.qty_sa)     + '</td>' +
-                    '<td class="text-end">' + fmt(r.qty_output) + '</td>' +
-                    '<td class="text-end">' + fmt(r.qty_trf)    + '</td>' +
+                    qtyCells +
                     '<td class="text-end fw-bold" style="color:' + (w < 0 ? '#cc2c2c' : (w === 0 ? '#bbb' : '#1a7f4b')) + '">' + fmt(w) + '</td>' +
                     '</tr>'
                 );
             });
-            $('#ft-sa').text(fmt(totSa));
-            $('#ft-out').text(fmt(totOut));
-            $('#ft-trf').text(fmt(totTrf));
-            $('#ft-wip').text(fmt(totWip)).css('color', totWip < 0 ? '#cc2c2c' : '#1a7f4b');
+            $.each(qtyCols, function(_, c) { $('#ft-' + c).text(fmt(totals[c])); });
+            $('#ft-saldo_akhir').text(fmt(totWip)).css('color', totWip < 0 ? '#cc2c2c' : '#1a7f4b');
             $('#modal-table-wrap').show();
         })
         .fail(function(xhr) {
@@ -552,8 +564,11 @@ function applyData(res, dataChanged) {
 }
 
 /* ── main fetch ── */
-function loadWip() {
+function loadWip(refresh) {
     startCountdown();
+
+    /* tombol Refresh: server tidak memakai cache */
+    var params = refresh ? { refresh: 1 } : {};
 
     var cached = loadCache();
     if (cached) {
@@ -565,7 +580,7 @@ function loadWip() {
         renderLines();
 
         /* fetch baru di background */
-        $.get('{{ route('wip_packing_line_data') }}')
+        $.get('{{ route('wip_packing_line_data') }}', params)
             .done(function(res) {
                 /* hanya re-render kalau data benar-benar berubah */
                 var changed = JSON.stringify(res.lines) !== JSON.stringify(cached.lines);
@@ -576,7 +591,7 @@ function loadWip() {
     } else {
         /* pertama kali: skeleton → fetch → render */
         showSkeleton();
-        $.get('{{ route('wip_packing_line_data') }}')
+        $.get('{{ route('wip_packing_line_data') }}', params)
             .done(function(res) { applyData(res, true); })
             .fail(function(xhr) {
                 $('#lines-header').empty();

@@ -13,6 +13,9 @@ use App\Exports\ExportStokTemporaryTrfGarment;
 
 class PackingTransferGarmentController extends Controller
 {
+    private const TANPA_LINE = 'TANPA LINE';
+    private const TANPA_PO = 'TANPA PO';
+
     public function index(Request $request)
     {
         $tgl_awal = $request->dateFrom;
@@ -106,7 +109,7 @@ class PackingTransferGarmentController extends Controller
             return DataTables::of($data_input)->toJson();
         }
 
-        return view('packing.packing_transfer_garment', ['page' => 'dashboard-packing', "subPageGroup" => "packing-transfer-garment", "subPage" => "transfer-garment"]);
+        return view('packing.packing_transfer_garment', ['page' => 'dashboard-packing', "subPageGroup" => "packing-transfer-garment", "subPage" => "transfer-garment", "containerFluid" => true]);
     }
 
     public function create(Request $request)
@@ -123,6 +126,7 @@ order by isi asc");
             'page' => 'dashboard-packing',
             "subPageGroup" => "packing-transfer-garment",
             "subPage" => "transfer-garment",
+            "containerFluid" => true,
             "data_tujuan" => $data_tujuan,
             "data_line" => $data_line,
             "user" => $user
@@ -133,23 +137,18 @@ order by isi asc");
     {
         $line = $request->cbo_line;
         $tgl_shipment_min_setahun = date('Y-m-d', strtotime('-360 days'));
-        
-        if ($line) {
+
+        $opsi_tanpa_po = "<option value='" . self::TANPA_PO . "'>" . self::TANPA_PO . "</option>";
+
+        if ($line == self::TANPA_LINE) {
+            // PO dari baris TANPA LINE di WIP, ditambah pilihan TANPA PO
+            $data_po = $this->po_central_wip($line);
+        } else if ($line) {
             // Filter by line: only POs that have output from this line
             if($request->cbo_tujuan == 'Temporary Packing'){
-                $data_po = DB::select("
-                    SELECT 
-                         'Temporary Packing' AS isi,
-                        GROUP_CONCAT(output_rfts_packing_po.so_det_id) AS so_det_id,
-                        master_sb_ws.styleno,
-                        master_sb_ws.styleno_prod
-                    FROM signalbit_erp.output_rfts_packing_po
-                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = output_rfts_packing_po.so_det_id
-                    WHERE output_rfts_packing_po.alokasi = 'temporary packing'
-                    AND output_rfts_packing_po.created_at > '2026-10-04'
-                    AND output_rfts_packing_po.created_by_line = '$line'
-                    GROUP BY master_sb_ws.styleno, master_sb_ws.styleno_prod
-                ");
+                $data_po = $this->po_temporary_wip($line);
+            }else if($request->cbo_tujuan == 'Packing'){
+                $data_po = $this->po_central_wip($line);
             }else{
                 $data_po = DB::select("
                     SELECT
@@ -168,18 +167,7 @@ order by isi asc");
         } else {
             // No line filter: show all POs
             if($request->cbo_tujuan == 'Temporary Packing'){
-                $data_po = DB::select("
-                    SELECT 
-                         'Temporary Packing' AS isi,
-                        GROUP_CONCAT(output_rfts_packing_po.so_det_id) AS so_det_id,
-                        master_sb_ws.styleno,
-                        master_sb_ws.styleno_prod
-                    FROM signalbit_erp.output_rfts_packing_po
-                    LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = output_rfts_packing_po.so_det_id
-                    WHERE output_rfts_packing_po.alokasi = 'temporary packing'
-                    AND output_rfts_packing_po.created_at > '2026-10-04'
-                    GROUP BY master_sb_ws.styleno, master_sb_ws.styleno_prod
-                ");
+                $data_po = $this->po_temporary_wip(null);
             }else{
                 $data_po = DB::select("
                     SELECT p.po isi, m.styleno, m.styleno_prod
@@ -193,6 +181,9 @@ order by isi asc");
         }
 
         $html = "<option value=''>-- Pilih PO --</option>";
+        if ((!$line || $line == self::TANPA_LINE) && $request->cbo_tujuan == 'Packing') {
+            $html .= $opsi_tanpa_po;
+        }
         foreach ($data_po as $datapo) {
             $styleno     = htmlspecialchars($datapo->styleno      ?? '');
             $stylenoProd = htmlspecialchars($datapo->styleno_prod ?? '');
@@ -228,19 +219,16 @@ order by isi asc");
     {
         $po = $request->cbo_po;
 
+        if ($po == self::TANPA_PO) {
+            return '<option value="">-- Pilih Line --</option>'
+                . "<option value='" . self::TANPA_LINE . "'>" . self::TANPA_LINE . "</option>";
+        }
+
         // Cari lines yang punya output untuk PO ini via output_rfts_packing_po
         if($request->cbo_tujuan == 'Temporary Packing'){
-            $data_line = DB::select("
-                SELECT DISTINCT 
-                    o.created_by_line AS isi,
-                    o.created_by_line AS tampil
-                FROM signalbit_erp.output_rfts_packing_po o
-                WHERE o.alokasi = 'temporary packing'
-                AND o.created_by_line IS NOT NULL
-                AND o.so_det_id = '$request->so_det_id'
-                AND o.created_at > '2026-10-04'
-                ORDER BY o.created_by_line ASC
-            ");
+            $data_line = $this->line_temporary_wip($request->so_det_id);
+        }else if($request->cbo_tujuan == 'Packing'){
+            $data_line = $this->line_central_wip($po);
         }else{
             $data_line = DB::select("
                 SELECT DISTINCT o.created_by_line isi, o.created_by_line tampil
@@ -260,6 +248,320 @@ order by isi asc");
         return $html;
     }
 
+    // Packing Central: pilihan PO mengikuti baris line di WIP packing line
+    private function po_central_wip($line)
+    {
+        $rows = app(PackingLineController::class)->wipPackingLineCentralByLine($line);
+
+        $soDetList = array_values(array_unique(array_column($rows, 'so_det_id')));
+        if (empty($soDetList)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($soDetList), '?'));
+        $data_master = DB::select("
+            SELECT id_so_det, styleno_prod
+            FROM master_sb_ws
+            WHERE id_so_det IN ($placeholders)
+        ", $soDetList);
+
+        $stylenoProd = [];
+        foreach ($data_master as $d) {
+            $stylenoProd[$d->id_so_det] = $d->styleno_prod;
+        }
+
+        $data_po = [];
+        foreach ($rows as $row) {
+            $prod = $stylenoProd[$row->so_det_id] ?? null;
+            $data_po[$row->po . '|' . $row->styleno . '|' . $prod] = (object) [
+                'isi'          => $row->po,
+                'styleno'      => $row->styleno,
+                'styleno_prod' => $prod,
+            ];
+        }
+        ksort($data_po);
+
+        return array_values($data_po);
+    }
+
+    // Packing Central: pilihan line mengikuti baris PO di WIP packing line
+    private function line_central_wip($po)
+    {
+        $data_line = [];
+        foreach (app(PackingLineController::class)->wipPackingLineCentralByPo($po) as $row) {
+            $data_line[$row->line] = (object) [
+                'isi'    => $row->line,
+                'tampil' => $row->line,
+            ];
+        }
+        ksort($data_line);
+
+        return array_values($data_line);
+    }
+
+    // so_det_id dari option PO Temporary berupa daftar dipisah koma
+    private function so_det_list($value)
+    {
+        return array_values(array_unique(array_filter(array_map('intval', explode(',', (string) $value)))));
+    }
+
+    // Temporary Packing: pilihan per style dari baris TEMPORARY PACKING di WIP packing line
+    private function po_temporary_wip($line)
+    {
+        $rows = app(PackingLineController::class)->wipPackingLineTemporaryRows($line);
+
+        $soDetList = array_values(array_unique(array_column($rows, 'so_det_id')));
+        if (empty($soDetList)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($soDetList), '?'));
+        $stylenoProd = [];
+        foreach (DB::select("SELECT id_so_det, styleno_prod FROM master_sb_ws WHERE id_so_det IN ($placeholders)", $soDetList) as $d) {
+            $stylenoProd[$d->id_so_det] = $d->styleno_prod;
+        }
+
+        $data_po = [];
+        foreach ($rows as $row) {
+            $prod = $stylenoProd[$row->so_det_id] ?? null;
+            $key  = $row->styleno . '|' . $prod;
+            if (!isset($data_po[$key])) {
+                $data_po[$key] = (object) [
+                    'isi'          => 'Temporary Packing',
+                    'so_det_id'    => [],
+                    'styleno'      => $row->styleno,
+                    'styleno_prod' => $prod,
+                ];
+            }
+            $data_po[$key]->so_det_id[] = $row->so_det_id;
+        }
+        ksort($data_po);
+
+        foreach ($data_po as $d) {
+            $d->so_det_id = implode(',', array_unique($d->so_det_id));
+        }
+
+        return array_values($data_po);
+    }
+
+    // Temporary Packing: pilihan line dari baris TEMPORARY PACKING di WIP untuk so_det yang dipilih
+    private function line_temporary_wip($soDetIds)
+    {
+        $soDetList = $this->so_det_list($soDetIds);
+
+        $data_line = [];
+        foreach (app(PackingLineController::class)->wipPackingLineTemporaryRows() as $row) {
+            if (in_array((int) $row->so_det_id, $soDetList, true)) {
+                $data_line[$row->line] = (object) [
+                    'isi'    => $row->line,
+                    'tampil' => $row->line,
+                ];
+            }
+        }
+        ksort($data_line);
+
+        return array_values($data_line);
+    }
+
+    // Temporary Packing: qty = saldo akhir baris TEMPORARY PACKING di WIP (line + so_det), dikurangi tmp
+    private function garment_temporary_wip($line, $soDetIds, $user)
+    {
+        $soDetList = $this->so_det_list($soDetIds);
+
+        $items = array_values(array_filter(
+            app(PackingLineController::class)->wipPackingLineTemporaryRows($line),
+            function ($row) use ($soDetList) {
+                return in_array((int) $row->so_det_id, $soDetList, true);
+            }
+        ));
+        if (empty($items)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($soDetList), '?'));
+
+        $dest = [];
+        foreach (DB::select("SELECT id_so_det, dest FROM master_sb_ws WHERE id_so_det IN ($placeholders)", $soDetList) as $d) {
+            $dest[$d->id_so_det] = $d->dest;
+        }
+
+        $terpakai = [];
+        foreach (DB::select("
+            SELECT id_so_det, SUM(qty_tmp_trf_garment) AS qty
+            FROM packing_trf_garment_tmp
+            WHERE created_by = ? AND line = ? AND id_ppic_master_so IS NULL AND id_so_det IN ($placeholders)
+            GROUP BY id_so_det
+        ", array_merge([$user, $line], $soDetList)) as $d) {
+            $terpakai[$d->id_so_det] = (int) $d->qty;
+        }
+
+        $data_garment = [];
+        foreach ($items as $item) {
+            $qty = (int) $item->saldo_akhir - ($terpakai[$item->so_det_id] ?? 0);
+
+            $data_garment[] = (object) [
+                'isi'       => 0,
+                'id_so_det' => $item->so_det_id,
+                'ws'        => $item->ws,
+                'color'     => $item->color,
+                'size'      => $item->size,
+                'dest'      => $dest[$item->so_det_id] ?? null,
+                'qty_sisa'  => $qty,
+                'selisih'   => $qty,
+            ];
+        }
+
+        usort($data_garment, function ($a, $b) {
+            return [$a->ws, $a->color] <=> [$b->ws, $b->color];
+        });
+
+        return $data_garment;
+    }
+
+    // Sumbernya baris TANPA LINE di WIP packing line (transfer sudah dikurangi di sana), dikurangi tmp
+    private function garment_tanpa_line($user)
+    {
+        $items = app(PackingLineController::class)->wipPackingLineTanpaLineData();
+
+        $wsList = array_values(array_unique(array_filter(array_column($items, 'ws'))));
+        if (empty($wsList)) {
+            return [];
+        }
+
+        $itemKey = function ($ws, $color, $style, $size, $buyer) {
+            return implode('|', array_map(function ($value) {
+                return strtoupper(trim((string) $value));
+            }, [$ws, $color, $style, $size, $buyer]));
+        };
+
+        // Report tidak punya so_det_id, ambil dari master yang punya data di ppic_master_so
+        $placeholders = implode(',', array_fill(0, count($wsList), '?'));
+        $data_so_det = DB::select("
+            SELECT
+                MIN(m.id_so_det) AS id_so_det,
+                m.ws,
+                m.color,
+                m.styleno,
+                m.size,
+                m.buyer,
+                MAX(p.dest) AS dest
+            FROM master_sb_ws m
+            INNER JOIN ppic_master_so p ON p.id_so_det = m.id_so_det
+            WHERE m.ws IN ($placeholders)
+            GROUP BY m.ws, m.color, m.styleno, m.size, m.buyer
+        ", $wsList);
+
+        $so_det = [];
+        foreach ($data_so_det as $d) {
+            $so_det[$itemKey($d->ws, $d->color, $d->styleno, $d->size, $d->buyer)] = $d;
+        }
+
+        $data_terpakai = DB::select("
+            SELECT m.ws, m.color, m.styleno, m.size, m.buyer, SUM(x.qty) AS qty
+            FROM (
+                SELECT id_so_det, qty_tmp_trf_garment AS qty
+                FROM packing_trf_garment_tmp
+                WHERE created_by = '$user' AND line = '" . self::TANPA_LINE . "' AND id_ppic_master_so IS NULL
+            ) x
+            INNER JOIN master_sb_ws m ON x.id_so_det = m.id_so_det
+            GROUP BY m.ws, m.color, m.styleno, m.size, m.buyer
+        ");
+
+        $terpakai = [];
+        foreach ($data_terpakai as $d) {
+            $terpakai[$itemKey($d->ws, $d->color, $d->styleno, $d->size, $d->buyer)] = (int) $d->qty;
+        }
+
+        $data_garment = [];
+        foreach ($items as $item) {
+            $key = $itemKey($item->ws, $item->color, $item->styleno, $item->size, $item->buyer);
+            $qty = (int) $item->saldo_akhir - ($terpakai[$key] ?? 0);
+
+            if ($qty <= 0 || !isset($so_det[$key])) {
+                continue;
+            }
+
+            $data_garment[] = (object) [
+                'isi'       => 0,
+                'id_so_det' => $so_det[$key]->id_so_det,
+                'ws'        => $item->ws,
+                'color'     => $item->color,
+                'size'      => $item->size,
+                'dest'      => $so_det[$key]->dest,
+                'qty_sisa'  => $qty,
+                'selisih'   => $qty,
+            ];
+        }
+
+        return $data_garment;
+    }
+
+    // Packing Central: qty mengikuti baris line + PO di WIP packing line, dikurangi tmp
+    private function garment_central_wip($po, $line, $user)
+    {
+        $items = app(PackingLineController::class)->wipPackingLineByLinePo($line, $po);
+
+        $soDetList = array_values(array_unique(array_column($items, 'so_det_id')));
+        if (empty($soDetList)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($soDetList), '?'));
+        $data_ppic = DB::select("
+            SELECT MIN(id) AS id, id_so_det, tgl_shipment, po, MAX(dest) AS dest
+            FROM ppic_master_so
+            WHERE id_so_det IN ($placeholders)
+            GROUP BY id_so_det, tgl_shipment, po
+        ", $soDetList);
+
+        // PO di WIP sudah dirapikan, sedangkan di ppic_master_so bisa ada spasi di depan
+        $poKey = function ($value) {
+            return strtoupper(trim(preg_replace('/\s+/', ' ', (string) $value)));
+        };
+
+        $ppic = [];
+        foreach ($data_ppic as $d) {
+            if ($poKey($d->po) === $poKey($po)) {
+                $ppic[$d->id_so_det . '|' . $d->tgl_shipment] = $d;
+            }
+        }
+
+        $data_terpakai = DB::select("
+            SELECT id_ppic_master_so, SUM(qty_tmp_trf_garment) AS qty
+            FROM packing_trf_garment_tmp
+            WHERE created_by = ? AND line = ? AND id_ppic_master_so IS NOT NULL
+            GROUP BY id_ppic_master_so
+        ", [$user, $line]);
+
+
+        $terpakai = [];
+        foreach ($data_terpakai as $d) {
+            $terpakai[$d->id_ppic_master_so] = ($terpakai[$d->id_ppic_master_so] ?? 0) + (int) $d->qty;
+        }
+
+        $data_garment = [];
+        foreach ($items as $item) {
+            $key = $item->so_det_id . '|' . $item->tgl_shipment;
+            if (!isset($ppic[$key])) {
+                continue;
+            }
+
+            $qty = (int) $item->saldo_akhir - ($terpakai[$ppic[$key]->id] ?? 0);
+
+            $data_garment[] = (object) [
+                'isi'      => $ppic[$key]->id,
+                'ws'       => $item->ws,
+                'color'    => $item->color,
+                'size'     => $item->size,
+                'dest'     => $ppic[$key]->dest,
+                'qty_sisa' => $qty,
+                'selisih'  => $qty,
+            ];
+        }
+
+        return $data_garment;
+    }
+
     public function get_garment(Request $request)
     {
         $po = $request->cbo_po;
@@ -267,50 +569,14 @@ order by isi asc");
         $tujuan = $request->cbo_tujuan;
         $user = Auth::user()->name;
 
-        if($tujuan == 'Temporary Packing'){
-            $data_garment = DB::select("WITH m as (
-                SELECT a.so_det_id AS id_so_det, a.created_by_line AS line, COUNT(*) AS qty_packing_line
-                FROM signalbit_erp.output_rfts_packing_po a
-                WHERE alokasi = 'temporary packing' AND a.created_at > '2026-10-04' and a.so_det_id IN ($request->so_det_id) and a.created_by_line = '$line'
-                GROUP BY a.so_det_id, a.created_by_line
-                ),
-                g AS (
-                    SELECT id_so_det, line, SUM(qty) AS qty_trf_gmt
-                    FROM packing_trf_garment a
-                    WHERE a.tujuan = 'Temporary Packing' and id_so_det IN ($request->so_det_id) and line = '$line'
-                    GROUP BY id_so_det, line
-                ),
-                t AS (
-                    SELECT id_so_det, line, SUM(qty_tmp_trf_garment) AS qty_trf_gmt
-                    FROM packing_trf_garment_tmp
-                    WHERE created_by = '$user' and line = '$line' and id_so_det IN ($request->so_det_id) AND id_ppic_master_so is null 
-                    GROUP BY id_so_det, line
-                ),
-                c AS (
-                    SELECT id_so_det, line, qty_packing_line AS qty_packing, 0 AS qty_trf_gmt FROM m
-                    UNION ALL
-                    SELECT id_so_det, line, 0, qty_trf_gmt FROM g
-                    UNION ALL
-                    SELECT id_so_det, line, 0, qty_trf_gmt FROM t
-                )
+        if($po == self::TANPA_PO){
+            $data_garment = $this->garment_tanpa_line($user);
 
-                SELECT
-                    0 isi,
-                    c.id_so_det,
-                    m.ws,
-                    m.color,
-                    m.size,
-                    m.dest,
-                    coalesce(SUM(qty_packing) - SUM(qty_trf_gmt),0) AS qty_sisa,
-                    line,
-                    SUM(qty_packing)            AS qty_packing,
-                    SUM(qty_trf_gmt)            AS qty_trf_gmt,
-                    SUM(qty_packing) - SUM(qty_trf_gmt) AS selisih
-                FROM c
-                left join master_sb_ws m on c.id_so_det = m.id_so_det
-                group by c.id_so_det
-                order by ws asc, color asc
-            ");
+        }else if($tujuan == 'Temporary Packing'){
+            $data_garment = $this->garment_temporary_wip($line, $request->so_det_id, $user);
+
+        }else if($tujuan == 'Packing'){
+            $data_garment = $this->garment_central_wip($po, $line, $user);
 
         }else{
 
@@ -466,7 +732,7 @@ order by isi asc");
                         m.size
                     from packing_trf_garment_tmp a
                     inner join master_sb_ws m on a.id_so_det = m.id_so_det
-                    where a.created_by = '$user' AND id_ppic_master_so is null
+                    where a.created_by = '$user' AND id_ppic_master_so is null AND a.line != '" . self::TANPA_LINE . "'
                 ");
             }else{
                 $data_list = DB::select("
@@ -482,6 +748,20 @@ order by isi asc");
                     inner join ppic_master_so b on a.id_ppic_master_so = b.id
                     inner join master_sb_ws m on b.id_so_det = m.id_so_det
                     where a.created_by = '$user'
+
+                    union all
+
+                    select
+                        a.id_tmp_trf_garment,
+                        line,
+                        '" . self::TANPA_PO . "' po,
+                        qty_tmp_trf_garment,
+                        m.ws,
+                        m.color,
+                        m.size
+                    from packing_trf_garment_tmp a
+                    inner join master_sb_ws m on a.id_so_det = m.id_so_det
+                    where a.created_by = '$user' AND id_ppic_master_so is null AND a.line = '" . self::TANPA_LINE . "'
                 ");
             }
 
@@ -558,7 +838,7 @@ order by isi asc");
                         from ppic_master_so
                         group by id_so_det
                     ) p on a.id_so_det = p.id_so_det
-                    where a.created_by = '$user' and a.id_ppic_master_so is null
+                    where a.created_by = '$user' and a.id_ppic_master_so is null and a.line != '" . self::TANPA_LINE . "'
                     "
                 );
             }else{
@@ -581,6 +861,28 @@ order by isi asc");
                     from packing_trf_garment_tmp a
                     inner join ppic_master_so p on a.id_ppic_master_so = p.id
                     where a.created_by = '$user'
+
+                    UNION ALL
+
+                    SELECT '$kode_trans','$tgltrans',
+                    a.id_ppic_master_so,
+                    a.id_so_det,
+                    a.qty_tmp_trf_garment,
+                    a.line,
+                    '" . self::TANPA_PO . "' AS po,
+                    p.barcode,
+                    p.dest,
+                    '$cbotuj',
+                    '$user',
+                    '$timestamp',
+                    '$timestamp'
+                    from packing_trf_garment_tmp a
+                    inner join (
+                        select id_so_det, max(barcode) barcode, max(dest) dest
+                        from ppic_master_so
+                        group by id_so_det
+                    ) p on a.id_so_det = p.id_so_det
+                    where a.created_by = '$user' and a.id_ppic_master_so is null and a.line = '" . self::TANPA_LINE . "'
                     "
                 );
             }
@@ -589,6 +891,8 @@ order by isi asc");
                 $delete =  DB::delete(
                     "DELETE FROM packing_trf_garment_tmp where created_by = '$user'"
                 );
+                // qty WIP berubah, hapus cache supaya form langsung pakai saldo terbaru
+                app(PackingLineController::class)->wipLupakanCache();
                 return array(
                     'icon' => 'benar',
                     'title' => $kode_trans,
