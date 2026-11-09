@@ -5,6 +5,8 @@ namespace App\Imports;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
+use App\Models\Part\MasterPart;
+use App\Models\Part\MasterSecondary;
 use App\Models\Part\Part;
 use App\Models\Part\PartDetail;
 use App\Models\Stocker\Stocker;
@@ -36,7 +38,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
         // Helper konversi tanggal
         $dateConvert = function ($date) {
             if (empty($date)) return null;
-            
+
             if (is_numeric($date)) {
                 return Date::excelToDateTimeObject($date);
             }
@@ -68,21 +70,26 @@ class ImportStockerManual implements ToCollection, WithStartRow
             $size             = $row[3] ?? null;
             $panelText        = $row[4] ?? null;
             $partText         = $row[5] ?? null;
-            $secondaryProcess = $row[6] ?? null;
-            $stockerQty       = $row[8] ?? 0;
-            $stockerNotes     = $row[9] ?? null;
-            $stockerStatus    = $row[10] ?? null;
-            $tanggal          = $row[11] ?? null;
-            $dcQty            = $row[12] ?? 0;
-            $secInhouseInQty  = $row[13] ?? 0;
-            $secInhouseOutQty = $row[14] ?? 0;
-            $secInQty         = $row[15] ?? 0;
-            $wipOutQty        = $row[16] ?? 0;
-            $wipOutTanggal    = $row[17] ?? null;
-            $loadingQty       = $row[18] ?? 0;
-            $loadingTanggal   = $row[19] ?? null;
-            $loadingLine      = $row[20] ?? null;
-            $loadingBon       = $row[21] ?? null;
+            $mainComplement   = $row[6] ?? null;
+            $complementPart   = $row[7] ?? null;
+            $secondaryTujuan  = $row[8] ?? null;
+            $secondaryProcess = $row[9] ?? null;
+            $partStatus       = $row[10] ?? null;
+            // $row[11] = shade (tidak dipakai, shade diisi $batch)
+            $stockerQty       = $row[12] ?? 0;
+            $stockerNotes     = $row[13] ?? null;
+            $stockerStatus    = $row[14] ?? null;
+            $tanggal          = $row[15] ?? null;
+            $dcQty            = $row[16] ?? 0;
+            $secInhouseInQty  = $row[17] ?? 0;
+            $secInhouseOutQty = $row[18] ?? 0;
+            $secInQty         = $row[19] ?? 0;
+            $wipOutQty        = $row[20] ?? 0;
+            $wipOutTanggal    = $row[21] ?? null;
+            $loadingQty       = $row[22] ?? 0;
+            $loadingTanggal   = $row[23] ?? null;
+            $loadingLine      = $row[24] ?? null;
+            $loadingBon       = $row[25] ?? null;
 
             // Validasi data penting
             if (empty($actCostingWs)) {
@@ -118,6 +125,52 @@ class ImportStockerManual implements ToCollection, WithStartRow
             $namaPart   = trim($partBagian[0] ?? '');
             $namaBagian = trim($partBagian[1] ?? '');
 
+            $mainComplement = $mainComplement ? strtolower(trim($mainComplement)) : null;
+
+            $partDetailFilter = "";
+            $partDetailParams = [$actCostingWs, $panelText, $namaPart];
+            if ($namaBagian) {
+                $partDetailFilter .= " AND master_part.bag = ?";
+                $partDetailParams[] = $namaBagian;
+            }
+            if ($mainComplement) {
+                // part_status NULL dianggap regular
+                $partDetailFilter .= $mainComplement == 'regular'
+                    ? " AND (part_detail.part_status = ? OR part_detail.part_status IS NULL)"
+                    : " AND part_detail.part_status = ?";
+                $partDetailParams[] = $mainComplement;
+            }
+
+            // Part sumber untuk complement (disimpan ke part_detail.from_part_detail)
+            $fromPartDetail = null;
+            $complementPart = $complementPart ? trim($complementPart) : null;
+            if ($mainComplement == 'complement' && $complementPart) {
+                $complementBagian   = explode('-', $complementPart);
+                $namaComplementPart = trim($complementBagian[0] ?? '');
+                $bagComplementPart  = trim($complementBagian[1] ?? '');
+
+                $fromPartDetail = DB::table("part_detail")
+                    ->select("part_detail.id")
+                    ->leftJoin("part", "part.id", "=", "part_detail.part_id")
+                    ->leftJoin("master_part", "master_part.id", "=", "part_detail.master_part_id")
+                    ->where("part.act_costing_ws", $actCostingWs)
+                    ->where("master_part.nama_part", $namaComplementPart)
+                    ->when($bagComplementPart, function ($query) use ($bagComplementPart) {
+                        $query->where("master_part.bag", $bagComplementPart);
+                    })
+                    ->where(function ($query) {
+                        $query->whereNull("part_detail.part_status")->orWhere("part_detail.part_status", "!=", "complement");
+                    })
+                    ->first();
+
+                if (!$fromPartDetail) {
+                    throw new Exception("Complement Part '{$complementPart}' tidak ditemukan pada WS {$actCostingWs} pada baris ke-{$i}");
+                }
+
+                $partDetailFilter .= " AND part_detail.from_part_detail = ?";
+                $partDetailParams[] = $fromPartDetail->id;
+            }
+
             // 2. Ambil Part Detail Info
             $partDetailInfo = DB::select("
                 SELECT
@@ -129,12 +182,13 @@ class ImportStockerManual implements ToCollection, WithStartRow
                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                 LEFT JOIN master_secondary ON master_secondary.id = part_detail.master_secondary_id
                 WHERE part.act_costing_ws = ? AND part.panel = ? AND master_part.nama_part = ?
-                " . ($namaBagian ? " AND master_part.bag = ?" : "") . "
+                " . $partDetailFilter . "
                 LIMIT 1
-            ", $namaBagian ? [$actCostingWs, $panelText, $namaPart, $namaBagian] : [$actCostingWs, $panelText, $namaPart]);
+            ", $partDetailParams);
 
             // Jika Part Detail belum ada, buat Part & Part Detail baru
             if (!($partDetailInfo && isset($partDetailInfo[0]))) {
+                // Part
                 $part = Part::where("act_costing_ws", $actCostingWs)
                     ->where("panel", $panelText)
                     ->first();
@@ -169,6 +223,8 @@ class ImportStockerManual implements ToCollection, WithStartRow
                     $masterPart = DB::table("master_part")->where("nama_part", "LIKE", "%".$namaPart."%")->first();
                 }
 
+                $masterTujuan = $secondaryTujuan ? DB::table("master_tujuan")->where("tujuan", "LIKE", "%".$secondaryTujuan."%")->first() : null;
+
                 $masterSecondary = DB::table("master_secondary")->where("proses", "LIKE", "%".$secondaryProcess."%")->first();
 
                 if (!$part) {
@@ -176,11 +232,54 @@ class ImportStockerManual implements ToCollection, WithStartRow
                 }
 
                 if (!$masterPart) {
-                    throw new Exception("Master Part '{$namaPart}' tidak ditemukan pada baris ke-{$i}");
+                    // Forcing unavailable part
+
+                    // Sanitasi multiple space
+                    $namaPartClean = preg_replace('/\s+/', ' ', trim($namaPart));
+                    $bagClean      = preg_replace('/\s+/', ' ', trim($namaBagian));
+
+                    // Generate kode berdasarkan ID / Kode terakhir
+                    $lastMasterPart = MasterPart::select('kode_master_part')->orderBy('id', 'desc')->first();
+                    $lastNumber = $lastMasterPart ? intval(substr($lastMasterPart->kode_master_part, -5)) : 0;
+                    $masterPartCode = 'MP' . sprintf('%05d', $lastNumber + 1);
+
+                    $masterPart = MasterPart::create([
+                        "kode_master_part"    => $masterPartCode,
+                        "nama_part"           => $namaPartClean,
+                        "bag"                 => $bagClean,
+                        "cancel"              => "N",
+                        "created_by"          => Auth::user()->id,
+                        "created_by_username" => Auth::user()->username,
+                    ]);
+
+                    if (!$masterPart) {
+                        throw new Exception("Master Part '{$namaPart}' tidak ditemukan pada baris ke-{$i}");
+                    }
+
+                    $partStatus = 'inactive';
                 }
 
                 if (!$masterSecondary) {
-                    throw new Exception("Master Secondary Process '{$secondaryProcess}' tidak ditemukan pada baris ke-{$i}");
+                    // Forcing unavailable process
+                    $masterSecondaryCount = MasterSecondary::count();
+                    $masterSecondaryNumber = intval($masterSecondaryCount) + 1;
+                    $masterSecondaryCode = 'MS' . sprintf('%05s', $masterSecondaryNumber);
+
+                    $masterSecondary = MasterSecondary::create([
+                        "kode" => $masterSecondaryCode,
+                        "id_tujuan" => ($masterTujuan ? $masterTujuan->id : 1),
+                        "tujuan" => ($masterTujuan ? $masterTujuan->tujuan : 'NON SECONDARY'),
+                        "proses" =>  strtoupper($secondaryProcess),
+                        "cancel" =>  'N',
+                        'created_by_id' => Auth::user()->id,
+                        'created_by' => Auth::user()->name,
+                    ]);
+
+                    if (!$masterSecondary) {
+                        throw new Exception("Master Secondary Process '{$secondaryProcess}' tidak ditemukan pada baris ke-{$i}");
+                    }
+
+                    $partStatus = 'inactive';
                 }
 
                 $partDetail = PartDetail::create([
@@ -189,6 +288,9 @@ class ImportStockerManual implements ToCollection, WithStartRow
                     "master_secondary_id" => $masterSecondary->id,
                     "cons" => '0.01',
                     "unit" => 'METER',
+                    "part_status" => ($mainComplement ? $mainComplement : 'regular'),
+                    "from_part_detail" => ($fromPartDetail ? $fromPartDetail->id : null),
+                    "status" => ($partStatus ? $partStatus : 'inactive'),
                     "created_at" => Carbon::now(),
                     "updated_at" => Carbon::now(),
                 ]);
@@ -203,9 +305,9 @@ class ImportStockerManual implements ToCollection, WithStartRow
                         LEFT JOIN part ON part.id = part_detail.part_id
                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                         LEFT JOIN master_secondary ON master_secondary.id = part_detail.master_secondary_id
-                        WHERE part.act_costing_ws = ? AND part.panel = ? AND master_part.nama_part = ?
+                        WHERE part_detail.id = ?
                         LIMIT 1
-                    ", [$actCostingWs, $panelText, $namaPart]);
+                    ", [$partDetail->id]);
                 }
             }
 
