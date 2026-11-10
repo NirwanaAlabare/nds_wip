@@ -7833,6 +7833,14 @@ class ReportCuttingController extends Controller
         // Build the SQL query string here
         if ($start_date < '2026-05-01') {
             $query = "WITH
+                pd_manual as (
+                        -- part detail yang hanya dipakai stocker manual SM-10112026 9:15 tidak dihitung qty IN-nya
+                        SELECT part_detail_id
+                        FROM stocker_input
+                        WHERE part_detail_id IN (SELECT part_detail_id FROM stocker_input WHERE notes = 'STOCKER MANUAL SM-10112026 9:15')
+                        GROUP BY part_detail_id
+                        HAVING SUM(COALESCE(notes, '') = 'STOCKER MANUAL SM-10112026 9:15') = COUNT(*)
+                ),
                 cutt_awal as (
                                 SELECT
                                         COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
@@ -7890,7 +7898,7 @@ class ReportCuttingController extends Controller
                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                         LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -7943,7 +7951,7 @@ class ReportCuttingController extends Controller
                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                         LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
                                         LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -8016,7 +8024,7 @@ class ReportCuttingController extends Controller
                                         AND modify_size_qty.form_cut_id = form_cut_input.id
                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -8067,7 +8075,7 @@ class ReportCuttingController extends Controller
                                     LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
                                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
                                     LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-                                    LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                    LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                     LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                     LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                     LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -8149,7 +8157,7 @@ class ReportCuttingController extends Controller
                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                         LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -8203,7 +8211,7 @@ class ReportCuttingController extends Controller
                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                         LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
                                         LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail
                                         AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
@@ -8278,7 +8286,7 @@ class ReportCuttingController extends Controller
                                         AND modify_size_qty.form_cut_id = form_cut_input.id
                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail
                                         AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
@@ -8331,7 +8339,7 @@ class ReportCuttingController extends Controller
                                     LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
                                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
                                     LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-                                    LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                    LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                     LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                     LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                     LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9083,6 +9091,14 @@ class ReportCuttingController extends Controller
                 WITH
                 query_cutting as (
                     WITH
+                        pd_manual as (
+                            -- part detail yang hanya dipakai stocker manual SM-10112026 9:15 tidak dihitung qty IN-nya
+                            SELECT part_detail_id
+                            FROM stocker_input
+                            WHERE part_detail_id IN (SELECT part_detail_id FROM stocker_input WHERE notes = 'STOCKER MANUAL SM-10112026 9:15')
+                            GROUP BY part_detail_id
+                            HAVING SUM(COALESCE(notes, '') = 'STOCKER MANUAL SM-10112026 9:15') = COUNT(*)
+                        ),
                         cutt_awal as (
                             SELECT
                                 COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
@@ -9163,7 +9179,7 @@ class ReportCuttingController extends Controller
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
                                 LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                 LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9222,7 +9238,7 @@ class ReportCuttingController extends Controller
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                 LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
                                 LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9323,7 +9339,7 @@ class ReportCuttingController extends Controller
                                     AND (form_cut_input_detail.group_roll = modify_size_qty.group_roll)
                                 LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                 LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9380,7 +9396,7 @@ class ReportCuttingController extends Controller
                                 LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
                                 LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9789,7 +9805,7 @@ class ReportCuttingController extends Controller
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
                                 LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                 LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9848,7 +9864,7 @@ class ReportCuttingController extends Controller
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                 LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
                                 LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9949,7 +9965,7 @@ class ReportCuttingController extends Controller
                                     AND (form_cut_input_detail.group_roll = modify_size_qty.group_roll)
                                 LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                 LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -10006,7 +10022,7 @@ class ReportCuttingController extends Controller
                                 LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
                                 LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
