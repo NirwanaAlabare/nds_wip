@@ -843,7 +843,7 @@ class DcService
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
                                                     pd.id as part_detail_id,
-                                                    COALESCE(GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
+                                                    COALESCE(GROUP_CONCAT(DISTINCT (CASE WHEN mp.nama_part = 'STK' AND COALESCE(mp.bag, '') != '' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END))) as nama_part,
                                                     COALESCE(GROUP_CONCAT(DISTINCT UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')))) as part_status,
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_in_main, 0)), SUM(COALESCE(sec_inhouse_in,0))) ELSE SUM(COALESCE(sec_inhouse_in, 0)) END) kirim_secondary_dalam,
@@ -1658,7 +1658,7 @@ class DcService
                                             (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
                                             (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
                                             pd.id as part_detail_id,
-                                            COALESCE(GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
+                                            COALESCE(GROUP_CONCAT(DISTINCT (CASE WHEN mp.nama_part = 'STK' AND COALESCE(mp.bag, '') != '' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END))) as nama_part,
                                             COALESCE(GROUP_CONCAT(DISTINCT UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')))) as part_status,
                                             (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
                                             (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_in_main, 0)), SUM(COALESCE(sec_inhouse_in,0))) ELSE SUM(COALESCE(sec_inhouse_in, 0)) END) kirim_secondary_dalam,
@@ -2650,7 +2650,7 @@ class DcService
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
                                                     pd.id as part_detail_id,
-                                                    COALESCE(GROUP_CONCAT(DISTINCT mp.nama_part)) as nama_part,
+                                                    COALESCE(GROUP_CONCAT(DISTINCT (CASE WHEN mp.nama_part = 'STK' AND COALESCE(mp.bag, '') != '' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END))) as nama_part,
                                                     COALESCE(GROUP_CONCAT(DISTINCT UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')))) as part_status,
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(qty_in_dc_main, 0)), SUM(COALESCE(qty_in_dc,0))) ELSE SUM(COALESCE(qty_in_dc, 0)) END) as qty_in,
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'main' THEN COALESCE(SUM(COALESCE(sec_inhouse_in_main, 0)), SUM(COALESCE(sec_inhouse_in,0))) ELSE SUM(COALESCE(sec_inhouse_in, 0)) END) kirim_secondary_dalam,
@@ -3557,7 +3557,7 @@ class DcService
                             dc.color,
                             dc.size,
                             part.panel,
-                            mp.nama_part,
+                            (CASE WHEN mp.nama_part = 'STK' AND COALESCE(mp.bag, '') != '' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                             0 current_saldo_awal,
                             0 adjustment_before,
                             0 switching_in_before,
@@ -3600,9 +3600,11 @@ class DcService
                             left join part_custom pcust on pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = dc.color
                     where
                             part.id IS NOT NULL AND
+                            -- part tanpa master part / nama part kosong tidak dibuatkan baris 0
+                            mp.id IS NOT NULL AND COALESCE(mp.nama_part, '') != '' AND
                             (part.panel_status IS NULL OR part.panel_status != 'COMPLEMENT') AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
                     group by
-                            dc.ws, dc.color, dc.size, part.panel, COALESCE(mp.nama_part, '')
+                            dc.ws, dc.color, dc.size, part.panel, COALESCE((CASE WHEN mp.nama_part = 'STK' AND COALESCE(mp.bag, '') != '' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END), '')
             )
 
             SELECT
