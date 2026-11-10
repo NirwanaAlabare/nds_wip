@@ -117,7 +117,8 @@ class PackingCentralSwitchingController extends Controller
 
             $dataPackingCentralSwitching = PackingCentralSwitching::create([
                 'no_trans'                 => $no_trans->kode,
-                'packing_packing_in_id'    => $request->packing_packing_in_id ?: null,
+                // kolom NOT NULL; stok TANPA PO tidak punya packing_packing_in -> 0
+                'packing_packing_in_id'    => $request->packing_packing_in_id ?: 0,
                 'asal_ppic_master_so_id'   => $request->asal_ppic_master_so_id ?: null,
                 'asal_so_det_id'           => $request->asal_so_det_id,
                 'tujuan_ppic_master_so_id' => $request->tujuan_ppic_master_so_id,
