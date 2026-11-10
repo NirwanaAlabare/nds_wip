@@ -690,7 +690,7 @@
                     <i class="fas fa-percentage kpi-icon"></i>
                     <div class="kpi-label">Margin</div>
                     <div class="kpi-value skel" id="kpiMargin">—</div>
-                    <div class="kpi-sub">Earn / Cost ratio</div>
+                    <div class="kpi-sub">Balance / Earning</div>
                 </div>
                 <div class="kpi-card c-output">
                     <i class="fas fa-boxes kpi-icon"></i>
@@ -975,6 +975,23 @@
                     balance: r => parseFloat(r.blc) || 0,
                 },
 
+                /* KPI Est Cost & Balance diambil dari rekap harian (mgt_rep_tmp_sum_prod_earning),
+                 * sama dengan Laporan Sum Prod Earn. Menjumlahkan est_tot_cost / blc per row
+                 * mgt_rep_tmp_earning bisa berlipat (cost harian penuh tercatat di tiap row
+                 * pada hari libur yang ada produksi / row dengan mins_avail 0).
+                 * Return null kalau rekap kosong -> fallback ke penjumlahan per row. */
+                kpiTotalsOverride: function() {
+                    if (!dailySummaryRows.length) return null;
+                    return dailySummaryRows.reduce((t, r) => {
+                        t.cost += parseFloat(r.est_tot_cost) || 0;
+                        t.balance += parseFloat(r.blc) || 0;
+                        return t;
+                    }, {
+                        cost: 0,
+                        balance: 0
+                    });
+                },
+
                 applyUI: function() {
                     $('#prodEarnFilters').show();
                     $('#cardProfitLine').show();
@@ -1233,7 +1250,17 @@
                 }
 
                 const t = sumKpiTotals(rows);
-                const margin = t.cost > 0 ? (t.earning / t.cost) * 100 : 0;
+
+                // report bisa override total cost & balance KPI (lihat kpiTotalsOverride di PROD_EARN_REPORT)
+                const report = currentReport();
+                const override = report.kpiTotalsOverride ? report.kpiTotalsOverride() : null;
+                if (override) {
+                    t.cost = override.cost;
+                    t.balance = override.balance;
+                }
+
+                // margin = (earning - cost) / earning, sama dengan percent_est_earn di procedure
+                const margin = t.earning > 0 ? (t.balance / t.earning) * 100 : 0;
 
                 $('#kpiEarning').removeClass('skel').text(fmtRp(t.earning));
                 $('#kpiCost').removeClass('skel').text(fmtRp(t.cost));
