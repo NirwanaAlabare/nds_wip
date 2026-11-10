@@ -31,43 +31,27 @@ class PackingCentralSwitchingController extends Controller
     }
     public function preview(Request $request)
     {
+        // Stok asal mengikuti Detail Transaksi (termasuk baris TANPA PO)
         $id = $request->id_ppic_master_so ?: null;
+        $po = $request->po ?: 'TANPA PO';
 
-        // Sumber FGS / TEMPORARY PACKING masuk tanpa id_ppic_master_so, jadi
-        // pembedanya id_so_det + po asal (diambil dari packing_packing_in_id).
-        $soDet = $request->so_det_id;
-        $po = null;
+        $item = DB::table('master_sb_ws')->where('id_so_det', $request->so_det_id)->first(['ws', 'styleno', 'color', 'size']);
+        if (!$item) {
+            return response()->json([]);
+        }
 
-        if ($request->packing_packing_in_id) {
-            $asal = DB::table('packing_packing_in')
-                ->where('id', $request->packing_packing_in_id)
-                ->first(['id_so_det', 'po']);
-
-            if ($asal) {
-                if ($soDet === null || $soDet === '') {
-                    $soDet = $asal->id_so_det;
-                }
-
-                if (is_null($id)) {
-                    $po = $asal->po;
-                }
+        $data = [];
+        foreach ($this->buildQueryDetailTransaksi(date('Y-m-d'), date('Y-m-d'), 'Tersedia', $po) as $row) {
+            if (
+                (int) $row->id_ppic_master_so === (int) $id
+                && $row->ws == $item->ws
+                && $row->styleno == $item->styleno
+                && $row->color == $item->color
+                && $row->size == $item->size
+            ) {
+                $data[] = $this->lengkapiStokAsal($row);
             }
         }
-
-        $filter = 'COALESCE(combined.id_ppic_master_so, 0) = ?';
-        $bindings = [$id ?? 0];
-
-        if (!($soDet === null || $soDet === '')) {
-            $filter .= ' AND combined.so_det_id = ?';
-            $bindings[] = $soDet;
-        }
-
-        if (!is_null($po)) {
-            $filter .= " AND COALESCE(combined.po, '') = ?";
-            $bindings[] = $po;
-        }
-
-        $data = DB::select($this->sqlStokAsalPo($filter), $bindings);
 
         return response()->json($data);
     }
@@ -133,7 +117,7 @@ class PackingCentralSwitchingController extends Controller
 
             $dataPackingCentralSwitching = PackingCentralSwitching::create([
                 'no_trans'                 => $no_trans->kode,
-                'packing_packing_in_id'    => $request->packing_packing_in_id,
+                'packing_packing_in_id'    => $request->packing_packing_in_id ?: null,
                 'asal_ppic_master_so_id'   => $request->asal_ppic_master_so_id ?: null,
                 'asal_so_det_id'           => $request->asal_so_det_id,
                 'tujuan_ppic_master_so_id' => $request->tujuan_ppic_master_so_id,
@@ -190,7 +174,7 @@ class PackingCentralSwitchingController extends Controller
                 packing_central_switching.no_trans,
                 DATE_FORMAT(packing_central_switching.created_at, '%d-%b-%Y') AS tgl_trans,
                 packing_packing_in.no_trans as no_trans_packing_in,
-                packing_packing_in.po,
+                COALESCE(ppic_asal.po, packing_packing_in.po, 'TANPA PO') AS po,
                 master_sb_ws.ws,
                 master_sb_ws.buyer,
                 packing_packing_in.line,
@@ -213,7 +197,8 @@ class PackingCentralSwitchingController extends Controller
                 packing_central_switching.created_at
             FROM packing_central_switching
             LEFT JOIN packing_packing_in ON packing_packing_in.id = packing_central_switching.packing_packing_in_id
-            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = COALESCE(packing_central_switching.asal_so_det_id, packing_packing_in.id_so_det)
+            LEFT JOIN ppic_master_so ppic_asal ON ppic_asal.id = packing_central_switching.asal_ppic_master_so_id
             LEFT JOIN ppic_master_so ON ppic_master_so.id = packing_central_switching.tujuan_ppic_master_so_id
             LEFT JOIN master_sb_ws AS master_sb_ws_tujuan ON master_sb_ws_tujuan.id_so_det = ppic_master_so.id_so_det
             WHERE DATE(packing_central_switching.created_at)
@@ -229,14 +214,88 @@ class PackingCentralSwitchingController extends Controller
 
     public function getDataAsalPo(Request $request)
     {
-        $search = $request->search;
+        $search = strtoupper(trim((string) $request->search));
 
-        $data = DB::select(
-            $this->sqlStokAsalPo('COALESCE(ppic_master_so.po, combined.po) LIKE ?'),
-            ["%{$search}%"]
-        );
+        $rows = array_filter($this->buildQueryDetailTransaksi(date('Y-m-d'), date('Y-m-d'), 'Tersedia', null), function ($row) use ($search) {
+            return $search === '' || strpos(
+                strtoupper($row->po . ' ' . $row->ws . ' ' . $row->styleno . ' ' . $row->color . ' ' . $row->size),
+                $search
+            ) !== false;
+        });
+
+        $data = [];
+        foreach (array_slice($rows, 0, 100) as $row) {
+            $data[] = $this->lengkapiStokAsal($row);
+        }
 
         return response()->json($data);
+    }
+
+    /**
+     * Baris stok Detail Transaksi dilengkapi data yang dibutuhkan form switching
+     * (so_det_id, packing_packing_in_id, line, barcode).
+     * - Ada ppic        : so_det dari ppic_master_so.
+     * - PO tanpa ppic   : packing_packing_in dengan po tsb (supaya switching OUT jatuh ke PO itu).
+     * - TANPA PO        : so_det dari master_sb_ws (ws/style/color/size), packing_packing_in_id NULL.
+     */
+    private function lengkapiStokAsal($row)
+    {
+        $pin = null;
+        $soDetId = null;
+        $barcode = null;
+
+        if ($row->id_ppic_master_so) {
+            $ppic = DB::table('ppic_master_so')->where('id', $row->id_ppic_master_so)->first(['id_so_det', 'barcode']);
+            $soDetId = $ppic->id_so_det ?? null;
+            $barcode = $ppic->barcode ?? null;
+
+            $pin = DB::table('packing_packing_in')
+                ->where('id_ppic_master_so', $row->id_ppic_master_so)
+                ->orderBy('id')
+                ->first(['id', 'id_so_det', 'line', 'barcode']);
+        } else {
+            $soDetIds = DB::table('master_sb_ws')
+                ->where('ws', $row->ws)
+                ->where('styleno', $row->styleno)
+                ->where('color', $row->color)
+                ->where('size', $row->size)
+                ->orderBy('id_so_det')
+                ->pluck('id_so_det')
+                ->all();
+
+            $soDetId = $soDetIds[0] ?? null;
+
+            if ($row->po !== 'TANPA PO' && !empty($soDetIds)) {
+                $pin = DB::table('packing_packing_in')
+                    ->whereNull('id_ppic_master_so')
+                    ->where('po', $row->po)
+                    ->whereIn('id_so_det', $soDetIds)
+                    ->orderBy('id')
+                    ->first(['id', 'id_so_det', 'line', 'barcode']);
+            }
+        }
+
+        if ($pin && $pin->id_so_det) {
+            $soDetId = $pin->id_so_det;
+        }
+
+        return [
+            'tgl_shipment'          => $row->tgl_shipment,
+            'id_ppic_master_so'     => $row->id_ppic_master_so,
+            'packing_packing_in_id' => $pin->id ?? null,
+            'po'                    => $row->po,
+            'line'                  => $pin->line ?? null,
+            'barcode'               => $pin->barcode ?? $barcode,
+            'ws'                    => $row->ws,
+            'styleno'               => $row->styleno,
+            'color'                 => $row->color,
+            'size'                  => $row->size,
+            'dest'                  => $row->dest,
+            'so_det_id'             => $soDetId,
+            'qty_sisa'              => (int) $row->saldo_akhir,
+            'status'                => $row->status,
+            'close_order'           => $row->status_order === 'Close Order' ? 'Y' : 'N',
+        ];
     }
 
     /**
@@ -621,7 +680,7 @@ class PackingCentralSwitchingController extends Controller
                 packing_central_switching.no_trans,
                 DATE_FORMAT(packing_central_switching.created_at, '%d-%b-%Y') AS tgl_trans,
                 packing_packing_in.no_trans as no_trans_packing_in,
-                packing_packing_in.po,
+                COALESCE(ppic_asal.po, packing_packing_in.po, 'TANPA PO') AS po,
                 master_sb_ws.ws,
                 master_sb_ws.buyer,
                 packing_packing_in.line,
@@ -644,7 +703,8 @@ class PackingCentralSwitchingController extends Controller
                 packing_central_switching.created_at
             FROM packing_central_switching
             LEFT JOIN packing_packing_in ON packing_packing_in.id = packing_central_switching.packing_packing_in_id
-            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = packing_packing_in.id_so_det
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = COALESCE(packing_central_switching.asal_so_det_id, packing_packing_in.id_so_det)
+            LEFT JOIN ppic_master_so ppic_asal ON ppic_asal.id = packing_central_switching.asal_ppic_master_so_id
             LEFT JOIN ppic_master_so ON ppic_master_so.id = packing_central_switching.tujuan_ppic_master_so_id
             LEFT JOIN master_sb_ws AS master_sb_ws_tujuan ON master_sb_ws_tujuan.id_so_det = ppic_master_so.id_so_det
             WHERE DATE(packing_central_switching.created_at)
@@ -1231,6 +1291,7 @@ class PackingCentralSwitchingController extends Controller
                         COALESCE(ppic_master_so.tgl_shipment, MAX(trx.tgl_penerimaan)),
                         '%d-%m-%Y'
                     ) AS tgl_shipment,
+                    trx.id_ppic_master_so,
                     COALESCE(ppic_master_so.po, NULLIF(trx.po, ''), 'TANPA PO') AS po,
                     trx.ws,
                     trx.style AS styleno,
