@@ -299,7 +299,7 @@
                 <label for="tgl_filter_live">Tanggal:</label>
                 <input type="date" id="tgl_filter_live" value="{{ date('Y-m-d') }}">
                 <a onclick="reloadLiveData()" id="btn-search-live" title="Cari"><i class="fas fa-search"></i></a>
-                <input type="text" id="txt_search_live" placeholder="Cari nama / line...">
+                <input type="text" id="txt_search_live" placeholder="Cari nama / line / style...">
             </span>
             <span id="last-updated">Last Updated: -</span>
             <span>Refresh dalam: <span id="refreshCountdown">-</span>s</span>
@@ -609,7 +609,9 @@
                 const line = String(d.sewing_line ?? '').toLowerCase();
                 const chief = String(d.nm_chief ?? '').toLowerCase();
                 const leader = String(d.nm_leader ?? '').toLowerCase();
-                return line.includes(keyword) || chief.includes(keyword) || leader.includes(keyword);
+                const style = String(d.styleno_prod ?? '').toLowerCase();
+                return line.includes(keyword) || chief.includes(keyword) || leader.includes(keyword) ||
+                    style.includes(keyword);
             });
         }
 
