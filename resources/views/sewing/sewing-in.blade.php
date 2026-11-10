@@ -1003,6 +1003,348 @@
             color: #cbd5e1;
         }
 
+        /* ===== Animasi ===== */
+        @keyframes si-gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes si-ring {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .65); }
+            100% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+        }
+
+        @keyframes si-fade-up {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @keyframes si-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes si-ripple {
+            0% { transform: scale(.6); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        @keyframes si-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        @keyframes si-laser {
+            from { transform: translateY(0); }
+            to { transform: translateY(65px); }
+        }
+
+        @keyframes si-nudge {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        @keyframes si-pop {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes si-slide-in {
+            from { opacity: 0; transform: translateX(-12px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @keyframes si-bump {
+            0%, 100% { transform: scale(1); }
+            40% { transform: scale(1.18); }
+        }
+
+        @keyframes si-shimmer {
+            to { transform: translateX(100%); }
+        }
+
+        @keyframes si-ready {
+            0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, .55); }
+            100% { box-shadow: 0 0 0 12px rgba(5, 150, 105, 0); }
+        }
+
+        @keyframes si-shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-7px); }
+            40%, 80% { transform: translateX(7px); }
+        }
+
+        @keyframes si-confetti-fall {
+            to { transform: translate(var(--x), 105vh) rotate(var(--r)); }
+        }
+
+        /* Header: gradasi bergerak pelan */
+        .si-header {
+            background: linear-gradient(120deg, var(--si-navy), var(--si-navy-2), var(--si-navy));
+            background-size: 200% 100%;
+            animation: si-gradient 12s ease-in-out infinite;
+        }
+
+        /* Petunjuk: bagian yang harus diisi berdenyut */
+        .si-line-select.is-hint .select2-selection,
+        .si-scan-group.is-hint {
+            border-radius: 8px;
+            animation: si-ring 1.6s ease-out infinite;
+        }
+
+        /* Layar awal */
+        .si-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3.5rem 1rem 3rem;
+            text-align: center;
+            color: var(--si-muted);
+            animation: si-fade-up .5s ease both;
+        }
+
+        .si-scanner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 132px;
+            height: 132px;
+            margin-bottom: 1.5rem;
+        }
+
+        .si-scanner-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(18, 58, 120, .12);
+            animation: si-ripple 2.4s ease-out infinite;
+        }
+
+        .si-scanner-ring + .si-scanner-ring {
+            animation-delay: 1.2s;
+        }
+
+        .si-scanner-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 96px;
+            height: 96px;
+            border-radius: 20px;
+            background: linear-gradient(140deg, var(--si-navy), var(--si-navy-2));
+            color: #fff;
+            font-size: 2.6rem;
+            box-shadow: 0 12px 28px rgba(8, 33, 73, .28);
+            overflow: hidden;
+            animation: si-float 3s ease-in-out infinite;
+        }
+
+        .si-scanner-laser {
+            position: absolute;
+            top: 14px;
+            left: 10px;
+            right: 10px;
+            height: 3px;
+            border-radius: 3px;
+            background: #34d399;
+            box-shadow: 0 0 10px 2px rgba(52, 211, 153, .8);
+            opacity: 0;
+            transition: opacity .4s ease;
+            animation: si-laser 1.6s ease-in-out infinite alternate;
+        }
+
+        .si-hero.is-ready .si-scanner-laser {
+            opacity: 1;
+        }
+
+        .si-hero-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--si-text);
+        }
+
+        .si-hero-sub {
+            margin-top: .2rem;
+            font-size: .84rem;
+        }
+
+        .si-steps {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            margin-top: 1.4rem;
+        }
+
+        .si-step {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            padding: .4rem .9rem .4rem .45rem;
+            border: 1px solid var(--si-border);
+            border-radius: 99px;
+            background: #fff;
+            color: var(--si-faint);
+            font-size: .8rem;
+            font-weight: 600;
+            transition: all .3s ease;
+        }
+
+        .si-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--si-line);
+            font-size: .72rem;
+            transition: all .3s ease;
+        }
+
+        .si-step.is-active {
+            border-color: var(--si-navy-2);
+            color: var(--si-navy);
+            box-shadow: 0 4px 12px rgba(18, 58, 120, .15);
+            animation: si-nudge 1.6s ease-in-out infinite;
+        }
+
+        .si-step.is-active .si-step-num {
+            background: var(--si-navy-2);
+            color: #fff;
+        }
+
+        .si-step.is-done {
+            border-color: #a7f3d0;
+            background: var(--si-success-soft);
+            color: var(--si-success);
+        }
+
+        .si-step.is-done .si-step-num {
+            background: var(--si-success);
+            color: #fff;
+            animation: si-pop .4s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        .si-step-arrow {
+            color: #cbd5e1;
+            font-size: .7rem;
+        }
+
+        /* Ringkasan & tabel muncul naik pelan */
+        #info_bar:not(.d-none),
+        #list_panel:not(.d-none) {
+            animation: si-fade-up .4s ease both;
+        }
+
+        #list_panel:not(.d-none) {
+            animation-delay: .08s;
+        }
+
+        #list_panel {
+            transition: border-color .4s ease, box-shadow .4s ease;
+        }
+
+        #list_panel.is-complete {
+            border-color: #6ee7b7;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, .12);
+        }
+
+        /* Baris tampil berurutan saat tabel pertama muncul */
+        tr.si-intro td {
+            animation: si-fade-in .35s ease both;
+            animation-delay: var(--d);
+        }
+
+        tr.si-intro.is-new td {
+            animation: si-fade-in .35s ease both var(--d), si-flash 1.2s ease-out;
+        }
+
+        tr.is-new .si-dot {
+            animation: si-pop .5s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        tr.is-new .si-code {
+            display: inline-block;
+            animation: si-slide-in .4s ease-out both;
+        }
+
+        .si-bump {
+            animation: si-bump .4s ease;
+        }
+
+        #part_progress_text {
+            display: inline-block;
+            transform-origin: left center;
+        }
+
+        /* Progress bar berkilau */
+        .si-progress {
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .si-progress .progress-bar {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(90deg, #10b981, var(--si-success));
+            transition: width .6s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        .si-progress .progress-bar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent);
+            transform: translateX(-100%);
+            animation: si-shimmer 1.8s ease-in-out infinite;
+        }
+
+        /* Apply siap: tombol berdenyut */
+        .btn-si-apply.is-ready {
+            animation: si-ready 1.6s ease-out infinite;
+        }
+
+        /* Scan ditolak: kolom scan bergetar & merah */
+        .si-scan-group.is-reject {
+            animation: si-shake .45s ease;
+        }
+
+        .si-scan-group.is-reject .form-control,
+        .si-scan-group.is-reject .input-group-text {
+            background: #fef2f2 !important;
+            color: #dc2626;
+        }
+
+        /* Confetti setelah simpan berhasil */
+        .si-confetti {
+            position: fixed;
+            top: -16px;
+            z-index: 2000;
+            width: 8px;
+            height: 14px;
+            border-radius: 2px;
+            pointer-events: none;
+            animation: si-confetti-fall var(--t) cubic-bezier(.25, .6, .5, 1) forwards;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+
+            .si-confetti {
+                display: none;
+            }
+        }
+
         @media (max-width: 991.98px) {
             .si-legend {
                 display: none;
@@ -1132,10 +1474,24 @@
         </div>
 
         {{-- Sebelum scan --}}
-        <div class="si-empty" id="empty_state">
-            <i class="fa-solid fa-qrcode fa-3x mb-3"></i>
-            <div class="fw-semibold">Belum ada stocker</div>
-            <small>Pilih line, lalu scan stocker untuk memulai</small>
+        <div class="si-hero" id="empty_state">
+            <div class="si-scanner">
+                <span class="si-scanner-ring"></span>
+                <span class="si-scanner-ring"></span>
+                <div class="si-scanner-box">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span class="si-scanner-laser"></span>
+                </div>
+            </div>
+            <div class="si-hero-title" id="hero_title">Pilih line untuk memulai</div>
+            <div class="si-hero-sub" id="hero_sub">Pilih line di atas, lalu scan stocker pertama</div>
+            <div class="si-steps">
+                <span class="si-step" id="step_line"><span class="si-step-num">1</span> Pilih line</span>
+                <i class="fa-solid fa-chevron-right si-step-arrow"></i>
+                <span class="si-step" id="step_scan"><span class="si-step-num">2</span> Scan stocker</span>
+                <i class="fa-solid fa-chevron-right si-step-arrow"></i>
+                <span class="si-step"><span class="si-step-num">3</span> Lengkapi part &amp; Apply</span>
+            </div>
         </div>
 
         {{-- Part 1 Set: satu baris = satu part + stocker yang mengisinya --}}
@@ -1342,6 +1698,73 @@
         updateClock();
         setInterval(updateClock, 30000);
 
+        // ===== Animasi =====
+        // Ulang animasi "membesar sebentar" pada elemen
+        function bump(selector) {
+            $(selector).each(function () {
+                this.classList.remove("si-bump");
+                void this.offsetWidth;
+                this.classList.add("si-bump");
+            });
+        }
+
+        // Scan ditolak: kolom scan bergetar & merah sebentar
+        function rejectScan() {
+            let group = $(".si-scan-group");
+
+            group.removeClass("is-reject");
+            void group[0].offsetWidth;
+            group.addClass("is-reject");
+
+            clearTimeout(rejectScan.timer);
+            rejectScan.timer = setTimeout(() => group.removeClass("is-reject"), 900);
+        }
+
+        // Confetti setelah simpan berhasil
+        function confetti() {
+            if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                return;
+            }
+
+            let colors = ["#059669", "#34d399", "#123a78", "#3b82f6", "#f59e0b", "#f43f5e"];
+
+            for (let i = 0; i < 70; i++) {
+                let piece = document.createElement("span");
+
+                piece.className = "si-confetti";
+                piece.style.left = (Math.random() * 100) + "vw";
+                piece.style.background = colors[i % colors.length];
+                piece.style.animationDelay = (Math.random() * .3) + "s";
+                piece.style.setProperty("--x", (Math.random() * 160 - 80) + "px");
+                piece.style.setProperty("--r", (Math.random() * 720 - 360) + "deg");
+                piece.style.setProperty("--t", (1.4 + Math.random() * 1.2) + "s");
+
+                document.body.appendChild(piece);
+                setTimeout(() => piece.remove(), 3200);
+            }
+        }
+
+        // Petunjuk langkah: line → scan → lengkapi part
+        function updateHints() {
+            let lineSelected = !!$("#line_id").val();
+            let started = scannedStockers.length > 0;
+
+            $(".si-line-select").toggleClass("is-hint", !lineSelected);
+            $(".si-scan-group").toggleClass("is-hint", lineSelected && !started);
+
+            $("#empty_state").toggleClass("is-ready", lineSelected);
+            $("#hero_title").text(lineSelected ? "Siap scan stocker" : "Pilih line untuk memulai");
+            $("#hero_sub").text(lineSelected ? "Scan QR stocker dengan scanner / kamera, atau ketik kodenya" : "Pilih line di atas, lalu scan stocker pertama");
+
+            $("#step_line").toggleClass("is-active", !lineSelected).toggleClass("is-done", lineSelected)
+                .find(".si-step-num").html(lineSelected ? '<i class="fa-solid fa-check"></i>' : '1');
+            $("#step_scan").toggleClass("is-active", lineSelected);
+        }
+
+        $(function () {
+            updateHints();
+        });
+
         // Scan aktif setelah line dipilih
         $("#line_id").on("change", async function () {
             let lineSelected = !!$(this).val();
@@ -1382,6 +1805,8 @@
                     document.getElementById("loading").classList.add("d-none");
 
                     if (res.status != 200) {
+                        rejectScan();
+
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
@@ -1395,6 +1820,7 @@
                 },
                 error: function (jqXHR) {
                     document.getElementById("loading").classList.add("d-none");
+                    rejectScan();
 
                     Swal.fire({
                         icon: 'error',
@@ -1413,6 +1839,8 @@
         var currentWs = null;
         var parts = [];
         var lastScannedId = null;
+        var lastChangedId = null;
+        var prevPartFilled = 0;
 
         function escapeHtml(text) {
             return $("<div>").text(text ?? "-").html();
@@ -1432,6 +1860,8 @@
                 $("#info_size").text(stocker.size);
             } else if (currentWs.ws != stocker.act_costing_ws || currentWs.color != stocker.color || currentWs.size != stocker.size) {
                 // WS, color & size harus sama dengan stocker pertama
+                rejectScan();
+
                 Swal.fire({
                     icon: 'warning',
                     title: 'WS / Color / Size berbeda',
@@ -1446,6 +1876,8 @@
 
             // Part stocker harus termasuk list part 1 set
             if (!parts.some(part => part.part_detail_id == stocker.part_detail_id)) {
+                rejectScan();
+
                 Swal.fire({
                     icon: 'warning',
                     title: 'Part tidak termasuk set',
@@ -1462,6 +1894,8 @@
             }
 
             if (scannedStockers.some(item => item.id_qr_stocker == stocker.id_qr_stocker)) {
+                rejectScan();
+
                 Swal.fire({
                     icon: 'warning',
                     title: 'Stocker sudah di-scan',
@@ -1476,6 +1910,8 @@
             let partStocker = scannedStockers.find(item => item.part_detail_id == stocker.part_detail_id);
 
             if (partStocker) {
+                rejectScan();
+
                 Swal.fire({
                     icon: 'warning',
                     title: 'Part sudah terisi',
@@ -1513,14 +1949,18 @@
             currentWs = null;
             parts = [];
             lastScannedId = null;
+            lastChangedId = null;
+            prevPartFilled = 0;
 
             $("#info_bar, #list_panel").addClass("d-none");
+            $("#list_panel").removeClass("is-complete");
             $("#empty_state").removeClass("d-none");
             $("#part_list").html("");
             $("#qty_set").val("");
-            $("#btn_apply").prop("disabled", true);
+            $("#btn_apply").prop("disabled", true).removeClass("is-ready");
             $("#kode_stocker").val("").trigger("focus");
             closeNumpad();
+            updateHints();
         }
 
         // Qty act valid: bilangan bulat 1 s/d sisa qty stocker
@@ -1536,9 +1976,15 @@
             let setComplete = parts.length > 0 && partFilled == parts.length;
             let invalid = scannedStockers.filter(stocker => !isValidQtyAct(stocker));
             let qtySet = scannedStockers.length > 0 ? Math.min(...scannedStockers.map(stocker => Number(stocker.qty_act) || 0)) : 0;
+            let ready = setComplete && invalid.length == 0 && qtySet > 0;
+            let prevQtySet = $("#qty_set").val();
 
             $("#qty_set").val(scannedStockers.length > 0 ? qtySet : "");
-            $("#btn_apply").prop("disabled", !(setComplete && invalid.length == 0 && qtySet > 0));
+            $("#btn_apply").prop("disabled", !ready).toggleClass("is-ready", ready);
+
+            if (prevQtySet !== "" && prevQtySet != $("#qty_set").val()) {
+                bump("#qty_set");
+            }
 
             if (invalid.length > 0) {
                 $("#qty_set_note").html(`<span class="text-danger fw-semibold"><i class="fa-solid fa-triangle-exclamation"></i> Qty act harus 1 s/d sisa stocker (${invalid.length} baris)</span>`);
@@ -1558,7 +2004,7 @@
             return `
                 <div class="si-stepper ${diff != 0 ? 'is-changed' : ''}">
                     <button class="si-step-btn" type="button" onclick="stepQtyAct('${id}', -1)" ${qtyAct <= 1 ? 'disabled' : ''}><i class="fa-solid fa-minus"></i></button>
-                    <button class="si-step-value" type="button" onclick="openNumpad('${id}')" title="Ketik qty">${qtyAct}</button>
+                    <button class="si-step-value ${stocker.id_qr_stocker == lastChangedId ? 'si-bump' : ''}" type="button" onclick="openNumpad('${id}')" title="Ketik qty">${qtyAct}</button>
                     <button class="si-step-btn" type="button" onclick="stepQtyAct('${id}', 1)" ${qtyAct >= Number(stocker.qty_sisa) ? 'disabled' : ''}><i class="fa-solid fa-plus"></i></button>
                 </div>
                 ${diff != 0 ? `<div class="si-step-diff">${diff} dari sisa ${escapeHtml(stocker.qty_sisa)}</div>` : ''}
@@ -1575,6 +2021,7 @@
             // Qty act 1 s/d sisa qty stocker
             stocker.qty_act = Math.min(Math.max(1, Number(qtyAct) || 1), Number(stocker.qty_sisa));
             lastScannedId = null;
+            lastChangedId = idQrStocker;
 
             renderLists();
 
@@ -1763,6 +2210,8 @@
                         return;
                     }
 
+                    confetti();
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil',
@@ -1800,6 +2249,9 @@
             let partRows = "";
             let partFilled = 0;
 
+            // Tabel baru muncul: baris tampil berurutan
+            let intro = $("#list_panel").hasClass("d-none");
+
             parts.forEach((part, i) => {
                 let partStocker = scannedStockers.find(stocker => stocker.part_detail_id == part.part_detail_id);
                 let isFirst = partStocker && partStocker == firstStocker;
@@ -1833,7 +2285,7 @@
                 `;
 
                 partRows += `
-                    <tr class="${isFirst ? 'is-first' : partStocker ? 'is-filled' : ''} ${isNew ? 'is-new' : ''}">
+                    <tr class="${isFirst ? 'is-first' : partStocker ? 'is-filled' : ''} ${isNew ? 'is-new' : ''} ${intro ? 'si-intro' : ''}" style="--d: ${i * 45}ms">
                         <td class="text-center">${statusDot}</td>
                         <td class="si-panel">${escapeHtml(part.panel)}</td>
                         <td class="si-part">${escapeHtml(part.nama_part)}</td>
@@ -1852,8 +2304,18 @@
             $("#part_count, #part_progress_text").text(partFilled + " / " + parts.length);
             $("#part_count").toggleClass("is-complete", setComplete);
             $("#part_progress_bar").css("width", percent + "%");
+            $("#list_panel").toggleClass("is-complete", setComplete);
+
+            // Part bertambah: angka kelengkapan membesar sebentar
+            if (partFilled > prevPartFilled) {
+                bump("#part_count, #part_progress_text");
+            }
+
+            prevPartFilled = partFilled;
+            lastChangedId = null;
 
             updateQtySet();
+            updateHints();
 
             $("#empty_state").addClass("d-none");
             $("#info_bar, #list_panel").removeClass("d-none");
