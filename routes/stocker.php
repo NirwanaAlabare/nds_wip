@@ -131,6 +131,8 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/preview-import-stocker-manual', 'previewImportStockerManual')->name('preview-import-stocker-manual');
         Route::post('/import-stocker-manual', 'importStockerManual')->name('import-stocker-manual');
+        Route::get('/check-undo-import-stocker-manual', 'checkUndoImportStockerManual')->name('check-undo-import-stocker-manual');
+        Route::delete('/undo-import-stocker-manual', 'undoImportStockerManual')->name('undo-import-stocker-manual');
 
         Route::post('/rearrange-groups', 'rearrangeGroups')->name('rearrange-groups');
         Route::post('/recalculate-stocker-transaction', 'recalculateStockerTransaction')->name('recalculate-stocker-transaction');

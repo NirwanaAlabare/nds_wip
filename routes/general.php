@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\General\ErdController;
 use App\Http\Controllers\General\WorkTrackerController;
+use App\Http\Controllers\General\ActionPointController;
 use App\Http\Controllers\General\GeneralController;
 use App\Http\Controllers\General\InjectAdjustmentController;
 use App\Http\Controllers\General\LockController;
@@ -187,6 +188,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/delete', 'delete')->name('delete-work-tracker');
         Route::post('/programmer/store', 'storeProgrammer')->name('store-programmer-work-tracker');
         Route::post('/programmer/delete', 'deleteProgrammer')->name('delete-programmer-work-tracker');
+    });
+
+    Route::controller(ActionPointController::class)->prefix("action-points")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('action-points');
+        Route::get('/data', 'data')->name('data-action-points');
+        Route::get('/export', 'export')->name('export-action-points');
+        Route::get('/logs/{id}', 'logs')->name('logs-action-points');
+        Route::post('/store', 'store')->name('store-action-points');
+        Route::post('/update', 'update')->name('update-action-points');
+        Route::post('/follow-up', 'followUp')->name('follow-up-action-points');
+        Route::post('/delete', 'delete')->name('delete-action-points');
     });
 
     Route::controller(SwitchingController::class)->prefix("switching")->middleware("admin")->group(function () {

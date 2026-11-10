@@ -28,6 +28,9 @@ use Exception;
 
 class ImportStockerManual implements ToCollection, WithStartRow
 {
+    // Batch inject (disimpan di stocker_input.group_stocker & shade), dipakai untuk undo
+    public $batch;
+
     public function startRow(): int
     {
         return 2;
@@ -58,7 +61,8 @@ class ImportStockerManual implements ToCollection, WithStartRow
             }
         };
 
-        $batch = Str::uuid();
+        $batch = (string) Str::uuid();
+        $this->batch = $batch;
         $i = 1; // Counter baris Excel (Header = row 1)
 
         foreach ($rows as $row) {
@@ -174,6 +178,9 @@ class ImportStockerManual implements ToCollection, WithStartRow
 
                 $partDetailFilter .= " AND part_detail.from_part_detail = ?";
                 $partDetailParams[] = $fromPartDetail->id;
+            } else if ($mainComplement == 'complement') {
+                // Complement tanpa part sumber
+                $partDetailFilter .= " AND part_detail.from_part_detail IS NULL";
             }
 
             // 2. Ambil Part Detail Info
@@ -221,13 +228,13 @@ class ImportStockerManual implements ToCollection, WithStartRow
                 }
 
                 $masterPart = DB::table("master_part")
-                    ->where("nama_part", "LIKE", "%".$namaPart."%")
-                    ->where("bag", "LIKE", "%".$namaBagian."%")
+                    ->where("nama_part", $namaPart)
+                    ->where("bag", $namaBagian)
                     ->first();
 
-                if (!$masterPart) {
-                    $masterPart = DB::table("master_part")->where("nama_part", "LIKE", "%".$namaPart."%")->first();
-                }
+                // if (!$masterPart) {
+                //     $masterPart = DB::table("master_part")->where("nama_part", "LIKE", "%".$namaPart."%")->first();
+                // }
 
                 $masterTujuan = $secondaryTujuan ? DB::table("master_tujuan")->where("tujuan", "LIKE", "%".$secondaryTujuan."%")->first() : null;
 

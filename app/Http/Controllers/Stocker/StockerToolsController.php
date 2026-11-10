@@ -8,6 +8,7 @@ use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Dc\DCIn;
 use App\Models\Dc\LoadingLine;
+use App\Models\Dc\LoadingLinePlan;
 use App\Models\Dc\RackDetailStocker;
 use App\Models\Dc\SecondaryIn;
 use App\Models\Dc\SecondaryInhouse;
@@ -413,27 +414,28 @@ class StockerToolsController extends Controller
                 'color'               => $row[2] ?? '',
                 'size'                => $row[3] ?? '',
                 'panel'               => $row[4] ?? '',
-                'part_detail'         => $row[5] ?? '',
-                'main_complement'     => $row[6] ?? '',
-                'complement_part'     => $row[7] ?? '',
-                'tujuan'              => $row[8] ?? '',
-                'proses'              => $row[9] ?? '',
-                'part_status'         => $row[10] ?? '',
-                'shade'               => $row[11] ?? '',
-                'qty_stocker'         => $row[12] ?? '',
-                'notes'               => $row[13] ?? '',
-                'status'              => $row[14] ?? '',
-                'tanggal_proses_dc'  => $row[15] ?? '',
-                'dc_qty'              => $row[16] ?? '',
-                'in_secondary_qty'   => $row[17] ?? '',
-                'out_secondary_qty'  => $row[18] ?? '',
-                'secondary_in_qty'   => $row[19] ?? '',
-                'wip_out'             => $row[20] ?? '',
-                'tanggal_wip_out'    => $row[21] ?? '',
-                'loading_line_qty'   => $row[22] ?? '',
-                'tanggal_loading'    => $row[23] ?? '',
-                'loading_line'        => $row[24] ?? '',
-                'no_bon_loading'      => $row[25] ?? '',
+                'panel_status'        => $row[5] ?? '',
+                'part_detail'         => $row[6] ?? '',
+                'main_complement'     => $row[7] ?? '',
+                'complement_part'     => $row[8] ?? '',
+                'tujuan'              => $row[9] ?? '',
+                'proses'              => $row[10] ?? '',
+                'part_status'         => $row[11] ?? '',
+                'shade'               => $row[12] ?? '',
+                'qty_stocker'         => $row[13] ?? '',
+                'notes'               => $row[14] ?? '',
+                'status'              => $row[15] ?? '',
+                'tanggal_proses_dc'  => $row[16] ?? '',
+                'dc_qty'              => $row[17] ?? '',
+                'in_secondary_qty'   => $row[18] ?? '',
+                'out_secondary_qty'  => $row[19] ?? '',
+                'secondary_in_qty'   => $row[20] ?? '',
+                'wip_out'             => $row[21] ?? '',
+                'tanggal_wip_out'    => $row[22] ?? '',
+                'loading_line_qty'   => $row[23] ?? '',
+                'tanggal_loading'    => $row[24] ?? '',
+                'loading_line'        => $row[25] ?? '',
+                'no_bon_loading'      => $row[26] ?? '',
             ];
         }
 
@@ -457,7 +459,8 @@ class StockerToolsController extends Controller
         DB::beginTransaction();
 
         try {
-            Excel::import(new ImportStockerManual, public_path('/file_upload/' . $nama_file));
+            $importStockerManual = new ImportStockerManual;
+            Excel::import($importStockerManual, public_path('/file_upload/' . $nama_file));
 
             // 2. Commit jika semua baris berhasil tanpa error
             DB::commit();
@@ -465,7 +468,9 @@ class StockerToolsController extends Controller
             return [
                 "status" => 200,
                 "message" => 'Data Berhasil Di Upload',
-                "additional" => [],
+                "additional" => [
+                    "batch" => $importStockerManual->batch,
+                ],
             ];
         } catch (\Throwable $e) {
             // 3. Rollback SEMUA data jika ada 1 saja baris/proses yang error
@@ -475,6 +480,189 @@ class StockerToolsController extends Controller
                 "status" => 400,
                 "message" => 'Terjadi Kesalahan: ' . $e->getMessage(),
                 "additional" => $e->getTrace(),
+            ];
+        }
+    }
+
+    /**
+     * Ambil stocker hasil Import Stocker Manual.
+     * type "stocker" : berdasarkan batch atau salah satu ID stocker di batch tersebut.
+     * type "notes"   : berdasarkan notes stocker (bisa lebih dari satu batch).
+     */
+    private function getImportStockerManualBatch($type, $value)
+    {
+        $value = trim($value ?? '');
+        if (!$value) {
+            return null;
+        }
+
+        // Stocker inject: tanpa form cut, shade = group_stocker = uuid batch
+        $stockers = Stocker::whereColumn("shade", "group_stocker")->whereNull("form_cut_id");
+
+        if ($type == "notes") {
+            $stockers->where("notes", $value);
+        } else {
+            $batch = $value;
+            $stocker = Stocker::select("group_stocker")->where("id_qr_stocker", $value)->first();
+            if ($stocker) {
+                $batch = $stocker->group_stocker;
+            }
+
+            $stockers->where("group_stocker", $batch);
+        }
+
+        $stockers = $stockers->get();
+
+        if ($stockers->isEmpty()) {
+            return null;
+        }
+
+        return [
+            "batch" => $stockers->pluck("group_stocker")->unique()->values(),
+            "stockers" => $stockers,
+        ];
+    }
+
+    public function checkUndoImportStockerManual(Request $request)
+    {
+        $importBatch = $this->getImportStockerManualBatch($request->type, $request->value);
+        if (!$importBatch) {
+            return [
+                "status" => 404,
+                "message" => "Data inject stocker tidak ditemukan",
+            ];
+        }
+
+        $qrStockers = $importBatch["stockers"]->pluck("id_qr_stocker");
+        $idStockers = $importBatch["stockers"]->pluck("id");
+
+        return [
+            "status" => 200,
+            "message" => "Data inject stocker ditemukan",
+            "data" => [
+                "batch" => $importBatch["batch"],
+                "stockers" => $importBatch["stockers"]->map(function ($stocker) {
+                    return [
+                        "id_qr_stocker" => $stocker->id_qr_stocker,
+                        "act_costing_ws" => $stocker->act_costing_ws,
+                        "color" => $stocker->color,
+                        "size" => $stocker->size,
+                        "panel" => $stocker->panel,
+                        "qty" => $stocker->qty_ply,
+                        "notes" => $stocker->notes,
+                        "batch" => $stocker->group_stocker,
+                        "created_at" => $stocker->created_at ? $stocker->created_at->format("Y-m-d") : null,
+                        "created_by_username" => $stocker->created_by_username,
+                    ];
+                })->values(),
+                "dc_in" => DCIn::whereIn("id_qr_stocker", $qrStockers)->count(),
+                "secondary_inhouse_in" => SecondaryInhouseIn::whereIn("id_qr_stocker", $qrStockers)->count(),
+                "secondary_inhouse" => SecondaryInhouse::whereIn("id_qr_stocker", $qrStockers)->count(),
+                "secondary_in" => SecondaryIn::whereIn("id_qr_stocker", $qrStockers)->count(),
+                "wip_out" => DB::table("wip_out_det")->whereIn("id_qr_stocker", $qrStockers)->count(),
+                "loading_line" => LoadingLine::whereIn("stocker_id", $idStockers)->count(),
+            ],
+        ];
+    }
+
+    public function undoImportStockerManual(Request $request)
+    {
+        $importBatch = $this->getImportStockerManualBatch($request->type, $request->value);
+        if (!$importBatch) {
+            return [
+                "status" => 404,
+                "message" => "Data inject stocker tidak ditemukan",
+            ];
+        }
+
+        $stockers = $importBatch["stockers"];
+        $qrStockers = $stockers->pluck("id_qr_stocker");
+        $idStockers = $stockers->pluck("id");
+
+        // Check Closing (tanggal stocker inject mengikuti tanggal di excel)
+        foreach ($stockers as $stocker) {
+            if (checkClosingDate($stocker->created_at)) {
+                return [
+                    "status" => 400,
+                    "message" => "Data tidak dapat dihapus karena periode sudah ditutup (" . $stocker->id_qr_stocker . ").",
+                    "additional" => "Closing",
+                ];
+            }
+        }
+
+        // Stocker yang sudah masuk rak / trolley tidak boleh di-undo
+        $usedRack = RackDetailStocker::whereIn("stocker_id", $qrStockers)->pluck("stocker_id");
+        $usedTrolley = TrolleyStocker::whereIn("stocker_id", $idStockers)->count();
+        if ($usedRack->isNotEmpty() || $usedTrolley > 0) {
+            return [
+                "status" => 400,
+                "message" => "Stocker sudah digunakan di Rak/Trolley" . ($usedRack->isNotEmpty() ? " (" . $usedRack->unique()->implode(", ") . ")" : ""),
+            ];
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Loading Line
+            $loadingPlanIds = LoadingLine::whereIn("stocker_id", $idStockers)->pluck("loading_plan_id")->unique();
+            $deletedLoadingLine = LoadingLine::whereIn("stocker_id", $idStockers)->delete();
+
+            // Loading Plan yang sudah tidak punya loading line
+            $deletedLoadingPlan = LoadingLinePlan::whereIn("id", $loadingPlanIds)
+                ->whereNotIn("id", LoadingLine::select("loading_plan_id")->whereIn("loading_plan_id", $loadingPlanIds))
+                ->delete();
+
+            // WIP Out
+            $wipOutIds = DB::table("wip_out_det")->whereIn("id_qr_stocker", $qrStockers)->pluck("id_wip_out")->unique();
+            $deletedWipOutDet = DB::table("wip_out_det")->whereIn("id_qr_stocker", $qrStockers)->delete();
+            $deletedWipOut = DB::table("wip_out")
+                ->whereIn("id", $wipOutIds)
+                ->whereNotIn("id", DB::table("wip_out_det")->select("id_wip_out")->whereIn("id_wip_out", $wipOutIds))
+                ->delete();
+
+            // Secondary & DC
+            $deletedSecondaryIn = SecondaryIn::whereIn("id_qr_stocker", $qrStockers)->delete();
+            $deletedSecondaryInhouse = SecondaryInhouse::whereIn("id_qr_stocker", $qrStockers)->delete();
+            $deletedSecondaryInhouseIn = SecondaryInhouseIn::whereIn("id_qr_stocker", $qrStockers)->delete();
+            $deletedDcIn = DCIn::whereIn("id_qr_stocker", $qrStockers)->delete();
+
+            // Stocker
+            $deletedStocker = Stocker::whereIn("id", $idStockers)->delete();
+
+            DB::commit();
+
+            $summary = [
+                "stocker" => $deletedStocker,
+                "dc_in" => $deletedDcIn,
+                "secondary_inhouse_in" => $deletedSecondaryInhouseIn,
+                "secondary_inhouse" => $deletedSecondaryInhouse,
+                "secondary_in" => $deletedSecondaryIn,
+                "wip_out_det" => $deletedWipOutDet,
+                "wip_out" => $deletedWipOut,
+                "loading_line" => $deletedLoadingLine,
+                "loading_line_plan" => $deletedLoadingPlan,
+            ];
+
+            Log::channel("importStockerManual")->info("Undo Import Stocker Manual", [
+                "type" => $request->type,
+                "value" => $request->value,
+                "batch" => $importBatch["batch"],
+                "by" => Auth::user()->id . " " . Auth::user()->username,
+                "stockers" => $qrStockers->values(),
+                "deleted" => $summary,
+            ]);
+
+            return [
+                "status" => 200,
+                "message" => "Inject stocker berhasil di-undo (" . $deletedStocker . " stocker)",
+                "additional" => $summary,
+            ];
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return [
+                "status" => 400,
+                "message" => "Terjadi Kesalahan: " . $e->getMessage(),
             ];
         }
     }
