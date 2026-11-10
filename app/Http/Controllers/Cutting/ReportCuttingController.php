@@ -5917,7 +5917,7 @@ class ReportCuttingController extends Controller
         $sheet = $excel->sheet();
 
         $sheet->writeRow(
-            ['Report Penerimaan Fabric Cutting'],
+            ['Report Pengeluaran Fabric ke Cutting'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 14,
