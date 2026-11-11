@@ -4638,26 +4638,26 @@ class ReportMutasiOutputController extends Controller
             -- Reject in dari packing PO return (tidak lewat transit), dikurangkan dari transit keluar qc reject
             query_reject_in_return AS (
                 SELECT
-                    buyer,
-                    ws,
-                    styleno,
-                    color,
-                    size,
+                    msw.buyer,
+                    msw.ws,
+                    msw.styleno,
+                    msw.color,
+                    msw.size,
                     COUNT(*) AS qty_reject_in_return
                 FROM signalbit_erp.output_reject_in a
                 INNER JOIN signalbit_erp.master_plan mp ON a.master_plan_id = mp.id
-                LEFT JOIN laravel_nds.master_sb_ws ON master_sb_ws.id_so_det = a.so_det_id
+                LEFT JOIN laravel_nds.master_sb_ws msw ON msw.id_so_det = a.so_det_id
                 WHERE a.created_at >= '$start_date 00:00:00'
                     AND a.created_at >= '2026-10-01 00:00:00'
                     AND a.created_at <= '$end_date 23:59:59'
                     AND mp.cancel = 'N'
                     AND a.output_type = 'qc_fns_pck_return'
                 GROUP BY
-                    buyer,
-                    ws,
-                    styleno,
-                    color,
-                    size
+                    msw.buyer,
+                    msw.ws,
+                    msw.styleno,
+                    msw.color,
+                    msw.size
             )
 
             select
