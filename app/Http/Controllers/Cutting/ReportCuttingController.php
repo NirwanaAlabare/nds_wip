@@ -12600,7 +12600,7 @@ class ReportCuttingController extends Controller
                                         a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                         AND s.id is not null AND
                                         (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                         pd.part_status = 'main'
                                 UNION ALL
                                 SELECT
@@ -12651,7 +12651,7 @@ class ReportCuttingController extends Controller
                                         a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                         AND s.id is not null AND
                                         (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL)
                             ) dc
                             left join master_sb_ws m on dc.so_det_id = m.id_so_det
@@ -13100,7 +13100,7 @@ class ReportCuttingController extends Controller
                                 a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                 AND s.id is not null AND
                                 (s.cancel IS NULL OR s.cancel != 'y') and
-                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                 pd.part_status = 'main'
                         UNION ALL
                         SELECT
@@ -13151,7 +13151,7 @@ class ReportCuttingController extends Controller
                                 a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                 AND s.id is not null AND
                                 (s.cancel IS NULL OR s.cancel != 'y') and
-                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                 (pd.part_status != 'main' OR pd.part_status IS NULL)
                     ) dc
                     left join master_sb_ws m on dc.so_det_id = m.id_so_det
