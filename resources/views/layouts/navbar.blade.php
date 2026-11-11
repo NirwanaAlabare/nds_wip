@@ -954,13 +954,13 @@
                                     WIP Adjustment <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
-                            <li>
+                            {{-- <li>
                                 <a href="{{ route('part-detail-list') }}?page=accounting&subPage=part-detail-list"
                                     target="_blank" rel="noopener noreferrer"
                                     class="dropdown-item {{ $subPage == 'part-detail-list' ? 'active' : '' }}">
                                     Part Detail List <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
-                            </li>
+                            </li> --}}
                         </ul>
                     </li>
                 @endif
