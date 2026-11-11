@@ -258,7 +258,11 @@ class DCInController extends Controller
         $from = $request->from ? $request->from : date('Y-m-d');
         $to = $request->to ? $request->to : date('Y-m-d');
 
-        $data = $this->dcInQuery($request, $from, $to)->orderByDesc('tgl_trans')->get();
+        $data = $this->dcInQuery($request, $from, $to)
+            // jangan tampilkan stocker inject part STK (notes INJECT 10-11-2026 10:00)
+            ->whereRaw("NOT (COALESCE(notes, '') = ? AND COALESCE(nama_part, '') = ?)", ['INJECT 10-11-2026 10:00', 'STK'])
+            ->orderByDesc('tgl_trans')
+            ->get();
 
         // Calculate totals
         $totalQtyAwal = 0;
