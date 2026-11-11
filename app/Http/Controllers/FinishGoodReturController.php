@@ -20,6 +20,68 @@ class FinishGoodReturController extends Controller
         $user = Auth::user()->name;
         if ($request->ajax()) {
             $additionalQuery = '';
+            // Sumber & filter disamakan dengan PACKING CENTRAL PERIODE TERIMA RETURN (BPPB) di report mutasi
+            $data_input = DB::connection('mysql_sb')->select("SELECT
+                    b.bppbno_int AS no_sb,
+                    b.bppbdate AS tgl_pengeluaran,
+                    DATE_FORMAT(b.bppbdate, '%d-%b-%Y') AS tgl_pengeluaran_fix,
+                    COALESCE(pp.po, '-') AS po,
+                    COALESCE(pp.barcode, '-') AS barcode,
+                    ac.kpno,
+                    sd.color,
+                    sd.size,
+                    COALESCE(pp.no_carton, '-') AS no_carton,
+                    b.qty,
+                    ms.Supplier AS buyer,
+                    b.invno,
+                    b.remark,
+                    b.jenis_dok,
+                    b.dateinput AS created_at,
+                    b.username AS created_by
+                FROM (
+                    SELECT
+                        id_so_det,
+                        bppbno_int,
+                        DATE(bppbdate) AS bppbdate,
+                        invno,
+                        remark,
+                        jenis_dok,
+                        dateinput,
+                        username,
+                        SUM( qty ) AS qty
+                    FROM signalbit_erp.bppb b
+                    WHERE b.id_so_det IS NOT NULL AND b.id_so_det != '0'
+                        AND bppbno_int LIKE '%FG/RO%'
+                        AND bppbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                        AND b.id_supplier NOT IN (458 , 927 , 2053)
+                    GROUP BY
+                        id_so_det, bppbno_int, DATE(bppbdate), invno, remark, jenis_dok, dateinput, username
+                ) b
+                LEFT JOIN signalbit_erp.so_det sd ON b.id_so_det = sd.id
+                LEFT JOIN signalbit_erp.so ON sd.id_so = so.id
+                LEFT JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
+                LEFT JOIN (
+                    SELECT
+                        p.id_so_det,
+                        p.po,
+                        p.barcode,
+                        pl.no_carton
+                    FROM laravel_nds.ppic_master_so p
+                    LEFT JOIN laravel_nds.packing_master_packing_list pl ON pl.po = p.po AND pl.id_so_det = p.id_so_det
+                    WHERE p.id_so_det IN (
+                        SELECT id_so_det FROM signalbit_erp.bppb
+                        WHERE bppbno_int LIKE '%FG/RO%'
+                            AND bppbdate BETWEEN '{$tgl_awal} 00:00:00' AND '{$tgl_akhir} 23:59:59'
+                    )
+                    GROUP BY p.id_so_det
+                ) pp ON b.id_so_det = pp.id_so_det
+                ORDER BY
+                    b.bppbdate DESC, po ASC, sd.color ASC,
+                    (SELECT msn.urutan FROM signalbit_erp.master_size_new msn WHERE msn.size = sd.size LIMIT 1) ASC
+            ");
+
+            /* Query lama dari laravel_nds.fg_fg_out
             $data_input = DB::connection('mysql_sb')->select("SELECT
 a.id,
 no_sb,
@@ -66,6 +128,8 @@ a.created_at,
 a.created_by
 order by tgl_pengeluaran desc , po asc, color asc, msn.urutan asc
             ");
+
+            */
 
             return DataTables::of($data_input)->toJson();
         }
@@ -202,12 +266,12 @@ group by buyer");
             left join
             (
             select id,po,barcode, no_carton, dest, id_so_det, sum(qty) qty_fg, notes from fg_fg_in where po = '$po' and dest = '$dest' and cast(no_carton as unsigned) >= '$ctn_awal' and cast(no_carton as unsigned) <= '$ctn_akhir' and status = 'NORMAL'
-            group by no_carton, barcode, po, dest
+            group by no_carton, barcode, po, dest, id_so_det
             ) b on a.po = b.po and a.barcode = b.barcode and a.no_carton = b.no_carton and a.id_so_det = b.id_so_det
             left join
             (
             select po,barcode, no_carton, dest, id_so_det, sum(qty) qty_fg_out from fg_fg_out where po = '$po' and dest = '$dest' and cast(no_carton as unsigned) >= '$ctn_awal' and cast(no_carton as unsigned) <= '$ctn_akhir' and status = 'NORMAL'
-            group by no_carton, barcode, po, dest
+            group by no_carton, barcode, po, dest, id_so_det
             ) c on a.po = c.po and a.barcode = c.barcode and a.no_carton = c.no_carton and a.id_so_det = c.id_so_det
             where qty = coalesce(qty_fg,0) and coalesce(qty_fg_out,0) = '0'
             order by po asc, no_carton asc ");
