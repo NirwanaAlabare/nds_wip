@@ -46,6 +46,69 @@ class ExportLaporanFGReturList implements FromView, WithEvents, ShouldAutoSize
     public function view(): View
 
     {
+        // Sumber & filter disamakan dengan PACKING CENTRAL PERIODE TERIMA RETURN (BPPB) di report mutasi
+        $data = DB::connection('mysql_sb')->select("SELECT
+                    b.bppbno_int AS no_sb,
+                    b.bppbdate AS tgl_pengeluaran,
+                    DATE_FORMAT(b.bppbdate, '%d-%b-%Y') AS tgl_pengeluaran_fix,
+                    b.id_so_det,
+                    COALESCE(pp.barcode, '-') AS barcode,
+                    COALESCE(pp.po, '-') AS po,
+                    ac.kpno AS ws,
+                    sd.color,
+                    sd.size,
+                    sd.dest,
+                    COALESCE(pp.no_carton, '-') AS no_carton,
+                    b.qty,
+                    '-' AS notes,
+                    ms.Supplier AS buyer,
+                    b.invno,
+                    b.remark,
+                    b.jenis_dok,
+                    b.dateinput AS created_at,
+                    b.username AS created_by
+                FROM (
+                    SELECT
+                        id_so_det,
+                        bppbno_int,
+                        DATE(bppbdate) AS bppbdate,
+                        invno,
+                        remark,
+                        jenis_dok,
+                        dateinput,
+                        username,
+                        SUM( qty ) AS qty
+                    FROM signalbit_erp.bppb b
+                    WHERE b.id_so_det IS NOT NULL AND b.id_so_det != '0'
+                        AND bppbno_int LIKE '%FG/RO%'
+                        AND bppbdate BETWEEN '{$this->from} 00:00:00' AND '{$this->to} 23:59:59'
+                        AND b.id_supplier NOT IN (458 , 927 , 2053)
+                    GROUP BY
+                        id_so_det, bppbno_int, DATE(bppbdate), invno, remark, jenis_dok, dateinput, username
+                ) b
+                LEFT JOIN signalbit_erp.so_det sd ON b.id_so_det = sd.id
+                LEFT JOIN signalbit_erp.so ON sd.id_so = so.id
+                LEFT JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                LEFT JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.Id_Supplier
+                LEFT JOIN (
+                    SELECT
+                        p.id_so_det,
+                        p.po,
+                        p.barcode,
+                        pl.no_carton
+                    FROM laravel_nds.ppic_master_so p
+                    LEFT JOIN laravel_nds.packing_master_packing_list pl ON pl.po = p.po AND pl.id_so_det = p.id_so_det
+                    WHERE p.id_so_det IN (
+                        SELECT id_so_det FROM signalbit_erp.bppb
+                        WHERE bppbno_int LIKE '%FG/RO%'
+                            AND bppbdate BETWEEN '{$this->from} 00:00:00' AND '{$this->to} 23:59:59'
+                    )
+                    GROUP BY p.id_so_det
+                ) pp ON b.id_so_det = pp.id_so_det
+                ORDER BY b.dateinput DESC
+        ");
+
+        /* Query lama dari laravel_nds.fg_fg_out
         $data = DB::select("SELECT
 a.id,
 no_sb,
@@ -94,6 +157,8 @@ a.created_by
 order by a.created_at desc
         ");
 
+
+        */
 
         $this->rowCount = count($data) + 4;
 
