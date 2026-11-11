@@ -12582,7 +12582,7 @@ class ReportCuttingController extends Controller
                                         COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                         COALESCE(msb.size, s.size) size,
                                         mp.id master_part_id,
-                                        mp.nama_part,
+                                        (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                         pd.id as part_detail_id,
                                         pd.part_status,
                                         coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -12630,7 +12630,7 @@ class ReportCuttingController extends Controller
                                         COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                         COALESCE(msb.size, s.size) size,
                                         mp.id master_part_id,
-                                        mp.nama_part,
+                                        (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                         pd.id as part_detail_id,
                                         pd.part_status,
                                         coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -13082,7 +13082,7 @@ class ReportCuttingController extends Controller
                                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                 COALESCE(msb.size, s.size) size,
                                 mp.id master_part_id,
-                                mp.nama_part,
+                                (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                 pd.id as part_detail_id,
                                 pd.part_status,
                                 coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -13130,7 +13130,7 @@ class ReportCuttingController extends Controller
                                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                 COALESCE(msb.size, s.size) size,
                                 mp.id master_part_id,
-                                mp.nama_part,
+                                (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                 pd.id as part_detail_id,
                                 pd.part_status,
                                 coalesce(f.no_form, fp.no_form, fr.no_form) no_form
