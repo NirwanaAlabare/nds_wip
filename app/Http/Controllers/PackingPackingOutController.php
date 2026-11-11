@@ -1962,17 +1962,55 @@ group by po, no_carton, notes
 
     private function sqlStokTemporaryPacking(bool $perPo = true): string
     {
-        $filterPo = $perPo ? 'AND stok.po = ?' : '';
+        $filterPo = $perPo ? 'WHERE stok.po = ?' : '';
 
+        // Stok masuk = transfer garment + WIP Adjustment PACKING_TEMPORARY (sama dengan halaman
+        // Stok Temporary). Adjustment tidak punya PO, jadi masuk ke PO 'TEMPORARY PACKING'.
         return "
             SELECT
                 stok.po,
-                stok.id_ppic_master_so,
+                MAX(stok.id_ppic_master_so) AS id_ppic_master_so,
                 stok.id_so_det,
-                stok.qty
-                    - COALESCE(out_gudang_stok.qty, 0)
-                    - COALESCE(out_temporary.qty, 0) AS qty_sisa
-            FROM packing_trf_garment stok
+                SUM(stok.qty)
+                    - COALESCE(MAX(out_gudang_stok.qty), 0)
+                    - COALESCE(MAX(out_temporary.qty), 0) AS qty_sisa
+            FROM (
+                SELECT
+                    po,
+                    id_ppic_master_so,
+                    id_so_det,
+                    qty
+                FROM packing_trf_garment
+                WHERE tujuan = 'TEMPORARY PACKING'
+
+                UNION ALL
+
+                SELECT
+                    'TEMPORARY PACKING' AS po,
+                    NULL AS id_ppic_master_so,
+                    MIN(m.id_so_det) AS id_so_det,
+                    adj.qty_adj AS qty
+                FROM (
+                    SELECT
+                        no_ws,
+                        buyer,
+                        style,
+                        color,
+                        size,
+                        SUM(qty) AS qty_adj
+                    FROM wip_adjustment
+                    WHERE type_report = 'PACKING_TEMPORARY'
+                        AND status = 'Y'
+                    GROUP BY no_ws, buyer, style, color, size
+                ) adj
+                INNER JOIN master_sb_ws m
+                    ON m.ws = adj.no_ws
+                    AND m.buyer = adj.buyer
+                    AND m.styleno = adj.style
+                    AND m.color = adj.color
+                    AND m.size = adj.size
+                GROUP BY adj.no_ws, adj.buyer, adj.style, adj.color, adj.size, adj.qty_adj
+            ) stok
             LEFT JOIN (
                 SELECT
                     po,
@@ -1994,7 +2032,6 @@ group by po, no_carton, notes
             ) out_temporary
                 ON out_temporary.id_so_det = stok.id_so_det
                 AND out_temporary.po = stok.po
-            WHERE stok.tujuan = 'TEMPORARY PACKING'
             {$filterPo}
             GROUP BY
                 stok.po,
