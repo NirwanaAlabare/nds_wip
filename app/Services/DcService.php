@@ -1348,7 +1348,7 @@ class DcService
                                             wo.tgl_form between '".$dateFrom."' AND '$dateTo' and
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%' OR s.notes = 'STOCKER MANUAL SM-10112026 9:15') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main'
                                     group by
                                             s.id
@@ -1384,7 +1384,7 @@ class DcService
                                             wo.tgl_form between '".$dateFrom."' AND '$dateTo' and
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%' OR s.notes = 'STOCKER MANUAL SM-10112026 9:15') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                                     group by
                                             s.id
