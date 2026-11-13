@@ -394,7 +394,9 @@
         .wt-kcard.b-aman, .wt-kcard.b-selesai { border-left-color: var(--wt-green); } .wt-kcard.b-mepet { border-left-color: var(--wt-amber); } .wt-kcard.b-telat, .wt-kcard.b-selesai_telat { border-left-color: var(--wt-red); }
 
         /* Timeline */
-        .wt-tl-scroll { overflow-x: auto; }
+        .wt-tl-scroll { overflow-x: auto; cursor: grab; user-select: none; }
+        .wt-tl-scroll.panning, .wt-tl-scroll.panning * { cursor: grabbing !important; }
+        .wt-tl-scroll .wt-tl-bar { cursor: pointer; }
         .wt-tl { position: relative; width: max-content; min-width: 100%; }
         .wt-tl-row { display: grid; border-bottom: 1px solid var(--wt-line); transition: background .1s; }
         .wt-tl-row.drop-target .wt-tl-area { background-color: #e9f1fe; box-shadow: inset 0 0 0 2px var(--wt-blue); }
@@ -423,6 +425,12 @@
         .tl-telat, .tl-selesai_telat { border-color: #f3a3ab; border-left-color: var(--wt-red); background: #ffe8ea; } .tl-telat .wt-tl-fill, .tl-selesai_telat .wt-tl-fill { background: #fba9b1; }
         .tl-selesai, .tl-selesai_telat, .tl-ditolak { opacity: .7; }
         .wt-tl-over { position: absolute; z-index: 1; height: 24px; border-radius: 0 6px 6px 0; background: repeating-linear-gradient(45deg, #ffb3bb 0 5px, #ffe3e6 5px 10px); pointer-events: none; }
+        .wt-tl-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 8px; }
+        .wt-tl-nav label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12.5px; font-weight: 600; color: var(--wt-muted); }
+        .wt-tl-nav input[type="date"] { width: 150px; }
+        .wt-tl-hint { margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; background: #fff4dc; color: #7a5300; font-size: 12px; }
+        .wt-tl-bar.clip-l { border-left-style: dashed; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+        .wt-tl-bar.clip-r { border-right: 2px dashed currentColor; border-top-right-radius: 0; border-bottom-right-radius: 0; }
         .wt-tl-tip { position: fixed; z-index: 2000; display: none; padding: 4px 10px; border-radius: 8px; background: var(--wt-navy); color: #fff; font-size: 12px; font-weight: 600; white-space: nowrap; pointer-events: none; }
 
         /* Modal */
@@ -430,6 +438,12 @@
         .wt-color { display: flex; gap: 7px; flex-wrap: wrap; }
         .wt-color button { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--wt-line); }
         .wt-color button.active { box-shadow: 0 0 0 2px var(--wt-navy); }
+        .wt-member-avatar { border: 0; padding: 0; cursor: pointer; transition: transform .12s, box-shadow .12s; }
+        .wt-member-avatar:hover { transform: scale(1.12); box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--wt-line); }
+        .wt-member-colors { padding: 6px 0 10px 34px; }
+        .wt-member-colors button { width: 24px; height: 24px; }
+        .wt-color-custom { position: relative; display: inline-grid; place-items: center; width: 24px; height: 24px; margin: 0; border-radius: 50%; background: var(--wt-soft); color: var(--wt-muted); font-size: 11px; box-shadow: 0 0 0 1px var(--wt-line); cursor: pointer; }
+        .wt-color-custom input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
         .wt-log { border-left: 2px solid var(--wt-line); padding: 0 0 12px 14px; position: relative; font-size: 12.5px; }
         .wt-log::before { content: ""; position: absolute; left: -6px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--wt-blue); }
         /* Form kerjaan ringkas */
@@ -638,7 +652,6 @@
                 </div>
             </div>
             <div id="wt-arena-body">
-                <div class="wt-division-chips" id="wt-division-chips"></div>
                 <div id="wt-lanes"></div>
             </div>
         </div>
@@ -666,9 +679,10 @@
                 <button type="button" class="wt-filter-btn" id="wt-filter-toggle" aria-expanded="false" aria-controls="wt-filter-more"><i class="fa-solid fa-sliders"></i> Filter <span class="wt-filter-badge d-none" id="wt-filter-count"></span><i class="fa-solid fa-chevron-down"></i></button>
                 <button type="button" class="wt-filter-reset d-none" id="wt-filter-reset">Reset filter</button>
             </div>
+            <div class="wt-division-chips" id="wt-division-chips" aria-label="Filter divisi"></div>
 
             <div class="wt-filter-more d-none" id="wt-filter-more">
-                <div id="wt-f-division-box"><label>Divisi</label><select class="wt-select" id="wt-f-division"></select></div>
+                <div id="wt-f-division-box"><label>Divisi</label><select class="wt-select" id="wt-f-division" multiple></select></div>
                 <div><label>Jenis</label>
                     <select class="wt-select" id="wt-f-type">
                         <option value="">Semua jenis</option><option value="plan">Plan</option><option value="bug">Masalah</option><option value="request">Request</option>
@@ -1051,7 +1065,7 @@
             };
             const TIER_TITLE = { sprint: 'Ngebut!', jog: 'Jaga pace', walk: 'Ayo kejar!', rest: 'Belum ada kerjaan', finish: 'Semua beres!' };
 
-            const state = { timelineOpen: {}, drag: null, justDragged: false, division: '', board: null, demo: false, view: 'list', selected: null, color: COLORS[0], current: null, pos: {}, jumpers: [], urgentIds: [], reportItems: [], reportTimer: null, reportSeq: 0, statusBeforeReport: null, estimateManual: false, tileValues: {}, ringPct: 0, formFiles: [], progressFiles: [], formPoints: [], formPointsReady: true, detail: null, attachPoint: null };
+            const state = { timelineOpen: {}, tlMode: 'auto', tlFrom: null, tlTo: null, tlRange: null, tlZoom: null, tlScroll: null, tlExtending: false, tlPan: null, drag: null, justDragged: false, divisions: [], board: null, demo: false, view: 'list', selected: null, color: COLORS[0], current: null, pos: {}, jumpers: [], urgentIds: [], reportItems: [], reportTimer: null, reportSeq: 0, statusBeforeReport: null, estimateManual: false, tileValues: {}, ringPct: 0, formFiles: [], progressFiles: [], formPoints: [], formPointsReady: true, detail: null, attachPoint: null };
             const USER_NAME = @json(auth()->user()->name ?? '');
             // Samudra, Senja, Hutan, Anggur, Nirwana, Emas (sama dengan palet Action Points)
             const HERO_PALETTES = [['#2563eb', '#06b6d4'], ['#ea580c', '#e11d48'], ['#059669', '#65a30d'], ['#7c3aed', '#db2777'], ['#082149', '#1c5bb8'], ['#b45309', '#eab308']];
@@ -1077,6 +1091,34 @@
 
             function days(a, b) {
                 return Math.round((parseDate(b) - parseDate(a)) / 86400000);
+            }
+
+            function isoOf(date) {
+                return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+            }
+
+            function addDays(iso, n) {
+                const date = parseDate(iso);
+                date.setDate(date.getDate() + n);
+                return isoOf(date);
+            }
+
+            // Tanggal 1 dan tanggal terakhir bulan, digeser sejumlah bulan dari bulan tanggal iso
+            function monthStart(iso, add) {
+                const date = parseDate(iso);
+                return isoOf(new Date(date.getFullYear(), date.getMonth() + add, 1));
+            }
+
+            function monthEnd(iso, add) {
+                const date = parseDate(iso);
+                return isoOf(new Date(date.getFullYear(), date.getMonth() + add + 1, 0));
+            }
+
+            // Rentang Timeline bawaan per pilihan: 2 minggu dari kemarin, bulan berjalan, atau bulan lalu sampai bulan depan
+            function timelinePreset(mode, anchor) {
+                if (mode === '1m') return { from: monthStart(anchor, 0), to: monthEnd(anchor, 0) };
+                if (mode === '3m') return { from: monthStart(anchor, -1), to: monthEnd(anchor, 1) };
+                return { from: addDays(anchor, -1), to: addDays(anchor, 12) };
             }
 
             function initials(name) {
@@ -1383,7 +1425,7 @@
             function setView(view) {
                 state.view = view;
                 $('#wt-tabs button').each(function () { $(this).toggleClass('active', this.dataset.view === view); });
-                $('#wt-f-division-box, #wt-f-programmer-box, #wt-f-health-box').toggleClass('d-none', view === 'queue');
+                $('#wt-f-division-box, #wt-f-programmer-box, #wt-f-health-box, #wt-division-chips').toggleClass('d-none', view === 'queue');
                 $('#wt-f-status-box').toggleClass('d-none', view === 'queue' || view === 'kanban');
                 $('.wt-report-only').toggleClass('d-none', view !== 'report');
                 $('#wt-f-programmer-box').toggleClass('d-none', view === 'queue');
@@ -1408,7 +1450,7 @@
 
             function reportParams() {
                 const params = {
-                    from: $('#wt-f-from').val(), to: $('#wt-f-to').val(), division: $('#wt-f-division').val(), programmer: $('#wt-f-programmer').val(), type: $('#wt-f-type').val(),
+                    from: $('#wt-f-from').val(), to: $('#wt-f-to').val(), division: state.divisions.join(','), programmer: $('#wt-f-programmer').val(), type: $('#wt-f-type').val(),
                     status: $('#wt-f-status').val(), level: $('#wt-f-level').val(), health: $('#wt-f-health').val(), search: $('#wt-f-search').val(),
                 };
                 if (state.demo) params.demo = 1;
@@ -1685,6 +1727,11 @@
                 });
             }
 
+            // Divisi boleh dipilih lebih dari satu; tanpa pilihan berarti semua divisi
+            function divisionShown(d) {
+                return !state.divisions.length || state.divisions.includes(d);
+            }
+
             function renderDivisionChips() {
                 const divisions = memberDivisions();
                 if (divisions.length < 2) {
@@ -1692,7 +1739,8 @@
                     return;
                 }
                 $('#wt-division-chips').html([''].concat(divisions).map(function (d) {
-                    return '<button type="button" data-division="' + esc(d) + '" class="' + (state.division === d ? 'active' : '') + '">' + esc(d || 'Semua') + '</button>';
+                    const active = d ? state.divisions.includes(d) : !state.divisions.length;
+                    return '<button type="button" data-division="' + esc(d) + '" class="' + (active ? 'active' : '') + '" aria-pressed="' + active + '">' + (d && active ? '<i class="fa-solid fa-check"></i> ' : '') + esc(d || 'Semua divisi') + '</button>';
                 }).join(''));
             }
 
@@ -1732,9 +1780,7 @@
 
                 renderDivisionChips();
                 let laneIndex = 0;
-                $('#wt-lanes').html(memberDivisions().filter(function (d) {
-                    return !state.division || state.division === d;
-                }).map(function (d) {
+                $('#wt-lanes').html(memberDivisions().filter(divisionShown).map(function (d) {
                     const members = programmers.filter(function (p) { return p.division === d; });
                     return '<div class="wt-division-head">' + esc(d) + ' <span>' + members.length + ' orang</span></div>' + members.map(function (p) { return laneHtml(p, laneIndex++); }).join('');
                 }).join(''));
@@ -1760,9 +1806,9 @@
                 const queueView = state.view === 'queue';
 
                 return state.board.items.filter(function (i) {
-                    if (!queueView && state.division) {
+                    if (!queueView && state.divisions.length) {
                         const owner = programmerOf(i);
-                        if (!owner || owner.division !== state.division) return false;
+                        if (!owner || !state.divisions.includes(owner.division)) return false;
                     }
                     if (!queueView && (programmer === 'none' ? i.programmer_id !== null : (programmer && Number(i.programmer_id) !== Number(programmer)))) return false;
                     if (type && i.type !== type) return false;
@@ -1781,7 +1827,8 @@
             function updateFilterCount() {
                 const statusDefault = state.view === 'report' ? '' : 'open';
                 let count = 0;
-                [['#wt-f-division-box', '#wt-f-division', ''], [null, '#wt-f-type', ''], ['#wt-f-status-box', '#wt-f-status', statusDefault], [null, '#wt-f-level', ''], ['#wt-f-health-box', '#wt-f-health', '']].forEach(function (f) {
+                if (!$('#wt-f-division-box').hasClass('d-none') && state.divisions.length) count++;
+                [[null, '#wt-f-type', ''], ['#wt-f-status-box', '#wt-f-status', statusDefault], [null, '#wt-f-level', ''], ['#wt-f-health-box', '#wt-f-health', '']].forEach(function (f) {
                     if (f[0] && $(f[0]).hasClass('d-none')) return;
                     if (($(f[1]).val() || '') !== f[2]) count++;
                 });
@@ -1890,33 +1937,47 @@
                 const MAX_LANES = 3;
                 const SIDE_WIDTH = 170;
                 const today = state.board.today;
-                const shiftIso = function (iso, n) {
-                    const date = parseDate(iso);
-                    date.setDate(date.getDate() + n);
-                    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
-                };
+                const shiftIso = addDays;
 
-                const bars = items.filter(function (i) { return i.start_date || i.target_date || i.predicted_date; }).map(function (i) {
-                    const start = i.start_date || i.target_date || i.predicted_date;
-                    const planEnd = i.target_date || i.predicted_date || start;
+                const doneOf = function (i) {
+                    return i.status === 'selesai' && i.finished_at ? String(i.finished_at).slice(0, 10) : null;
+                };
+                const allBars = items.filter(function (i) { return i.start_date || i.target_date || i.predicted_date || doneOf(i); }).map(function (i) {
+                    const doneAt = doneOf(i);
+                    const start = i.start_date || i.target_date || i.predicted_date || doneAt;
+                    // Kerjaan selesai digambar sampai tanggal benar-benar selesai
+                    const planEnd = doneAt || i.target_date || i.predicted_date || start;
                     const end = planEnd < start ? start : planEnd;
-                    const overrun = i.health === 'telat' && i.predicted_date && i.predicted_date > end ? i.predicted_date : null;
+                    const overrun = !doneAt && i.health === 'telat' && i.predicted_date && i.predicted_date > end ? i.predicted_date : null;
                     return { item: i, start: start, end: end, overrun: overrun, visualEnd: overrun || end };
                 });
 
-                // Rentang waktu diberi ruang kosong supaya batang bisa digeser melewati tanggal terakhir
-                let min = shiftIso(today, -1), max = shiftIso(today, 13);
-                bars.forEach(function (b) {
-                    if (b.start < min) min = b.start;
-                    if (b.visualEnd > max) max = b.visualEnd;
-                });
-                max = shiftIso(max, 3);
+                let min, max;
+                const fixedPeriod = !!(state.tlFrom && state.tlTo);
+                if (fixedPeriod) {
+                    min = state.tlFrom;
+                    max = state.tlTo;
+                } else {
+                    // Rentang waktu diberi ruang kosong supaya batang bisa digeser melewati tanggal terakhir
+                    min = shiftIso(today, -1);
+                    max = shiftIso(today, 13);
+                    allBars.forEach(function (b) {
+                        if (b.start < min) min = b.start;
+                        if (b.visualEnd > max) max = b.visualEnd;
+                    });
+                    max = shiftIso(max, 3);
+                }
+                state.tlRange = { from: min, to: max };
+                const bars = allBars.filter(function (b) { return b.start <= max && b.visualEnd >= min; });
                 const span = days(min, max) + 1;
-                const dayW = Math.max(38, ($view.width() - SIDE_WIDTH) / span);
+                // Lebar per hari dikunci setelah Timeline diperluas lewat scroll supaya skalanya tidak berubah
+                const fitW = ($view.width() - SIDE_WIDTH) / span;
+                const dayW = fixedPeriod && state.tlZoom ? Math.max(state.tlZoom, fitW) : Math.max(span > 45 ? 20 : 38, fitW);
                 const areaWidth = span * dayW;
                 const rowStyle = 'grid-template-columns:' + SIDE_WIDTH + 'px ' + areaWidth + 'px;--day:' + dayW + 'px';
+                const todayInRange = today >= min && today <= max;
                 const todayLeft = days(min, today) * dayW;
-                const todayMark = '<div class="wt-tl-todaycol" style="left:' + todayLeft + 'px;width:' + dayW + 'px"></div>';
+                const todayMark = todayInRange ? '<div class="wt-tl-todaycol" style="left:' + todayLeft + 'px;width:' + dayW + 'px"></div>' : '';
 
                 const step = Math.max(1, Math.ceil(56 / dayW));
                 let ticks = '';
@@ -1948,16 +2009,31 @@
                         const b = p.bar;
                         const i = b.item;
                         const top = 4 + p.lane * LANE_HEIGHT;
-                        const left = days(min, b.start) * dayW + 1;
-                        const width = (days(b.start, b.end) + 1) * dayW - 2;
+                        // Batang yang melewati batas periode dipotong di tepi periode
+                        const clipLeft = b.start < min;
+                        const clipRight = b.end > max;
+                        const from = clipLeft ? min : b.start;
+                        const to = clipRight ? max : b.end;
+                        const left = days(min, from) * dayW + 1;
+                        const width = (days(from, to) + 1) * dayW - 2;
                         const canDrag = ['baru', 'dikerjakan'].includes(i.status);
                         const owner = programmerOf(i);
-                        const tip = i.code + ' ' + i.title + ' | ' + fmt(b.start) + ' sampai ' + fmt(b.end) + ' | ' + i.progress + '% | ' + HEALTH_LABEL[i.health];
-                        const over = b.overrun ? '<div class="wt-tl-over" style="top:' + top + 'px;left:' + (left + width) + 'px;width:' + (days(b.end, b.overrun) * dayW) + 'px"></div>' : '';
-                        return over + '<button type="button" class="wt-tl-bar tl-' + esc(i.health) + (canDrag ? ' can-drag' : '') + '" data-id="' + i.id + '" data-start="' + b.start + '" data-end="' + b.end + '" data-owner="' + (owner ? owner.id : '') + '" title="' + esc(tip) + '" style="top:' + top + 'px;left:' + left + 'px;width:' + width + 'px">' +
+                        const doneAt = doneOf(i);
+                        const tip = i.code + ' ' + i.title + ' | ' + fmt(b.start, true) + ' sampai ' + fmt(b.end, true) + (doneAt ? ' (selesai)' : '') + ' | ' + i.progress + '% | ' + HEALTH_LABEL[i.health];
+                        let over = '';
+                        if (b.overrun) {
+                            const overFrom = shiftIso(b.end, 1) < min ? min : shiftIso(b.end, 1);
+                            const overTo = b.overrun > max ? max : b.overrun;
+                            if (overFrom <= overTo) {
+                                over = '<div class="wt-tl-over" style="top:' + top + 'px;left:' + (days(min, overFrom) * dayW - 1) + 'px;width:' + ((days(overFrom, overTo) + 1) * dayW) + 'px"></div>';
+                            }
+                        }
+                        // Batang yang seluruhnya sebelum periode (hanya sisa keterlambatannya terlihat) cukup digambar sisanya
+                        if (b.end < min) return over;
+                        return over + '<button type="button" class="wt-tl-bar tl-' + esc(i.health) + (canDrag ? ' can-drag' : '') + (clipLeft ? ' clip-l' : '') + (clipRight ? ' clip-r' : '') + '" data-id="' + i.id + '" data-start="' + b.start + '" data-end="' + b.end + '" data-owner="' + (owner ? owner.id : '') + '" title="' + esc(tip) + '" style="top:' + top + 'px;left:' + left + 'px;width:' + width + 'px">' +
                             '<span class="wt-tl-fill" style="width:' + Number(i.progress) + '%"></span>' +
                             '<span class="wt-tl-text">' + (owner ? '<span class="wt-avatar wt-tl-avatar" style="background:' + esc(owner.color) + '">' + esc(initials(owner.name)) + '</span>' : '') + (i.urgent ? '<i class="fa-solid fa-road-barrier"></i> ' : '') + esc(i.title) + '</span>' +
-                            (canDrag ? '<span class="wt-tl-handle" title="Tarik untuk mengubah target"></span>' : '') + '</button>';
+                            (canDrag && !clipRight ? '<span class="wt-tl-handle" title="Tarik untuk mengubah target"></span>' : '') + '</button>';
                     }).join('');
 
                     const moreButton = hidden > 0 ? '<button type="button" class="wt-tl-more" data-row="' + esc(key) + '">+' + hidden + ' lainnya</button>' : (expanded ? '<button type="button" class="wt-tl-more" data-row="' + esc(key) + '">Ringkas</button>' : '');
@@ -1971,7 +2047,7 @@
                     return bars.filter(function (b) { return (b.item.programmer_id === null ? null : Number(b.item.programmer_id)) === id; });
                 };
                 const body = memberDivisions().filter(function (d) {
-                    return (!state.division || state.division === d) && programmerFilter !== 'none';
+                    return divisionShown(d) && programmerFilter !== 'none';
                 }).map(function (d) {
                     const members = state.board.programmers.filter(function (p) {
                         return p.division === d && (!programmerFilter || Number(programmerFilter) === p.id);
@@ -1982,7 +2058,7 @@
                     }).join('');
                 }).join('');
                 const unassigned = barsOf(null);
-                const showUnassigned = !state.division && (!programmerFilter || programmerFilter === 'none') && (unassigned.length || state.board.programmers.length);
+                const showUnassigned = !state.divisions.length &&(!programmerFilter || programmerFilter === 'none') && (unassigned.length || state.board.programmers.length);
                 const bottom = showUnassigned ? '<div class="wt-tl-division">Belum ditugaskan</div>' + rowHtml('none', 'Belum ditugaskan', '#9aa6b8', unassigned) : '';
 
                 if (!body && !bottom) {
@@ -1990,11 +2066,77 @@
                     return;
                 }
 
-                $view.html('<div class="wt-sub mb-2"><i class="fa-solid fa-hand-pointer"></i> Klik batang untuk membuka detail. Geser untuk memindah jadwal atau anggota. Tarik garis di ujung kanan untuk mengubah target.</div>' +
+                // Petunjuk saat melihat periode lampau tetapi filter menyembunyikan kerjaan yang sudah lewat
+                const status = $('#wt-f-status').val();
+                const hints = [];
+                if (fixedPeriod && min < today && status !== '' && status !== 'selesai') {
+                    hints.push('Kerjaan yang sudah selesai tidak tampil karena filter Status. Ubah Status ke <b>Semua status</b> atau <b>Selesai</b> untuk melihatnya.');
+                }
+                if (fixedPeriod && min < shiftIso(today, -{{ \App\Http\Controllers\General\WorkTrackerController::ARCHIVE_AFTER_DAYS }}) && !$('#wt-archive').is(':checked')) {
+                    hints.push('Periode ini lebih dari {{ \App\Http\Controllers\General\WorkTrackerController::ARCHIVE_AFTER_DAYS }} hari lalu. Nyalakan <b>Tampilkan arsip</b> supaya kerjaan lama ikut tampil.');
+                }
+                if (!bars.length) hints.unshift('Tidak ada kerjaan pada periode ini.');
+
+                const nav = '<div class="wt-tl-nav">' +
+                    '<div class="btn-group btn-group-sm">' +
+                    '<button type="button" class="btn btn-outline-secondary" data-tl-nav="-1" title="Periode sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>' +
+                    '<button type="button" class="btn btn-outline-secondary' + (todayInRange ? ' active' : '') + '" data-tl-nav="0" title="Kembali ke periode yang memuat hari ini">Hari ini</button>' +
+                    '<button type="button" class="btn btn-outline-secondary" data-tl-nav="1" title="Periode berikutnya"><i class="fa-solid fa-chevron-right"></i></button>' +
+                    '</div>' +
+                    '<div class="btn-group btn-group-sm" role="group" aria-label="Lebar rentang">' +
+                    [['auto', 'Otomatis'], ['2w', '2 Minggu'], ['1m', '1 Bulan'], ['3m', '3 Bulan']].map(function (m) {
+                        return '<button type="button" class="btn btn-outline-primary' + (state.tlMode === m[0] ? ' active' : '') + '" data-tl-mode="' + m[0] + '">' + m[1] + '</button>';
+                    }).join('') +
+                    '</div>' +
+                    '<label>Dari <input type="date" class="form-control form-control-sm" id="wt-tl-from" value="' + min + '"></label>' +
+                    '<label>s/d <input type="date" class="form-control form-control-sm" id="wt-tl-to" value="' + max + '"></label>' +
+                    '<span class="wt-sub">' + span + ' hari</span>' +
+                    '</div>' +
+                    (hints.length ? '<div class="wt-tl-hint"><i class="fa-solid fa-circle-info"></i> ' + hints.join(' ') + '</div>' : '');
+
+                $view.html(nav + '<div class="wt-sub mb-2"><i class="fa-solid fa-hand-pointer"></i> Klik batang untuk membuka detail. Geser untuk memindah jadwal atau anggota. Tarik garis di ujung kanan untuk mengubah target. Geser tanggal: Shift + scroll, atau tahan klik/klik tengah di area kosong lalu tarik.</div>' +
                     '<div class="wt-tl-scroll"><div class="wt-tl" data-day-width="' + dayW + '">' +
                     '<div class="wt-tl-row wt-tl-head" style="' + rowStyle + '"><div class="wt-tl-side"></div><div class="wt-tl-area">' + todayMark +
-                    '<span class="wt-tl-todaylabel" style="left:' + (todayLeft + 4) + 'px">Hari ini</span>' + ticks + '</div></div>' + body + bottom + '</div></div>' +
+                    (todayInRange ? '<span class="wt-tl-todaylabel" style="left:' + (todayLeft + 4) + 'px">Hari ini</span>' : '') + ticks + '</div></div>' + body + bottom + '</div></div>' +
                     '<div class="wt-tl-tip" id="wt-tl-tip"></div>');
+
+                // Posisi geser disimpan sebagai tanggal paling kiri yang terlihat, jadi tetap di tanggal yang sama
+                // walau Timeline digambar ulang (ganti divisi, geser batang, rentang bertambah)
+                const scroller = $view.find('.wt-tl-scroll')[0];
+                if (state.tlScroll) scroller.scrollLeft = (days(min, state.tlScroll.date) + state.tlScroll.days) * dayW;
+                state.tlScroll = { date: min, days: scroller.scrollLeft / dayW };
+                scroller.addEventListener('scroll', function () {
+                    state.tlScroll = { date: min, days: scroller.scrollLeft / dayW };
+                    if (!state.drag && !state.tlPan && !state.tlExtending) {
+                        const edge = dayW * 2;
+                        if (scroller.scrollLeft <= edge && scroller.dataset.lastLeft > scroller.scrollLeft) timelineExtend(-1);
+                        else if (scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - edge && scroller.dataset.lastLeft < scroller.scrollLeft) timelineExtend(1);
+                    }
+                    scroller.dataset.lastLeft = scroller.scrollLeft;
+                }, { passive: true });
+                scroller.dataset.lastLeft = scroller.scrollLeft;
+            }
+
+            // Seperti Notion: saat digeser sampai ujung, Timeline bertambah 2 minggu ke arah itu
+            function timelineExtend(dir) {
+                const range = state.tlRange;
+                const scroller = $view.find('.wt-tl-scroll')[0];
+                if (!range || !scroller || state.tlExtending) return;
+                const dayW = Number($view.find('.wt-tl').data('dayWidth'));
+                const add = 14;
+                if (days(range.from, range.to) + 1 + add > 731) return;
+                const from = dir < 0 ? addDays(range.from, -add) : range.from;
+                const to = dir < 0 ? range.to : addDays(range.to, add);
+                state.tlExtending = true;
+                state.tlZoom = dayW;
+                state.tlMode = 'custom';
+                state.tlFrom = from;
+                state.tlTo = to;
+                // Tanggal yang sedang dilihat tetap di tempat setelah hari baru ditambahkan di kiri
+                state.tlScroll = { date: range.from, days: scroller.scrollLeft / dayW };
+                renderView();
+                state.tlExtending = false;
+                return dir < 0 ? add * dayW : 0;
             }
 
             function startBarDrag(e) {
@@ -2102,9 +2244,9 @@
                 const programmers = state.board.programmers;
                 const filterValue = $('#wt-f-programmer').val();
                 const options = programmerOptions(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + '</option>'; });
-                const divisionValue = $('#wt-f-division').val();
-                $('#wt-f-division').html('<option value="">Semua divisi</option>' + memberDivisions().map(function (d) { return '<option value="' + esc(d) + '">' + esc(d) + '</option>'; }).join('')).val(divisionValue || '').trigger('change.select2');
-                state.division = $('#wt-f-division').val() || '';
+                const divisionValue = $('#wt-f-division').val() || [];
+                $('#wt-f-division').html(memberDivisions().map(function (d) { return '<option value="' + esc(d) + '">' + esc(d) + '</option>'; }).join('')).val(divisionValue).trigger('change.select2');
+                state.divisions = $('#wt-f-division').val() || [];
                 $('#wt-f-programmer').html('<option value="">Semua anggota</option><option value="none">Belum ditugaskan</option>' + options).val(filterValue || '').trigger('change.select2');
                 $('#wt-i-programmer').html('<option value="">Belum ditugaskan</option>' + options).trigger('change.select2');
             }
@@ -2509,10 +2651,16 @@
             function renderProgrammerList() {
                 $('#wt-programmer-list .wt-member-select.select2-hidden-accessible').select2('destroy');
                 $('#wt-p-division').html(divisionOptions($('#wt-p-division').val() || state.board.divisions[0])).trigger('change.select2');
-                $('#wt-programmer-list').html(state.board.programmers.length ? state.board.programmers.map(function (p) {
-                    return '<div class="d-flex align-items-center gap-2 py-1"><span class="wt-avatar wt-mini-avatar" style="background:' + esc(p.color) + '">' + esc(initials(p.name)) + '</span><span class="flex-grow-1 small fw-bold">' + esc(p.name) + '</span>' +
+                const openColor = $('#wt-programmer-list .wt-member-colors:not(.d-none)').data('colorsFor');
+                $('#wt-programmer-list').html(state.board.programmers.length ? '<div class="wt-sub mb-1">Klik avatar untuk mengganti warna anggota.</div>' + state.board.programmers.map(function (p) {
+                    const palette = COLORS.map(function (c) {
+                        return '<button type="button" data-member-color="' + c + '" class="' + (c.toLowerCase() === String(p.color).toLowerCase() ? 'active' : '') + '" style="background:' + c + '" aria-label="Warna ' + c + '"></button>';
+                    }).join('') + '<label class="wt-color-custom" title="Warna lain"><i class="fa-solid fa-eye-dropper"></i><input type="color" data-member-color-custom value="' + esc(p.color) + '" aria-label="Warna lain untuk ' + esc(p.name) + '"></label>';
+                    return '<div class="wt-member-row" data-user="' + p.user_id + '" data-color="' + esc(p.color) + '" data-division="' + esc(p.division) + '">' +
+                        '<div class="d-flex align-items-center gap-2 py-1"><button type="button" class="wt-avatar wt-mini-avatar wt-member-avatar" data-colors-toggle="' + p.id + '" style="background:' + esc(p.color) + '" title="Ganti warna" aria-label="Ganti warna ' + esc(p.name) + '">' + esc(initials(p.name)) + '</button><span class="flex-grow-1 small fw-bold">' + esc(p.name) + '</span>' +
                         '<div class="wt-member-division"><select class="wt-member-select" aria-label="Divisi ' + esc(p.name) + '" data-user="' + p.user_id + '" data-color="' + esc(p.color) + '" data-current="' + esc(p.division) + '">' + divisionOptions(p.division) + '</select></div>' +
-                        '<button type="button" class="btn btn-sm btn-link text-danger p-0" data-remove-programmer="' + p.id + '" aria-label="Nonaktifkan ' + esc(p.name) + '"><i class="fa-solid fa-user-minus"></i></button></div>';
+                        '<button type="button" class="btn btn-sm btn-link text-danger p-0" data-remove-programmer="' + p.id + '" aria-label="Nonaktifkan ' + esc(p.name) + '"><i class="fa-solid fa-user-minus"></i></button></div>' +
+                        '<div class="wt-color wt-member-colors' + (openColor === p.id ? '' : ' d-none') + '" data-colors-for="' + p.id + '">' + palette + '</div></div>';
                 }).join('') : '<div class="wt-sub">Belum ada anggota.</div>');
                 initDivisionSelect($('#wt-programmer-list .wt-member-select'));
             }
@@ -2527,7 +2675,8 @@
             }
 
             // Events
-            $('.wt-select').select2({ theme: 'bootstrap4', width: '100%', minimumResultsForSearch: 8 }).on('change', renderView);
+            $('.wt-select').not('#wt-f-division').select2({ theme: 'bootstrap4', width: '100%', minimumResultsForSearch: 8 }).on('change', renderView);
+            $('#wt-f-division').select2({ theme: 'bootstrap4', width: '100%', placeholder: 'Semua divisi', closeOnSelect: false });
             $('.wt-select-modal').select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $('#wt-item-modal') });
             initDivisionSelect($('#wt-p-division'));
             $('#wt-p-user').select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $('#wt-programmer-modal'), placeholder: 'Pilih user' });
@@ -2539,11 +2688,16 @@
                 this.setAttribute('aria-expanded', String(open));
             });
             $('#wt-filter-reset').on('click', function () {
+                state.tlMode = 'auto';
+                state.tlFrom = null;
+                state.tlTo = null;
+                state.tlZoom = null;
+                state.tlScroll = null;
                 $('#wt-f-search').val('');
                 $('#wt-f-type, #wt-f-level, #wt-f-health').val('').trigger('change.select2');
                 $('#wt-f-status').val(state.view === 'report' ? '' : 'open').trigger('change.select2');
                 $('#wt-f-programmer').val('').trigger('change');
-                $('#wt-f-division').val('').trigger('change');
+                $('#wt-f-division').val([]).trigger('change');
             });
 
             $('#wt-arena-fold').on('click', function () {
@@ -2569,18 +2723,30 @@
             });
 
             $('#wt-division-chips').on('click', '[data-division]', function () {
-                $('#wt-f-division').val(this.dataset.division).trigger('change');
+                const d = this.dataset.division;
+                let next = [];
+                if (d) {
+                    // Chip divisi bersifat hidup/mati; kalau semua terpilih sama saja dengan Semua divisi
+                    next = state.divisions.includes(d) ? state.divisions.filter(function (x) { return x !== d; }) : state.divisions.concat([d]);
+                    if (next.length === memberDivisions().length) next = [];
+                }
+                $('#wt-f-division').val(next).trigger('change');
             });
 
             $('#wt-f-division').on('change', function () {
-                state.division = this.value || '';
+                state.divisions = $(this).val() || [];
                 const owner = state.board.programmers.find(function (p) { return p.id === state.selected; });
-                if (state.division && owner && owner.division !== state.division) {
+                if (state.divisions.length && owner && !state.divisions.includes(owner.division)) {
                     state.selected = null;
                     $('#wt-f-programmer').val('').trigger('change.select2');
                 }
+                // Arena di atas ikut berubah tinggi; jaga chip divisi tetap di posisi layar yang sama
+                const anchor = document.getElementById('wt-division-chips');
+                const before = anchor.getBoundingClientRect().top;
                 renderLanes();
                 renderView();
+                const after = anchor.getBoundingClientRect().top;
+                if (after !== before) window.scrollBy(0, after - before);
             });
 
             $('#wt-lanes').on('click', '.wt-lane', function () {
@@ -2619,6 +2785,129 @@
             $view.on('pointercancel', '.wt-tl-bar.can-drag', function () {
                 state.drag = null;
                 $('#wt-tl-tip').hide();
+                renderView();
+            });
+
+            // Shift + scroll menggeser tanggal; di ujung, Timeline bertambah
+            $view.on('wheel', '.wt-tl-scroll', function (e) {
+                const ev = e.originalEvent;
+                if (!ev.shiftKey || state.drag) return;
+                let delta = ev.deltaX || ev.deltaY;
+                if (!delta) return;
+                if (ev.deltaMode === 1) delta *= 16;
+                ev.preventDefault();
+                const before = this.scrollLeft;
+                this.scrollLeft += delta;
+                if (this.scrollLeft === before) timelineExtend(delta < 0 ? -1 : 1);
+            });
+
+            // Hand tool: tahan klik kiri di area kosong atau klik tengah di mana saja, lalu tarik
+            $view.on('mousedown', '.wt-tl-scroll', function (e) {
+                if (e.button === 1) e.preventDefault(); // matikan autoscroll bawaan klik tengah
+            });
+            $view.on('pointerdown', '.wt-tl-scroll', function (e) {
+                const ev = e.originalEvent;
+                if (ev.pointerType === 'touch' || state.drag) return;
+                const onControl = $(ev.target).closest('.wt-tl-bar, .wt-tl-more, button, a, input').length > 0;
+                if (!(ev.button === 1 || (ev.button === 0 && !onControl))) return;
+                ev.preventDefault();
+                state.tlPan = { el: this, x: ev.clientX, y: ev.clientY, left: this.scrollLeft, top: window.scrollY, moved: false };
+                this.classList.add('panning');
+            });
+            $(document).on('pointermove', function (e) {
+                const pan = state.tlPan;
+                if (!pan) return;
+                const ev = e.originalEvent;
+                const dx = ev.clientX - pan.x;
+                const dy = ev.clientY - pan.y;
+                if (!pan.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+                pan.moved = true;
+                const target = pan.left - dx;
+                const maxLeft = pan.el.scrollWidth - pan.el.clientWidth;
+                if (target < 0 || target > maxLeft) {
+                    // Tarik melewati ujung: tambah tanggal, lalu lanjutkan pada elemen Timeline yang baru
+                    const shift = timelineExtend(target < 0 ? -1 : 1);
+                    const fresh = $view.find('.wt-tl-scroll')[0];
+                    if (shift !== undefined && fresh) {
+                        pan.left += shift;
+                        pan.el = fresh;
+                        fresh.classList.add('panning');
+                    }
+                }
+                pan.el.scrollLeft = pan.left - dx;
+                window.scrollTo(window.scrollX, pan.top - dy);
+            });
+            $(document).on('pointerup pointercancel', function () {
+                if (!state.tlPan) return;
+                state.tlPan.el.classList.remove('panning');
+                state.tlPan = null;
+            });
+            $view.on('click', '[data-tl-nav]', function () {
+                const dir = Number(this.dataset.tlNav);
+                const range = state.tlRange;
+                const mode = state.tlMode;
+                state.tlZoom = null;
+                state.tlScroll = null;
+                if (!dir || !range) {
+                    // Hari ini: pilihan rentang tetap, periodenya dipusatkan lagi ke hari ini
+                    if (mode === 'auto' || mode === 'custom') {
+                        state.tlMode = 'auto';
+                        state.tlFrom = null;
+                        state.tlTo = null;
+                    } else {
+                        const preset = timelinePreset(mode, state.board.today);
+                        state.tlFrom = preset.from;
+                        state.tlTo = preset.to;
+                    }
+                } else if (mode === '1m' || mode === '3m') {
+                    // Mode bulanan bergeser per bulan kalender penuh
+                    const months = mode === '1m' ? 1 : 3;
+                    state.tlFrom = monthStart(range.from, dir * months);
+                    state.tlTo = monthEnd(range.from, dir * months + months - 1);
+                } else {
+                    // Maju atau mundur sepanjang periode yang sedang tampil
+                    const span = days(range.from, range.to) + 1;
+                    state.tlFrom = addDays(range.from, dir * span);
+                    state.tlTo = addDays(range.to, dir * span);
+                    if (mode === 'auto') state.tlMode = 'custom';
+                }
+                renderView();
+            });
+            $view.on('click', '[data-tl-mode]', function () {
+                const mode = this.dataset.tlMode;
+                state.tlMode = mode;
+                state.tlZoom = null;
+                state.tlScroll = null;
+                if (mode === 'auto') {
+                    state.tlFrom = null;
+                    state.tlTo = null;
+                } else {
+                    // Periode baru mengikuti periode yang sedang dilihat, bukan selalu kembali ke hari ini
+                    const range = state.tlRange;
+                    const anchor = range && !(state.board.today >= range.from && state.board.today <= range.to) ? range.from : state.board.today;
+                    const preset = timelinePreset(mode, mode === '3m' && anchor !== state.board.today ? monthStart(anchor, 1) : anchor);
+                    state.tlFrom = preset.from;
+                    state.tlTo = preset.to;
+                }
+                renderView();
+            });
+            $view.on('change', '#wt-tl-from, #wt-tl-to', function () {
+                let from = $('#wt-tl-from').val();
+                let to = $('#wt-tl-to').val();
+                const valid = /^\d{4}-\d{2}-\d{2}$/;
+                if (!valid.test(from) || !valid.test(to)) return;
+                if (to < from) {
+                    const swap = from;
+                    from = to;
+                    to = swap;
+                }
+                // Batasi satu tahun supaya Timeline tidak terlalu panjang
+                if (days(from, to) > 366) to = addDays(from, 366);
+                state.tlMode = 'custom';
+                state.tlZoom = null;
+                state.tlScroll = null;
+                state.tlFrom = from;
+                state.tlTo = to;
                 renderView();
             });
             $view.on('click', '.wt-tl-more', function () {
@@ -2894,6 +3183,30 @@
                     toast(res.message);
                     load().done(renderProgrammerList);
                 });
+            });
+
+            $('#wt-programmer-list').on('click', '[data-colors-toggle]', function () {
+                const $palette = $('#wt-programmer-list [data-colors-for="' + this.dataset.colorsToggle + '"]');
+                const show = $palette.hasClass('d-none');
+                $('#wt-programmer-list .wt-member-colors').addClass('d-none');
+                $palette.toggleClass('d-none', !show);
+            });
+
+            function saveMemberColor(el, color) {
+                const row = $(el).closest('.wt-member-row')[0];
+                if (!row || String(color).toLowerCase() === String(row.dataset.color).toLowerCase()) return;
+                if (guardDemo()) return;
+                post(ROUTES.programmerStore, { user_id: row.dataset.user, color: color, division: row.dataset.division }, function () {
+                    toast('Warna anggota diganti');
+                    load().done(renderProgrammerList);
+                });
+            }
+            $('#wt-programmer-list').on('click', '[data-member-color]', function () {
+                saveMemberColor(this, this.dataset.memberColor);
+            });
+            // Warna bebas disimpan setelah pemilih warna ditutup, bukan setiap kali digeser
+            $('#wt-programmer-list').on('change', '[data-member-color-custom]', function () {
+                saveMemberColor(this, this.value);
             });
 
             $('#wt-programmer-list').on('click', '[data-remove-programmer]', function () {
