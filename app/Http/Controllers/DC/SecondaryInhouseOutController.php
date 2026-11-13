@@ -116,7 +116,8 @@ class SecondaryInhouseOutController extends Controller
                     END
                 ) AS stocker_range_old,
                 CONCAT(s.range_awal, ' - ', s.range_akhir) as stocker_range,
-                s.notes
+                s.notes,
+                reject_source.id_qr_stocker stocker_reject
             FROM secondary_inhouse_input a
             LEFT JOIN (
                 SELECT
@@ -153,6 +154,11 @@ class SecondaryInhouseOutController extends Controller
                 SELECT id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat
                 FROM dc_in_input
             ) dc ON a.id_qr_stocker = dc.id_qr_stocker
+            LEFT JOIN stocker_reject srej ON srej.id = s.stocker_reject
+            LEFT JOIN dc_in_input dc_rej ON dc_rej.id = srej.dc_in_id
+            LEFT JOIN secondary_inhouse_input sii_rej ON sii_rej.id = srej.secondary_inhouse_id
+            LEFT JOIN secondary_in_input si_rej ON si_rej.id = srej.secondary_in_id
+            LEFT JOIN stocker_input reject_source ON reject_source.id_qr_stocker = COALESCE(dc_rej.id_qr_stocker, sii_rej.id_qr_stocker, si_rej.id_qr_stocker)
             WHERE
                 a.tgl_trans IS NOT NULL
                 and (s.cancel IS NULL OR s.cancel != 'y')
@@ -327,7 +333,7 @@ class SecondaryInhouseOutController extends Controller
         $columns = [
             'tgl_trans_fix', 'id_qr_stocker', 'tipe', 'act_costing_ws', 'style', 'color', 'panel', 'nama_part',
             'size', 'no_cut', 'tujuan', 'lokasi', 'urutan', 'stocker_range', 'qty_awal', 'qty_reject', 'qty_replace',
-            'qty_in', 'buyer', 'user', 'created_at',
+            'qty_in', 'buyer', 'stocker_reject', 'user', 'created_at',
         ];
 
         foreach ($columns as $column) {
@@ -478,6 +484,7 @@ class SecondaryInhouseOutController extends Controller
                                 COALESCE(sii.user, '-') as author_in,
                                 COALESCE(sii.qty_in) qty_awal,
                                 ifnull(si.id_qr_stocker,'x'),
+                                s.stocker_reject,
                                 1 as urutan
                             from dc_in_input dc
                                 left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
@@ -539,6 +546,7 @@ class SecondaryInhouseOutController extends Controller
                                     COALESCE(sii.user, '-') as author_in,
                                     sii.qty_in qty_awal,
                                     ifnull(si.id_qr_stocker,'x'),
+                                    s.stocker_reject,
                                     (pds.urutan) as urutan
                                 from
                                     dc_in_input dc
@@ -620,6 +628,7 @@ class SecondaryInhouseOutController extends Controller
                                                 COALESCE(sii.user, '-') as author_in,
                                                 ".($multiSecondaryBeforeSecondaryIn->qty_in)." qty_awal,
                                                 ifnull(si.id_qr_stocker,'x'),
+                                                s.stocker_reject,
                                                 (pds.urutan) as urutan
                                             from
                                                 dc_in_input dc
@@ -685,6 +694,7 @@ class SecondaryInhouseOutController extends Controller
                                             COALESCE(sii.user, '-') as author_in,
                                             '".($multiSecondaryBeforeSecondary->qty_in)."' qty_awal,
                                             ifnull(si.id_qr_stocker,'x'),
+                                            s.stocker_reject,
                                             (pds.urutan) as urutan
                                         from
                                             dc_in_input dc
@@ -732,6 +742,7 @@ class SecondaryInhouseOutController extends Controller
                                         COALESCE(sii.user, '-') as author_in,
                                         COALESCE(sii.qty_in, coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace) qty_awal,
                                         ifnull(si.id_qr_stocker,'x'),
+                                        s.stocker_reject,
                                         1 as urutan
                                     from dc_in_input dc
                                         left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
@@ -807,6 +818,7 @@ class SecondaryInhouseOutController extends Controller
                             COALESCE(sii.user, '-') as author_in,
                             COALESCE(sii.qty_in, coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace) qty_awal,
                             ifnull(si.id_qr_stocker,'x'),
+                            s.stocker_reject,
                             1 as urutan
                         from dc_in_input dc
                             left join stocker_input s on dc.id_qr_stocker = s.id_qr_stocker
@@ -1012,7 +1024,7 @@ class SecondaryInhouseOutController extends Controller
 
         // Title
         $sheet->writeTo('A1', 'Secondary InHouse Out Report', ['font-size' => 16]);
-        $sheet->mergeCells('A1:V1');
+        $sheet->mergeCells('A1:X1');
 
         // Headers
         $sheet->writeTo('A2', 'Tgl Transaksi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -1035,9 +1047,10 @@ class SecondaryInhouseOutController extends Controller
         $sheet->writeTo('R2', 'Qty Out')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('S2', 'Urutan')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('T2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('U2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('V2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('W2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U2', 'Stocker Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('W2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('X2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             $sheet->writeAreas();
@@ -1064,6 +1077,7 @@ class SecondaryInhouseOutController extends Controller
                     intval($row->qty_in) ?? 0,
                     $row->urutan ?? "-",
                     $row->buyer ?? "-",
+                    $row->stocker_reject ?? "-",
                     $row->user ?? "-",
                     $row->created_at ?? "-",
                     $row->notes ?? "-",
@@ -1241,7 +1255,7 @@ class SecondaryInhouseOutController extends Controller
 
         // Title
         $sheet->writeTo('A1', 'Secondary InHouse Out Detail Report', ['font-size' => 16]);
-        $sheet->mergeCells('A1:O1');
+        $sheet->mergeCells('A1:P1');
 
         // Headers
         $sheet->writeTo('A2', 'Tgl Transaksi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -1259,6 +1273,7 @@ class SecondaryInhouseOutController extends Controller
         $sheet->writeTo('M2', 'Range')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('N2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('O2', 'Tipe')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('P2', 'Stocker Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             $sheet->writeAreas();
@@ -1280,6 +1295,7 @@ class SecondaryInhouseOutController extends Controller
                     $row->stocker_range ?? "-",
                     $row->user ?? "-",
                     $row->tipe ?? "-",
+                    $row->stocker_reject ?? "-",
                 ];
 
                 $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
