@@ -837,49 +837,108 @@ class StockerToolsController extends Controller
 
     function undoStockerAdditional(Request $request)
     {
+        $validatedRequest = $request->validate([
+            "id" => "required|integer|exists:form_cut_input,id"
+        ]);
+
         // Check Closing
-        $dataCheckClosing = DB::table("form_cut_input")->where("id", $request->id)->first();
-        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
-            return array(
+        $dataCheckClosing = DB::table("form_cut_input")->where("id", $validatedRequest["id"])->first();
+        if ($dataCheckClosing && checkClosingDate($dataCheckClosing->waktu_selesai)) {
+            return response()->json([
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
                 "additional" => "Closing"
-            );
+            ]);
         }
 
-        $validatedRequest = $request->validate([
-            "id" => "required"
-        ]);
+        // Check Stocker with bypass parameter
+        $bypass = $request->boolean('bypass');
+        $isSuperAdmin = auth()->user()->roles->whereIn('nama_role', ['superadmin'])->count() > 0;
+        $isAllowedBypass = $bypass && $isSuperAdmin;
 
-        // Check Stocker
-        $checkStocker = Stocker::where("form_cut_id", $validatedRequest["id"])->whereRaw("notes LIKE '%ADDITIONAL%'")->first();
-        if ($checkStocker) {
-            return array(
-                "status" => 400,
-                "message" => "Stocker Additional sudah di Print",
-            );
+        if (!$isAllowedBypass) {
+            $checkStocker = Stocker::where("form_cut_id", $validatedRequest["id"])->whereRaw("notes LIKE '%ADDITIONAL%'")->first();
+            if ($checkStocker) {
+                return response()->json([
+                    "status" => 401,
+                    "message" => "Stocker Additional sudah di Print",
+                ]);
+            }
         }
 
-        // Stocker Additional
         $stockerAdditional = StockerAdditional::where("form_cut_id", $validatedRequest["id"])->first();
-        if ($stockerAdditional) {
+        $stockerDeleteData = Stocker::where("form_cut_id", $validatedRequest["id"])
+            ->whereRaw("notes LIKE '%ADDITIONAL%'")
+            ->get();
+        $stockerIds = $stockerDeleteData->pluck('id')->toArray();
+        $stockerIdQrs = $stockerDeleteData->pluck('id_qr_stocker')->filter()->values()->toArray();
 
-            // Undo Additional Detail
-            $undoStockerAdditionalDetail = StockerAdditionalDetail::where("stocker_additional_id", $stockerAdditional->id)->delete();
+        if ($stockerDeleteData->isEmpty() && !$stockerAdditional) {
+            return response()->json([
+                "status" => 400,
+                "message" => "Data tidak ditemukan"
+            ]);
+        }
 
-            // Undo Additional
-            StockerAdditional::where("id", $stockerAdditional->id)->delete();
+        DB::beginTransaction();
 
-            return array(
+        try {
+            Log::channel('undoStockerAdditional')->info("Undo Stocker Additional", [
+                "by" => Auth::user()
+                    ? Auth::user()->id . " " . Auth::user()->username
+                    : "System",
+                "bypass" => $isAllowedBypass,
+                "stocker_delete" => DB::table("stocker_input")->whereIn('id', $stockerIds)->get(),
+                "dc_in_delete" => DB::table("dc_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                "secondary_in_delete" => DB::table("secondary_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                "secondary_inhouse_in_delete" => DB::table("secondary_inhouse_in_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                "secondary_inhouse_delete" => DB::table("secondary_inhouse_input")->whereIn('id_qr_stocker', $stockerIdQrs)->get(),
+                "rack_detail_stocker_delete" => DB::table("rack_detail_stocker")->whereIn('stocker_id', $stockerIds)->get(),
+                "trolley_stocker_delete" => DB::table("trolley_stocker")->whereIn('stocker_id', $stockerIds)->get(),
+                "loading_line_delete" => DB::table("loading_line")->whereIn('stocker_id', $stockerIds)->get(),
+                "stocker_additional" => $stockerAdditional
+                    ? DB::table("stocker_ws_additional")->where('id', $stockerAdditional->id)->get()
+                    : [],
+                "stocker_additional_detail" => $stockerAdditional
+                    ? DB::table("stocker_ws_additional_detail")->where('stocker_additional_id', $stockerAdditional->id)->get()
+                    : [],
+            ]);
+
+            if ($isAllowedBypass) {
+                Stocker::whereIn('id', $stockerIds)->delete();
+                DCIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                SecondaryIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                SecondaryInHouseIn::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                SecondaryInHouse::whereIn('id_qr_stocker', $stockerIdQrs)->delete();
+                RackDetailStocker::whereIn('stocker_id', $stockerIds)->delete();
+                TrolleyStocker::whereIn('stocker_id', $stockerIds)->delete();
+                LoadingLine::whereIn('stocker_id', $stockerIds)->delete();
+            }
+
+            if ($stockerAdditional) {
+                StockerAdditionalDetail::where("stocker_additional_id", $stockerAdditional->id)->delete();
+                StockerAdditional::where("id", $stockerAdditional->id)->delete();
+            }
+
+            DB::commit();
+
+            return response()->json([
                 "status" => 200,
                 "message" => "Stocker Additional berhasil dihapus",
-            );
-        }
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
 
-        return array(
-            "status" => 400,
-            "message" => "Data tidak ditemukan"
-        );
+            Log::channel('undoStockerAdditional')->error("Gagal undo Stocker Additional", [
+                "form_cut_id" => $validatedRequest["id"],
+                "error" => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                "status" => 400,
+                "message" => "Gagal menghapus Stocker Additional: " . $e->getMessage(),
+            ]);
+        }
     }
 
     function checkMissmatchedOrderStocker(Request $request) {

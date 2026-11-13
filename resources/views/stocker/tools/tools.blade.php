@@ -1350,23 +1350,44 @@
             })
         }
 
-        function undoStockerAdditional() {
+        function undoStockerAdditional(bypass = false) {
+            let isSuperAdmin = "{{  Auth::user()->roles()->whereIn('nama_role', ['superadmin', 'accounting'])->count(); }}"
+
             $.ajax({
                 type: "delete",
                 url: "{{ route('undo-stocker-additional') }}",
                 data: {
-                    'id': $('#no_form_undo_stocker_additional').val()
+                    'id': $('#no_form_undo_stocker_additional').val(),
+                    'bypass': bypass
                 },
                 dataType: "json",
                 success: function (response) {
                     console.log(response)
 
                     if (response) {
-                        Swal.fire({
-                            icon: (response.status == 200 ? 'success' : 'error'),
-                            title: (response.status == 200 ? 'Berhasil' : 'Gagal'),
-                            html: response.message,
-                        });
+                        if (response.status == 401) {
+                            Swal.fire({
+                                icon: (response.status == 200 ? 'success' : 'error'),
+                                title: (response.status == 200 ? 'Berhasil' : 'Gagal'),
+                                html: response.message+(isSuperAdmin > 0 ? "<br>Hapus Stocker Additional?" : ""),
+                                showConfirmButton: (isSuperAdmin > 0),
+                                confirmButtonText: "Ya, Hapus",
+                                confirmButtonColor: '#d33141',
+                                showCancelButton: true,
+                                cancelButtonText: "Batalkan",
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    bypass = true;
+                                    undoStockerAdditional(bypass);
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: (response.status == 200 ? 'success' : 'error'),
+                                title: (response.status == 200 ? 'Berhasil' : 'Gagal'),
+                                html: response.message,
+                            });
+                        }
                     }
                 },
                 error: function (jqXHR) {
