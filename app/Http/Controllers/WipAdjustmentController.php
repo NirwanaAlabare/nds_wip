@@ -247,7 +247,7 @@ class WipAdjustmentController extends Controller
         }
 
         $template = $this->templateFields[$typeReport];
-        $rows = Excel::toArray([], $request->file('file'))[0] ?? [];
+        $rows = $this->bacaFile($request->file('file'));
 
         if (count($rows) < 2) {
             return response()->json([
@@ -256,8 +256,11 @@ class WipAdjustmentController extends Controller
             ], 422);
         }
 
+        // Baris pertama = header, sisanya data (key = nomor baris di Excel)
+        $header = array_map(fn ($h) => strtolower(trim((string) $h)), reset($rows));
+        unset($rows[key($rows)]);
+
         // Petakan posisi kolom berdasarkan nama header, bukan urutan
-        $header = array_map(fn ($h) => strtolower(trim((string) $h)), $rows[0]);
         $expected = array_merge(['tgl_saldo' => 'tgl_saldo'], $template['text'], $template['qty']);
 
         $index = [];
@@ -288,7 +291,7 @@ class WipAdjustmentController extends Controller
         // WS di file harus ada di master_sb_ws (dicek sekali untuk semua WS unik)
         $wsList = [];
 
-        foreach ($wsField ? array_slice($rows, 1) : [] as $row) {
+        foreach ($wsField ? $rows : [] as $row) {
             $ws = trim((string) ($row[$index[$wsField]] ?? ''));
 
             if ($ws !== '' && !str_contains($ws, ',')) {
@@ -312,7 +315,7 @@ class WipAdjustmentController extends Controller
 
         $panelMaster = in_array('panel', $template['text']) ? $this->panelMaster() : [];
 
-        foreach (array_slice($rows, 1) as $i => $row) {
+        foreach ($rows as $rowNum => $row) {
             // Lewati baris kosong (hanya cek kolom template, kolom lain seperti note diabaikan)
             $filled = array_filter($index, fn ($pos) => trim((string) ($row[$pos] ?? '')) !== '');
 
@@ -322,7 +325,7 @@ class WipAdjustmentController extends Controller
 
             $errors = [];
             $item = [
-                'row'         => $i + 2,
+                'row'         => $rowNum,
                 'type_report' => $typeReport,
             ];
 
@@ -420,6 +423,46 @@ class WipAdjustmentController extends Controller
             'date_from' => min($tglSaldo),
             'date_to'   => max($tglSaldo),
         ]);
+    }
+
+    // Baca sheet pertama jadi [nomor baris Excel => [index kolom 0.. => nilai]], baris kosong dilewati.
+    // xlsx dibaca streaming (hemat memori); xls/csv tetap lewat Maatwebsite.
+    private function bacaFile($file)
+    {
+        $rows = [];
+        $isEmpty = fn ($values) => !array_filter($values, fn ($v) => trim((string) $v) !== '');
+
+        if (strtolower($file->getClientOriginalExtension()) !== 'xlsx') {
+            foreach (Excel::toArray([], $file)[0] ?? [] as $i => $values) {
+                if (!$isEmpty($values)) {
+                    $rows[$i + 1] = $values;
+                }
+            }
+
+            return $rows;
+        }
+
+        $excel = \avadim\FastExcelReader\Excel::open($file->getRealPath());
+        // Sel bertipe tanggal dikembalikan sebagai teks Y-m-d
+        $excel->setDateFormat('Y-m-d');
+
+        foreach ($excel->getFirstSheet()->nextRow() as $rowNum => $cells) {
+            $values = [];
+
+            foreach ($cells as $col => $value) {
+                $values[Coordinate::columnIndexFromString($col) - 1] = $value;
+            }
+
+            if ($isEmpty($values)) {
+                continue;
+            }
+
+            // Isi kolom yang kosong di tengah supaya index rapat mulai 0
+            $rows[$rowNum] = $values + array_fill(0, max(array_keys($values)) + 1, null);
+            ksort($rows[$rowNum]);
+        }
+
+        return $rows;
     }
 
     // Kunci pencocokan panel: huruf besar, tanpa spasi
