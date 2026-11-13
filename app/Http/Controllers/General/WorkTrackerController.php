@@ -8,6 +8,7 @@ use App\Services\WorkTrackerDashboardService;
 use App\Services\WorkTrackerService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
@@ -38,6 +39,120 @@ class WorkTrackerController extends Controller
     public function dashboard()
     {
         return view('general.tools.work-tracker-dashboard', ['containerFluid' => true]);
+    }
+
+    // Dunia 3D: posisi pemain dan chat hanya disimpan sementara di cache, tidak ada tabel
+    const WORLD_TTL = 12;
+    const WORLD_CHAT_KEEP = 40;
+    // Pendamping di Dunia 3D: user_id => karakter yang selalu menempel pada user itu (gambar di public/assets)
+    const WORLD_COMPANIONS = [
+        315 => ['name' => 'ADO', 'owner' => 'Dede', 'image' => 'img/work-tracker/ado.png'],
+    ];
+
+    public function world(Request $request)
+    {
+        $user = $request->user();
+        $companions = [];
+        foreach (self::WORLD_COMPANIONS as $userId => $companion) {
+            $companions[$userId] = array_merge($companion, ['image' => asset($companion['image'])]);
+        }
+
+        return view('general.tools.work-tracker-world', [
+            'containerFluid' => true,
+            'me' => array_merge(['id' => $user->id, 'name' => $user->name], $this->worldProfile($user->id)),
+            'companions' => (object) $companions,
+        ]);
+    }
+
+    // Detak posisi: simpan posisi sendiri, kembalikan pemain lain yang masih aktif dan chat baru
+    public function worldPresence(Request $request)
+    {
+        $validated = $request->validate([
+            'x' => 'required|numeric|between:-500,500',
+            'z' => 'required|numeric|between:-500,500',
+            'ry' => 'required|numeric|between:-20,20',
+            'moving' => 'nullable|boolean',
+            'after' => 'nullable|integer|min:0',
+        ]);
+
+        $user = $request->user();
+        $now = microtime(true);
+        Cache::put('wt-world:p:' . $user->id, array_merge([
+            'id' => $user->id,
+            'name' => $user->name,
+            'x' => round((float) $validated['x'], 2),
+            'z' => round((float) $validated['z'], 2),
+            'ry' => round((float) $validated['ry'], 3),
+            'moving' => (bool) ($validated['moving'] ?? false),
+            't' => $now,
+        ], $this->worldProfile($user->id)), self::WORLD_TTL);
+
+        $ids = Cache::get('wt-world:ids', []);
+        if (!in_array($user->id, $ids, true)) {
+            $ids[] = $user->id;
+        }
+
+        $players = [];
+        $alive = [];
+        foreach ($ids as $id) {
+            $player = Cache::get('wt-world:p:' . $id);
+            if (!$player || $now - $player['t'] > self::WORLD_TTL) continue;
+            $alive[] = $id;
+            if ($id !== $user->id) $players[] = $player;
+        }
+        Cache::put('wt-world:ids', $alive, 3600);
+
+        $after = (int) ($validated['after'] ?? 0);
+        $chat = array_values(array_filter(Cache::get('wt-world:chat', []), function ($message) use ($after) {
+            return $message['n'] > $after;
+        }));
+
+        return response()->json(['players' => $players, 'chat' => $chat]);
+    }
+
+    public function worldChat(Request $request)
+    {
+        $validated = $request->validate([
+            'text' => 'required|string|max:200',
+            'cid' => 'required|string|max:40',
+        ]);
+
+        $user = $request->user();
+        $text = trim(preg_replace('/\s+/', ' ', $validated['text']));
+        if ($text === '') {
+            return response()->json(['status' => 422, 'message' => 'Pesan kosong'], 422);
+        }
+
+        $seq = (int) Cache::get('wt-world:chat-seq', 0) + 1;
+        Cache::forever('wt-world:chat-seq', $seq);
+
+        $chat = Cache::get('wt-world:chat', []);
+        $message = [
+            'n' => $seq,
+            'cid' => $validated['cid'],
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'text' => $text,
+            'at' => now()->format('H:i'),
+        ];
+        $chat[] = $message;
+        Cache::put('wt-world:chat', array_slice($chat, -self::WORLD_CHAT_KEEP), 1800);
+
+        return response()->json(['status' => 200, 'message' => $message]);
+    }
+
+    // Warna dan divisi pemain diambil dari data anggota; bukan anggota tetap bisa masuk sebagai tamu
+    protected function worldProfile($userId)
+    {
+        return Cache::remember('wt-world:profile:' . $userId, 60, function () use ($userId) {
+            $member = DB::table('work_programmers')->where('user_id', $userId)->where('is_active', true)->first(['id', 'color', 'division']);
+
+            return [
+                'member_id' => $member->id ?? null,
+                'color' => $member->color ?? null,
+                'division' => $member->division ?? null,
+            ];
+        });
     }
 
     public function dashboardData(Request $request, WorkTrackerDashboardService $dashboard)
