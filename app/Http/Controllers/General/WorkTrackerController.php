@@ -18,7 +18,10 @@ class WorkTrackerController extends Controller
     const ARCHIVE_AFTER_DAYS = 60;
     const MAX_FILES = 10;
     const MAX_FILE_KB = 10240;
-    const FILE_TYPES = 'jpg,jpeg,png,webp,gif,pdf,xls,xlsx,doc,docx,txt,csv,zip';
+    const FILE_TYPES = 'jpg,jpeg,png,webp,gif,pdf,xls,xlsx,doc,docx,txt,csv,zip,html,htm';
+    // File yang bisa menjalankan script kalau dibuka di browser: disimpan di luar folder publik dan hanya bisa diunduh
+    const PRIVATE_TYPES = ['html', 'htm'];
+    const PRIVATE_FOLDER = 'private/work_tracker';
 
     protected $tracker;
 
@@ -452,8 +455,10 @@ class WorkTrackerController extends Controller
         $attachments = DB::table('work_item_attachments')->where('work_item_id', $id)->whereNull('deleted_at')->orderBy('id')
             ->get(['id', 'point_id', 'log_id', 'path', 'original_name', 'mime', 'size', 'created_by', 'created_at'])
             ->map(function ($file) {
-                $file->url = url('storage/' . $file->path);
-                $file->is_image = strpos((string) $file->mime, 'image/') === 0;
+                $private = $this->isPrivatePath($file->path);
+                $file->url = $private ? route('download-attachment-work-tracker', $file->id) : url('storage/' . $file->path);
+                $file->download_only = $private;
+                $file->is_image = !$private && strpos((string) $file->mime, 'image/') === 0;
                 unset($file->path);
                 return $file;
             });
@@ -568,6 +573,27 @@ class WorkTrackerController extends Controller
         return response()->json(['status' => 200, 'message' => "{$count} lampiran diunggah"]);
     }
 
+    // Lampiran HTML selalu diunduh sebagai file, tidak pernah ditampilkan di browser
+    public function downloadAttachment($id)
+    {
+        $file = DB::table('work_item_attachments')->where('id', $id)->whereNull('deleted_at')->first();
+        abort_if(!$file || !$this->isPrivatePath($file->path), 404, 'Lampiran tidak ditemukan');
+
+        $fullPath = storage_path('app/' . $file->path);
+        abort_if(!is_file($fullPath), 404, 'File lampiran tidak ditemukan');
+
+        return response()->download($fullPath, $file->original_name, [
+            'Content-Type' => 'application/octet-stream',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => 'sandbox',
+        ]);
+    }
+
+    protected function isPrivatePath($path)
+    {
+        return strpos((string) $path, self::PRIVATE_FOLDER . '/') === 0 && strpos((string) $path, '..') === false;
+    }
+
     // Lampiran hanya ditandai terhapus, filenya tetap di storage
     public function deleteAttachment(Request $request)
     {
@@ -591,7 +617,7 @@ class WorkTrackerController extends Controller
         return [
             'files.max' => 'Maksimal ' . self::MAX_FILES . ' file sekali unggah',
             'files.*.max' => 'Ukuran file maksimal ' . (self::MAX_FILE_KB / 1024) . ' MB',
-            'files.*.mimes' => 'Jenis file tidak didukung. Gunakan foto, PDF, Excel, Word, TXT, CSV, atau ZIP',
+            'files.*.mimes' => 'Jenis file tidak didukung. Gunakan foto, PDF, Excel, Word, TXT, CSV, ZIP, atau HTML',
             'files.*.uploaded' => 'File gagal diunggah, kemungkinan ukurannya terlalu besar',
         ];
     }
@@ -604,13 +630,23 @@ class WorkTrackerController extends Controller
         $rows = [];
 
         foreach (array_filter((array) $files) as $file) {
-            $name = date('Ymd_His') . '_' . bin2hex(random_bytes(5)) . '.' . strtolower($file->extension() ?: 'bin');
-            $file->storeAs('public/' . $folder, $name);
+            $ext = strtolower($file->extension() ?: 'bin');
+            $name = date('Ymd_His') . '_' . bin2hex(random_bytes(5)) . '.' . $ext;
+
+            // path "private/..." ada di storage/app (tidak bisa diakses langsung), selain itu di storage/app/public
+            if (in_array($ext, self::PRIVATE_TYPES, true)) {
+                $path = self::PRIVATE_FOLDER . '/' . date('Y/m') . '/' . $name;
+                $file->storeAs(dirname($path), $name);
+            } else {
+                $path = $folder . '/' . $name;
+                $file->storeAs('public/' . $folder, $name);
+            }
+
             $rows[] = [
                 'work_item_id' => $itemId,
                 'point_id' => $pointId,
                 'log_id' => $logId,
-                'path' => $folder . '/' . $name,
+                'path' => $path,
                 'original_name' => mb_substr($file->getClientOriginalName() ?: $name, 0, 255),
                 'mime' => mb_substr((string) $file->getMimeType(), 0, 100),
                 'size' => (int) $file->getSize(),
