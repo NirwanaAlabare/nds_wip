@@ -88,6 +88,9 @@
         .wt-btn-ghost, .wt-btn-light { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 6px; border-radius: 11px; padding: 6px 13px; font-size: 13.5px; font-weight: 600; text-decoration: none; transition: background .15s, transform .15s, box-shadow .15s; }
         .wt-btn-ghost { border: 1px solid rgba(255, 255, 255, .45); background: rgba(255, 255, 255, .1); color: #fff; backdrop-filter: blur(4px); }
         .wt-btn-ghost:hover { background: rgba(255, 255, 255, .24); color: #fff; transform: translateY(-1px); }
+        .wt-btn-3d { border: 0; background: linear-gradient(120deg, #22c1c3, #3b82f6 55%, #8b5cf6); font-weight: 700; animation: wt-3d-pulse 2.4s infinite; }
+        .wt-btn-3d:hover { background: linear-gradient(120deg, #22c1c3, #3b82f6 55%, #8b5cf6); filter: brightness(1.1); }
+        @keyframes wt-3d-pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .6); } 70% { box-shadow: 0 0 0 9px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
         .wt-btn-light { border: 0; padding: 6px 15px; background: #fff; color: var(--hero-a); font-weight: 700; box-shadow: 0 6px 16px rgba(0, 0, 0, .15); }
         .wt-btn-light:hover { color: var(--hero-a); transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 22px rgba(0, 0, 0, .2); }
         .wt-btn-light i { transition: transform .3s; } .wt-btn-light:hover i { transform: rotate(90deg); }
@@ -621,6 +624,7 @@
                 </div>
                 <div class="wt-hero-actions">
                     <a class="wt-btn-ghost" href="{{ route('work-tracker-dashboard') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+                    <a class="wt-btn-ghost wt-btn-3d" href="{{ route('work-tracker-world') }}"><i class="fa-solid fa-cube"></i> Dunia 3D</a>
                     <button type="button" class="wt-btn-ghost" id="wt-btn-guide" data-bs-toggle="modal" data-bs-target="#wt-guide-modal"><i class="fa-solid fa-circle-question"></i> Panduan</button>
                     <button type="button" class="wt-btn-ghost" id="wt-btn-programmer"><i class="fa-solid fa-users"></i> Anggota</button>
                     <button type="button" class="wt-btn-light" id="wt-btn-add"><i class="fa-solid fa-plus"></i> Tambah Kerjaan</button>

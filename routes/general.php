@@ -175,6 +175,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name("work-tracker");
         Route::get('/dashboard', 'dashboard')->name('work-tracker-dashboard');
         Route::get('/dashboard/data', 'dashboardData')->name('data-work-tracker-dashboard');
+        Route::get('/world', 'world')->name('work-tracker-world');
+        Route::post('/world/presence', 'worldPresence')->name('presence-work-tracker-world');
+        Route::post('/world/chat', 'worldChat')->name('chat-work-tracker-world');
         Route::get('/data', 'data')->name('data-work-tracker');
         Route::get('/report', 'report')->name('report-work-tracker');
         Route::get('/export', 'export')->name('export-work-tracker');
