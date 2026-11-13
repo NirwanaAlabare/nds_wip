@@ -96,9 +96,14 @@
                     </div>
                 </div>
                 <div class="col-md-3 d-flex align-items-end pt-2">
-                    <button class="btn btn-secondary btn-block" onclick="resetFilter()">
-                        <i class="fas fa-undo"></i> Reset
-                    </button>
+                    <div class="d-flex w-100" style="gap: 8px;">
+                        <button class="btn btn-secondary flex-fill" type="button" onclick="resetFilter()">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                        <button class="btn btn-success flex-fill" type="button" id="export-stocker-process" onclick="exportStockerProcessExcel()" disabled>
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -369,10 +374,14 @@
             let filterQuery = $('#id_qr_stocker').val().trim();
 
             if (!filterQuery) {
+                window.currentStockerData = [];
+                $('#export-stocker-process').prop('disabled', true);
                 showEmptyState();
                 return;
             }
 
+            window.currentStockerData = [];
+            $('#export-stocker-process').prop('disabled', true);
             $('#loading-spinner').show();
             $('#stocker-cards-container').html('');
 
@@ -385,6 +394,7 @@
                     $('#loading-spinner').hide();
 
                     window.currentStockerData = response.data || [];
+                    $('#export-stocker-process').prop('disabled', window.currentStockerData.length === 0);
 
                     if (window.currentStockerData.length === 0) {
                         $('#stocker-cards-container').html(`
@@ -405,6 +415,8 @@
                 },
                 error: function (xhr, status, error) {
                     $('#loading-spinner').hide();
+                    window.currentStockerData = [];
+                    $('#export-stocker-process').prop('disabled', true);
                     console.error("AJAX Error:", error);
                     $('#stocker-cards-container').html(`
                         <div class="col-12 text-center my-5 text-danger">
@@ -412,6 +424,59 @@
                             <p>Gagal memuat data dari server. Silakan coba lagi.</p>
                         </div>
                     `);
+                }
+            });
+        }
+
+        function exportStockerProcessExcel() {
+            if (!window.currentStockerData || window.currentStockerData.length === 0) {
+                return;
+            }
+
+            const stockerId = $('#id_qr_stocker').val().trim();
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading(),
+            });
+
+            $.ajax({
+                url: "{{ route('export-stocker-process') }}",
+                type: "GET",
+                data: { id_qr_stocker: stockerId },
+                xhrFields: { responseType: 'blob' },
+                success: function (response) {
+                    Swal.close();
+
+                    const blob = new Blob([response], {
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    const safeStockerId = stockerId.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+                    link.href = url;
+                    link.download = 'stocker-process-' + safeStockerId + '.xlsx';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+
+                    iziToast.success({
+                        title: 'Success',
+                        message: 'Export berhasil',
+                        position: 'topCenter'
+                    });
+                },
+                error: function (xhr, status, error) {
+                    Swal.close();
+                    console.error('Stocker process export failed:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Gagal mengunduh file export.',
+                    });
                 }
             });
         }
@@ -719,6 +784,8 @@
 
         function resetFilter() {
             $('#id_qr_stocker').val('');
+            window.currentStockerData = [];
+            $('#export-stocker-process').prop('disabled', true);
             showEmptyState();
         }
     </script>

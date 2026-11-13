@@ -135,6 +135,13 @@ return [
             'days' => 30,
         ],
 
+        'undoStockerAdditional' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/undoStockerAdditional/undoStockerAdditional.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
         'transferOutput' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/transferOutput/transferOutput.log'),

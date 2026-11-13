@@ -78,7 +78,8 @@ class LoadingLineController extends Controller
                     sum( loading_stock.qty ) - loading_line_plan.target_loading loading_balance,
                     loading_stock.nama_trolley nama_trolley,
                     trolley_stock.trolley_color trolley_color,
-                    trolley_stock.trolley_qty trolley_qty
+                    trolley_stock.trolley_qty trolley_qty,
+                    loading_stock.stockers
                 FROM
                     loading_line_plan
                     INNER JOIN (
@@ -94,7 +95,8 @@ class LoadingLineController extends Controller
                                 trolley.nama_trolley,
                                 stocker_input.so_det_id,
                                 COALESCE(stocker_input.size, master_sb_ws.size) size,
-                                loading_line.loading_plan_id
+                                loading_line.loading_plan_id,
+                                GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) stockers
                             FROM
                                 loading_line
                                 LEFT JOIN stocker_input ON stocker_input.id = loading_line.stocker_id
@@ -219,6 +221,14 @@ class LoadingLineController extends Controller
             }
         }
 
+        $stockerFilter = "";
+        $bindings = [];
+        $stocker = trim((string) $request->input('stocker', ''));
+        if ($stocker !== '') {
+            $stockerFilter = " HAVING GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker) LIKE ?";
+            $bindings[] = "%".$stocker."%";
+        }
+
         $lineFilter = "";
         $detailLineFilter = "";
         if ($request->lineFilter) {
@@ -317,6 +327,7 @@ class LoadingLineController extends Controller
                                     stocker_input.group_stocker,
                                     stocker_input.ratio,
                                     stocker_input.stocker_reject
+                                    ".$stockerFilter."
                                 ORDER BY
                                     FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
                             ) loading_stock ON loading_stock.loading_plan_id = loading_line_plan.id
@@ -364,7 +375,7 @@ class LoadingLineController extends Controller
                         loading_line_plan.act_costing_ws,
                         loading_line_plan.color
                 ) loading
-        ");
+        ", $bindings);
 
         return json_encode($loadingLine ? $loadingLine[0] : null);
     }
@@ -462,7 +473,7 @@ class LoadingLineController extends Controller
         $dateFrom = $dateFrom ? $dateFrom : date("Y-m-d");
         $dateTo = $dateTo ? $dateTo : date("Y-m-d");
 
-        if ($request->ajax()) {
+        if ($request->ajax() && !$request->boolean('export')) {
             $lineStocker = LoadingLinePlan::selectRaw("
                 stocker_input.color,
                 stocker_input.id_qr_stocker
@@ -607,7 +618,71 @@ class LoadingLineController extends Controller
                 FIELD(part_detail.part_status, 'main', 'regular', 'complement') ASC
         "));
 
+        if ($request->boolean('export')) {
+            return $this->exportDetailExcel($loadingLines, $dateFrom, $dateTo);
+        }
+
         return view("dc.loading-line.detail-loading-plan", ['page' => 'dashboard-dc', 'subPageGroup' => 'loading-dc', 'subPage' => 'loading-line', "loadingLinePlan" => $loadingLinePlan, "loadingLines" => $loadingLines, "dateFrom" => $dateFrom, "dateTo" => $dateTo,]);
+    }
+
+    private function exportDetailExcel($loadingLines, $dateFrom, $dateTo)
+    {
+        $excel = FastExcel::create('Loading Line Detail');
+        $sheet = $excel->getSheet();
+        $sheet->writeTo('A1', 'Loading Line Detail', ['font-size' => 16]);
+        $sheet->mergeCells('A1:R1');
+
+        $headers = [
+            'A2' => 'No. WS',
+            'B2' => 'Color',
+            'C2' => 'No. Cut',
+            'D2' => 'No. Form',
+            'E2' => 'Panel',
+            'F2' => 'Size',
+            'G2' => 'Group Stocker',
+            'H2' => 'Shade',
+            'I2' => 'Range Awal',
+            'J2' => 'Range',
+            'K2' => 'Part',
+            'L2' => 'No. Stocker',
+            'M2' => 'Stock',
+            'N2' => 'No. Bon',
+            'O2' => 'Qty',
+            'P2' => 'Tanggal',
+            'Q2' => 'Waktu',
+            'R2' => 'By',
+        ];
+
+        foreach ($headers as $cell => $text) {
+            $sheet->writeTo($cell, $text)
+                ->applyFontStyleBold()
+                ->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        foreach ($loadingLines as $loadingLine) {
+            $sheet->writeRow([
+                $loadingLine->act_costing_ws,
+                $loadingLine->color,
+                $loadingLine->no_form." / ".$loadingLine->no_cut,
+                $loadingLine->no_form,
+                $loadingLine->panel,
+                $loadingLine->size,
+                $loadingLine->group_stocker,
+                $loadingLine->shade,
+                $loadingLine->range_awal,
+                $loadingLine->range_awal." - ".$loadingLine->range_akhir,
+                $loadingLine->nama_part,
+                $loadingLine->id_qr_stocker,
+                strtoupper($loadingLine->tipe != 'REJECT' ? $loadingLine->part_status : $loadingLine->tipe),
+                $loadingLine->no_bon,
+                $loadingLine->qty,
+                $loadingLine->tanggal_loading,
+                $loadingLine->waktu_loading,
+                $loadingLine->user,
+            ])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        return $excel->download('Loading Line Detail '.$dateFrom.' - '.$dateTo.'.xlsx');
     }
 
     /**

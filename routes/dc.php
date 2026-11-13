@@ -313,5 +313,6 @@ Route::middleware('auth')->group(function () {
         // Route::get('/', 'index')->name('dc-report');
         Route::match(['get', 'post'], '/', 'index')->name('stocker-process');
         Route::get('/stocker-process/data', 'getData')->name('get-stocker-process');
+        Route::get('/export', 'exportExcel')->name('export-stocker-process');
     });
 });

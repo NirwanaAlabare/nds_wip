@@ -18,20 +18,21 @@
 .nag-skin .dn-tabel-daftar tbody tr.md-nonaktif .md-nama,
 .nag-skin .dn-tabel-daftar tbody tr.md-nonaktif .md-kode { color: #94a3b8; }
 
-/* ---- Modal Show: kepala bergradasi + tab, isi per tab memakai kartu rincian Invoice ---- */
+/* ---- Modal Show: kepala bergradasi + tab, isi per tab memakai kartu rincian Invoice ----
+   Kepala, badan & tinggi modal dipakai juga modal Create / Edit Item (#md-modal-form). */
 #md-modal-detail .modal-dialog { max-width: 1000px; }
 /* Tinggi modal ikut isinya (bawaan scrollable selalu setinggi layar), sama dengan modal rincian Export */
-#md-modal-detail .modal-dialog-scrollable { height: auto; max-height: calc(100% - 3.5rem); }
-#md-modal-detail .modal-dialog-scrollable .modal-content { max-height: 100%; }
-#md-modal-detail .modal-content { border: 0; border-radius: 14px; overflow: hidden; }
-#md-modal-detail .md-det-kepala {
+:is(#md-modal-detail, #md-modal-form) .modal-dialog-scrollable { height: auto; max-height: calc(100% - 3.5rem); }
+:is(#md-modal-detail, #md-modal-form) .modal-dialog-scrollable .modal-content { max-height: 100%; }
+:is(#md-modal-detail, #md-modal-form) .modal-content { border: 0; border-radius: 14px; overflow: hidden; }
+:is(#md-modal-detail, #md-modal-form) .md-det-kepala {
   align-items: center;
   gap: 14px;
   padding: 16px 20px;
   border-bottom: 0;
   background: linear-gradient(120deg, #1e3a5f 0%, #24507f 60%, #2c5f94 100%);
 }
-#md-modal-detail .md-det-avatar {
+:is(#md-modal-detail, #md-modal-form) .md-det-avatar {
   flex: 0 0 auto;
   width: 50px;
   height: 50px;
@@ -46,8 +47,8 @@
   font-weight: 700;
   letter-spacing: .5px;
 }
-#md-modal-detail .md-det-identitas { flex: 1 1 auto; min-width: 0; }
-#md-modal-detail .md-det-nama {
+:is(#md-modal-detail, #md-modal-form) .md-det-identitas { flex: 1 1 auto; min-width: 0; }
+:is(#md-modal-detail, #md-modal-form) .md-det-nama {
   margin: 0 0 6px;
   color: #fff;
   font-size: 17px;
@@ -57,8 +58,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#md-modal-detail .md-det-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-#md-modal-detail .md-det-chip {
+:is(#md-modal-detail, #md-modal-form) .md-det-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+:is(#md-modal-detail, #md-modal-form) .md-det-chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -70,10 +71,10 @@
   font-weight: 500;
   white-space: nowrap;
 }
-#md-modal-detail .md-det-chip i { font-size: 10px; opacity: .7; }
-#md-modal-detail .md-det-chip.is-kode { background: #fff; color: #1e3a5f; font-weight: 700; letter-spacing: .3px; }
-#md-modal-detail .md-det-meta .dn-pil { margin-left: 2px; }
-#md-modal-detail .btn-close { align-self: flex-start; filter: invert(1) grayscale(100%) brightness(200%); opacity: .8; }
+:is(#md-modal-detail, #md-modal-form) .md-det-chip i { font-size: 10px; opacity: .7; }
+:is(#md-modal-detail, #md-modal-form) .md-det-chip.is-kode { background: #fff; color: #1e3a5f; font-weight: 700; letter-spacing: .3px; }
+:is(#md-modal-detail, #md-modal-form) .md-det-meta .dn-pil { margin-left: 2px; }
+:is(#md-modal-detail, #md-modal-form) .btn-close { align-self: flex-start; filter: invert(1) grayscale(100%) brightness(200%); opacity: .8; }
 
 /* Tab: garis bawah biru tua untuk tab yang terbuka */
 #md-modal-detail .md-det-tab { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 0 14px; }
@@ -108,7 +109,7 @@
 #md-modal-detail .nav-link.active .md-tab-cacah { background: #1e3a5f; color: #fff; }
 
 /* Tinggi isi dijaga supaya modal tidak melompat waktu pindah tab */
-#md-modal-detail .modal-body { background: #f5f7fb; padding: 18px 20px; min-height: 380px; }
+:is(#md-modal-detail, #md-modal-form) .modal-body { background: #f5f7fb; padding: 18px 20px; min-height: 380px; }
 #md-modal-detail .modal-footer { border-top: 1px solid #e2e8f0; padding: 12px 18px; gap: 8px; }
 #md-modal-detail .modal-footer .btn { margin: 0; }
 #md-modal-detail .dn-det-info .md-penuh { grid-column: span 2; }

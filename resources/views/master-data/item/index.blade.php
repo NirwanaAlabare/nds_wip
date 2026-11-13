@@ -88,6 +88,72 @@
 @media (max-width: 767px) {
   #md-modal-detail .md-coa-grid { grid-template-columns: 1fr; }
 }
+
+/* ===== Modal Create / Edit - isinya sama dengan halaman form lama ===== */
+/* Keterangan di bawah judul kepala modal */
+#md-modal-form .md-det-ket { color: #cbd5e1; font-size: 12px; }
+#md-modal-form .card:last-child { margin-bottom: 0; }
+
+.nag-skin .md-ket { display: block; margin-top: 4px; font-size: 11px; color: #64748b; }
+.nag-skin .md-ket i { margin-right: 4px; color: #94a3b8; }
+.nag-skin .md-besar { text-transform: uppercase; }
+.nag-skin .md-besar::placeholder { text-transform: none; }
+/* Di sebelah Inventory Mapping: CoA wajib atau tidak untuk mapping yang dipilih.
+   Diberi jarak setinggi label supaya sejajar dengan kotak pilihannya. */
+.nag-skin .md-coa-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 31px;
+  margin-top: 23px;
+  padding: 5px 11px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.3;
+}
+.nag-skin .md-coa-status.is-wajib { background: #fef3c7; border-color: #fde68a; color: #92400e; }
+.nag-skin .md-coa-status:empty { display: none; }
+
+/* Gambar: kotak pratinjau selebar kolom + tombol pilih / hapus di bawahnya */
+.nag-skin .md-pratinjau {
+  width: 100%;
+  height: 158px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: 12px;
+  text-align: center;
+}
+.nag-skin .md-pratinjau i { display: block; margin-bottom: 6px; font-size: 28px; opacity: .6; }
+.nag-skin .md-pratinjau img { width: 100%; height: 100%; object-fit: contain; }
+.nag-skin .md-unggah-aksi { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.nag-skin .md-nama-file { display: block; margin-top: 5px; font-size: 11.5px; color: #334155; word-break: break-all; }
+.nag-skin .md-nama-file:empty { display: none; }
+.nag-skin .md-nama-file.is-hapus { color: #b91c1c; }
+.nag-skin .btn-md-pilih {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #1e3a5f;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.nag-skin .btn-md-pilih:hover { background: #f1f5f9; }
+.nag-skin .btn-md-hapus {
+  border: 1px solid #fecaca;
+  background: #fff;
+  color: #b91c1c;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.nag-skin .btn-md-hapus:hover { background: #fef2f2; }
 </style>
 @endsection
 
@@ -257,6 +323,168 @@
         </div>
     </div>
 
+    {{-- ===================================================================
+         Modal Create / Edit - dari tombol Create, tombol pensil di kolom Action
+         dan tombol Edit di modal Show. Isian & aturannya mengikuti form Signalbit
+         pages/others/master.php (mod=2). CoA wajib untuk mapping ATK & UMUM, selain
+         itu dikunci "Not required" ('-'). Gambar baru disimpan di storage NDS.
+         Tidak tertutup kalau klik di luar modal, supaya isian tidak hilang.
+         =================================================================== --}}
+    <div class="modal fade" id="md-modal-form" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header md-det-kepala">
+                    <div class="md-det-avatar"><i class="fas fa-boxes-stacked" id="mf-ikon"></i></div>
+                    <div class="md-det-identitas">
+                        <h5 class="md-det-nama" id="mf-judul">Create Master Item General</h5>
+                        <div class="md-det-meta" id="mf-meta"></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="dn-det-muat" id="mf-muat" hidden>
+                        <span class="dn-loader-putar"></span> Loading...
+                    </div>
+                    <div id="mf-isi">
+                        {{-- ===== Data item: gambar di kiri, isian di kanan ===== --}}
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title"><i class="fas fa-box"></i> Item Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-4">
+                                        <div class="form-group mb-0">
+                                            <label>Image</label>
+                                            <div class="md-pratinjau" id="mf-pratinjau"></div>
+                                            <input type="file" id="mf-file" accept=".jpg,.jpeg,.png,.webp" hidden>
+                                            <div class="md-unggah-aksi">
+                                                <button type="button" class="btn btn-sm btn-md-pilih" id="mf-btn-pilih">
+                                                    <i class="fas fa-upload"></i> Choose image
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-md-hapus" id="mf-btn-hapus-gambar" hidden>
+                                                    <i class="fas fa-trash"></i> Remove
+                                                </button>
+                                            </div>
+                                            <span class="md-nama-file" id="mf-nama-file"></span>
+                                            <small class="md-ket"><i class="fas fa-circle-info"></i>JPG, PNG or WEBP.</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-9 col-md-8">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="mf-kode">Item Code <span class="dn-wajib" title="Required">*</span></label>
+                                                    <input type="text" class="form-control md-besar" id="mf-kode" name="goods_code"
+                                                        maxlength="{{ $panjang['goods_code'] }}" placeholder="Item code" autocomplete="off">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <div class="form-group">
+                                                    <label for="mf-nama">Description <span class="dn-wajib" title="Required">*</span></label>
+                                                    <input type="text" class="form-control md-besar" id="mf-nama" name="itemdesc"
+                                                        maxlength="{{ $panjang['itemdesc'] }}" placeholder="Item description" autocomplete="off">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label for="mf-warna">Color <span class="dn-wajib" title="Required">*</span></label>
+                                                    <input type="text" class="form-control md-besar" id="mf-warna" name="color"
+                                                        maxlength="{{ $panjang['color'] }}" placeholder="Use - if none" autocomplete="off">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label for="mf-ukuran">Size <span class="dn-wajib" title="Required">*</span></label>
+                                                    <input type="text" class="form-control md-besar" id="mf-ukuran" name="size"
+                                                        maxlength="{{ $panjang['size'] }}" placeholder="Use - if none" autocomplete="off">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="mf-tipe">Item Type</label>
+                                                    <select class="form-control select2bs4" id="mf-tipe" name="tipe_item">
+                                                        <option value="">-- Select item type --</option>
+                                                        @foreach ($tipe as $t)
+                                                            <option value="{{ $t }}">{{ $t }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="mf-mutasi">Mutation Type</label>
+                                                    <select class="form-control select2bs4" id="mf-mutasi" name="tipe_mut">
+                                                        <option value="">-- None --</option>
+                                                        @foreach ($mutasi as $nilai => $label)
+                                                            <option value="{{ $nilai }}">{{ $label }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <div class="form-group mb-md-0">
+                                                    <label for="mf-kategori">Inventory Mapping <span class="dn-wajib" title="Required">*</span></label>
+                                                    <select class="form-control select2bs4" id="mf-kategori" name="n_code_category">
+                                                        <option value="">-- Select inventory mapping --</option>
+                                                        @foreach ($kategori as $id => $nama)
+                                                            <option value="{{ $id }}">{{ $nama }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                {{-- Tanda wajib CoA - mengikuti mapping yang dipilih --}}
+                                                <div class="md-coa-status" id="mf-coa-status"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ===== CoA (wajib untuk ATK & UMUM) + tombol ===== --}}
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title"><i class="fas fa-book"></i> Chart of Accounts</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    @foreach ($coa as $kolom => $pilihan)
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="form-group">
+                                                <label for="mf-{{ $kolom }}">{{ $coaLabel[$kolom] }} <span class="dn-wajib md-coa-wajib" title="Required" hidden>*</span></label>
+                                                <select class="form-control select2bs4 md-coa" id="mf-{{ $kolom }}" name="{{ $kolom }}">
+                                                    <option value="">-- Select account --</option>
+                                                    <option value="-">Not required</option>
+                                                    {{-- Akun lama yang tidak ada di daftar ditambahkan JS (kelas mf-lama) supaya tidak hilang --}}
+                                                    @foreach ($pilihan as $no => $label)
+                                                        <option value="{{ $no }}">{{ $label }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="dn-kaki">
+                                    <button type="button" class="btn btn-dn-simpan" id="mf-btn-simpan">
+                                        <i class="fa fa-save"></i> <span id="mf-kata-simpan">Save</span>
+                                    </button>
+                                    <button type="button" class="btn btn-dn-kembali" data-bs-dismiss="modal">
+                                        <i class="fa fa-arrow-left"></i> Back
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @push('scripts')
@@ -272,10 +500,11 @@ $(function () {
     var RUT_DETAIL = @json(route('master-data-item-detail'));
     var RUT_STATUS = @json(route('master-data-item-status'));
     var RUT_EDIT   = @json(route('master-data-item-edit'));
-    // Keadaan daftar saat kembali dari Create / Edit (filter, cari, halaman, urutan)
+    // Keadaan daftar dari alamat halaman (filter, cari, halaman, urutan)
     var AWAL       = @json($awal);
 
-    $('.select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
+    // Select2 di modal Create / Edit dipasang terpisah (dropdown-nya harus di dalam modal)
+    $('.dn-kartu-filter .select2bs4').select2({ theme: 'bootstrap4', width: '100%' });
 
     function teks(nilai) {
         if (nilai == null || String(nilai).trim() === '') { return '-'; }
@@ -425,10 +654,23 @@ $(function () {
         } catch (e) { /* browser lama tanpa history API: cukup tidak diperbarui */ }
     });
 
-    $(document).on('mousedown click', 'a.md-ke-form', function () {
+    // Create / Edit dibuka di modal. href tetap diisi supaya Ctrl+klik / klik tengah (tab baru)
+    // juga jalan: alamat create / edit dialihkan server ke halaman ini dengan modalnya terbuka.
+    $(document).on('mousedown click', 'a.md-ke-form', function (e) {
         var $a = $(this);
         var q = $.extend($a.data('id') ? { id: $a.data('id') } : {}, keadaanDaftar());
         this.href = $a.data('dasar') + ($.isEmptyObject(q) ? '' : '?' + $.param(q));
+        if (e.type !== 'click' || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) { return; }
+
+        e.preventDefault();
+        var id = $a.data('id') || null;
+        if ($a.closest('#md-modal-detail').length) {
+            // Dari modal Show: tutup dulu, baru buka form (dua modal tidak ditumpuk)
+            $('#md-modal-detail').one('hidden.bs.modal', function () { bukaForm(id); });
+            modalDetail.hide();
+        } else {
+            bukaForm(id);
+        }
     });
 
     // ---------- Show: modal detail ----------
@@ -568,6 +810,346 @@ $(function () {
             });
         });
     });
+
+    // ===================================================================
+    // Modal Create / Edit
+    // ===================================================================
+    var RUT_SIMPAN   = @json(route('master-data-item-simpan'));
+    var RUT_PERBARUI = @json(route('master-data-item-perbarui'));
+    var WAJIB_COA    = @json($wajibCoa);
+    var BATAS_SERVER = @json($batasUpload);   // batas upload PHP server - hanya untuk pesan galat
+    var EKSTENSI     = @json($ekstensi);
+    var BUKA_FORM    = @json($bukaForm);      // dari alamat lama create / edit?id=
+
+    var $form = $('#md-modal-form');
+    // Tanpa focus trap: swal yang tampil di atas modal tetap bisa difokus (Enter / Esc ke swal, bukan ke modal)
+    var modalForm = new bootstrap.Modal($form[0], { focus: false });
+    $form.find('.select2bs4').select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $form });
+
+    // Item yang sedang diedit (null = create), gambar yang dipilih / dihapus
+    var F = { ubah: null, adaGambar: false, fileBaru: null, hapusGambar: false, urlPratinjau: null };
+    var muatKe = 0;   // respons edit yang terlambat (modal sudah dibuka lagi untuk item lain) diabaikan
+
+    function kata() {
+        return F.ubah
+            ? { tanya: 'Update', ya: 'Yes, update it', proses: 'Updating...', selesai: 'updated', gagal: 'Not updated' }
+            : { tanya: 'Save', ya: 'Yes, save it', proses: 'Saving...', selesai: 'saved', gagal: 'Not saved' };
+    }
+    function nilai(id) { return $.trim($(id).val() || ''); }
+
+    // Pilih nilai kalau ada di daftar; kalau tidak ada, kembali ke pilihan kosong (sama dengan form lama)
+    function pilih($s, v) {
+        v = v == null ? '' : String(v);
+        $s.val($s.find('option').filter(function () { return this.value === v; }).length ? v : '');
+    }
+
+    // ---------- CoA: wajib untuk ATK & UMUM, selain itu dikunci "Not required" ----------
+    function wajibCoa() { return WAJIB_COA.indexOf(String($('#mf-kategori').val())) !== -1; }
+
+    function aturCoa() {
+        var wajib = wajibCoa();
+        $form.find('.md-coa').each(function () {
+            var $s = $(this);
+            // Nilai dibaca sebelum opsi '-' dimatikan (opsi terpilih yang dimatikan terbaca null)
+            if (wajib) {
+                if ($s.val() === '-') { $s.val(''); }
+            } else {
+                $s.val('-');
+            }
+            $s.find('option[value="-"]').prop('disabled', wajib);
+            $s.prop('disabled', !wajib).trigger('change.select2');
+        });
+        $form.find('.md-coa-wajib').prop('hidden', !wajib);
+        // Keterangan di sebelah Inventory Mapping
+        var $status = $('#mf-coa-status').toggleClass('is-wajib', wajib);
+        if (!$('#mf-kategori').val()) {
+            $status.empty();
+        } else if (wajib) {
+            $status.html('<i class="fas fa-circle-exclamation"></i><span>Chart of accounts is required for this mapping.</span>');
+        } else {
+            $status.html('<i class="fas fa-circle-info"></i><span>Chart of accounts is not required for this mapping.</span>');
+        }
+    }
+    $('#mf-kategori').on('change', aturCoa);
+
+    // ---------- Gambar ----------
+    function tampilPratinjau(src, pesan) {
+        var $p = $('#mf-pratinjau').empty();
+        if (src) {
+            $p.append($('<img alt="">').attr('src', src));
+        } else {
+            $p.html('<span><i class="fas fa-image"></i>' + teks(pesan) + '</span>');
+        }
+    }
+    function lepasPratinjau() {
+        if (F.urlPratinjau) { URL.revokeObjectURL(F.urlPratinjau); F.urlPratinjau = null; }
+    }
+
+    // Keadaan awal gambar: url = gambar tersimpan (null kalau filenya tidak ada), file = nama di masteritem
+    function aturGambar(url, file) {
+        lepasPratinjau();
+        F.adaGambar = file !== '';
+        F.fileBaru = null;
+        F.hapusGambar = false;
+        tampilPratinjau(url, F.adaGambar ? 'Image file not found' : 'No image');
+        $('#mf-btn-pilih').html('<i class="fas fa-upload"></i> ' + (F.adaGambar ? 'Replace' : 'Choose image'));
+        $('#mf-btn-hapus-gambar').prop('hidden', !F.adaGambar);
+        $('#mf-nama-file').text(file).removeClass('is-hapus');
+        $('#mf-file').val('');
+    }
+
+    $('#mf-btn-pilih').on('click', function () { $('#mf-file').val('').trigger('click'); });
+
+    $('#mf-file').on('change', function () {
+        var f = this.files && this.files[0];
+        if (!f) { return; }
+        var ext = (f.name.split('.').pop() || '').toLowerCase();
+        // Ukuran tidak dibatasi; yang dicek hanya jenis filenya
+        if (EKSTENSI.indexOf(ext) === -1) {
+            Swal.fire({ icon: 'warning', title: 'Image not accepted', text: 'Image must be JPG, PNG or WEBP.', customClass: { popup: 'dn-swal' } });
+            return;
+        }
+        lepasPratinjau();
+        F.fileBaru = f;
+        F.hapusGambar = false;
+        F.urlPratinjau = URL.createObjectURL(f);
+        tampilPratinjau(F.urlPratinjau);
+        $('#mf-nama-file').text(f.name + ' (new)').removeClass('is-hapus');
+        $('#mf-btn-hapus-gambar').prop('hidden', false);
+    });
+
+    $('#mf-btn-hapus-gambar').on('click', function () {
+        lepasPratinjau();
+        F.fileBaru = null;
+        F.hapusGambar = F.adaGambar;
+        tampilPratinjau(null, 'No image');
+        $('#mf-nama-file').text(F.adaGambar ? 'Image will be removed when saved' : '').toggleClass('is-hapus', F.adaGambar);
+        $(this).prop('hidden', true);
+    });
+
+    function keteranganGambar() {
+        if (F.fileBaru) { return 'New image'; }
+        if (F.hapusGambar) { return 'Removed'; }
+        return F.adaGambar ? (F.ubah ? 'Unchanged' : '-') : 'None';
+    }
+
+    // ---------- Buka modal ----------
+    // Kepala modal: d = data item (edit) atau null (create)
+    function kepalaForm(d) {
+        $('#mf-ikon').attr('class', 'fas ' + (d ? 'fa-pen-to-square' : 'fa-boxes-stacked'));
+        $('#mf-judul').text((d ? 'Edit' : 'Create') + ' Master Item General');
+        $('#mf-meta').html(!d
+            ? '<span class="md-det-ket">Input form to add new general (non-production) item</span>'
+            : '<span class="md-det-ket">Update general item data</span>'
+                + (ada(d.goods_code) ? '<span class="md-det-chip is-kode">' + teks(d.goods_code) + '</span>' : '')
+                + '<span class="md-det-chip"><i class="fas fa-hashtag"></i>ID ' + teks(d.id_item) + '</span>'
+                + (String(d.non_aktif) === 'Y' ? '<span class="dn-pil is-batal"><span class="dn-pil-titik"></span>Inactive</span>' : ''));
+        $('#mf-kata-simpan').text(d ? 'Update' : 'Save');
+    }
+
+    // Isi semua isian dari data item ({} untuk create)
+    function isiForm(d) {
+        $('#mf-kode').val(d.goods_code || '');
+        $('#mf-nama').val(d.itemdesc || '');
+        $('#mf-warna').val(d.color || '');
+        $('#mf-ukuran').val(d.size || '');
+        pilih($('#mf-tipe'), d.tipe_item);
+        pilih($('#mf-mutasi'), d.tipe_mut);
+        pilih($('#mf-kategori'), d.n_code_category);
+
+        $form.find('.md-coa').each(function () {
+            var $s = $(this);
+            // Kunci dari keadaan sebelumnya dilepas dulu, akun lama sisa item sebelumnya dibuang
+            $s.prop('disabled', false).find('option').prop('disabled', false);
+            $s.find('option.mf-lama').remove();
+            var v = $.trim(String(d[this.name] == null ? '' : d[this.name]));
+            // Akun lama yang tidak ada di daftar tetap ditampilkan supaya tidak hilang
+            if (v !== '' && !$s.find('option').filter(function () { return this.value === v; }).length) {
+                $s.find('option[value="-"]').after($('<option class="mf-lama">').val(v).text(v));
+            }
+            $s.val(v);
+        });
+
+        $form.find('#mf-tipe, #mf-mutasi, #mf-kategori').trigger('change.select2');
+        aturCoa();
+    }
+
+    function tampilIsi(siap) {
+        $('#mf-muat').prop('hidden', siap);
+        $('#mf-isi').prop('hidden', !siap);
+        $('#mf-btn-simpan').prop('disabled', !siap);
+    }
+
+    var sedangTutup = false;   // modal yang masih beranimasi tutup mengabaikan show()
+
+    function bukaForm(id) {
+        if (sedangTutup) {
+            $form.one('hidden.bs.modal', function () { bukaForm(id); });
+            return;
+        }
+        var ke = ++muatKe;
+        F.ubah = null;
+
+        if (!id) {
+            kepalaForm(null);
+            isiForm({});
+            aturGambar(null, '');
+            tampilIsi(true);
+            modalForm.show();
+            return;
+        }
+
+        kepalaForm({ id_item: id });
+        tampilIsi(false);
+        modalForm.show();
+
+        $.getJSON(RUT_DETAIL, { id: id }).done(function (res) {
+            if (ke !== muatKe) { return; }
+            var d = res.data || {};
+            F.ubah = d;
+            kepalaForm(d);
+            isiForm(d);
+            aturGambar(res.gambar_url, d.file_gambar || '');
+            tampilIsi(true);
+        }).fail(function (x) {
+            if (ke !== muatKe) { return; }
+            modalForm.hide();
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to load item',
+                text: (x.responseJSON && x.responseJSON.message) || 'Please try again.',
+                customClass: { popup: 'dn-swal' }
+            });
+        });
+    }
+
+    // Respons yang masih jalan waktu modal ditutup tidak boleh mengisi form berikutnya
+    $form.on('hide.bs.modal', function () { sedangTutup = true; });
+    $form.on('hidden.bs.modal', function () { sedangTutup = false; muatKe++; lepasPratinjau(); });
+
+    // ---------- Simpan ----------
+    function dataKirim() {
+        var fd = new FormData();
+        if (F.ubah) { fd.append('id', F.ubah.id_item); }
+        // Isian yang dikunci (CoA tidak wajib) tidak ikut terkirim - server mengisinya '-'
+        $form.find('input[name], select[name]').each(function () {
+            if (!this.disabled) { fd.append(this.name, $.trim($(this).val() || '')); }
+        });
+        if (F.fileBaru) { fd.append('gambar', F.fileBaru); }
+        if (F.hapusGambar) { fd.append('hapus_gambar', 1); }
+        return fd;
+    }
+
+    $('#mf-btn-simpan').on('click', function () {
+        var K = kata();
+        var kurang = [];
+        if (!nilai('#mf-kode'))     { kurang.push('Item Code'); }
+        if (!nilai('#mf-nama'))     { kurang.push('Description'); }
+        if (!nilai('#mf-warna'))    { kurang.push('Color (use - if none)'); }
+        if (!nilai('#mf-ukuran'))   { kurang.push('Size (use - if none)'); }
+        if (!nilai('#mf-kategori')) { kurang.push('Inventory Mapping'); }
+        if (wajibCoa()) {
+            $form.find('.md-coa').each(function () {
+                if (!$(this).val() || $(this).val() === '-') {
+                    kurang.push('COA ' + $.trim($('label[for="' + this.id + '"]').clone().children().remove().end().text()));
+                }
+            });
+        }
+
+        if (kurang.length) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Please complete the form',
+                html: 'The following must be filled in before ' + (F.ubah ? 'updating' : 'saving') + ':<ul class="dn-swal-kurang"><li>'
+                    + kurang.join('</li><li>') + '</li></ul>',
+                confirmButtonText: 'OK',
+                customClass: { popup: 'dn-swal' }
+            });
+            return;
+        }
+
+        var $tb = $(this);
+        var ringkas = '<div class="dn-swal-ringkas">'
+            + '<div><span>Item Code</span><b>' + teks(nilai('#mf-kode').toUpperCase()) + '</b></div>'
+            + '<div><span>Description</span><b>' + teks(nilai('#mf-nama').toUpperCase()) + '</b></div>'
+            + '<div><span>Inventory Mapping</span><b>' + teks($('#mf-kategori').find(':selected').text()) + '</b></div>'
+            + '<div><span>Item Type</span><b>' + teks(nilai('#mf-tipe')) + '</b></div>'
+            + '<div><span>Image</span><b>' + teks(keteranganGambar()) + '</b></div>'
+            + '</div>';
+
+        Swal.fire({
+            icon: 'question',
+            title: K.tanya + ' this item?',
+            html: ringkas,
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa fa-save"></i> ' + K.ya,
+            cancelButtonText: 'Cancel',
+            reverseButtons: true,
+            focusCancel: true,
+            customClass: { popup: 'dn-swal' }
+        }).then(function (p) {
+            if (p.isConfirmed) { kirimSimpan($tb, K); }
+        });
+    });
+
+    function kirimSimpan($tb, K) {
+        $tb.prop('disabled', true);
+        Swal.fire({
+            title: K.proses,
+            allowOutsideClick: false, allowEscapeKey: false,
+            showConfirmButton: false, customClass: { popup: 'dn-swal' },
+            didOpen: function () { Swal.showLoading(); }
+        });
+
+        $.ajax({
+            url: F.ubah ? RUT_PERBARUI : RUT_SIMPAN,
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'), 'Accept': 'application/json' },
+            data: dataKirim(),
+            processData: false,
+            contentType: false
+        }).done(function (res) {
+            if (F.ubah && res.berubah === 0) {
+                $tb.prop('disabled', false);
+                Swal.fire({
+                    icon: 'info',
+                    title: 'No changes',
+                    html: 'Nothing was changed on <b>' + teks(res.kode) + '</b>.',
+                    confirmButtonText: 'OK',
+                    customClass: { popup: 'dn-swal' }
+                });
+                return;
+            }
+            Swal.fire({
+                icon: 'success',
+                title: 'Item ' + K.selesai,
+                html: '<b>' + teks(res.kode) + ' - ' + teks(res.nama) + '</b> has been ' + K.selesai + '.',
+                confirmButtonText: 'OK',
+                allowOutsideClick: false,
+                customClass: { popup: 'dn-swal' }
+            }).then(function () {
+                modalForm.hide();
+                tabel.ajax.reload(null, false);   // tetap di halaman yang sama, seperti kembali dari form lama
+            });
+        }).fail(function (x) {
+            $tb.prop('disabled', false);
+            var res = x.responseJSON || {};
+            var pesan = res.message || (x.status === 413 ? 'The image is larger than the server upload limit (' + BATAS_SERVER + ').' : 'Failed to ' + K.tanya.toLowerCase() + ', please try again.');
+            var html = teks(pesan);
+            if (res.kurang && res.kurang.length) {
+                html += '<ul class="dn-swal-kurang"><li>' + res.kurang.map(teks).join('</li><li>') + '</li></ul>';
+            }
+            Swal.fire({
+                icon: x.status === 409 ? 'warning' : 'error',
+                title: x.status === 409 ? 'Already exists' : K.gagal,
+                html: html,
+                confirmButtonText: 'OK',
+                customClass: { popup: 'dn-swal' }
+            });
+        });
+    }
+
+    if (BUKA_FORM) { bukaForm(BUKA_FORM === 'baru' ? null : BUKA_FORM); }
 });
 </script>
 @endpush

@@ -326,7 +326,7 @@ class ImportStockerManual implements ToCollection, WithStartRow
             }
 
             if (!($partDetailInfo && isset($partDetailInfo[0]))) {
-                throw new Exception("Gagal mendapatkan data Part Detail Info pada baris ke-{$i}");
+                throw new Exception("Gagal mendapatkan data Part Detail Info pada baris ke-{($i-1)}");
             }
 
             // 3. Simpan Data Stocker

@@ -12,38 +12,92 @@
         .wt-card { background: #fff; border: 1px solid var(--wt-line); border-radius: 14px; box-shadow: 0 4px 16px rgba(8, 33, 73, .05); }
 
         /* Hero */
-        .wt-hero { position: relative; overflow: hidden; border-radius: 16px; padding: 22px 26px; color: #fff; background: linear-gradient(120deg, var(--wt-navy), var(--wt-navy-2) 70%, #1c5bb8); box-shadow: 0 10px 28px rgba(8, 33, 73, .22); }
-        .wt-hero.mood-good { background: linear-gradient(120deg, #0b3a78, #0f6f8f 55%, #0c8f74); }
-        .wt-hero.mood-warn { background: linear-gradient(120deg, #7c3505, #a8530a 55%, #bd6a0c); }
-        .wt-hero.mood-bad { background: linear-gradient(120deg, #6d1421, #981f30 55%, #bb2d3d); }
-        .wt-hero-main { display: flex; align-items: center; gap: 20px; min-width: 0; }
-        .wt-ring { position: relative; flex: none; width: 118px; height: 118px; }
-        .wt-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .wt-ring circle { fill: none; stroke-width: 11; }
-        .wt-ring-track { stroke: rgba(255, 255, 255, .22); }
-        .wt-ring-value { stroke: #fff; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 1.4s cubic-bezier(.22, .8, .3, 1); }
-        .wt-ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05; }
-        .wt-ring-text b { font-size: 27px; font-weight: 800; }
-        .wt-ring-text span { font-size: 11px; font-weight: 600; opacity: .88; }
-        .wt-hero-eta { margin-top: 7px; font-size: 12.5px; color: rgba(255, 255, 255, .88); }
-        .wt-hero::after { content: ""; position: absolute; right: -60px; top: -90px; width: 280px; height: 280px; border-radius: 50%; background: rgba(255, 255, 255, .06); }
-        .wt-hero > * { position: relative; z-index: 1; }
-        .wt-hero > .wt-hero-runner { position: absolute; z-index: 0; bottom: 8px; left: -40px; font-size: 26px; color: rgba(255, 255, 255, .28); animation: wt-hero-run 14s linear infinite; }
-        .wt-hero > .wt-twinkle { position: absolute; z-index: 0; color: #fff; font-size: 9px; animation: wt-twinkle 2.6s ease-in-out infinite; }
+        /* Hero: warna dan animasi mengikuti halaman Action Points.
+           Warna didaftarkan lewat @property supaya perpindahan palet bisa berjalan halus. */
+        @property --hero-a { syntax: '<color>'; inherits: true; initial-value: #2563eb; }
+        @property --hero-b { syntax: '<color>'; inherits: true; initial-value: #06b6d4; }
+        .wt-hero { --hero-a: #2563eb; --hero-b: #06b6d4; position: relative; overflow: hidden; border-radius: 22px; padding: 24px 28px; color: #fff;
+            background: linear-gradient(120deg, var(--hero-a), var(--hero-b), var(--hero-a)); background-size: 220% 220%; animation: wt-gradient 14s ease infinite;
+            box-shadow: 0 14px 34px color-mix(in srgb, var(--hero-a) 32%, transparent); transition: --hero-a 4s ease, --hero-b 4s ease; }
+        @keyframes wt-gradient { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .wt-blob { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, .12); filter: blur(2px); pointer-events: none; animation: wt-blob 16s ease-in-out infinite; translate: calc(var(--mx, 0) * -22px) calc(var(--my, 0) * -22px); transition: translate .6s ease-out; }
+        .wt-blob.b1 { width: 260px; height: 260px; right: -70px; top: -110px; }
+        .wt-blob.b2 { width: 160px; height: 160px; right: 22%; bottom: -90px; animation-delay: -5s; animation-duration: 19s; }
+        .wt-blob.b3 { width: 90px; height: 90px; left: 38%; top: -40px; animation-delay: -9s; animation-duration: 13s; }
+        @keyframes wt-blob { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(-24px, 18px) scale(1.08); } 66% { transform: translate(18px, -12px) scale(.94); } }
+        .wt-shine { position: absolute; top: 0; bottom: 0; left: -40%; width: 30%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .22), transparent); transform: skewX(-20deg); animation: wt-shine 7s ease-in-out infinite; pointer-events: none; }
+        @keyframes wt-shine { 0%, 60% { left: -40%; } 100% { left: 130%; } }
+        .wt-bubbles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+        .wt-bubbles span { position: absolute; bottom: -20px; left: var(--l); width: var(--z); height: var(--z); border-radius: 50%; background: rgba(255, 255, 255, .28); box-shadow: inset 0 0 4px rgba(255, 255, 255, .6); animation: wt-bubble var(--t) linear infinite; animation-delay: var(--dl); }
+        @keyframes wt-bubble { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 10% { opacity: 1; } 50% { transform: translate(var(--sw), -120px) scale(1); } 100% { transform: translate(0, -260px) scale(.8); opacity: 0; } }
+        .wt-float { position: absolute; color: rgba(255, 255, 255, .22); font-size: var(--s, 22px); left: var(--x); top: var(--y); pointer-events: none; animation: wt-float var(--d, 7s) ease-in-out infinite; animation-delay: var(--delay, 0s); translate: calc(var(--mx, 0) * var(--depth, 14px)) calc(var(--my, 0) * var(--depth, 14px)); transition: translate .4s ease-out; }
+        .wt-float.twinkle { color: rgba(255, 255, 255, .7); animation-name: wt-hero-twinkle; }
+        @keyframes wt-float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-14px) rotate(10deg); } }
+        @keyframes wt-hero-twinkle { 0%, 100% { opacity: .15; transform: scale(.6) rotate(0); } 50% { opacity: 1; transform: scale(1.2) rotate(72deg); } }
+        .wt-wave { position: absolute; left: 0; bottom: 0; width: 200%; height: 46px; pointer-events: none; }
+        .wt-wave path { fill: rgba(255, 255, 255, .09); }
+        .wt-wave .w1 { animation: wt-wave 12s linear infinite; }
+        .wt-wave .w2 { fill: rgba(255, 255, 255, .07); animation: wt-wave 18s linear infinite reverse; }
+        @keyframes wt-wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .wt-hero-runner { position: absolute; bottom: 10px; left: -40px; font-size: 24px; color: rgba(255, 255, 255, .32); pointer-events: none; animation: wt-hero-run 16s linear infinite; }
         @keyframes wt-hero-run { to { left: 102%; } }
+        .wt-hero-inner { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; }
+        .wt-hero-main { display: flex; align-items: center; gap: 22px; min-width: 0; }
+        .wt-ring { position: relative; flex: none; width: 122px; height: 122px; animation: wt-ring-breathe 3.2s ease-in-out infinite; }
+        @keyframes wt-ring-breathe { 0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0)); } 50% { filter: drop-shadow(0 0 14px rgba(255, 255, 255, .45)); } }
+        .wt-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .wt-ring circle { fill: none; stroke-width: 10; }
+        .wt-ring-track { stroke: rgba(255, 255, 255, .22); }
+        .wt-ring-value { stroke: #fff; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 1.6s cubic-bezier(.22, .8, .3, 1); filter: drop-shadow(0 0 6px rgba(255, 255, 255, .6)); }
+        .wt-ring-orbit { position: absolute; inset: -9px; border-radius: 50%; border: 2px dashed rgba(255, 255, 255, .35); animation: fa-spin 22s linear infinite; }
+        .wt-ring-orbit i { position: absolute; top: -5px; left: 50%; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px 3px rgba(255, 255, 255, .8); }
+        .wt-ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05; }
+        .wt-ring-text b { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .wt-ring-text span { font-size: 11px; font-weight: 600; opacity: .9; }
+        .wt-ring.pop .wt-ring-text b { animation: wt-num-pop .6s cubic-bezier(.2, 1.6, .4, 1); }
+        @keyframes wt-num-pop { 40% { transform: scale(1.35); } }
         @keyframes wt-twinkle { 0%, 100% { opacity: .1; transform: scale(.6); } 50% { opacity: .75; transform: scale(1.15); } }
         .wt-alert { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 16px; margin-bottom: 14px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 13.5px; background: linear-gradient(90deg, #c21f30, #e8505f); animation: wt-alert-glow 1.4s ease-in-out infinite; }
         .wt-alert button { padding: 2px 10px; border: 1px solid rgba(255, 255, 255, .6); border-radius: 14px; background: rgba(255, 255, 255, .14); color: #fff; font-size: 12.5px; font-weight: 600; }
         .wt-alert button:hover { background: rgba(255, 255, 255, .3); }
         @keyframes wt-alert-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, .55); } 50% { box-shadow: 0 0 0 7px rgba(220, 53, 69, 0); } }
-        .wt-hero h1 { font-size: 24px; font-weight: 700; margin: 0; }
-        .wt-hero-date { color: rgba(255, 255, 255, .85); font-size: 13px; }
-        .wt-verdict { display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; padding: 9px 16px; border-radius: 12px; font-weight: 700; font-size: 16.5px; line-height: 1.25; background: #fff; color: var(--wt-ink); box-shadow: 0 6px 16px rgba(0, 0, 0, .18); animation: wt-rise .5s ease both; }
-        .wt-verdict i { font-size: 18px; }
-        .wt-verdict.good i { color: #0c7f3e; } .wt-verdict.warn i { color: #a86700; } .wt-verdict.bad i { color: #c21f30; }
-        .wt-hero .btn-light { color: var(--wt-navy); font-weight: 600; }
-        .wt-hero .btn-ghost { color: #fff; border: 1px solid rgba(255, 255, 255, .4); font-weight: 600; }
-        .wt-hero .btn-ghost:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+        .wt-greet { font-size: 13px; opacity: .92; }
+        .wt-clock { display: inline-block; margin-left: 4px; padding: 1px 8px; border-radius: 8px; background: rgba(255, 255, 255, .18); font-weight: 700; font-variant-numeric: tabular-nums; }
+        .wt-clock .colon { animation: wt-blink 1s steps(1) infinite; }
+        @keyframes wt-blink { 50% { opacity: .25; } }
+        .wt-hero h1 { margin: 2px 0 0; font-size: 27px; font-weight: 800; letter-spacing: -.01em; }
+        .wt-hero h1 > i { display: inline-block; animation: wt-hero-wiggle 3.5s ease-in-out infinite; }
+        @keyframes wt-hero-wiggle { 0%, 86%, 100% { transform: rotate(0); } 90% { transform: rotate(-14deg); } 95% { transform: rotate(12deg); } }
+        .wt-title-text .ch { display: inline-block; animation: wt-letter .7s cubic-bezier(.2, 1.5, .4, 1) backwards; animation-delay: calc(var(--i) * 45ms + .15s); }
+        .wt-title-text .ch.sp { width: .28em; }
+        @keyframes wt-letter { from { opacity: 0; transform: translateY(26px) rotate(12deg) scale(.6); } }
+        #wt-hero-title:hover .ch { animation: wt-letter-wave .6s ease; animation-delay: calc(var(--i) * 35ms); }
+        @keyframes wt-letter-wave { 40% { transform: translateY(-8px); color: rgba(255, 255, 255, .85); } }
+        /* Pesan hero bergantian dengan efek balik kartu dan bar waktu di bawahnya */
+        .wt-verdict { position: relative; overflow: hidden; display: inline-flex; align-items: center; min-height: 40px; margin-top: 10px; padding: 8px 15px; border-radius: 13px; background: rgba(255, 255, 255, .96); color: #18223a; font-weight: 700; font-size: 14.5px; box-shadow: 0 6px 16px rgba(0, 0, 0, .16); perspective: 400px; animation: wt-hero-pop .5s cubic-bezier(.2, 1.4, .4, 1) both; }
+        @keyframes wt-hero-pop { from { opacity: 0; transform: scale(.85); } }
+        .wt-msg-body { display: inline-flex; align-items: center; gap: 9px; transform-origin: center bottom; transition: transform .3s ease, opacity .3s ease; }
+        .wt-verdict.flip .wt-msg-body { transform: rotateX(90deg) translateY(-6px); opacity: 0; }
+        .wt-verdict.good i { color: #0f9d6b; } .wt-verdict.warn i { color: #c27803; } .wt-verdict.bad i { color: #dc2626; }
+        .wt-verdict.bad .wt-msg-body i { animation: wt-bell 1.6s ease-in-out infinite; }
+        @keyframes wt-bell { 0%, 50%, 100% { transform: rotate(0); } 10%, 30% { transform: rotate(-18deg); } 20%, 40% { transform: rotate(18deg); } }
+        .wt-msg-bar { position: absolute; left: 0; bottom: 0; width: 0; height: 3px; background: linear-gradient(90deg, var(--hero-a), var(--hero-b)); }
+        .wt-msg-bar.run { animation: wt-msg-bar var(--msg-dur, 6s) linear forwards; }
+        @keyframes wt-msg-bar { to { width: 100%; } }
+        .wt-hero-actions { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
+        .wt-btn-ghost, .wt-btn-light { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 6px; border-radius: 11px; padding: 6px 13px; font-size: 13.5px; font-weight: 600; text-decoration: none; transition: background .15s, transform .15s, box-shadow .15s; }
+        .wt-btn-ghost { border: 1px solid rgba(255, 255, 255, .45); background: rgba(255, 255, 255, .1); color: #fff; backdrop-filter: blur(4px); }
+        .wt-btn-ghost:hover { background: rgba(255, 255, 255, .24); color: #fff; transform: translateY(-1px); }
+        .wt-btn-3d { border: 0; background: linear-gradient(120deg, #22c1c3, #3b82f6 55%, #8b5cf6); font-weight: 700; animation: wt-3d-pulse 2.4s infinite; }
+        .wt-btn-3d:hover { background: linear-gradient(120deg, #22c1c3, #3b82f6 55%, #8b5cf6); filter: brightness(1.1); }
+        @keyframes wt-3d-pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .6); } 70% { box-shadow: 0 0 0 9px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
+        .wt-btn-light { border: 0; padding: 6px 15px; background: #fff; color: var(--hero-a); font-weight: 700; box-shadow: 0 6px 16px rgba(0, 0, 0, .15); }
+        .wt-btn-light:hover { color: var(--hero-a); transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 22px rgba(0, 0, 0, .2); }
+        .wt-btn-light i { transition: transform .3s; } .wt-btn-light:hover i { transform: rotate(90deg); }
+        .wt-btn-light::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--hero-a) 25%, transparent), transparent); transform: skewX(-20deg); animation: wt-shine 3.5s ease-in-out infinite; }
+        .wt-ripple { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, .55); transform: scale(0); animation: wt-ripple .6s ease-out forwards; pointer-events: none; }
+        .wt-btn-light .wt-ripple { background: color-mix(in srgb, var(--hero-a) 25%, transparent); }
+        @keyframes wt-ripple { to { transform: scale(4); opacity: 0; } }
         .wt-demo { background: #fff5dc; border: 1px solid #f3d995; color: #755300; border-radius: 10px; padding: 8px 14px; font-size: 13px; }
 
         /* Tiles */
@@ -271,6 +325,47 @@
         .wt-tabs button { border: 0; background: transparent; padding: 6px 14px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--wt-muted); }
         .wt-tabs button.active { background: #fff; color: var(--wt-navy); box-shadow: 0 1px 4px rgba(8, 33, 73, .15); }
         .wt-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 12px 0; }
+        .wt-filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
+        .wt-filterbar > div { min-width: 0; }
+        .wt-search { position: relative; flex: 1 1 240px; }
+        .wt-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--wt-muted); font-size: 13px; pointer-events: none; }
+        .wt-search input { padding-left: 34px; border-radius: 10px; }
+        .wt-fb-programmer { flex: 0 1 220px; }
+        .wt-fb-date { flex: 0 1 190px; }
+        .wt-fb-date .input-group-text { font-size: 12px; font-weight: 600; color: var(--wt-muted); background: var(--wt-soft); }
+        .wt-filter-btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border: 1px solid var(--wt-line); border-radius: 10px; background: #fff; color: var(--wt-navy); font-size: 13px; font-weight: 600; transition: background .15s, border-color .15s; }
+        .wt-filter-btn:hover, .wt-filter-btn[aria-expanded="true"] { border-color: var(--wt-navy); background: var(--wt-soft); }
+        .wt-filter-btn .fa-chevron-down { font-size: 10px; transition: transform .2s; }
+        .wt-filter-btn[aria-expanded="true"] .fa-chevron-down { transform: rotate(180deg); }
+        .wt-filter-badge { min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; background: var(--wt-blue); color: #fff; font-size: 11px; line-height: 19px; text-align: center; }
+        .wt-filter-reset { padding: 0 6px; border: 0; background: none; color: var(--wt-blue); font-size: 12.5px; font-weight: 600; }
+        .wt-filter-reset:hover { text-decoration: underline; }
+        .wt-filter-more { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: -2px 0 12px; padding: 12px; border-radius: 12px; background: var(--wt-soft); }
+        .wt-filter-more label { font-size: 12px; font-weight: 600; color: var(--wt-muted); margin-bottom: 3px; }
+
+        /* Daftar kartu baris */
+        .wt-rows { display: flex; flex-direction: column; gap: 8px; }
+        .wt-row { display: grid; grid-template-columns: minmax(0, 1fr) 200px 170px 100px 180px; gap: 16px; align-items: center; padding: 11px 14px; border: 1px solid var(--wt-line); border-left: 4px solid var(--wt-gray); border-radius: 12px; background: #fff; cursor: pointer; animation: wt-rise .3s ease both; transition: transform .14s, box-shadow .14s, border-color .14s; }
+        .wt-row:hover { transform: translateY(-1px); border-color: #cfd8e6; box-shadow: 0 6px 16px rgba(8, 33, 73, .1); }
+        .wt-row.b-aman, .wt-row.b-selesai { border-left-color: var(--wt-green); } .wt-row.b-mepet { border-left-color: var(--wt-amber); } .wt-row.b-telat, .wt-row.b-selesai_telat { border-left-color: var(--wt-red); }
+        .wt-row-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 3px; }
+        .wt-row .wt-title { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .wt-row-meta { display: flex; flex-wrap: wrap; gap: 3px 10px; font-size: 11.5px; color: var(--wt-muted); }
+        .wt-row-meta i { margin-right: 3px; }
+        .wt-row-meta .done { color: var(--wt-green); font-weight: 600; }
+        .wt-row-progress { font-size: 12px; }
+        .wt-row-progress b { font-size: 13px; }
+        .wt-row-date { font-size: 12.5px; line-height: 1.3; }
+        .wt-row-date .wt-sub { font-size: 11px; }
+        .wt-row-health .wt-sub { margin-top: 3px; line-height: 1.3; }
+
+        /* Arena bisa dilipat */
+        .wt-fold { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border: 1px solid var(--wt-line); border-radius: 16px; background: #fff; color: var(--wt-muted); font-size: 12px; font-weight: 600; transition: background .15s, color .15s; }
+        .wt-fold:hover { background: var(--wt-soft); color: var(--wt-navy); }
+        .wt-fold i { font-size: 10px; transition: transform .25s; }
+        .wt-race.folded .wt-fold i { transform: rotate(-90deg); }
+        .wt-race.folded { padding-bottom: 14px; }
+        .wt-race.folded .wt-legend { display: none !important; }
         .wt-filters label, .wt-form label { font-size: 12px; font-weight: 600; color: var(--wt-muted); margin-bottom: 3px; }
 
         /* Table */
@@ -302,7 +397,9 @@
         .wt-kcard.b-aman, .wt-kcard.b-selesai { border-left-color: var(--wt-green); } .wt-kcard.b-mepet { border-left-color: var(--wt-amber); } .wt-kcard.b-telat, .wt-kcard.b-selesai_telat { border-left-color: var(--wt-red); }
 
         /* Timeline */
-        .wt-tl-scroll { overflow-x: auto; }
+        .wt-tl-scroll { overflow-x: auto; cursor: grab; user-select: none; }
+        .wt-tl-scroll.panning, .wt-tl-scroll.panning * { cursor: grabbing !important; }
+        .wt-tl-scroll .wt-tl-bar { cursor: pointer; }
         .wt-tl { position: relative; width: max-content; min-width: 100%; }
         .wt-tl-row { display: grid; border-bottom: 1px solid var(--wt-line); transition: background .1s; }
         .wt-tl-row.drop-target .wt-tl-area { background-color: #e9f1fe; box-shadow: inset 0 0 0 2px var(--wt-blue); }
@@ -331,6 +428,12 @@
         .tl-telat, .tl-selesai_telat { border-color: #f3a3ab; border-left-color: var(--wt-red); background: #ffe8ea; } .tl-telat .wt-tl-fill, .tl-selesai_telat .wt-tl-fill { background: #fba9b1; }
         .tl-selesai, .tl-selesai_telat, .tl-ditolak { opacity: .7; }
         .wt-tl-over { position: absolute; z-index: 1; height: 24px; border-radius: 0 6px 6px 0; background: repeating-linear-gradient(45deg, #ffb3bb 0 5px, #ffe3e6 5px 10px); pointer-events: none; }
+        .wt-tl-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 8px; }
+        .wt-tl-nav label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12.5px; font-weight: 600; color: var(--wt-muted); }
+        .wt-tl-nav input[type="date"] { width: 150px; }
+        .wt-tl-hint { margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; background: #fff4dc; color: #7a5300; font-size: 12px; }
+        .wt-tl-bar.clip-l { border-left-style: dashed; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+        .wt-tl-bar.clip-r { border-right: 2px dashed currentColor; border-top-right-radius: 0; border-bottom-right-radius: 0; }
         .wt-tl-tip { position: fixed; z-index: 2000; display: none; padding: 4px 10px; border-radius: 8px; background: var(--wt-navy); color: #fff; font-size: 12px; font-weight: 600; white-space: nowrap; pointer-events: none; }
 
         /* Modal */
@@ -338,8 +441,108 @@
         .wt-color { display: flex; gap: 7px; flex-wrap: wrap; }
         .wt-color button { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--wt-line); }
         .wt-color button.active { box-shadow: 0 0 0 2px var(--wt-navy); }
+        .wt-member-avatar { border: 0; padding: 0; cursor: pointer; transition: transform .12s, box-shadow .12s; }
+        .wt-member-avatar:hover { transform: scale(1.12); box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--wt-line); }
+        .wt-member-colors { padding: 6px 0 10px 34px; }
+        .wt-member-colors button { width: 24px; height: 24px; }
+        .wt-color-custom { position: relative; display: inline-grid; place-items: center; width: 24px; height: 24px; margin: 0; border-radius: 50%; background: var(--wt-soft); color: var(--wt-muted); font-size: 11px; box-shadow: 0 0 0 1px var(--wt-line); cursor: pointer; }
+        .wt-color-custom input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
         .wt-log { border-left: 2px solid var(--wt-line); padding: 0 0 12px 14px; position: relative; font-size: 12.5px; }
         .wt-log::before { content: ""; position: absolute; left: -6px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--wt-blue); }
+        /* Form kerjaan ringkas */
+        .wt-modal-md { max-width: 640px; }
+        .wt-form .wt-title-input { padding: 10px 14px; border-radius: 10px; font-size: 16px; font-weight: 600; }
+        .wt-type-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .wt-type-pills button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border: 1px solid var(--wt-line); border-radius: 20px; background: #fff; color: var(--wt-muted); font-size: 12.5px; font-weight: 600; transition: background .15s, color .15s, border-color .15s, transform .15s; }
+        .wt-type-pills button:hover { transform: translateY(-1px); border-color: #c6d0de; }
+        .wt-type-pills button.active[data-type="plan"] { background: #e7f0ff; border-color: #9cc0f5; color: #1b5fc1; }
+        .wt-type-pills button.active[data-type="bug"] { background: #ffe9ec; border-color: #f3aab3; color: #c92a3c; }
+        .wt-type-pills button.active[data-type="request"] { background: #f1e9ff; border-color: #c8adf0; color: #7338c9; }
+        .wt-mini-head { display: flex; align-items: center; gap: 7px; margin: 20px 0 6px; font-size: 12.5px; font-weight: 700; color: var(--wt-navy); }
+        .wt-mini-head > i { color: var(--wt-blue); }
+        .wt-more { margin-top: 18px; border-top: 1px solid var(--wt-line); }
+        .wt-more summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 12px 0 4px; color: var(--wt-navy); font-size: 13px; font-weight: 600; list-style: none; cursor: pointer; }
+        .wt-more summary::-webkit-details-marker { display: none; }
+        .wt-more summary > i { font-size: 10px; transition: transform .2s; }
+        .wt-more[open] summary > i { transform: rotate(90deg); }
+        .wt-more summary:hover { color: var(--wt-blue); }
+        .wt-more[open] > .row { animation: wt-rise .25s ease both; }
+
+        /* Bagian di dalam modal */
+        .wt-sec { padding: 14px 0; border-top: 1px solid var(--wt-line); }
+        .wt-sec:first-child { padding-top: 0; border-top: 0; }
+        .wt-sec-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--wt-navy); }
+        .wt-sec-title > i { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 7px; background: #e9f1fe; color: var(--wt-blue); font-size: 11px; }
+        .wt-sec-title .ms-auto { text-transform: none; letter-spacing: 0; }
+
+        /* Poin ala to-do */
+        .wt-todo-count { font-size: 12px; font-weight: 600; color: var(--wt-muted); }
+        .wt-todo-count.all-done { color: var(--wt-green); }
+        .wt-todo-bar { height: 5px; margin: -2px 0 8px; border-radius: 5px; background: #e7ecf4; overflow: hidden; }
+        .wt-todo-bar span { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #12a150, #4fd18b); transition: width .5s cubic-bezier(.22, .8, .3, 1); }
+        .wt-point { display: flex; align-items: flex-start; gap: 4px; padding: 2px 4px; border-radius: 9px; font-size: 13.5px; transition: background .15s; }
+        .wt-point:hover, .wt-point:focus-within { background: var(--wt-soft); }
+        .wt-point.drop-over { background: #e9f1fe; box-shadow: inset 0 0 0 2px var(--wt-blue); }
+        .wt-point-body { flex: 1; min-width: 0; padding: 4px 0; }
+        .wt-point-body > input { margin: 2px 0; }
+        .wt-point-toggle { display: flex; align-items: flex-start; gap: 11px; width: 100%; padding: 2px 0; border: 0; background: none; color: var(--wt-ink); text-align: left; }
+        .wt-point-toggle:disabled { opacity: .6; }
+        .wt-check { flex: none; width: 20px; height: 20px; margin-top: 1px; display: grid; place-items: center; border: 2px solid #b7c2d3; border-radius: 50%; color: #fff; font-size: 10px; transition: background .2s, border-color .2s, transform .2s; }
+        .wt-check i { opacity: 0; transform: scale(.4); transition: opacity .2s, transform .2s; }
+        .wt-point-toggle:hover .wt-check { border-color: var(--wt-green); }
+        .wt-point-toggle:hover .wt-check i { opacity: .35; transform: none; color: var(--wt-green); }
+        .wt-point.done .wt-check { border-color: var(--wt-green); background: var(--wt-green); }
+        .wt-point.done .wt-check i { opacity: 1; transform: none; color: #fff; }
+        .wt-check.pop { animation: wt-check-pop .45s cubic-bezier(.2, 1.6, .4, 1); }
+        @keyframes wt-check-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+        .wt-point-text { word-break: break-word; transition: color .2s; }
+        .wt-point.done .wt-point-text { text-decoration: line-through; text-decoration-color: rgba(104, 116, 138, .6); color: #8a94a6; }
+        .wt-point-body > .wt-sub, .wt-point-body > .wt-files { padding-left: 31px; }
+        .wt-point-actions { display: flex; flex-shrink: 0; padding-top: 3px; opacity: 0; transition: opacity .15s; }
+        .wt-point:hover .wt-point-actions, .wt-point:focus-within .wt-point-actions { opacity: 1; }
+        @media (hover: none) { .wt-point-actions { opacity: 1; } }
+        .wt-point-actions .btn { padding: 1px 6px; color: #8a94a6; }
+        .wt-point-actions .btn:hover { color: var(--wt-navy); }
+        .wt-point-actions .wt-del-btn:hover { color: var(--wt-red); }
+        .wt-todo-add { display: flex; align-items: center; gap: 11px; margin-top: 4px; padding: 5px 4px; border-radius: 9px; }
+        .wt-todo-add:focus-within { background: var(--wt-soft); }
+        .wt-todo-add > i { flex: none; width: 20px; text-align: center; color: var(--wt-blue); }
+        .wt-todo-add input { flex: 1; min-width: 0; padding: 3px 0; border: 0; border-bottom: 1px dashed #c6d0de; background: none; font-size: 13.5px; outline: 0; }
+        .wt-todo-add input:focus { border-bottom-color: var(--wt-blue); }
+        .wt-todo-add .btn { padding: 2px 10px; font-size: 12px; }
+        .wt-todo-empty { padding: 4px 4px 2px 35px; font-size: 12.5px; color: var(--wt-muted); }
+
+        /* Lampiran: kotak drop + galeri */
+        .wt-drop { display: flex; align-items: center; gap: 12px; width: 100%; margin: 0; padding: 12px 16px; border: 2px dashed #c6d0de; border-radius: 12px; background: #fafcff; color: var(--wt-muted); font-size: 12.5px; cursor: pointer; transition: border-color .15s, background .15s; }
+        .wt-drop:hover, .wt-drop.over { border-color: var(--wt-blue); background: #eef5ff; }
+        .wt-drop.over .wt-drop-icon { transform: translateY(-3px) scale(1.08); }
+        .wt-drop input[type=file] { display: none; }
+        .wt-drop > span { pointer-events: none; }
+        .wt-sec-title .wt-range-value { font-size: 22px; letter-spacing: 0; }
+        .wt-drop-icon { flex: none; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; background: #e9f1fe; color: var(--wt-blue); font-size: 17px; transition: transform .2s; }
+        .wt-drop b { color: var(--wt-navy); }
+        .wt-drop.compact { padding: 8px 12px; }
+        .wt-drop.compact .wt-drop-icon { width: 30px; height: 30px; font-size: 14px; }
+        .wt-files { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .wt-file { position: relative; display: inline-flex; animation: wt-rise .25s ease both; }
+        .wt-file-box { display: inline-flex; align-items: center; gap: 7px; max-width: 220px; height: 38px; padding: 0 10px; border: 1px solid var(--wt-line); border-radius: 9px; background: #fff; color: var(--wt-navy); font-size: 12px; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+        a.wt-file-box:hover { border-color: var(--wt-blue); box-shadow: 0 3px 10px rgba(8, 33, 73, .12); color: var(--wt-navy); }
+        .wt-file-box span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .wt-file-box i { font-size: 15px; }
+        .wt-file-box .fa-file-pdf { color: #d63a3a; } .wt-file-box .fa-file-excel { color: #1d7a45; } .wt-file-box .fa-file-word { color: #2b5fb4; } .wt-file-box .fa-file-zipper { color: #a86700; } .wt-file-box .fa-file-code { color: #e34c26; } .wt-file-box .fa-file-lines { color: var(--wt-muted); }
+        .wt-file.is-image .wt-file-box { width: 76px; height: 76px; padding: 0; overflow: hidden; border-radius: 11px; }
+        .wt-file.is-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
+        .wt-file.is-image a.wt-file-box:hover img { transform: scale(1.07); }
+        .wt-file.pending .wt-file-box { border-style: dashed; }
+        .wt-file-del { position: absolute; top: -7px; right: -7px; width: 20px; height: 20px; padding: 0; border: 2px solid #fff; border-radius: 50%; background: #6b7a8c; color: #fff; font-size: 12px; line-height: 15px; opacity: 0; transition: opacity .15s, background .15s; }
+        .wt-file:hover .wt-file-del, .wt-file-del:focus { opacity: 1; }
+        .wt-file-del:hover { background: var(--wt-red); }
+        @media (hover: none) { .wt-file-del { opacity: 1; } }
+        .wt-lightbox { position: fixed; inset: 0; z-index: 2150; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; background: rgba(8, 20, 45, .86); outline: 0; animation: wt-party-in .2s ease both; cursor: zoom-out; }
+        .wt-lightbox img { max-width: 100%; max-height: calc(100vh - 110px); border-radius: 10px; box-shadow: 0 20px 50px rgba(0, 0, 0, .45); animation: wt-party-pop .3s ease both; }
+        .wt-lightbox-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; color: #fff; font-size: 13px; cursor: default; }
+        .wt-lightbox-bar a, .wt-lightbox-bar button { padding: 4px 12px; border: 1px solid rgba(255, 255, 255, .5); border-radius: 16px; background: rgba(255, 255, 255, .12); color: #fff; font-size: 12.5px; text-decoration: none; }
+        .wt-lightbox-bar a:hover, .wt-lightbox-bar button:hover { background: rgba(255, 255, 255, .25); color: #fff; }
         .wt-range { width: 100%; accent-color: var(--wt-blue); }
         .wt-range-value { font-size: 28px; font-weight: 700; color: var(--wt-navy); }
         /* Hanya kotak pilihannya yang selebar kolom; daftar yang melayang (dropdown) tetap selebar kotaknya */
@@ -376,6 +579,9 @@
         @media (max-width: 991.98px) {
             .wt-lane { grid-template-columns: 1fr; gap: 6px; }
             .wt-queue-row { grid-template-columns: 1fr; gap: 6px; }
+            .wt-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 14px; }
+            .wt-row-main { grid-column: 1 / -1; }
+            .wt-row .wt-title { white-space: normal; }
             .wt-hero { padding: 18px; }
             .wt-ring { width: 92px; height: 92px; }
             .wt-ring-text b { font-size: 21px; }
@@ -386,30 +592,42 @@
 
 @section('content')
     <div class="wt">
-        <div class="wt-hero mb-3">
+        <div class="wt-hero mb-3" id="wt-hero">
+            <span class="wt-blob b1" aria-hidden="true"></span><span class="wt-blob b2" aria-hidden="true"></span><span class="wt-blob b3" aria-hidden="true"></span>
+            <span class="wt-shine" aria-hidden="true"></span>
+            <div class="wt-bubbles" id="wt-bubbles" aria-hidden="true"></div>
+            <i class="fa-solid fa-laptop-code wt-float" style="--x: 46%; --y: 14%; --d: 6s; --depth: 18px;" aria-hidden="true"></i>
+            <i class="fa-solid fa-list-check wt-float" style="--x: 60%; --y: 56%; --d: 8s; --delay: -2s; --s: 28px; --depth: 26px;" aria-hidden="true"></i>
+            <i class="fa-solid fa-bug wt-float" style="--x: 76%; --y: 18%; --d: 7s; --delay: -4s; --s: 18px; --depth: 12px;" aria-hidden="true"></i>
+            <i class="fa-solid fa-rocket wt-float" style="--x: 34%; --y: 70%; --d: 9s; --delay: -1s; --s: 20px; --depth: 20px;" aria-hidden="true"></i>
+            <i class="fa-solid fa-star wt-float twinkle" style="--x: 88%; --y: 64%; --d: 5s; --delay: -3s; --s: 12px; --depth: 8px;" aria-hidden="true"></i>
+            <i class="fa-solid fa-star wt-float twinkle" style="--x: 53%; --y: 30%; --d: 4s; --delay: -1.5s; --s: 9px; --depth: 6px;" aria-hidden="true"></i>
+            <i class="fa-solid fa-flag-checkered wt-float" style="--x: 70%; --y: 74%; --d: 10s; --delay: -6s; --s: 16px; --depth: 16px;" aria-hidden="true"></i>
+            <svg class="wt-wave" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true">
+                <path class="w1" d="M0 30 Q 75 10 150 30 T 300 30 T 450 30 T 600 30 T 750 30 T 900 30 T 1050 30 T 1200 30 V60 H0 Z"/>
+                <path class="w2" d="M0 38 Q 100 20 200 38 T 400 38 T 600 38 T 800 38 T 1000 38 T 1200 38 V60 H0 Z"/>
+            </svg>
             <i class="fa-solid fa-person-running wt-hero-runner" aria-hidden="true"></i>
-            <i class="fa-solid fa-star wt-twinkle" style="top: 18%; left: 44%;" aria-hidden="true"></i>
-            <i class="fa-solid fa-star wt-twinkle" style="top: 62%; left: 58%; animation-delay: .8s;" aria-hidden="true"></i>
-            <i class="fa-solid fa-star wt-twinkle" style="top: 30%; left: 70%; animation-delay: 1.5s;" aria-hidden="true"></i>
-            <i class="fa-solid fa-star wt-twinkle" style="top: 72%; left: 34%; animation-delay: 2s;" aria-hidden="true"></i>
-            <div class="d-flex flex-wrap justify-content-between gap-3">
+
+            <div class="wt-hero-inner">
                 <div class="wt-hero-main">
                     <div class="wt-ring" id="wt-ring" role="img" aria-label="Progress tim">
+                        <span class="wt-ring-orbit" aria-hidden="true"><i></i></span>
                         <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="wt-ring-track" cx="60" cy="60" r="52"/><circle class="wt-ring-value" id="wt-ring-value" cx="60" cy="60" r="52" pathLength="100"/></svg>
                         <div class="wt-ring-text"><b id="wt-ring-pct">0%</b><span>Progress tim</span></div>
                     </div>
                     <div style="min-width:0">
-                        <h1><i class="fa-solid fa-person-running"></i> Work Tracker</h1>
-                        <div class="wt-hero-date" id="wt-date"></div>
-                        <div class="wt-verdict" id="wt-verdict"><i class="fa-solid fa-spinner fa-spin"></i> Memuat...</div>
-                        <div class="wt-hero-eta" id="wt-eta"></div>
+                        <div class="wt-greet"><span id="wt-date"></span> <span class="wt-clock" id="wt-clock"></span></div>
+                        <h1 id="wt-hero-title"><i class="fa-solid fa-person-running"></i> <span class="wt-title-text">Work Tracker</span></h1>
+                        <div class="wt-verdict" id="wt-verdict" role="status"><span class="wt-msg-body"><i class="fa-solid fa-spinner fa-spin"></i> Memuat...</span><span class="wt-msg-bar"></span></div>
                     </div>
                 </div>
-                <div class="d-flex flex-wrap align-items-start gap-2">
-                    <a class="btn btn-ghost btn-sm" href="{{ route('work-tracker-dashboard') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
-                    <button class="btn btn-ghost btn-sm" id="wt-btn-guide" data-bs-toggle="modal" data-bs-target="#wt-guide-modal"><i class="fa-solid fa-circle-question"></i> Panduan</button>
-                    <button class="btn btn-ghost btn-sm" id="wt-btn-programmer"><i class="fa-solid fa-users"></i> Anggota</button>
-                    <button class="btn btn-light btn-sm" id="wt-btn-add"><i class="fa-solid fa-plus"></i> Tambah Kerjaan</button>
+                <div class="wt-hero-actions">
+                    <a class="wt-btn-ghost" href="{{ route('work-tracker-dashboard') }}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+                    <a class="wt-btn-ghost wt-btn-3d" href="{{ route('work-tracker-world') }}"><i class="fa-solid fa-cube"></i> Dunia 3D</a>
+                    <button type="button" class="wt-btn-ghost" id="wt-btn-guide" data-bs-toggle="modal" data-bs-target="#wt-guide-modal"><i class="fa-solid fa-circle-question"></i> Panduan</button>
+                    <button type="button" class="wt-btn-ghost" id="wt-btn-programmer"><i class="fa-solid fa-users"></i> Anggota</button>
+                    <button type="button" class="wt-btn-light" id="wt-btn-add"><i class="fa-solid fa-plus"></i> Tambah Kerjaan</button>
                 </div>
             </div>
         </div>
@@ -423,9 +641,12 @@
 
         <div class="wt-tiles" id="wt-tiles"></div>
 
-        <div class="wt-card wt-race">
+        <div class="wt-card wt-race" id="wt-race">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                <h2 class="wt-section-title"><i class="fa-solid fa-flag-checkered"></i> Arena Tim<span class="wt-scene" id="wt-scene"></span></h2>
+                <div class="d-flex align-items-center gap-2">
+                    <h2 class="wt-section-title"><i class="fa-solid fa-flag-checkered"></i> Arena Tim<span class="wt-scene" id="wt-scene"></span></h2>
+                    <button type="button" class="wt-fold" id="wt-arena-fold" aria-expanded="true" aria-controls="wt-arena-body"><i class="fa-solid fa-chevron-down"></i> <span>Lipat</span></button>
+                </div>
                 <div class="wt-legend">
                     <span><i class="fa-solid fa-person-running text-success"></i> Ngebut: aman</span>
                     <span><i class="fa-solid fa-person-running text-warning"></i> Jogging: mepet</span>
@@ -434,8 +655,9 @@
                     <span><i class="fa-solid fa-circle-check text-success"></i> Pos = kerjaan</span>
                 </div>
             </div>
-            <div class="wt-division-chips" id="wt-division-chips"></div>
-            <div id="wt-lanes"></div>
+            <div id="wt-arena-body">
+                <div id="wt-lanes"></div>
+            </div>
         </div>
 
         <div class="wt-card wt-panel">
@@ -453,12 +675,18 @@
                 </div>
             </div>
 
-            <div class="wt-filters">
-                <div class="wt-report-only d-none"><label>Dari</label><input type="date" class="form-control" id="wt-f-from"></div>
-                <div class="wt-report-only d-none"><label>Sampai</label><input type="date" class="form-control" id="wt-f-to"></div>
-                <div><label>Cari</label><input type="search" class="form-control" id="wt-f-search" placeholder="Judul, modul, peminta..."></div>
-                <div id="wt-f-division-box"><label>Divisi</label><select class="wt-select" id="wt-f-division"></select></div>
-                <div id="wt-f-programmer-box"><label>Anggota</label><select class="wt-select" id="wt-f-programmer"></select></div>
+            <div class="wt-filterbar">
+                <div class="wt-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" class="form-control" id="wt-f-search" placeholder="Cari judul, modul, peminta..." aria-label="Cari kerjaan"></div>
+                <div class="wt-report-only wt-fb-date d-none"><div class="input-group"><span class="input-group-text">Dari</span><input type="date" class="form-control" id="wt-f-from" aria-label="Dari tanggal"></div></div>
+                <div class="wt-report-only wt-fb-date d-none"><div class="input-group"><span class="input-group-text">Sampai</span><input type="date" class="form-control" id="wt-f-to" aria-label="Sampai tanggal"></div></div>
+                <div id="wt-f-programmer-box" class="wt-fb-programmer"><select class="wt-select" id="wt-f-programmer" aria-label="Anggota"></select></div>
+                <button type="button" class="wt-filter-btn" id="wt-filter-toggle" aria-expanded="false" aria-controls="wt-filter-more"><i class="fa-solid fa-sliders"></i> Filter <span class="wt-filter-badge d-none" id="wt-filter-count"></span><i class="fa-solid fa-chevron-down"></i></button>
+                <button type="button" class="wt-filter-reset d-none" id="wt-filter-reset">Reset filter</button>
+            </div>
+            <div class="wt-division-chips" id="wt-division-chips" aria-label="Filter divisi"></div>
+
+            <div class="wt-filter-more d-none" id="wt-filter-more">
+                <div id="wt-f-division-box"><label>Divisi</label><select class="wt-select" id="wt-f-division" multiple></select></div>
                 <div><label>Jenis</label>
                     <select class="wt-select" id="wt-f-type">
                         <option value="">Semua jenis</option><option value="plan">Plan</option><option value="bug">Masalah</option><option value="request">Request</option>
@@ -487,7 +715,7 @@
 
     {{-- Form kerjaan --}}
     <div class="modal fade" id="wt-item-modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-dialog-scrollable wt-modal-md">
             <form class="modal-content wt-form" id="wt-item-form">
                 <div class="modal-header">
                     <h5 class="modal-title" id="wt-item-title">Tambah Kerjaan</h5>
@@ -495,24 +723,53 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="id">
-                    <div class="row g-3">
-                        <div class="col-md-4"><label>Jenis</label>
-                            <select class="wt-select-modal" name="type" id="wt-i-type"><option value="plan">Plan</option><option value="bug">Masalah</option><option value="request">Request</option></select>
-                        </div>
-                        <div class="col-md-8"><label>Judul kerjaan</label><input class="form-control" name="title" maxlength="200" required></div>
-                        <div class="col-md-4"><label>Modul</label><input class="form-control" name="module" maxlength="100" placeholder="Contoh: Cutting"></div>
-                        <div class="col-md-4"><label>Anggota</label><select class="wt-select-modal" name="programmer_id" id="wt-i-programmer"></select></div>
-                        <div class="col-md-4 wt-not-plan"><label>Level</label>
-                            <select class="wt-select-modal" name="level" id="wt-i-level"><option value="">Belum ditentukan</option><option value="major">Major</option><option value="minor">Minor</option><option value="tidak">Tidak dikerjakan</option></select>
-                        </div>
-                        <div class="col-md-6"><label>Peminta / pelapor</label><input class="form-control" name="requester" maxlength="100"></div>
-                        <div class="col-md-6"><label>Departemen</label><input class="form-control" name="requester_dept" maxlength="100" placeholder="Contoh: Marketing"></div>
-                        <div class="col-12 d-none" id="wt-i-reason-box"><label>Alasan tidak dikerjakan</label><input class="form-control" name="reject_reason" maxlength="500"></div>
-                        <div class="col-md-4"><label>Mulai</label><input type="date" class="form-control" name="start_date"></div>
-                        <div class="col-md-4"><label>Target selesai</label><input type="date" class="form-control" name="target_date"></div>
-                        <div class="col-md-4"><label>Estimasi (hari)</label><input type="number" class="form-control" name="estimate_days" min="0.5" max="999" step="0.5"><div class="wt-sub mt-1">Otomatis dari tanggal, ubah kalau pengerjaannya lebih singkat.</div></div>
-                        <div class="col-12"><label>Catatan</label><textarea class="form-control" name="description" rows="3" maxlength="5000"></textarea></div>
+                    <input class="form-control wt-title-input" name="title" maxlength="200" required placeholder="Judul kerjaan, contoh: Perbaiki rekap packing" aria-label="Judul kerjaan">
+
+                    {{-- Pilihan jenis tampil sebagai tombol, nilainya tetap disimpan di select tersembunyi --}}
+                    <div class="wt-type-pills" id="wt-i-type-pills" role="radiogroup" aria-label="Jenis kerjaan">
+                        <button type="button" role="radio" data-type="plan"><i class="fa-solid fa-compass-drafting"></i> Plan</button>
+                        <button type="button" role="radio" data-type="bug"><i class="fa-solid fa-triangle-exclamation"></i> Masalah</button>
+                        <button type="button" role="radio" data-type="request"><i class="fa-solid fa-comment-dots"></i> Request</button>
                     </div>
+                    <div class="d-none"><select class="wt-select-modal" name="type" id="wt-i-type" aria-hidden="true" tabindex="-1"><option value="plan">Plan</option><option value="bug">Masalah</option><option value="request">Request</option></select></div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-sm-6"><label>Anggota</label><select class="wt-select-modal" name="programmer_id" id="wt-i-programmer"></select></div>
+                        <div class="col-sm-6"><label>Target selesai</label><input type="date" class="form-control" name="target_date"></div>
+                    </div>
+
+                    <div class="wt-mini-head"><i class="fa-solid fa-list-check"></i> Poin-poin <span class="wt-todo-count ms-auto" id="wt-i-points-count"></span></div>
+                    <div class="wt-todo-bar d-none" id="wt-i-points-bar"><span></span></div>
+                    <div id="wt-i-points"></div>
+                    <div class="wt-todo-add">
+                        <i class="fa-solid fa-plus"></i>
+                        <input id="wt-i-point-input" maxlength="500" placeholder="Tambah poin, lalu Enter" aria-label="Tambah poin">
+                        <button class="btn btn-outline-primary btn-sm" type="button" id="wt-i-point-add">Tambah</button>
+                    </div>
+
+                    <div class="wt-mini-head"><i class="fa-solid fa-paperclip"></i> <span id="wt-i-files-label">Lampiran</span></div>
+                    <label class="wt-drop compact" id="wt-i-drop">
+                        <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip,.html,.htm">
+                        <span class="wt-drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+                        <span><b>Tarik foto/file ke sini</b> atau klik untuk pilih<br><span class="wt-sub">Maks 10 file, 10 MB per file</span></span>
+                    </label>
+                    <div id="wt-i-files"></div>
+
+                    <details class="wt-more" id="wt-i-more">
+                        <summary><i class="fa-solid fa-chevron-right"></i> Detail lainnya <span class="wt-sub">modul, peminta, catatan, tanggal mulai, estimasi, level</span></summary>
+                        <div class="row g-3 pt-1">
+                            <div class="col-sm-6"><label>Modul</label><input class="form-control" name="module" maxlength="100" placeholder="Contoh: Cutting"></div>
+                            <div class="col-sm-6 wt-not-plan"><label>Level</label>
+                                <select class="wt-select-modal" name="level" id="wt-i-level"><option value="">Belum ditentukan</option><option value="major">Major</option><option value="minor">Minor</option><option value="tidak">Tidak dikerjakan</option></select>
+                            </div>
+                            <div class="col-12 d-none" id="wt-i-reason-box"><label>Alasan tidak dikerjakan</label><input class="form-control" name="reject_reason" maxlength="500"></div>
+                            <div class="col-sm-6"><label>Peminta / pelapor</label><input class="form-control" name="requester" maxlength="100"></div>
+                            <div class="col-sm-6"><label>Departemen</label><input class="form-control" name="requester_dept" maxlength="100" placeholder="Contoh: Marketing"></div>
+                            <div class="col-sm-6"><label>Mulai</label><input type="date" class="form-control" name="start_date"></div>
+                            <div class="col-sm-6"><label>Estimasi (hari)</label><input type="number" class="form-control" name="estimate_days" min="0.5" max="999" step="0.5" placeholder="Otomatis dari tanggal"></div>
+                            <div class="col-12"><label>Catatan</label><textarea class="form-control" name="description" rows="2" maxlength="5000"></textarea></div>
+                        </div>
+                    </details>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-danger btn-sm me-auto d-none" id="wt-item-delete"><i class="fa-solid fa-trash"></i> Hapus</button>
@@ -525,7 +782,7 @@
 
     {{-- Detail + update progress --}}
     <div class="modal fade" id="wt-detail-modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
@@ -535,23 +792,51 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="wt-d-info" class="mb-3"></div>
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <form id="wt-progress-form" class="wt-form">
-                                <div class="d-flex justify-content-between align-items-end">
-                                    <label class="mb-0">Update progress</label>
-                                    <span class="wt-range-value"><span id="wt-range-value">0</span>%</span>
-                                </div>
-                                <input type="range" class="wt-range" id="wt-range" min="0" max="100" step="5">
-                                <label class="mt-2">Catatan hari ini</label>
-                                <textarea class="form-control mb-2" id="wt-note" rows="3" maxlength="2000" placeholder="Hari ini mengerjakan apa?"></textarea>
-                                <button class="btn btn-sb btn-sm w-100" type="submit"><i class="fa-solid fa-save"></i> Simpan Progress</button>
-                            </form>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="small fw-bold text-muted mb-2">Riwayat</label>
-                            <div id="wt-logs" style="max-height: 240px; overflow-y: auto;"></div>
+                    <div class="wt-sec"><div id="wt-d-info"></div></div>
+
+                    <div class="wt-sec">
+                        <div class="wt-sec-title"><i class="fa-solid fa-list-check"></i> Poin-poin <span class="wt-todo-count ms-auto" id="wt-points-count"></span></div>
+                        <div class="wt-todo-bar d-none" id="wt-points-bar"><span></span></div>
+                        <div id="wt-points"></div>
+                        <form id="wt-point-form" class="wt-todo-add">
+                            <i class="fa-solid fa-plus"></i>
+                            <input id="wt-point-input" maxlength="500" placeholder="Tambah poin, lalu Enter" aria-label="Tambah poin">
+                            <button class="btn btn-outline-primary btn-sm" type="submit">Tambah</button>
+                        </form>
+                    </div>
+
+                    <div class="wt-sec">
+                        <div class="wt-sec-title"><i class="fa-solid fa-paperclip"></i> Lampiran</div>
+                        <label class="wt-drop compact" id="wt-d-drop">
+                            <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip,.html,.htm">
+                            <span class="wt-drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+                            <span><b>Tarik foto/file ke sini</b> atau klik untuk pilih. Langsung tersimpan.</span>
+                        </label>
+                        <div id="wt-item-files"></div>
+                    </div>
+                    <input type="file" id="wt-attach-input" class="d-none" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip,.html,.htm">
+
+                    <div class="wt-sec">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <form id="wt-progress-form" class="wt-form">
+                                    <div class="wt-sec-title"><i class="fa-solid fa-gauge-high"></i> Update progress <span class="wt-range-value ms-auto"><span id="wt-range-value">0</span>%</span></div>
+                                    <input type="range" class="wt-range" id="wt-range" min="0" max="100" step="5" aria-label="Progress">
+                                    <label class="mt-2">Catatan hari ini</label>
+                                    <textarea class="form-control mb-2" id="wt-note" rows="3" maxlength="2000" placeholder="Hari ini mengerjakan apa?"></textarea>
+                                    <label class="wt-drop compact mb-1" id="wt-progress-drop">
+                                        <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip,.html,.htm">
+                                        <span class="wt-drop-icon"><i class="fa-solid fa-camera"></i></span>
+                                        <span><b>Lampirkan bukti</b> (opsional)</span>
+                                    </label>
+                                    <div id="wt-progress-files" class="mb-2"></div>
+                                    <button class="btn btn-sb btn-sm w-100" type="submit"><i class="fa-solid fa-save"></i> Simpan Progress</button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="wt-sec-title"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat</div>
+                                <div id="wt-logs" style="max-height: 320px; overflow-y: auto; padding: 4px 4px 0 6px;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -746,6 +1031,12 @@
                 data: @json(route('data-work-tracker')),
                 users: @json(route('users-work-tracker')),
                 logs: @json(url('work-tracker/logs')),
+                detail: @json(url('work-tracker/detail')),
+                pointStore: @json(route('store-point-work-tracker')),
+                pointToggle: @json(route('toggle-point-work-tracker')),
+                pointDelete: @json(route('delete-point-work-tracker')),
+                attachmentStore: @json(route('store-attachment-work-tracker')),
+                attachmentDelete: @json(route('delete-attachment-work-tracker')),
                 store: @json(route('store-work-tracker')),
                 progress: @json(route('progress-work-tracker')),
                 status: @json(route('status-work-tracker')),
@@ -778,7 +1069,12 @@
             };
             const TIER_TITLE = { sprint: 'Ngebut!', jog: 'Jaga pace', walk: 'Ayo kejar!', rest: 'Belum ada kerjaan', finish: 'Semua beres!' };
 
-            const state = { timelineOpen: {}, drag: null, justDragged: false, division: '', board: null, demo: false, view: 'list', selected: null, color: COLORS[0], current: null, pos: {}, jumpers: [], urgentIds: [], reportItems: [], reportTimer: null, reportSeq: 0, statusBeforeReport: null, estimateManual: false, tileValues: {}, ringPct: 0 };
+            const state = { timelineOpen: {}, tlMode: 'auto', tlFrom: null, tlTo: null, tlRange: null, tlZoom: null, tlScroll: null, tlExtending: false, tlPan: null, drag: null, justDragged: false, divisions: [], board: null, demo: false, view: 'list', selected: null, color: COLORS[0], current: null, pos: {}, jumpers: [], urgentIds: [], reportItems: [], reportTimer: null, reportSeq: 0, statusBeforeReport: null, estimateManual: false, tileValues: {}, ringPct: 0, formFiles: [], progressFiles: [], formPoints: [], formPointsReady: true, detail: null, attachPoint: null };
+            const USER_NAME = @json(auth()->user()->name ?? '');
+            // Samudra, Senja, Hutan, Anggur, Nirwana, Emas (sama dengan palet Action Points)
+            const HERO_PALETTES = [['#2563eb', '#06b6d4'], ['#ea580c', '#e11d48'], ['#059669', '#65a30d'], ['#7c3aed', '#db2777'], ['#082149', '#1c5bb8'], ['#b45309', '#eab308']];
+            const FILE_LIMIT = 10;
+            const FILE_MAX_BYTES = 10 * 1024 * 1024;
             const $view = $('#wt-view');
 
             function esc(value) {
@@ -801,6 +1097,34 @@
                 return Math.round((parseDate(b) - parseDate(a)) / 86400000);
             }
 
+            function isoOf(date) {
+                return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+            }
+
+            function addDays(iso, n) {
+                const date = parseDate(iso);
+                date.setDate(date.getDate() + n);
+                return isoOf(date);
+            }
+
+            // Tanggal 1 dan tanggal terakhir bulan, digeser sejumlah bulan dari bulan tanggal iso
+            function monthStart(iso, add) {
+                const date = parseDate(iso);
+                return isoOf(new Date(date.getFullYear(), date.getMonth() + add, 1));
+            }
+
+            function monthEnd(iso, add) {
+                const date = parseDate(iso);
+                return isoOf(new Date(date.getFullYear(), date.getMonth() + add + 1, 0));
+            }
+
+            // Rentang Timeline bawaan per pilihan: 2 minggu dari kemarin, bulan berjalan, atau bulan lalu sampai bulan depan
+            function timelinePreset(mode, anchor) {
+                if (mode === '1m') return { from: monthStart(anchor, 0), to: monthEnd(anchor, 0) };
+                if (mode === '3m') return { from: monthStart(anchor, -1), to: monthEnd(anchor, 1) };
+                return { from: addDays(anchor, -1), to: addDays(anchor, 12) };
+            }
+
             function initials(name) {
                 return (name || '?').trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase();
             }
@@ -818,6 +1142,10 @@
             }
 
             function failed(xhr) {
+                if (xhr.status === 413) {
+                    toast('File terlalu besar untuk diunggah', 'error');
+                    return;
+                }
                 const json = xhr.responseJSON || {};
                 const first = json.errors ? Object.values(json.errors)[0][0] : (json.message || 'Terjadi kesalahan');
                 toast(first, 'error');
@@ -834,6 +1162,18 @@
             function post(url, data, done) {
                 if (guardDemo()) return;
                 return $.post(url, data).done(function (res) {
+                    if (res.status && Number(res.status) !== 200) {
+                        toast(res.message || 'Terjadi kesalahan', 'error');
+                        return;
+                    }
+                    done(res);
+                }).fail(failed);
+            }
+
+            // Sama seperti post, tetapi untuk FormData yang membawa file
+            function postForm(url, formData, done) {
+                if (guardDemo()) return;
+                return $.ajax({ url: url, type: 'POST', data: formData, processData: false, contentType: false }).done(function (res) {
                     if (res.status && Number(res.status) !== 200) {
                         toast(res.message || 'Terjadi kesalahan', 'error');
                         return;
@@ -868,7 +1208,9 @@
             function renderHero() {
                 const b = state.board;
                 const s = b.summary;
-                $('#wt-date').text(parseDate(b.today).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+                const hour = new Date().getHours();
+                const greet = hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 18 ? 'Selamat sore' : 'Selamat malam';
+                $('#wt-date').text(greet + (USER_NAME ? ', ' + USER_NAME : '') + ' · ' + parseDate(b.today).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
                 $('#wt-demo-banner').toggleClass('d-none', !state.demo);
                 $('#wt-queue-count').text(s.unassigned).toggleClass('empty', !s.unassigned);
                 const urgent = s.urgent || [];
@@ -887,18 +1229,111 @@
                 } else if (s.tight > 0) {
                     kind = 'warn'; icon = 'fa-hourglass-half'; text = s.tight + ' kerjaan mepet target, jaga pace';
                 }
-                $('#wt-verdict').attr('class', 'wt-verdict ' + kind).html('<i class="fa-solid ' + icon + '"></i> ' + esc(text));
-                $('.wt-hero').removeClass('mood-good mood-warn mood-bad').addClass('mood-' + kind);
-                $('#wt-eta').text(s.active && s.latest_predicted ? 'Perkiraan semua kerjaan aktif selesai: ' + fmt(s.latest_predicted, true) : '');
+                // Kondisi utama tampil pertama, lalu ringkasan lain bergantian
+                const msgs = [{ cls: kind, icon: icon, text: text }];
+                if (s.active && s.latest_predicted) msgs.push({ cls: 'good', icon: 'fa-flag-checkered', text: 'Perkiraan semua kerjaan aktif selesai ' + fmt(s.latest_predicted, true) });
+                if (s.active) msgs.push({ cls: 'good', icon: 'fa-person-running', text: s.active + ' kerjaan aktif, ' + s.in_progress + ' sedang dikerjakan' });
+                if (s.bugs_open) msgs.push({ cls: (s.urgent || []).length ? 'bad' : 'warn', icon: 'fa-bug', text: s.bugs_open + ' masalah masih terbuka' });
+                if (s.requests_new) msgs.push({ cls: 'good', icon: 'fa-comment-dots', text: s.requests_new + ' request baru menunggu ditinjau' });
+                if (s.unassigned) msgs.push({ cls: 'warn', icon: 'fa-inbox', text: s.unassigned + ' kerjaan di Antrean belum punya anggota' });
+                msgs.push({ cls: 'good', icon: 'fa-list-check', text: 'Tips: pecah kerjaan jadi poin-poin kecil supaya gampang dipantau' });
+                setHeroMessages(msgs);
 
                 $('#wt-ring').attr('aria-label', 'Progress tim ' + s.progress + '%');
                 countUp(document.getElementById('wt-ring-pct'), state.ringPct, s.progress, function (v) { return Math.round(v) + '%'; });
+                if (state.ringPct !== s.progress) {
+                    // Angka memantul begitu ring selesai berputar
+                    const ring = document.getElementById('wt-ring');
+                    ring.classList.remove('pop');
+                    setTimeout(function () { ring.classList.add('pop'); }, 1300);
+                }
                 state.ringPct = s.progress;
                 requestAnimationFrame(function () {
                     requestAnimationFrame(function () {
                         document.getElementById('wt-ring-value').style.strokeDashoffset = 100 - s.progress;
                     });
                 });
+            }
+
+            function setHeroMessages(msgs) {
+                const key = JSON.stringify(msgs);
+                if (state.msgKey === key) return;
+                const firstChanged = !state.msgs || JSON.stringify(state.msgs[0]) !== JSON.stringify(msgs[0]);
+                state.msgKey = key;
+                state.msgs = msgs;
+                if (firstChanged || state.msgIdx >= msgs.length) showHeroMessage(0);
+            }
+
+            function showHeroMessage(idx) {
+                clearTimeout(state.msgTimer);
+                state.msgIdx = idx;
+                const m = state.msgs[idx];
+                const $msg = $('#wt-verdict');
+                $msg.addClass('flip');
+                setTimeout(function () {
+                    $msg.attr('class', 'wt-verdict ' + m.cls + ' flip');
+                    $msg.find('.wt-msg-body').html('<i class="fa-solid ' + m.icon + '"></i> ' + esc(m.text));
+                    void $msg[0].offsetHeight;
+                    $msg.removeClass('flip');
+                    const $bar = $msg.find('.wt-msg-bar').removeClass('run');
+                    if (state.msgs.length > 1) {
+                        const seconds = m.cls === 'bad' ? 9 : 6;
+                        $msg[0].style.setProperty('--msg-dur', seconds + 's');
+                        void $bar[0].offsetWidth;
+                        $bar.addClass('run');
+                        state.msgTimer = setTimeout(function () { showHeroMessage((state.msgIdx + 1) % state.msgs.length); }, seconds * 1000);
+                    }
+                }, 300);
+            }
+
+            function tickClock() {
+                const now = new Date();
+                const pad = function (n) { return String(n).padStart(2, '0'); };
+                $('#wt-clock').html(pad(now.getHours()) + '<span class="colon">:</span>' + pad(now.getMinutes()) + '<span class="colon">:</span>' + pad(now.getSeconds()));
+            }
+
+            function initHeroFx() {
+                // Judul muncul per huruf
+                const $title = $('#wt-hero-title .wt-title-text');
+                $title.html($title.text().split('').map(function (ch, i) {
+                    return '<span class="ch' + (ch === ' ' ? ' sp' : '') + '" style="--i:' + i + '">' + (ch === ' ' ? '&nbsp;' : esc(ch)) + '</span>';
+                }).join(''));
+
+                // Gelembung naik dengan ukuran dan kecepatan acak
+                $('#wt-bubbles').html(Array.from({ length: 16 }, function () {
+                    const t = 7 + Math.random() * 9;
+                    return '<span style="--l:' + (Math.random() * 100).toFixed(1) + '%;--z:' + (4 + Math.random() * 12).toFixed(0) + 'px;--t:' + t.toFixed(1) + 's;--dl:-' + (Math.random() * t).toFixed(1) + 's;--sw:' + ((Math.random() - .5) * 50).toFixed(0) + 'px"></span>';
+                }).join(''));
+
+                // Ikon dan bulatan latar ikut bergeser mengikuti kursor
+                const hero = document.getElementById('wt-hero');
+                $(hero).on('mousemove', function (e) {
+                    const r = hero.getBoundingClientRect();
+                    hero.style.setProperty('--mx', (((e.clientX - r.left) / r.width) - .5) * 2);
+                    hero.style.setProperty('--my', (((e.clientY - r.top) / r.height) - .5) * 2);
+                }).on('mouseleave', function () {
+                    hero.style.setProperty('--mx', 0);
+                    hero.style.setProperty('--my', 0);
+                });
+
+                // Efek riak saat tombol hero diklik
+                $(hero).on('pointerdown', '.wt-btn-light, .wt-btn-ghost', function (e) {
+                    const r = this.getBoundingClientRect();
+                    const size = Math.max(r.width, r.height);
+                    $('<span class="wt-ripple"></span>').css({ width: size, height: size, left: e.clientX - r.left - size / 2, top: e.clientY - r.top - size / 2 })
+                        .appendTo(this).on('animationend', function () { $(this).remove(); });
+                });
+
+                tickClock();
+                setInterval(tickClock, 1000);
+
+                // Warna hero berpindah pelan dari satu palet ke palet berikutnya
+                let palette = 0;
+                setInterval(function () {
+                    palette = (palette + 1) % HERO_PALETTES.length;
+                    hero.style.setProperty('--hero-a', HERO_PALETTES[palette][0]);
+                    hero.style.setProperty('--hero-b', HERO_PALETTES[palette][1]);
+                }, 20000);
             }
 
             function countUp(el, from, to, format) {
@@ -994,9 +1429,10 @@
             function setView(view) {
                 state.view = view;
                 $('#wt-tabs button').each(function () { $(this).toggleClass('active', this.dataset.view === view); });
-                $('#wt-f-division-box, #wt-f-programmer-box, #wt-f-health-box').toggleClass('d-none', view === 'queue');
+                $('#wt-f-division-box, #wt-f-programmer-box, #wt-f-health-box, #wt-division-chips').toggleClass('d-none', view === 'queue');
                 $('#wt-f-status-box').toggleClass('d-none', view === 'queue' || view === 'kanban');
                 $('.wt-report-only').toggleClass('d-none', view !== 'report');
+                $('#wt-f-programmer-box').toggleClass('d-none', view === 'queue');
 
                 // Laporan bawaannya menampilkan semua status, pilihan sebelumnya dikembalikan saat keluar
                 const $status = $('#wt-f-status');
@@ -1018,7 +1454,7 @@
 
             function reportParams() {
                 const params = {
-                    from: $('#wt-f-from').val(), to: $('#wt-f-to').val(), division: $('#wt-f-division').val(), programmer: $('#wt-f-programmer').val(), type: $('#wt-f-type').val(),
+                    from: $('#wt-f-from').val(), to: $('#wt-f-to').val(), division: state.divisions.join(','), programmer: $('#wt-f-programmer').val(), type: $('#wt-f-type').val(),
                     status: $('#wt-f-status').val(), level: $('#wt-f-level').val(), health: $('#wt-f-health').val(), search: $('#wt-f-search').val(),
                 };
                 if (state.demo) params.demo = 1;
@@ -1295,6 +1731,11 @@
                 });
             }
 
+            // Divisi boleh dipilih lebih dari satu; tanpa pilihan berarti semua divisi
+            function divisionShown(d) {
+                return !state.divisions.length || state.divisions.includes(d);
+            }
+
             function renderDivisionChips() {
                 const divisions = memberDivisions();
                 if (divisions.length < 2) {
@@ -1302,7 +1743,8 @@
                     return;
                 }
                 $('#wt-division-chips').html([''].concat(divisions).map(function (d) {
-                    return '<button type="button" data-division="' + esc(d) + '" class="' + (state.division === d ? 'active' : '') + '">' + esc(d || 'Semua') + '</button>';
+                    const active = d ? state.divisions.includes(d) : !state.divisions.length;
+                    return '<button type="button" data-division="' + esc(d) + '" class="' + (active ? 'active' : '') + '" aria-pressed="' + active + '">' + (d && active ? '<i class="fa-solid fa-check"></i> ' : '') + esc(d || 'Semua divisi') + '</button>';
                 }).join(''));
             }
 
@@ -1342,9 +1784,7 @@
 
                 renderDivisionChips();
                 let laneIndex = 0;
-                $('#wt-lanes').html(memberDivisions().filter(function (d) {
-                    return !state.division || state.division === d;
-                }).map(function (d) {
+                $('#wt-lanes').html(memberDivisions().filter(divisionShown).map(function (d) {
                     const members = programmers.filter(function (p) { return p.division === d; });
                     return '<div class="wt-division-head">' + esc(d) + ' <span>' + members.length + ' orang</span></div>' + members.map(function (p) { return laneHtml(p, laneIndex++); }).join('');
                 }).join(''));
@@ -1370,9 +1810,9 @@
                 const queueView = state.view === 'queue';
 
                 return state.board.items.filter(function (i) {
-                    if (!queueView && state.division) {
+                    if (!queueView && state.divisions.length) {
                         const owner = programmerOf(i);
-                        if (!owner || owner.division !== state.division) return false;
+                        if (!owner || !state.divisions.includes(owner.division)) return false;
                     }
                     if (!queueView && (programmer === 'none' ? i.programmer_id !== null : (programmer && Number(i.programmer_id) !== Number(programmer)))) return false;
                     if (type && i.type !== type) return false;
@@ -1387,7 +1827,37 @@
                 });
             }
 
+            // Badge di tombol Filter: jumlah filter tambahan yang aktif di tab ini
+            function updateFilterCount() {
+                const statusDefault = state.view === 'report' ? '' : 'open';
+                let count = 0;
+                if (!$('#wt-f-division-box').hasClass('d-none') && state.divisions.length) count++;
+                [[null, '#wt-f-type', ''], ['#wt-f-status-box', '#wt-f-status', statusDefault], [null, '#wt-f-level', ''], ['#wt-f-health-box', '#wt-f-health', '']].forEach(function (f) {
+                    if (f[0] && $(f[0]).hasClass('d-none')) return;
+                    if (($(f[1]).val() || '') !== f[2]) count++;
+                });
+                const programmerActive = !$('#wt-f-programmer-box').hasClass('d-none') && !!$('#wt-f-programmer').val();
+                $('#wt-filter-count').text(count).toggleClass('d-none', !count);
+                $('#wt-filter-reset').toggleClass('d-none', !count && !programmerActive && !$('#wt-f-search').val());
+            }
+
+            function setArenaFolded(folded, animate) {
+                const $body = $('#wt-arena-body');
+                $('#wt-race').toggleClass('folded', folded);
+                $('#wt-arena-fold').attr('aria-expanded', String(!folded)).find('span').text(folded ? 'Buka' : 'Lipat');
+                if (!animate) {
+                    $body.toggle(!folded);
+                } else if (folded) {
+                    $body.stop(true).slideUp(250);
+                } else {
+                    // Label pos diukur ulang setelah terbuka karena saat terlipat lebarnya nol
+                    $body.stop(true).slideDown(250, fitCheckpointLabels);
+                }
+                try { localStorage.setItem('wt-arena-folded', folded ? '1' : '0'); } catch (e) { /* penyimpanan browser tidak tersedia */ }
+            }
+
             function renderView() {
+                updateFilterCount();
                 if (!state.board) return;
                 destroyAssignSelects($view);
                 if (state.view === 'report') {
@@ -1423,20 +1893,31 @@
                 }
                 const order = { telat: 0, mepet: 1, belum_dinilai: 2, aman: 3, selesai_telat: 4, selesai: 5, ditolak: 6 };
                 const sorted = items.slice().sort(function (a, b) { return order[a.health] - order[b.health]; });
-                const rows = sorted.map(function (i) {
-                    const sub = [i.code, i.module, i.requester ? 'dari ' + i.requester + (i.requester_dept ? ' (' + i.requester_dept + ')' : '') : null].filter(Boolean).join(' · ');
-                    return '<tr data-id="' + i.id + '">' +
-                        '<td><div class="wt-title">' + esc(i.title) + '</div><div class="wt-sub">' + esc(sub) + '</div></td>' +
-                        '<td>' + typeChip(i) + ' ' + levelChip(i) + '</td>' +
-                        '<td>' + (['baru', 'dikerjakan'].includes(i.status) ? assignSelect(i, 'Belum ditugaskan') : avatar(i)) + '</td>' +
-                        '<td><div class="d-flex align-items-center gap-2"><div class="wt-bar flex-grow-1"><span class="fill-' + esc(i.health) + '" style="width:' + Number(i.progress) + '%"></span></div><b>' + Number(i.progress) + '%</b></div>' +
-                        '<div class="wt-sub">' + (i.pace ? num(i.pace) + '% per hari' : esc(STATUS_LABEL[i.status])) + '</div></td>' +
-                        '<td>' + fmt(i.target_date) + '</td>' +
-                        '<td>' + fmt(i.predicted_date) + '</td>' +
-                        '<td>' + healthChip(i) + '<div class="wt-sub mt-1">' + esc(i.message) + '</div></td></tr>';
+                const rows = sorted.map(function (i, n) {
+                    const meta = [esc(i.code)];
+                    if (i.module) meta.push('<span><i class="fa-solid fa-cube"></i>' + esc(i.module) + '</span>');
+                    if (i.requester) meta.push('<span><i class="fa-regular fa-user"></i>' + esc(i.requester) + (i.requester_dept ? ' · ' + esc(i.requester_dept) : '') + '</span>');
+                    if (i.points_total) meta.push('<span class="' + (i.points_done === i.points_total ? 'done' : '') + '" title="Poin selesai"><i class="fa-regular fa-square-check"></i>' + Number(i.points_done) + '/' + Number(i.points_total) + '</span>');
+                    if (i.attachments_count) meta.push('<span title="Lampiran"><i class="fa-solid fa-paperclip"></i>' + Number(i.attachments_count) + '</span>');
+                    return '<div class="wt-row b-' + esc(i.health) + '" data-id="' + i.id + '" style="animation-delay:' + Math.min(n, 12) * 25 + 'ms">' +
+                        '<div class="wt-row-main"><div class="wt-row-chips">' + typeChip(i) + levelChip(i) + '</div>' +
+                        '<div class="wt-title" title="' + esc(i.title) + '">' + esc(i.title) + '</div><div class="wt-row-meta">' + meta.join('') + '</div></div>' +
+                        '<div class="wt-row-who">' + (['baru', 'dikerjakan'].includes(i.status) ? assignSelect(i, 'Belum ditugaskan') : avatar(i)) + '</div>' +
+                        '<div class="wt-row-progress"><div class="d-flex align-items-center gap-2"><div class="wt-bar flex-grow-1"><span class="fill-' + esc(i.health) + '" style="width:' + Number(i.progress) + '%"></span></div><b>' + Number(i.progress) + '%</b></div>' +
+                        '<div class="wt-sub">' + (i.pace ? num(i.pace) + '% per hari' : esc(STATUS_LABEL[i.status])) + '</div></div>' +
+                        '<div class="wt-row-date"><div class="wt-sub">Target</div><b>' + fmt(i.target_date) + '</b>' + (i.predicted_date && i.predicted_date !== i.target_date ? '<div class="wt-sub">Prediksi ' + fmt(i.predicted_date) + '</div>' : '') + '</div>' +
+                        '<div class="wt-row-health">' + healthChip(i) + '<div class="wt-sub">' + esc(i.message) + '</div></div></div>';
                 }).join('');
-                $view.html('<div class="table-responsive"><table class="wt-table"><thead><tr><th>Kerjaan</th><th>Jenis</th><th>Anggota</th><th>Progress</th><th>Target</th><th>Prediksi</th><th>Kondisi</th></tr></thead><tbody>' + rows + '</tbody></table></div>');
+                $view.html('<div class="wt-rows">' + rows + '</div>');
                 initAssignSelects($view);
+            }
+
+            // Penanda jumlah poin selesai dan lampiran di kartu
+            function cardExtras(i) {
+                let html = '';
+                if (i.points_total) html += ' · <span title="Poin selesai"><i class="fa-regular fa-square-check"></i> ' + Number(i.points_done) + '/' + Number(i.points_total) + '</span>';
+                if (i.attachments_count) html += ' · <span title="Lampiran"><i class="fa-solid fa-paperclip"></i> ' + Number(i.attachments_count) + '</span>';
+                return html;
             }
 
             function renderKanban(items) {
@@ -1448,7 +1929,7 @@
                             '<div class="d-flex justify-content-between gap-1 mb-1">' + typeChip(i) + levelChip(i) + '</div>' +
                             '<div class="wt-title mb-1">' + esc(i.title) + '</div>' +
                             '<div class="wt-bar mb-1"><span class="fill-' + esc(i.health) + '" style="width:' + Number(i.progress) + '%"></span></div>' +
-                            '<div class="d-flex justify-content-between align-items-center wt-sub"><span>' + Number(i.progress) + '% · ' + fmt(i.target_date) + '</span>' + (programmerOf(i) ? '<span class="wt-avatar wt-mini-avatar" title="' + esc(programmerOf(i).name) + '" style="background:' + esc(programmerOf(i).color) + '">' + esc(initials(programmerOf(i).name)) + '</span>' : '') + '</div></div>';
+                            '<div class="d-flex justify-content-between align-items-center wt-sub"><span>' + Number(i.progress) + '% · ' + fmt(i.target_date) + cardExtras(i) + '</span>' + (programmerOf(i) ? '<span class="wt-avatar wt-mini-avatar" title="' + esc(programmerOf(i).name) + '" style="background:' + esc(programmerOf(i).color) + '">' + esc(initials(programmerOf(i).name)) + '</span>' : '') + '</div></div>';
                     }).join('');
                     return '<div class="wt-col" data-status="' + status + '" style="--col:' + COLUMN_COLOR[status] + '"><div class="wt-col-head"><span>' + STATUS_LABEL[status] + '</span><span class="text-muted">' + own.length + '</span></div>' + cards + '</div>';
                 }).join('');
@@ -1460,33 +1941,47 @@
                 const MAX_LANES = 3;
                 const SIDE_WIDTH = 170;
                 const today = state.board.today;
-                const shiftIso = function (iso, n) {
-                    const date = parseDate(iso);
-                    date.setDate(date.getDate() + n);
-                    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
-                };
+                const shiftIso = addDays;
 
-                const bars = items.filter(function (i) { return i.start_date || i.target_date || i.predicted_date; }).map(function (i) {
-                    const start = i.start_date || i.target_date || i.predicted_date;
-                    const planEnd = i.target_date || i.predicted_date || start;
+                const doneOf = function (i) {
+                    return i.status === 'selesai' && i.finished_at ? String(i.finished_at).slice(0, 10) : null;
+                };
+                const allBars = items.filter(function (i) { return i.start_date || i.target_date || i.predicted_date || doneOf(i); }).map(function (i) {
+                    const doneAt = doneOf(i);
+                    const start = i.start_date || i.target_date || i.predicted_date || doneAt;
+                    // Kerjaan selesai digambar sampai tanggal benar-benar selesai
+                    const planEnd = doneAt || i.target_date || i.predicted_date || start;
                     const end = planEnd < start ? start : planEnd;
-                    const overrun = i.health === 'telat' && i.predicted_date && i.predicted_date > end ? i.predicted_date : null;
+                    const overrun = !doneAt && i.health === 'telat' && i.predicted_date && i.predicted_date > end ? i.predicted_date : null;
                     return { item: i, start: start, end: end, overrun: overrun, visualEnd: overrun || end };
                 });
 
-                // Rentang waktu diberi ruang kosong supaya batang bisa digeser melewati tanggal terakhir
-                let min = shiftIso(today, -1), max = shiftIso(today, 13);
-                bars.forEach(function (b) {
-                    if (b.start < min) min = b.start;
-                    if (b.visualEnd > max) max = b.visualEnd;
-                });
-                max = shiftIso(max, 3);
+                let min, max;
+                const fixedPeriod = !!(state.tlFrom && state.tlTo);
+                if (fixedPeriod) {
+                    min = state.tlFrom;
+                    max = state.tlTo;
+                } else {
+                    // Rentang waktu diberi ruang kosong supaya batang bisa digeser melewati tanggal terakhir
+                    min = shiftIso(today, -1);
+                    max = shiftIso(today, 13);
+                    allBars.forEach(function (b) {
+                        if (b.start < min) min = b.start;
+                        if (b.visualEnd > max) max = b.visualEnd;
+                    });
+                    max = shiftIso(max, 3);
+                }
+                state.tlRange = { from: min, to: max };
+                const bars = allBars.filter(function (b) { return b.start <= max && b.visualEnd >= min; });
                 const span = days(min, max) + 1;
-                const dayW = Math.max(38, ($view.width() - SIDE_WIDTH) / span);
+                // Lebar per hari dikunci setelah Timeline diperluas lewat scroll supaya skalanya tidak berubah
+                const fitW = ($view.width() - SIDE_WIDTH) / span;
+                const dayW = fixedPeriod && state.tlZoom ? Math.max(state.tlZoom, fitW) : Math.max(span > 45 ? 20 : 38, fitW);
                 const areaWidth = span * dayW;
                 const rowStyle = 'grid-template-columns:' + SIDE_WIDTH + 'px ' + areaWidth + 'px;--day:' + dayW + 'px';
+                const todayInRange = today >= min && today <= max;
                 const todayLeft = days(min, today) * dayW;
-                const todayMark = '<div class="wt-tl-todaycol" style="left:' + todayLeft + 'px;width:' + dayW + 'px"></div>';
+                const todayMark = todayInRange ? '<div class="wt-tl-todaycol" style="left:' + todayLeft + 'px;width:' + dayW + 'px"></div>' : '';
 
                 const step = Math.max(1, Math.ceil(56 / dayW));
                 let ticks = '';
@@ -1518,16 +2013,31 @@
                         const b = p.bar;
                         const i = b.item;
                         const top = 4 + p.lane * LANE_HEIGHT;
-                        const left = days(min, b.start) * dayW + 1;
-                        const width = (days(b.start, b.end) + 1) * dayW - 2;
+                        // Batang yang melewati batas periode dipotong di tepi periode
+                        const clipLeft = b.start < min;
+                        const clipRight = b.end > max;
+                        const from = clipLeft ? min : b.start;
+                        const to = clipRight ? max : b.end;
+                        const left = days(min, from) * dayW + 1;
+                        const width = (days(from, to) + 1) * dayW - 2;
                         const canDrag = ['baru', 'dikerjakan'].includes(i.status);
                         const owner = programmerOf(i);
-                        const tip = i.code + ' ' + i.title + ' | ' + fmt(b.start) + ' sampai ' + fmt(b.end) + ' | ' + i.progress + '% | ' + HEALTH_LABEL[i.health];
-                        const over = b.overrun ? '<div class="wt-tl-over" style="top:' + top + 'px;left:' + (left + width) + 'px;width:' + (days(b.end, b.overrun) * dayW) + 'px"></div>' : '';
-                        return over + '<button type="button" class="wt-tl-bar tl-' + esc(i.health) + (canDrag ? ' can-drag' : '') + '" data-id="' + i.id + '" data-start="' + b.start + '" data-end="' + b.end + '" data-owner="' + (owner ? owner.id : '') + '" title="' + esc(tip) + '" style="top:' + top + 'px;left:' + left + 'px;width:' + width + 'px">' +
+                        const doneAt = doneOf(i);
+                        const tip = i.code + ' ' + i.title + ' | ' + fmt(b.start, true) + ' sampai ' + fmt(b.end, true) + (doneAt ? ' (selesai)' : '') + ' | ' + i.progress + '% | ' + HEALTH_LABEL[i.health];
+                        let over = '';
+                        if (b.overrun) {
+                            const overFrom = shiftIso(b.end, 1) < min ? min : shiftIso(b.end, 1);
+                            const overTo = b.overrun > max ? max : b.overrun;
+                            if (overFrom <= overTo) {
+                                over = '<div class="wt-tl-over" style="top:' + top + 'px;left:' + (days(min, overFrom) * dayW - 1) + 'px;width:' + ((days(overFrom, overTo) + 1) * dayW) + 'px"></div>';
+                            }
+                        }
+                        // Batang yang seluruhnya sebelum periode (hanya sisa keterlambatannya terlihat) cukup digambar sisanya
+                        if (b.end < min) return over;
+                        return over + '<button type="button" class="wt-tl-bar tl-' + esc(i.health) + (canDrag ? ' can-drag' : '') + (clipLeft ? ' clip-l' : '') + (clipRight ? ' clip-r' : '') + '" data-id="' + i.id + '" data-start="' + b.start + '" data-end="' + b.end + '" data-owner="' + (owner ? owner.id : '') + '" title="' + esc(tip) + '" style="top:' + top + 'px;left:' + left + 'px;width:' + width + 'px">' +
                             '<span class="wt-tl-fill" style="width:' + Number(i.progress) + '%"></span>' +
                             '<span class="wt-tl-text">' + (owner ? '<span class="wt-avatar wt-tl-avatar" style="background:' + esc(owner.color) + '">' + esc(initials(owner.name)) + '</span>' : '') + (i.urgent ? '<i class="fa-solid fa-road-barrier"></i> ' : '') + esc(i.title) + '</span>' +
-                            (canDrag ? '<span class="wt-tl-handle" title="Tarik untuk mengubah target"></span>' : '') + '</button>';
+                            (canDrag && !clipRight ? '<span class="wt-tl-handle" title="Tarik untuk mengubah target"></span>' : '') + '</button>';
                     }).join('');
 
                     const moreButton = hidden > 0 ? '<button type="button" class="wt-tl-more" data-row="' + esc(key) + '">+' + hidden + ' lainnya</button>' : (expanded ? '<button type="button" class="wt-tl-more" data-row="' + esc(key) + '">Ringkas</button>' : '');
@@ -1541,7 +2051,7 @@
                     return bars.filter(function (b) { return (b.item.programmer_id === null ? null : Number(b.item.programmer_id)) === id; });
                 };
                 const body = memberDivisions().filter(function (d) {
-                    return (!state.division || state.division === d) && programmerFilter !== 'none';
+                    return divisionShown(d) && programmerFilter !== 'none';
                 }).map(function (d) {
                     const members = state.board.programmers.filter(function (p) {
                         return p.division === d && (!programmerFilter || Number(programmerFilter) === p.id);
@@ -1552,7 +2062,7 @@
                     }).join('');
                 }).join('');
                 const unassigned = barsOf(null);
-                const showUnassigned = !state.division && (!programmerFilter || programmerFilter === 'none') && (unassigned.length || state.board.programmers.length);
+                const showUnassigned = !state.divisions.length &&(!programmerFilter || programmerFilter === 'none') && (unassigned.length || state.board.programmers.length);
                 const bottom = showUnassigned ? '<div class="wt-tl-division">Belum ditugaskan</div>' + rowHtml('none', 'Belum ditugaskan', '#9aa6b8', unassigned) : '';
 
                 if (!body && !bottom) {
@@ -1560,11 +2070,77 @@
                     return;
                 }
 
-                $view.html('<div class="wt-sub mb-2"><i class="fa-solid fa-hand-pointer"></i> Klik batang untuk membuka detail. Geser untuk memindah jadwal atau anggota. Tarik garis di ujung kanan untuk mengubah target.</div>' +
+                // Petunjuk saat melihat periode lampau tetapi filter menyembunyikan kerjaan yang sudah lewat
+                const status = $('#wt-f-status').val();
+                const hints = [];
+                if (fixedPeriod && min < today && status !== '' && status !== 'selesai') {
+                    hints.push('Kerjaan yang sudah selesai tidak tampil karena filter Status. Ubah Status ke <b>Semua status</b> atau <b>Selesai</b> untuk melihatnya.');
+                }
+                if (fixedPeriod && min < shiftIso(today, -{{ \App\Http\Controllers\General\WorkTrackerController::ARCHIVE_AFTER_DAYS }}) && !$('#wt-archive').is(':checked')) {
+                    hints.push('Periode ini lebih dari {{ \App\Http\Controllers\General\WorkTrackerController::ARCHIVE_AFTER_DAYS }} hari lalu. Nyalakan <b>Tampilkan arsip</b> supaya kerjaan lama ikut tampil.');
+                }
+                if (!bars.length) hints.unshift('Tidak ada kerjaan pada periode ini.');
+
+                const nav = '<div class="wt-tl-nav">' +
+                    '<div class="btn-group btn-group-sm">' +
+                    '<button type="button" class="btn btn-outline-secondary" data-tl-nav="-1" title="Periode sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>' +
+                    '<button type="button" class="btn btn-outline-secondary' + (todayInRange ? ' active' : '') + '" data-tl-nav="0" title="Kembali ke periode yang memuat hari ini">Hari ini</button>' +
+                    '<button type="button" class="btn btn-outline-secondary" data-tl-nav="1" title="Periode berikutnya"><i class="fa-solid fa-chevron-right"></i></button>' +
+                    '</div>' +
+                    '<div class="btn-group btn-group-sm" role="group" aria-label="Lebar rentang">' +
+                    [['auto', 'Otomatis'], ['2w', '2 Minggu'], ['1m', '1 Bulan'], ['3m', '3 Bulan']].map(function (m) {
+                        return '<button type="button" class="btn btn-outline-primary' + (state.tlMode === m[0] ? ' active' : '') + '" data-tl-mode="' + m[0] + '">' + m[1] + '</button>';
+                    }).join('') +
+                    '</div>' +
+                    '<label>Dari <input type="date" class="form-control form-control-sm" id="wt-tl-from" value="' + min + '"></label>' +
+                    '<label>s/d <input type="date" class="form-control form-control-sm" id="wt-tl-to" value="' + max + '"></label>' +
+                    '<span class="wt-sub">' + span + ' hari</span>' +
+                    '</div>' +
+                    (hints.length ? '<div class="wt-tl-hint"><i class="fa-solid fa-circle-info"></i> ' + hints.join(' ') + '</div>' : '');
+
+                $view.html(nav + '<div class="wt-sub mb-2"><i class="fa-solid fa-hand-pointer"></i> Klik batang untuk membuka detail. Geser untuk memindah jadwal atau anggota. Tarik garis di ujung kanan untuk mengubah target. Geser tanggal: Shift + scroll, atau tahan klik/klik tengah di area kosong lalu tarik.</div>' +
                     '<div class="wt-tl-scroll"><div class="wt-tl" data-day-width="' + dayW + '">' +
                     '<div class="wt-tl-row wt-tl-head" style="' + rowStyle + '"><div class="wt-tl-side"></div><div class="wt-tl-area">' + todayMark +
-                    '<span class="wt-tl-todaylabel" style="left:' + (todayLeft + 4) + 'px">Hari ini</span>' + ticks + '</div></div>' + body + bottom + '</div></div>' +
+                    (todayInRange ? '<span class="wt-tl-todaylabel" style="left:' + (todayLeft + 4) + 'px">Hari ini</span>' : '') + ticks + '</div></div>' + body + bottom + '</div></div>' +
                     '<div class="wt-tl-tip" id="wt-tl-tip"></div>');
+
+                // Posisi geser disimpan sebagai tanggal paling kiri yang terlihat, jadi tetap di tanggal yang sama
+                // walau Timeline digambar ulang (ganti divisi, geser batang, rentang bertambah)
+                const scroller = $view.find('.wt-tl-scroll')[0];
+                if (state.tlScroll) scroller.scrollLeft = (days(min, state.tlScroll.date) + state.tlScroll.days) * dayW;
+                state.tlScroll = { date: min, days: scroller.scrollLeft / dayW };
+                scroller.addEventListener('scroll', function () {
+                    state.tlScroll = { date: min, days: scroller.scrollLeft / dayW };
+                    if (!state.drag && !state.tlPan && !state.tlExtending) {
+                        const edge = dayW * 2;
+                        if (scroller.scrollLeft <= edge && scroller.dataset.lastLeft > scroller.scrollLeft) timelineExtend(-1);
+                        else if (scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - edge && scroller.dataset.lastLeft < scroller.scrollLeft) timelineExtend(1);
+                    }
+                    scroller.dataset.lastLeft = scroller.scrollLeft;
+                }, { passive: true });
+                scroller.dataset.lastLeft = scroller.scrollLeft;
+            }
+
+            // Seperti Notion: saat digeser sampai ujung, Timeline bertambah 2 minggu ke arah itu
+            function timelineExtend(dir) {
+                const range = state.tlRange;
+                const scroller = $view.find('.wt-tl-scroll')[0];
+                if (!range || !scroller || state.tlExtending) return;
+                const dayW = Number($view.find('.wt-tl').data('dayWidth'));
+                const add = 14;
+                if (days(range.from, range.to) + 1 + add > 731) return;
+                const from = dir < 0 ? addDays(range.from, -add) : range.from;
+                const to = dir < 0 ? range.to : addDays(range.to, add);
+                state.tlExtending = true;
+                state.tlZoom = dayW;
+                state.tlMode = 'custom';
+                state.tlFrom = from;
+                state.tlTo = to;
+                // Tanggal yang sedang dilihat tetap di tempat setelah hari baru ditambahkan di kiri
+                state.tlScroll = { date: range.from, days: scroller.scrollLeft / dayW };
+                renderView();
+                state.tlExtending = false;
+                return dir < 0 ? add * dayW : 0;
             }
 
             function startBarDrag(e) {
@@ -1672,9 +2248,9 @@
                 const programmers = state.board.programmers;
                 const filterValue = $('#wt-f-programmer').val();
                 const options = programmerOptions(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + '</option>'; });
-                const divisionValue = $('#wt-f-division').val();
-                $('#wt-f-division').html('<option value="">Semua divisi</option>' + memberDivisions().map(function (d) { return '<option value="' + esc(d) + '">' + esc(d) + '</option>'; }).join('')).val(divisionValue || '').trigger('change.select2');
-                state.division = $('#wt-f-division').val() || '';
+                const divisionValue = $('#wt-f-division').val() || [];
+                $('#wt-f-division').html(memberDivisions().map(function (d) { return '<option value="' + esc(d) + '">' + esc(d) + '</option>'; }).join('')).val(divisionValue).trigger('change.select2');
+                state.divisions = $('#wt-f-division').val() || [];
                 $('#wt-f-programmer').html('<option value="">Semua anggota</option><option value="none">Belum ditugaskan</option>' + options).val(filterValue || '').trigger('change.select2');
                 $('#wt-i-programmer').html('<option value="">Belum ditugaskan</option>' + options).trigger('change.select2');
             }
@@ -1706,7 +2282,179 @@
                 state.estimateManual = !!item && item.estimate_days !== null && Number(item.estimate_days) !== rangeDays();
                 $('#wt-item-title').text(item ? 'Edit ' + item.code : 'Tambah Kerjaan');
                 $('#wt-item-delete').toggleClass('d-none', !item);
+                $('#wt-i-files-label').text(item ? 'Tambah lampiran' : 'Lampiran');
+                // Detail lainnya langsung terbuka kalau kerjaan yang diedit sudah punya isinya
+                $('#wt-i-more').prop('open', !!item && !!(item.module || item.requester || item.requester_dept || item.description || item.level || item.reject_reason));
+                clearPending(state.formFiles);
+                $('#wt-i-files').empty();
+
+                // Poin kerjaan lama diambil dulu. Selama belum termuat, form tidak mengirim poin supaya poin lama tidak ikut terhapus.
+                state.formItemId = item ? item.id : null;
+                state.formPoints = [];
+                state.formPointsReady = !item || state.demo;
+                $('#wt-i-point-input').val('');
+                if (state.formPointsReady) {
+                    renderFormPoints();
+                } else {
+                    pointsProgress('#wt-i-points', []);
+                    $('#wt-i-points').html('<div class="wt-todo-empty">Memuat poin...</div>');
+                    $.get(ROUTES.detail + '/' + item.id).done(function (detail) {
+                        if (state.formItemId !== item.id) return;
+                        state.formPoints = detail.points.map(function (p) { return { id: p.id, content: p.content, done: !!Number(p.is_done) }; });
+                        state.formPointsReady = true;
+                        renderFormPoints();
+                    }).fail(failed);
+                }
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('wt-item-modal')).show();
+            }
+
+            // Angka "x/y selesai" dan bar tipis di atas daftar poin. prefix: #wt-i-points (form) atau #wt-points (detail)
+            function pointsProgress(prefix, points) {
+                const done = points.filter(function (p) { return p.done; }).length;
+                const allDone = points.length > 0 && done === points.length;
+                $(prefix + '-count').html(points.length ? (allDone ? '<i class="fa-solid fa-circle-check"></i> Semua beres' : done + '/' + points.length + ' selesai') : '').toggleClass('all-done', allDone);
+                $(prefix + '-bar').toggleClass('d-none', !points.length).children('span').css('width', (points.length ? done / points.length * 100 : 0) + '%');
+            }
+
+            function actionBtn(cls, icon, label) {
+                return '<button type="button" class="btn btn-sm btn-link ' + cls + '" title="' + label + '" aria-label="' + label + '"><i class="fa-solid ' + icon + '"></i></button>';
+            }
+
+            // Satu baris poin: lingkaran centang + teks. below = keterangan/lampiran di bawah teks.
+            function pointRow(p, attr, actions, below) {
+                return '<div class="wt-point' + (p.done ? ' done' : '') + '" ' + attr + '>' +
+                    '<div class="wt-point-body"><button type="button" class="wt-point-toggle" aria-pressed="' + p.done + '" title="' + (p.done ? 'Klik untuk membatalkan' : 'Klik kalau poin ini sudah beres') + '">' +
+                    '<span class="wt-check"><i class="fa-solid fa-check"></i></span><span class="wt-point-text">' + esc(p.content) + '</span></button>' + (below || '') + '</div>' +
+                    '<div class="wt-point-actions">' + actions + '</div></div>';
+            }
+
+            // Centang langsung di layar tanpa menunggu server, lingkarannya memantul saat dicentang
+            function setPointDone($point, done) {
+                $point.toggleClass('done', done);
+                $point.find('.wt-point-toggle').attr({ 'aria-pressed': done, title: done ? 'Klik untuk membatalkan' : 'Klik kalau poin ini sudah beres' });
+                const check = $point.find('.wt-check')[0];
+                check.classList.remove('pop');
+                if (done) {
+                    void check.offsetWidth;
+                    check.classList.add('pop');
+                }
+            }
+
+            function renderFormPoints() {
+                $('#wt-i-points').html(state.formPoints.map(function (p, index) {
+                    return pointRow(p, 'data-index="' + index + '"', actionBtn('wt-fp-edit', 'fa-pen', 'Ubah poin') + actionBtn('wt-fp-del wt-del-btn', 'fa-xmark', 'Buang poin'));
+                }).join(''));
+                pointsProgress('#wt-i-points', state.formPoints);
+            }
+
+            // Ubah poin langsung di barisnya. Enter atau klik di luar menyimpan, Esc membatalkan. save(null) berarti tidak ada perubahan.
+            function inlineEditPoint($point, current, save) {
+                const $input = $('<input class="form-control form-control-sm" maxlength="500" aria-label="Ubah poin">').val(current);
+                $point.find('.wt-point-toggle').replaceWith($input);
+                $point.find('.wt-point-actions').addClass('invisible');
+                $input.trigger('focus').trigger('select');
+                let finished = false;
+                const finish = function (commit) {
+                    if (finished) return;
+                    finished = true;
+                    const value = $input.val().trim();
+                    save(commit && value && value !== current ? value : null);
+                };
+                $input.on('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        finish(true);
+                    } else if (e.key === 'Escape') {
+                        // Jangan sampai Esc ikut menutup modal
+                        e.preventDefault();
+                        e.stopPropagation();
+                        finish(false);
+                    }
+                }).on('blur', function () { finish(true); });
+            }
+
+            function addFormPoint() {
+                const content = $('#wt-i-point-input').val().trim();
+                if (!content || !state.formPointsReady) return false;
+                state.formPoints.push({ id: null, content: content, done: false });
+                $('#wt-i-point-input').val('').trigger('focus');
+                renderFormPoints();
+                return true;
+            }
+
+            // Berkas yang sudah dipilih tapi baru diunggah saat Simpan (form kerjaan dan form progress)
+            function addPending(list, files) {
+                let skipped = 0;
+                Array.prototype.forEach.call(files, function (file) {
+                    if (file.size > FILE_MAX_BYTES || list.length >= FILE_LIMIT) {
+                        skipped++;
+                        return;
+                    }
+                    if (/^image\//.test(file.type)) file.previewUrl = URL.createObjectURL(file);
+                    list.push(file);
+                });
+                if (skipped) toast(skipped + ' file dilewati: maksimal ' + FILE_LIMIT + ' file, 10 MB per file', 'warning');
+            }
+
+            function removePending(list, index) {
+                const file = list.splice(index, 1)[0];
+                if (file && file.previewUrl) URL.revokeObjectURL(file.previewUrl);
+            }
+
+            function clearPending(list) {
+                while (list.length) removePending(list, 0);
+            }
+
+            function pendingHtml(list) {
+                if (!list.length) return '';
+                return '<div class="wt-files">' + list.map(function (f, n) {
+                    const body = f.previewUrl ? '<img src="' + f.previewUrl + '" alt="' + esc(f.name) + '">' : '<i class="fa-solid ' + fileIcon(f.name) + '"></i><span>' + esc(f.name) + '</span>';
+                    return '<span class="wt-file pending' + (f.previewUrl ? ' is-image' : '') + '"><span class="wt-file-box" title="' + esc(f.name) + '">' + body + '</span>' +
+                        '<button type="button" class="wt-file-del" data-pending="' + n + '" title="Batal lampirkan" aria-label="Batal lampirkan ' + esc(f.name) + '">&times;</button></span>';
+                }).join('') + '</div>';
+            }
+
+            function hasFiles(e) {
+                const dt = e.originalEvent && e.originalEvent.dataTransfer;
+                return !!dt && Array.prototype.indexOf.call(dt.types || [], 'Files') >= 0;
+            }
+
+            function bindDrop($zone, onFiles) {
+                $zone.on('dragenter dragover', function (e) {
+                    e.preventDefault();
+                    $zone.addClass('over');
+                }).on('dragleave drop', function (e) {
+                    e.preventDefault();
+                    $zone.removeClass('over');
+                }).on('drop', function (e) {
+                    const files = e.originalEvent.dataTransfer.files;
+                    if (files.length) onFiles(files);
+                });
+                $zone.find('input[type=file]').on('change', function () {
+                    if (this.files.length) onFiles(this.files);
+                    this.value = '';
+                });
+            }
+
+            // Pratinjau foto di atas modal. Esc hanya menutup pratinjau, modalnya tetap terbuka.
+            function openLightbox(url, name) {
+                const $host = $('.modal.show').last();
+                const $box = $('<div class="wt-lightbox" tabindex="-1" role="dialog" aria-modal="true" aria-label="Pratinjau foto">' +
+                    '<img src="' + esc(url) + '" alt="' + esc(name) + '">' +
+                    '<div class="wt-lightbox-bar"><span>' + esc(name) + '</span>' +
+                    '<a href="' + esc(url) + '" target="_blank" rel="noopener"><i class="fa-solid fa-up-right-from-square"></i> Buka di tab baru</a>' +
+                    '<button type="button"><i class="fa-solid fa-xmark"></i> Tutup</button></div></div>');
+                const close = function () { $box.remove(); };
+                $box.on('click', function (e) {
+                    if (!$(e.target).closest('a').length) close();
+                }).on('keydown', function (e) {
+                    if (e.key !== 'Escape') return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    close();
+                });
+                ($host.length ? $host : $('body')).append($box);
+                $box.trigger('focus');
             }
 
             function openDetail(id) {
@@ -1727,24 +2475,111 @@
                 if (item.reject_reason) info += '<div class="small mt-2 text-danger">Alasan: ' + esc(item.reject_reason) + '</div>';
                 $('#wt-d-info').html(info);
 
-                $('#wt-range').val(item.progress).prop('disabled', item.status === 'ditolak');
+                const rejected = item.status === 'ditolak';
+                $('#wt-range').val(item.progress).prop('disabled', rejected);
                 $('#wt-range-value').text(item.progress);
                 $('#wt-note').val('');
-                $('#wt-progress-form button').prop('disabled', item.status === 'ditolak');
+                clearPending(state.progressFiles);
+                $('#wt-progress-files').empty();
+                $('#wt-progress-drop').toggleClass('d-none', rejected);
+                $('#wt-progress-form button[type=submit]').prop('disabled', rejected);
+                $('#wt-point-input').val('');
+                $('#wt-point-form :input').prop('disabled', state.demo);
+                $('#wt-d-drop').toggleClass('d-none', state.demo);
+                pointsProgress('#wt-points', []);
 
-                $('#wt-logs').html('<div class="wt-sub">Memuat...</div>');
+                state.detail = null;
                 if (state.demo) {
+                    $('#wt-points').html('<div class="wt-todo-empty">Poin tampil di data asli.</div>');
+                    $('#wt-item-files').html('<div class="wt-sub">Lampiran tampil di data asli.</div>');
                     $('#wt-logs').html('<div class="wt-sub">Riwayat tampil di data asli.</div>');
                 } else {
-                    $.get(ROUTES.logs + '/' + id).done(function (logs) {
-                        $('#wt-logs').html(logs.length ? logs.map(function (l) {
-                            const change = l.progress_before !== null && l.progress_before !== l.progress_after ? l.progress_before + '% → ' + l.progress_after + '%' : (STATUS_LABEL[l.status] || '');
-                            return '<div class="wt-log"><b>' + esc(change) + '</b> <span class="wt-sub">' + esc((l.created_at || '').slice(0, 16)) + ' · ' + esc(l.created_by) + '</span>' + (l.note ? '<div style="white-space:pre-wrap">' + esc(l.note) + '</div>' : '') + '</div>';
-                        }).join('') : '<div class="wt-sub">Belum ada riwayat.</div>');
-                    }).fail(failed);
+                    $('#wt-points').html('<div class="wt-todo-empty">Memuat...</div>');
+                    $('#wt-item-files, #wt-logs').html('<div class="wt-sub">Memuat...</div>');
+                    loadDetail(id);
                 }
 
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('wt-detail-modal')).show();
+            }
+
+            function loadDetail(id) {
+                return $.get(ROUTES.detail + '/' + id).done(function (detail) {
+                    if (!state.current || state.current.id !== id) return;
+                    state.detail = detail;
+                    renderDetail();
+                }).fail(failed);
+            }
+
+            // Setelah poin atau lampiran berubah: isi modal dimuat ulang, papan juga supaya penanda di kartu ikut berubah
+            function refreshDetail() {
+                if (!state.current) return;
+                loadDetail(state.current.id);
+                load();
+            }
+
+            function uploadAttachments(files, pointId) {
+                if (!files.length || !state.current || guardDemo()) return;
+                if (files.length > FILE_LIMIT) {
+                    toast('Maksimal ' + FILE_LIMIT + ' file sekali unggah', 'warning');
+                    return;
+                }
+                const data = new FormData();
+                data.append('work_item_id', state.current.id);
+                if (pointId) data.append('point_id', pointId);
+                Array.prototype.forEach.call(files, function (file) { data.append('files[]', file); });
+                toast('Mengunggah ' + files.length + ' file...', 'info');
+                postForm(ROUTES.attachmentStore, data, function (res) {
+                    toast(res.message);
+                    refreshDetail();
+                });
+            }
+
+            function fileIcon(name) {
+                const ext = String(name || '').split('.').pop().toLowerCase();
+                if (ext === 'pdf') return 'fa-file-pdf';
+                if (['xls', 'xlsx', 'csv'].indexOf(ext) >= 0) return 'fa-file-excel';
+                if (['doc', 'docx'].indexOf(ext) >= 0) return 'fa-file-word';
+                if (ext === 'zip') return 'fa-file-zipper';
+                if (ext === 'html' || ext === 'htm') return 'fa-file-code';
+                return 'fa-file-lines';
+            }
+
+            function filesHtml(list) {
+                if (!list.length) return '';
+                return '<div class="wt-files">' + list.map(function (a) {
+                    const body = a.is_image
+                        ? '<img src="' + esc(a.url) + '" alt="' + esc(a.original_name) + '" loading="lazy">'
+                        : '<i class="fa-solid ' + fileIcon(a.original_name) + '"></i><span>' + esc(a.original_name) + '</span>';
+                    // File HTML hanya diunduh, tidak dibuka di tab
+                    const link = a.download_only
+                        ? ' download title="Unduh ' + esc(a.original_name) + '"'
+                        : ' target="_blank" rel="noopener" title="' + esc(a.original_name) + '"' + (a.is_image ? ' data-lightbox' : '');
+                    const tail = a.download_only ? ' <i class="fa-solid fa-download" style="font-size:11px;color:var(--wt-muted)"></i>' : '';
+                    return '<span class="wt-file' + (a.is_image ? ' is-image' : '') + '"><a class="wt-file-box" href="' + esc(a.url) + '"' + link + '>' + body + tail + '</a>' +
+                        '<button type="button" class="wt-file-del" data-attachment="' + a.id + '" title="Hapus lampiran" aria-label="Hapus lampiran ' + esc(a.original_name) + '">&times;</button></span>';
+                }).join('') + '</div>';
+            }
+
+            function renderDetail() {
+                const d = state.detail;
+                const filesOf = function (key, id) { return d.attachments.filter(function (a) { return Number(a[key]) === Number(id); }); };
+                const points = d.points.map(function (p) { return { id: p.id, content: p.content, done: !!Number(p.is_done), done_at: p.done_at, done_by: p.done_by }; });
+
+                pointsProgress('#wt-points', points);
+                $('#wt-points').html(points.length ? points.map(function (p) {
+                    const below = (p.done && p.done_by ? '<div class="wt-sub">Selesai ' + esc((p.done_at || '').slice(0, 16)) + ' · ' + esc(p.done_by) + '</div>' : '') + filesHtml(filesOf('point_id', p.id));
+                    const actions = actionBtn('wt-point-attach', 'fa-paperclip', 'Lampirkan foto/file ke poin ini') + actionBtn('wt-point-edit', 'fa-pen', 'Ubah poin') + actionBtn('wt-point-del wt-del-btn', 'fa-trash', 'Hapus poin');
+                    return pointRow(p, 'data-point="' + p.id + '"', actions, below);
+                }).join('') : '<div class="wt-todo-empty">Belum ada poin. Pecah kerjaan jadi langkah kecil supaya gampang dipantau.</div>');
+
+                const itemFiles = d.attachments.filter(function (a) { return !a.point_id && !a.log_id; });
+                $('#wt-item-files').html(filesHtml(itemFiles));
+
+                $('#wt-logs').html(d.logs.length ? d.logs.map(function (l) {
+                    const change = l.progress_before !== null && l.progress_before !== l.progress_after ? l.progress_before + '% → ' + l.progress_after + '%' : (STATUS_LABEL[l.status] || '');
+                    return '<div class="wt-log"><b>' + esc(change) + '</b> <span class="wt-sub">' + esc((l.created_at || '').slice(0, 16)) + ' · ' + esc(l.created_by) + '</span>' +
+                        (l.note ? '<div style="white-space:pre-wrap">' + esc(l.note) + '</div>' : '') + filesHtml(filesOf('log_id', l.id)) + '</div>';
+                }).join('') : '<div class="wt-sub">Belum ada riwayat.</div>');
             }
 
             function celebrate(item) {
@@ -1820,10 +2655,16 @@
             function renderProgrammerList() {
                 $('#wt-programmer-list .wt-member-select.select2-hidden-accessible').select2('destroy');
                 $('#wt-p-division').html(divisionOptions($('#wt-p-division').val() || state.board.divisions[0])).trigger('change.select2');
-                $('#wt-programmer-list').html(state.board.programmers.length ? state.board.programmers.map(function (p) {
-                    return '<div class="d-flex align-items-center gap-2 py-1"><span class="wt-avatar wt-mini-avatar" style="background:' + esc(p.color) + '">' + esc(initials(p.name)) + '</span><span class="flex-grow-1 small fw-bold">' + esc(p.name) + '</span>' +
+                const openColor = $('#wt-programmer-list .wt-member-colors:not(.d-none)').data('colorsFor');
+                $('#wt-programmer-list').html(state.board.programmers.length ? '<div class="wt-sub mb-1">Klik avatar untuk mengganti warna anggota.</div>' + state.board.programmers.map(function (p) {
+                    const palette = COLORS.map(function (c) {
+                        return '<button type="button" data-member-color="' + c + '" class="' + (c.toLowerCase() === String(p.color).toLowerCase() ? 'active' : '') + '" style="background:' + c + '" aria-label="Warna ' + c + '"></button>';
+                    }).join('') + '<label class="wt-color-custom" title="Warna lain"><i class="fa-solid fa-eye-dropper"></i><input type="color" data-member-color-custom value="' + esc(p.color) + '" aria-label="Warna lain untuk ' + esc(p.name) + '"></label>';
+                    return '<div class="wt-member-row" data-user="' + p.user_id + '" data-color="' + esc(p.color) + '" data-division="' + esc(p.division) + '">' +
+                        '<div class="d-flex align-items-center gap-2 py-1"><button type="button" class="wt-avatar wt-mini-avatar wt-member-avatar" data-colors-toggle="' + p.id + '" style="background:' + esc(p.color) + '" title="Ganti warna" aria-label="Ganti warna ' + esc(p.name) + '">' + esc(initials(p.name)) + '</button><span class="flex-grow-1 small fw-bold">' + esc(p.name) + '</span>' +
                         '<div class="wt-member-division"><select class="wt-member-select" aria-label="Divisi ' + esc(p.name) + '" data-user="' + p.user_id + '" data-color="' + esc(p.color) + '" data-current="' + esc(p.division) + '">' + divisionOptions(p.division) + '</select></div>' +
-                        '<button type="button" class="btn btn-sm btn-link text-danger p-0" data-remove-programmer="' + p.id + '" aria-label="Nonaktifkan ' + esc(p.name) + '"><i class="fa-solid fa-user-minus"></i></button></div>';
+                        '<button type="button" class="btn btn-sm btn-link text-danger p-0" data-remove-programmer="' + p.id + '" aria-label="Nonaktifkan ' + esc(p.name) + '"><i class="fa-solid fa-user-minus"></i></button></div>' +
+                        '<div class="wt-color wt-member-colors' + (openColor === p.id ? '' : ' d-none') + '" data-colors-for="' + p.id + '">' + palette + '</div></div>';
                 }).join('') : '<div class="wt-sub">Belum ada anggota.</div>');
                 initDivisionSelect($('#wt-programmer-list .wt-member-select'));
             }
@@ -1838,11 +2679,39 @@
             }
 
             // Events
-            $('.wt-select').select2({ theme: 'bootstrap4', width: '100%', minimumResultsForSearch: 8 }).on('change', renderView);
+            $('.wt-select').not('#wt-f-division').select2({ theme: 'bootstrap4', width: '100%', minimumResultsForSearch: 8 }).on('change', renderView);
+            $('#wt-f-division').select2({ theme: 'bootstrap4', width: '100%', placeholder: 'Semua divisi', closeOnSelect: false });
             $('.wt-select-modal').select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $('#wt-item-modal') });
             initDivisionSelect($('#wt-p-division'));
             $('#wt-p-user').select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $('#wt-programmer-modal'), placeholder: 'Pilih user' });
             $('#wt-f-search').on('input', renderView);
+
+            $('#wt-filter-toggle').on('click', function () {
+                const open = $('#wt-filter-more').hasClass('d-none');
+                $('#wt-filter-more').toggleClass('d-none', !open);
+                this.setAttribute('aria-expanded', String(open));
+            });
+            $('#wt-filter-reset').on('click', function () {
+                state.tlMode = 'auto';
+                state.tlFrom = null;
+                state.tlTo = null;
+                state.tlZoom = null;
+                state.tlScroll = null;
+                $('#wt-f-search').val('');
+                $('#wt-f-type, #wt-f-level, #wt-f-health').val('').trigger('change.select2');
+                $('#wt-f-status').val(state.view === 'report' ? '' : 'open').trigger('change.select2');
+                $('#wt-f-programmer').val('').trigger('change');
+                $('#wt-f-division').val([]).trigger('change');
+            });
+
+            $('#wt-arena-fold').on('click', function () {
+                setArenaFolded(!$('#wt-race').hasClass('folded'), true);
+            });
+            (function () {
+                let folded = false;
+                try { folded = localStorage.getItem('wt-arena-folded') === '1'; } catch (e) { /* penyimpanan browser tidak tersedia */ }
+                if (folded) setArenaFolded(true, false);
+            })();
             $('#wt-f-from, #wt-f-to').on('change', renderView);
             $('#wt-archive').on('change', load);
 
@@ -1858,18 +2727,30 @@
             });
 
             $('#wt-division-chips').on('click', '[data-division]', function () {
-                $('#wt-f-division').val(this.dataset.division).trigger('change');
+                const d = this.dataset.division;
+                let next = [];
+                if (d) {
+                    // Chip divisi bersifat hidup/mati; kalau semua terpilih sama saja dengan Semua divisi
+                    next = state.divisions.includes(d) ? state.divisions.filter(function (x) { return x !== d; }) : state.divisions.concat([d]);
+                    if (next.length === memberDivisions().length) next = [];
+                }
+                $('#wt-f-division').val(next).trigger('change');
             });
 
             $('#wt-f-division').on('change', function () {
-                state.division = this.value || '';
+                state.divisions = $(this).val() || [];
                 const owner = state.board.programmers.find(function (p) { return p.id === state.selected; });
-                if (state.division && owner && owner.division !== state.division) {
+                if (state.divisions.length && owner && !state.divisions.includes(owner.division)) {
                     state.selected = null;
                     $('#wt-f-programmer').val('').trigger('change.select2');
                 }
+                // Arena di atas ikut berubah tinggi; jaga chip divisi tetap di posisi layar yang sama
+                const anchor = document.getElementById('wt-division-chips');
+                const before = anchor.getBoundingClientRect().top;
                 renderLanes();
                 renderView();
+                const after = anchor.getBoundingClientRect().top;
+                if (after !== before) window.scrollBy(0, after - before);
             });
 
             $('#wt-lanes').on('click', '.wt-lane', function () {
@@ -1898,7 +2779,7 @@
                 load();
             });
 
-            $view.on('click', 'tbody tr, .wt-kcard, .wt-tl-bar', function (e) {
+            $view.on('click', 'tbody tr, .wt-row, .wt-kcard, .wt-tl-bar', function (e) {
                 if ($(e.target).closest('.wt-assign').length || state.justDragged) return;
                 openDetail(Number(this.dataset.id));
             });
@@ -1908,6 +2789,129 @@
             $view.on('pointercancel', '.wt-tl-bar.can-drag', function () {
                 state.drag = null;
                 $('#wt-tl-tip').hide();
+                renderView();
+            });
+
+            // Shift + scroll menggeser tanggal; di ujung, Timeline bertambah
+            $view.on('wheel', '.wt-tl-scroll', function (e) {
+                const ev = e.originalEvent;
+                if (!ev.shiftKey || state.drag) return;
+                let delta = ev.deltaX || ev.deltaY;
+                if (!delta) return;
+                if (ev.deltaMode === 1) delta *= 16;
+                ev.preventDefault();
+                const before = this.scrollLeft;
+                this.scrollLeft += delta;
+                if (this.scrollLeft === before) timelineExtend(delta < 0 ? -1 : 1);
+            });
+
+            // Hand tool: tahan klik kiri di area kosong atau klik tengah di mana saja, lalu tarik
+            $view.on('mousedown', '.wt-tl-scroll', function (e) {
+                if (e.button === 1) e.preventDefault(); // matikan autoscroll bawaan klik tengah
+            });
+            $view.on('pointerdown', '.wt-tl-scroll', function (e) {
+                const ev = e.originalEvent;
+                if (ev.pointerType === 'touch' || state.drag) return;
+                const onControl = $(ev.target).closest('.wt-tl-bar, .wt-tl-more, button, a, input').length > 0;
+                if (!(ev.button === 1 || (ev.button === 0 && !onControl))) return;
+                ev.preventDefault();
+                state.tlPan = { el: this, x: ev.clientX, y: ev.clientY, left: this.scrollLeft, top: window.scrollY, moved: false };
+                this.classList.add('panning');
+            });
+            $(document).on('pointermove', function (e) {
+                const pan = state.tlPan;
+                if (!pan) return;
+                const ev = e.originalEvent;
+                const dx = ev.clientX - pan.x;
+                const dy = ev.clientY - pan.y;
+                if (!pan.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+                pan.moved = true;
+                const target = pan.left - dx;
+                const maxLeft = pan.el.scrollWidth - pan.el.clientWidth;
+                if (target < 0 || target > maxLeft) {
+                    // Tarik melewati ujung: tambah tanggal, lalu lanjutkan pada elemen Timeline yang baru
+                    const shift = timelineExtend(target < 0 ? -1 : 1);
+                    const fresh = $view.find('.wt-tl-scroll')[0];
+                    if (shift !== undefined && fresh) {
+                        pan.left += shift;
+                        pan.el = fresh;
+                        fresh.classList.add('panning');
+                    }
+                }
+                pan.el.scrollLeft = pan.left - dx;
+                window.scrollTo(window.scrollX, pan.top - dy);
+            });
+            $(document).on('pointerup pointercancel', function () {
+                if (!state.tlPan) return;
+                state.tlPan.el.classList.remove('panning');
+                state.tlPan = null;
+            });
+            $view.on('click', '[data-tl-nav]', function () {
+                const dir = Number(this.dataset.tlNav);
+                const range = state.tlRange;
+                const mode = state.tlMode;
+                state.tlZoom = null;
+                state.tlScroll = null;
+                if (!dir || !range) {
+                    // Hari ini: pilihan rentang tetap, periodenya dipusatkan lagi ke hari ini
+                    if (mode === 'auto' || mode === 'custom') {
+                        state.tlMode = 'auto';
+                        state.tlFrom = null;
+                        state.tlTo = null;
+                    } else {
+                        const preset = timelinePreset(mode, state.board.today);
+                        state.tlFrom = preset.from;
+                        state.tlTo = preset.to;
+                    }
+                } else if (mode === '1m' || mode === '3m') {
+                    // Mode bulanan bergeser per bulan kalender penuh
+                    const months = mode === '1m' ? 1 : 3;
+                    state.tlFrom = monthStart(range.from, dir * months);
+                    state.tlTo = monthEnd(range.from, dir * months + months - 1);
+                } else {
+                    // Maju atau mundur sepanjang periode yang sedang tampil
+                    const span = days(range.from, range.to) + 1;
+                    state.tlFrom = addDays(range.from, dir * span);
+                    state.tlTo = addDays(range.to, dir * span);
+                    if (mode === 'auto') state.tlMode = 'custom';
+                }
+                renderView();
+            });
+            $view.on('click', '[data-tl-mode]', function () {
+                const mode = this.dataset.tlMode;
+                state.tlMode = mode;
+                state.tlZoom = null;
+                state.tlScroll = null;
+                if (mode === 'auto') {
+                    state.tlFrom = null;
+                    state.tlTo = null;
+                } else {
+                    // Periode baru mengikuti periode yang sedang dilihat, bukan selalu kembali ke hari ini
+                    const range = state.tlRange;
+                    const anchor = range && !(state.board.today >= range.from && state.board.today <= range.to) ? range.from : state.board.today;
+                    const preset = timelinePreset(mode, mode === '3m' && anchor !== state.board.today ? monthStart(anchor, 1) : anchor);
+                    state.tlFrom = preset.from;
+                    state.tlTo = preset.to;
+                }
+                renderView();
+            });
+            $view.on('change', '#wt-tl-from, #wt-tl-to', function () {
+                let from = $('#wt-tl-from').val();
+                let to = $('#wt-tl-to').val();
+                const valid = /^\d{4}-\d{2}-\d{2}$/;
+                if (!valid.test(from) || !valid.test(to)) return;
+                if (to < from) {
+                    const swap = from;
+                    from = to;
+                    to = swap;
+                }
+                // Batasi satu tahun supaya Timeline tidak terlalu panjang
+                if (days(from, to) > 366) to = addDays(from, 366);
+                state.tlMode = 'custom';
+                state.tlZoom = null;
+                state.tlScroll = null;
+                state.tlFrom = from;
+                state.tlTo = to;
                 renderView();
             });
             $view.on('click', '.wt-tl-more', function () {
@@ -1952,22 +2956,67 @@
                     document.querySelector('.wt-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
+            initHeroFx();
             setInterval(updateSay, 4000);
             // Suasana Arena dicek tiap menit, lintasan hanya digambar ulang kalau suasananya berganti
             setInterval(function () {
                 if (state.board && state.ambience && ambienceKey(ambienceNow()) !== ambienceKey(state.ambience)) renderLanes();
             }, 60000);
 
-            $('#wt-i-type').on('change', function () { $('.wt-not-plan').toggleClass('d-none', this.value === 'plan'); });
+            $('#wt-i-type').on('change', function () {
+                const type = this.value;
+                $('.wt-not-plan').toggleClass('d-none', type === 'plan');
+                $('#wt-i-type-pills button').each(function () {
+                    const active = this.dataset.type === type;
+                    $(this).toggleClass('active', active).attr('aria-checked', String(active));
+                });
+            });
+            $('#wt-i-type-pills').on('click', 'button', function () {
+                $('#wt-i-type').val(this.dataset.type).trigger('change');
+            });
+            $('#wt-item-modal').on('shown.bs.modal', function () {
+                if (!this.querySelector('[name=id]').value) this.querySelector('[name=title]').focus();
+            });
             $('#wt-i-level').on('change', function () { $('#wt-i-reason-box').toggleClass('d-none', this.value !== 'tidak'); });
 
             $('#wt-item-form').on('submit', function (e) {
                 e.preventDefault();
-                post(ROUTES.store, $(this).serialize(), function (res) {
+                // Poin yang sudah diketik tapi belum ditambahkan ikut tersimpan
+                addFormPoint();
+                const data = new FormData(this);
+                if (state.formPointsReady) data.append('points', JSON.stringify(state.formPoints.map(function (p) { return { id: p.id, content: p.content, done: p.done }; })));
+                state.formFiles.forEach(function (file) { data.append('files[]', file); });
+                postForm(ROUTES.store, data, function (res) {
+                    clearPending(state.formFiles);
+                    $('#wt-i-files').empty();
                     bootstrap.Modal.getOrCreateInstance(document.getElementById('wt-item-modal')).hide();
                     toast(res.message);
                     load();
                 });
+            });
+
+            $('#wt-i-point-add').on('click', addFormPoint);
+            $('#wt-i-point-input').on('keydown', function (e) {
+                if (e.key !== 'Enter') return;
+                e.preventDefault();
+                addFormPoint();
+            });
+            $('#wt-i-points').on('click', '.wt-point-toggle', function () {
+                const $point = $(this).closest('.wt-point');
+                const point = state.formPoints[Number($point.data('index'))];
+                point.done = !point.done;
+                setPointDone($point, point.done);
+                pointsProgress('#wt-i-points', state.formPoints);
+            }).on('click', '.wt-fp-edit', function () {
+                const $point = $(this).closest('.wt-point');
+                const point = state.formPoints[Number($point.data('index'))];
+                inlineEditPoint($point, point.content, function (value) {
+                    if (value) point.content = value;
+                    renderFormPoints();
+                });
+            }).on('click', '.wt-fp-del', function () {
+                state.formPoints.splice(Number($(this).closest('.wt-point').data('index')), 1);
+                renderFormPoints();
             });
 
             $('#wt-item-delete').on('click', function () {
@@ -1988,11 +3037,118 @@
             $('#wt-progress-form').on('submit', function (e) {
                 e.preventDefault();
                 const item = state.current;
-                post(ROUTES.progress, { id: item.id, progress: $('#wt-range').val(), note: $('#wt-note').val() }, function (res) {
+                const data = new FormData();
+                data.append('id', item.id);
+                data.append('progress', $('#wt-range').val());
+                data.append('note', $('#wt-note').val());
+                state.progressFiles.forEach(function (file) { data.append('files[]', file); });
+                postForm(ROUTES.progress, data, function (res) {
+                    clearPending(state.progressFiles);
+                    $('#wt-progress-files').empty();
                     bootstrap.Modal.getOrCreateInstance(document.getElementById('wt-detail-modal')).hide();
                     toast(res.message);
                     if (res.just_finished) celebrate(item);
                     load();
+                });
+            });
+
+            $('#wt-point-form').on('submit', function (e) {
+                e.preventDefault();
+                const content = $('#wt-point-input').val().trim();
+                if (!content || !state.current) return;
+                post(ROUTES.pointStore, { work_item_id: state.current.id, content: content }, function () {
+                    $('#wt-point-input').val('').trigger('focus');
+                    refreshDetail();
+                });
+            });
+
+            $('#wt-points').on('click', '.wt-point-toggle', function () {
+                if (guardDemo() || !state.detail) return;
+                const $point = $(this).closest('.wt-point');
+                const id = Number($point.data('point'));
+                const point = state.detail.points.find(function (p) { return Number(p.id) === id; });
+                if (!point) return;
+                const done = !$point.hasClass('done');
+                const button = this;
+
+                // Langsung tercentang di layar, lalu disimpan. Kalau gagal dikembalikan.
+                point.is_done = done ? 1 : 0;
+                setPointDone($point, done);
+                pointsProgress('#wt-points', state.detail.points.map(function (p) { return { done: !!Number(p.is_done) }; }));
+
+                // Dikunci sampai selesai supaya klik dobel tidak membatalkan centang
+                button.disabled = true;
+                post(ROUTES.pointToggle, { id: id, done: done ? 1 : 0 }, function () {
+                    // Ditunda sebentar supaya animasi centang selesai sebelum daftar digambar ulang
+                    setTimeout(refreshDetail, 450);
+                }).fail(function () {
+                    point.is_done = done ? 0 : 1;
+                    renderDetail();
+                }).always(function () { button.disabled = false; });
+            }).on('dragenter dragover', '.wt-point', function (e) {
+                if (!hasFiles(e)) return;
+                e.preventDefault();
+                $(this).addClass('drop-over');
+            }).on('dragleave drop', '.wt-point', function (e) {
+                if (!hasFiles(e)) return;
+                e.preventDefault();
+                if (e.type === 'dragleave' && $.contains(this, e.relatedTarget)) return;
+                $(this).removeClass('drop-over');
+                if (e.type === 'drop') uploadAttachments(e.originalEvent.dataTransfer.files, Number(this.dataset.point));
+            }).on('click', '.wt-point-edit', function () {
+                const $point = $(this).closest('.wt-point');
+                const id = Number($point.data('point'));
+                const point = state.detail.points.find(function (p) { return Number(p.id) === id; });
+                if (!point) return;
+                inlineEditPoint($point, point.content, function (value) {
+                    if (!value || !post(ROUTES.pointStore, { id: id, content: value }, refreshDetail)) renderDetail();
+                });
+            }).on('click', '.wt-point-del', function () {
+                const id = Number($(this).closest('.wt-point').data('point'));
+                Swal.fire({ icon: 'warning', title: 'Hapus poin ini?', text: 'Lampiran di poin ini ikut terhapus.', showCancelButton: true, confirmButtonText: 'Hapus', cancelButtonText: 'Batal', confirmButtonColor: '#dc3545' }).then(function (r) {
+                    if (r.isConfirmed) post(ROUTES.pointDelete, { id: id }, refreshDetail);
+                });
+            }).on('click', '.wt-point-attach', function () {
+                state.attachPoint = Number($(this).closest('.wt-point').data('point'));
+                $('#wt-attach-input').val('').trigger('click');
+            });
+
+            $('#wt-attach-input').on('change', function () {
+                uploadAttachments(this.files, state.attachPoint);
+                this.value = '';
+            });
+
+            // Kotak drop: lampiran kerjaan di detail langsung diunggah, yang di form disimpan saat klik Simpan
+            bindDrop($('#wt-d-drop'), function (files) { uploadAttachments(files, null); });
+            bindDrop($('#wt-i-drop'), function (files) {
+                addPending(state.formFiles, files);
+                $('#wt-i-files').html(pendingHtml(state.formFiles));
+            });
+            bindDrop($('#wt-progress-drop'), function (files) {
+                addPending(state.progressFiles, files);
+                $('#wt-progress-files').html(pendingHtml(state.progressFiles));
+            });
+            $('#wt-i-files').on('click', '[data-pending]', function () {
+                removePending(state.formFiles, Number(this.dataset.pending));
+                $('#wt-i-files').html(pendingHtml(state.formFiles));
+            });
+            $('#wt-progress-files').on('click', '[data-pending]', function () {
+                removePending(state.progressFiles, Number(this.dataset.pending));
+                $('#wt-progress-files').html(pendingHtml(state.progressFiles));
+            });
+            $(document).on('click', 'a[data-lightbox]', function (e) {
+                e.preventDefault();
+                openLightbox(this.href, this.title);
+            });
+            // File yang terlepas di luar kotak drop jangan sampai membuka file itu di tab
+            $(document).on('dragover drop', function (e) {
+                if (hasFiles(e)) e.preventDefault();
+            });
+
+            $('#wt-detail-modal').on('click', '.wt-file-del[data-attachment]', function () {
+                const id = Number(this.dataset.attachment);
+                Swal.fire({ icon: 'warning', title: 'Hapus lampiran ini?', showCancelButton: true, confirmButtonText: 'Hapus', cancelButtonText: 'Batal', confirmButtonColor: '#dc3545' }).then(function (r) {
+                    if (r.isConfirmed) post(ROUTES.attachmentDelete, { id: id }, refreshDetail);
                 });
             });
 
@@ -2031,6 +3187,30 @@
                     toast(res.message);
                     load().done(renderProgrammerList);
                 });
+            });
+
+            $('#wt-programmer-list').on('click', '[data-colors-toggle]', function () {
+                const $palette = $('#wt-programmer-list [data-colors-for="' + this.dataset.colorsToggle + '"]');
+                const show = $palette.hasClass('d-none');
+                $('#wt-programmer-list .wt-member-colors').addClass('d-none');
+                $palette.toggleClass('d-none', !show);
+            });
+
+            function saveMemberColor(el, color) {
+                const row = $(el).closest('.wt-member-row')[0];
+                if (!row || String(color).toLowerCase() === String(row.dataset.color).toLowerCase()) return;
+                if (guardDemo()) return;
+                post(ROUTES.programmerStore, { user_id: row.dataset.user, color: color, division: row.dataset.division }, function () {
+                    toast('Warna anggota diganti');
+                    load().done(renderProgrammerList);
+                });
+            }
+            $('#wt-programmer-list').on('click', '[data-member-color]', function () {
+                saveMemberColor(this, this.dataset.memberColor);
+            });
+            // Warna bebas disimpan setelah pemilih warna ditutup, bukan setiap kali digeser
+            $('#wt-programmer-list').on('change', '[data-member-color-custom]', function () {
+                saveMemberColor(this, this.value);
             });
 
             $('#wt-programmer-list').on('click', '[data-remove-programmer]', function () {

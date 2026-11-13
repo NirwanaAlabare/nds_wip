@@ -277,23 +277,24 @@
                                 <th>Proses / Lokasi</th>
                                 <th>Lokasi Terkini</th>
                                 <th>Qty In</th>
+                                <th>Stocker Reject</th>
                             </tr>
                         </thead>
                         <tbody>
                         </tbody>
                     </table>
-                    <div class="d-flex justify-content-between">
-                        <p class="my-3">
-                            Selected : <span id="checked-stocker-count" class="fw-bold">0</span>
-                        </p>
-                        <div class="d-flex align-items-center gap-2">
-                            <button type="button" data-bs-toggle="modal" data-bs-target="#updateMassTmpDcModal" class="btn btn-primary btn-sm my-3" onclick="editCheckedTmpDcIn()">
-                                <i class="fa fa-edit"></i> Edit Selected Stocker
-                            </button>
-                            <button type="button"  class="btn btn-danger btn-sm my-3" onclick="deleteCheckedTmpDcIn()">
-                                <i class="fa fa-trash"></i> Delete Selected Stocker
-                            </button>
-                        </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <p class="my-3">
+                        Selected : <span id="checked-stocker-count" class="fw-bold">0</span>
+                    </p>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#updateMassTmpDcModal" class="btn btn-primary btn-sm my-3" onclick="editCheckedTmpDcIn()">
+                            <i class="fa fa-edit"></i> Edit Selected Stocker
+                        </button>
+                        <button type="button"  class="btn btn-danger btn-sm my-3" onclick="deleteCheckedTmpDcIn()">
+                            <i class="fa fa-trash"></i> Delete Selected Stocker
+                        </button>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-success btn-block"><i class="fa fa-save"></i> Simpan DC IN</button>
@@ -448,6 +449,14 @@
                 dataType: 'json',
                 success: function(response) {
                     if (response && response.status != '400') {
+                        if (response.stocker_reject) {
+                            iziToast.warning({
+                                title: 'Stocker Reject',
+                                message: 'Stocker ini merupakan stocker reject',
+                                position: 'bottomCenter'
+                            });
+                        }
+
                         document.getElementById('txtws').value = response.act_costing_ws;
                         document.getElementById('txtbuyer').value = response.buyer;
                         document.getElementById('txtstyle').value = response.styleno;
@@ -652,6 +661,9 @@
                     },
                     {
                         data: 'qty_in',
+                    },
+                    {
+                        data: 'stocker_reject',
                     }
                 ],
                 columnDefs: [
@@ -694,6 +706,19 @@
                                     </div>
                                 `;
                             }
+                        }
+                    },
+                    {
+                        targets: [11],
+                        render: (data, type, row, meta) => {
+                            let color = row.cek_stat != 'x' ? '#000000' : '#7b7d7d';
+
+                            // stocker_reject berisi id_qr_stocker asal, null jika bukan stocker reject
+                            if (!data) {
+                                return '<span style="font-weight: 600; color:' + color + '">-</span>';
+                            }
+
+                            return '<span class="badge bg-danger">Reject</span> <span style="font-weight: 600; color:' + color + '">Dari ' + data + '</span>';
                         }
                     },
                     {

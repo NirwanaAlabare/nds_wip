@@ -20,6 +20,11 @@
         .wd-hero-filter { width: 180px; color: var(--wd-ink); }
         .wd-btn-ghost { align-self: flex-end; border: 1px solid rgba(255, 255, 255, .4); color: #fff; font-weight: 600; }
         .wd-btn-ghost:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+        .wd-btn-3d { position: relative; align-self: flex-end; overflow: hidden; border: 0; background: linear-gradient(120deg, #22c1c3, #3b82f6 55%, #8b5cf6); color: #fff; font-weight: 700; box-shadow: 0 0 0 0 rgba(59, 130, 246, .6); animation: wd-3d-pulse 2.4s infinite; }
+        .wd-btn-3d:hover { color: #fff; filter: brightness(1.08); }
+        .wd-btn-3d::after { content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent); transform: skewX(-20deg); animation: wd-3d-shine 3.2s infinite; }
+        @keyframes wd-3d-pulse { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, .55); } 70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
+        @keyframes wd-3d-shine { 0%, 60% { left: -60%; } 100% { left: 130%; } }
         .wd-demo { padding: 8px 14px; margin-bottom: 14px; border: 1px solid #f3d995; border-radius: 10px; background: #fff5dc; color: #755300; font-size: 13px; }
 
         .wd-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 14px; }
@@ -88,6 +93,7 @@
                     <select id="wd-period"><option value="month">Bulan ini</option><option value="30">30 hari terakhir</option><option value="90">90 hari terakhir</option></select>
                 </div>
                 <a class="btn btn-sm wd-btn-ghost" href="{{ route('work-tracker') }}"><i class="fa-solid fa-person-running"></i> Work Tracker</a>
+                <a class="btn btn-sm wd-btn-3d" href="{{ route('work-tracker-world') }}"><i class="fa-solid fa-cube"></i> Dunia 3D</a>
             </div>
         </div>
 

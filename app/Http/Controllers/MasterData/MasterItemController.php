@@ -51,17 +51,22 @@ class MasterItemController extends Controller
     // Daftar
     // ===================================================================
 
+    // Daftar sekaligus modal Create / Edit (isian & pilihannya dimuat sekali di sini)
     public function index()
     {
+        $form = request()->query('form');
+
         return view('master-data.item.index', [
             'kategori'       => $this->kategori(),
             'tipe'           => $this->tipeItem(),
             'awal'           => $this->keadaanDaftar(),
+            // Dari alamat lama create / edit?id= : modalnya langsung dibuka
+            'bukaForm'       => $form === 'baru' ? 'baru' : (is_string($form) && ctype_digit($form) ? (int) $form : null),
             'page'           => 'dashboard-master-data',
             'subPageGroup'   => 'master-data',
             'subPage'        => 'master-item',
             'containerFluid' => true,
-        ]);
+        ] + $this->dataForm());
     }
 
     // Server-side: item general belasan ribu baris
@@ -238,22 +243,24 @@ class MasterItemController extends Controller
         ];
     }
 
-    private function urlDaftar()
+    private function urlDaftar(array $tambah = [])
     {
         $keadaan = array_filter($this->keadaanDaftar(), fn ($v, $k) => ! (
             $v === '' || $v === null || ($k === 'hal' && $v === 0) || ($k === 'baris' && $v === 10) || ($k === 'arah' && $v === 'asc')
         ), ARRAY_FILTER_USE_BOTH);
 
-        return route('master-data-item', $keadaan);
+        return route('master-data-item', $keadaan + $tambah);
     }
 
     // ===================================================================
     // Create / Edit
     // ===================================================================
 
+    // Form Create / Edit sekarang modal di halaman daftar. Alamat lamanya tetap jalan (bookmark,
+    // Ctrl+klik / buka di tab baru): dialihkan ke daftar dengan modalnya langsung terbuka.
     public function create()
     {
-        return $this->formulir();
+        return redirect($this->urlDaftar(['form' => 'baru']));
     }
 
     public function edit(Request $request)
@@ -263,10 +270,11 @@ class MasterItemController extends Controller
             abort(404);
         }
 
-        return $this->formulir($row);
+        return redirect($this->urlDaftar(['form' => $row->id_item]));
     }
 
-    private function formulir($ubah = null)
+    // Pilihan & aturan isian modal Create / Edit. Data item yang diedit diambil lewat detail().
+    private function dataForm()
     {
         // Semua akun sekali ambil, lalu dibagi per isian sesuai awalan nomornya
         $akun = DB::connection('mysql_sb')->table('mastercoa_v2')->orderBy('no_coa')->get(['no_coa', 'nama_coa']);
@@ -276,24 +284,15 @@ class MasterItemController extends Controller
                 ->mapWithKeys(fn ($a) => [$a->no_coa => $a->no_coa . ' - ' . $a->nama_coa]);
         }
 
-        return view('master-data.item.form', [
-            'ubah'           => $ubah,
-            'kategori'       => $this->kategori(),
-            'tipe'           => $this->tipeItem(),
-            'mutasi'         => self::MUTASI,
-            'coa'            => $coa,
-            'coaLabel'       => collect(self::COA)->map(fn ($c) => $c[0]),
-            'wajibCoa'       => self::KATEGORI_WAJIB_COA,
-            'panjang'        => collect(self::PANJANG)->map(fn ($p) => $p[1]),
-            'gambarUrl'      => $ubah && $ubah->file_gambar ? $this->urlGambar($ubah) : null,
-            'batasUpload'    => $this->batasUpload(),
-            'ekstensi'       => self::EKSTENSI_GAMBAR,
-            'urlKembali'     => $this->urlDaftar(),
-            'page'           => 'dashboard-master-data',
-            'subPageGroup'   => 'master-data',
-            'subPage'        => 'master-item',
-            'containerFluid' => true,
-        ]);
+        return [
+            'mutasi'      => self::MUTASI,
+            'coa'         => $coa,
+            'coaLabel'    => collect(self::COA)->map(fn ($c) => $c[0]),
+            'wajibCoa'    => self::KATEGORI_WAJIB_COA,
+            'panjang'     => collect(self::PANJANG)->map(fn ($p) => $p[1]),
+            'batasUpload' => $this->batasUpload(),
+            'ekstensi'    => self::EKSTENSI_GAMBAR,
+        ];
     }
 
     public function simpan(Request $request)
