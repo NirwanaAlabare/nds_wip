@@ -186,6 +186,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/point/delete', 'deletePoint')->name('delete-point-work-tracker');
         Route::post('/attachment/store', 'storeAttachment')->name('store-attachment-work-tracker');
         Route::post('/attachment/delete', 'deleteAttachment')->name('delete-attachment-work-tracker');
+        Route::get('/attachment/{id}/download', 'downloadAttachment')->where('id', '[0-9]+')->name('download-attachment-work-tracker');
         Route::post('/store', 'store')->name('store-work-tracker');
         Route::post('/progress', 'updateProgress')->name('progress-work-tracker');
         Route::post('/status', 'updateStatus')->name('status-work-tracker');

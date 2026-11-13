@@ -512,7 +512,7 @@
         a.wt-file-box:hover { border-color: var(--wt-blue); box-shadow: 0 3px 10px rgba(8, 33, 73, .12); color: var(--wt-navy); }
         .wt-file-box span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .wt-file-box i { font-size: 15px; }
-        .wt-file-box .fa-file-pdf { color: #d63a3a; } .wt-file-box .fa-file-excel { color: #1d7a45; } .wt-file-box .fa-file-word { color: #2b5fb4; } .wt-file-box .fa-file-zipper { color: #a86700; } .wt-file-box .fa-file-lines { color: var(--wt-muted); }
+        .wt-file-box .fa-file-pdf { color: #d63a3a; } .wt-file-box .fa-file-excel { color: #1d7a45; } .wt-file-box .fa-file-word { color: #2b5fb4; } .wt-file-box .fa-file-zipper { color: #a86700; } .wt-file-box .fa-file-code { color: #e34c26; } .wt-file-box .fa-file-lines { color: var(--wt-muted); }
         .wt-file.is-image .wt-file-box { width: 76px; height: 76px; padding: 0; overflow: hidden; border-radius: 11px; }
         .wt-file.is-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
         .wt-file.is-image a.wt-file-box:hover img { transform: scale(1.07); }
@@ -731,7 +731,7 @@
 
                     <div class="wt-mini-head"><i class="fa-solid fa-paperclip"></i> <span id="wt-i-files-label">Lampiran</span></div>
                     <label class="wt-drop compact" id="wt-i-drop">
-                        <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip">
+                        <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip,.html,.htm">
                         <span class="wt-drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></span>
                         <span><b>Tarik foto/file ke sini</b> atau klik untuk pilih<br><span class="wt-sub">Maks 10 file, 10 MB per file</span></span>
                     </label>
@@ -790,13 +790,13 @@
                     <div class="wt-sec">
                         <div class="wt-sec-title"><i class="fa-solid fa-paperclip"></i> Lampiran</div>
                         <label class="wt-drop compact" id="wt-d-drop">
-                            <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip">
+                            <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip,.html,.htm">
                             <span class="wt-drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></span>
                             <span><b>Tarik foto/file ke sini</b> atau klik untuk pilih. Langsung tersimpan.</span>
                         </label>
                         <div id="wt-item-files"></div>
                     </div>
-                    <input type="file" id="wt-attach-input" class="d-none" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip">
+                    <input type="file" id="wt-attach-input" class="d-none" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip,.html,.htm">
 
                     <div class="wt-sec">
                         <div class="row g-4">
@@ -807,7 +807,7 @@
                                     <label class="mt-2">Catatan hari ini</label>
                                     <textarea class="form-control mb-2" id="wt-note" rows="3" maxlength="2000" placeholder="Hari ini mengerjakan apa?"></textarea>
                                     <label class="wt-drop compact mb-1" id="wt-progress-drop">
-                                        <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip">
+                                        <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip,.html,.htm">
                                         <span class="wt-drop-icon"><i class="fa-solid fa-camera"></i></span>
                                         <span><b>Lampirkan bukti</b> (opsional)</span>
                                     </label>
@@ -2394,6 +2394,7 @@
                 if (['xls', 'xlsx', 'csv'].indexOf(ext) >= 0) return 'fa-file-excel';
                 if (['doc', 'docx'].indexOf(ext) >= 0) return 'fa-file-word';
                 if (ext === 'zip') return 'fa-file-zipper';
+                if (ext === 'html' || ext === 'htm') return 'fa-file-code';
                 return 'fa-file-lines';
             }
 
@@ -2403,7 +2404,12 @@
                     const body = a.is_image
                         ? '<img src="' + esc(a.url) + '" alt="' + esc(a.original_name) + '" loading="lazy">'
                         : '<i class="fa-solid ' + fileIcon(a.original_name) + '"></i><span>' + esc(a.original_name) + '</span>';
-                    return '<span class="wt-file' + (a.is_image ? ' is-image' : '') + '"><a class="wt-file-box" href="' + esc(a.url) + '" target="_blank" rel="noopener" title="' + esc(a.original_name) + '"' + (a.is_image ? ' data-lightbox' : '') + '>' + body + '</a>' +
+                    // File HTML hanya diunduh, tidak dibuka di tab
+                    const link = a.download_only
+                        ? ' download title="Unduh ' + esc(a.original_name) + '"'
+                        : ' target="_blank" rel="noopener" title="' + esc(a.original_name) + '"' + (a.is_image ? ' data-lightbox' : '');
+                    const tail = a.download_only ? ' <i class="fa-solid fa-download" style="font-size:11px;color:var(--wt-muted)"></i>' : '';
+                    return '<span class="wt-file' + (a.is_image ? ' is-image' : '') + '"><a class="wt-file-box" href="' + esc(a.url) + '"' + link + '>' + body + tail + '</a>' +
                         '<button type="button" class="wt-file-del" data-attachment="' + a.id + '" title="Hapus lampiran" aria-label="Hapus lampiran ' + esc(a.original_name) + '">&times;</button></span>';
                 }).join('') + '</div>';
             }
