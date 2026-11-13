@@ -180,6 +180,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/export', 'export')->name('export-work-tracker');
         Route::get('/users', 'users')->name('users-work-tracker');
         Route::get('/logs/{id}', 'logs')->name('logs-work-tracker');
+        Route::get('/detail/{id}', 'detail')->name('detail-work-tracker');
+        Route::post('/point/store', 'storePoint')->name('store-point-work-tracker');
+        Route::post('/point/toggle', 'togglePoint')->name('toggle-point-work-tracker');
+        Route::post('/point/delete', 'deletePoint')->name('delete-point-work-tracker');
+        Route::post('/attachment/store', 'storeAttachment')->name('store-attachment-work-tracker');
+        Route::post('/attachment/delete', 'deleteAttachment')->name('delete-attachment-work-tracker');
         Route::post('/store', 'store')->name('store-work-tracker');
         Route::post('/progress', 'updateProgress')->name('progress-work-tracker');
         Route::post('/status', 'updateStatus')->name('status-work-tracker');
