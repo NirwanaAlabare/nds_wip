@@ -142,7 +142,7 @@
                         <tr>
                             <th colspan="13"></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'></th>
-                            <th colspan="3"></th>
+                            <th colspan="4"></th>
                         </tr>
                     </tfoot>
                 </table>
