@@ -44,14 +44,23 @@ class WorkTrackerController extends Controller
     // Dunia 3D: posisi pemain dan chat hanya disimpan sementara di cache, tidak ada tabel
     const WORLD_TTL = 12;
     const WORLD_CHAT_KEEP = 40;
+    // Pendamping di Dunia 3D: user_id => karakter yang selalu menempel pada user itu (gambar di public/assets)
+    const WORLD_COMPANIONS = [
+        315 => ['name' => 'ADO', 'owner' => 'Dede', 'image' => 'img/work-tracker/ado.png'],
+    ];
 
     public function world(Request $request)
     {
         $user = $request->user();
+        $companions = [];
+        foreach (self::WORLD_COMPANIONS as $userId => $companion) {
+            $companions[$userId] = array_merge($companion, ['image' => asset($companion['image'])]);
+        }
 
         return view('general.tools.work-tracker-world', [
             'containerFluid' => true,
             'me' => array_merge(['id' => $user->id, 'name' => $user->name], $this->worldProfile($user->id)),
+            'companions' => (object) $companions,
         ]);
     }
 
