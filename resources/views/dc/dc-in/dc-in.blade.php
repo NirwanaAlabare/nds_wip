@@ -180,6 +180,7 @@
                             <th>Buyer</th>
                             <th>User</th>
                             <th>Created At</th>
+                            <th>Stocker Reject</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -189,7 +190,7 @@
                             <th>...</th>
                             <th>...</th>
                             <th>...</th>
-                            <th colspan="3"></th>
+                            <th colspan="4"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -430,6 +431,7 @@
             'buyer_filter',
             'user_filter',
             'created_at_filter',
+            'stocker_reject_filter',
         ];
 
         $('#datatable-input thead tr').clone(true).appendTo('#datatable-input thead');
@@ -686,11 +688,27 @@
                 {
                     data: 'created_at',
                 },
+                {
+                    data: 'stocker_reject',
+                },
             ],
-            columnDefs: [{
-                targets: "_all",
-                className: "text-nowrap"
-            }]
+            columnDefs: [
+                {
+                    targets: [25],
+                    render: (data, type, row, meta) => {
+                        // stocker_reject berisi id_qr_stocker asal, null jika bukan stocker reject
+                        if (!data) {
+                            return '-';
+                        }
+
+                        return '<span class="badge bg-danger">Reject</span> Dari ' + data;
+                    }
+                },
+                {
+                    targets: "_all",
+                    className: "text-nowrap"
+                }
+            ]
         });
 
         $('#datatable-detail thead tr').clone(true).appendTo('#datatable-detail thead');
