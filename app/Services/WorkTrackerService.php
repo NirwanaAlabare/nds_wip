@@ -525,6 +525,8 @@ class WorkTrackerService
         $from = $filters['from'];
         $to = $filters['to'];
         $search = mb_strtolower(trim($filters['search'] ?? ''));
+        // Filter divisi bisa berisi beberapa divisi dipisah koma
+        $divisionFilter = array_values(array_filter(array_map('trim', explode(',', (string) ($filters['division'] ?? ''))), 'strlen'));
 
         return collect($items)->filter(function ($item) use ($from, $to) {
             $begin = $item->start_date ?: substr($item->created_at, 0, 10);
@@ -536,13 +538,13 @@ class WorkTrackerService
                 'programmer_name' => $item->programmer_id ? ($names[$item->programmer_id] ?? null) : null,
                 'programmer_division' => $item->programmer_id ? ($divisions[$item->programmer_id] ?? null) : null,
             ]);
-        })->filter(function ($row) use ($filters, $search) {
+        })->filter(function ($row) use ($filters, $search, $divisionFilter) {
             $programmer = $filters['programmer'] ?? null;
             $status = $filters['status'] ?? null;
             $level = $filters['level'] ?? null;
 
             if ($programmer === 'none' ? $row['programmer_id'] !== null : ($programmer && (int) $row['programmer_id'] !== (int) $programmer)) return false;
-            if (!empty($filters['division']) && $row['programmer_division'] !== $filters['division']) return false;
+            if ($divisionFilter && !in_array($row['programmer_division'], $divisionFilter, true)) return false;
             if (!empty($filters['type']) && $row['type'] !== $filters['type']) return false;
             if ($status === 'open' ? !in_array($row['status'], self::ACTIVE) : ($status && $row['status'] !== $status)) return false;
             if ($level === 'none' ? $row['level'] !== null : ($level && $row['level'] !== $level)) return false;

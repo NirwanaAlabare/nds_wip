@@ -117,7 +117,8 @@ class WorkTrackerController extends Controller
             'from' => 'required|date',
             'to' => 'required|date|after_or_equal:from',
             'programmer' => 'nullable|string|max:20',
-            'division' => 'nullable|string|max:50',
+            // Beberapa divisi dikirim dipisah koma, misalnya "Programmer,IE"
+            'division' => 'nullable|string|max:255',
             'type' => ['nullable', Rule::in(array_keys(WorkTrackerService::TYPE_LABEL))],
             'status' => ['nullable', Rule::in(array_merge(['open'], array_keys(WorkTrackerService::STATUS_LABEL)))],
             'level' => ['nullable', Rule::in(array_merge(['none'], array_keys(WorkTrackerService::LEVEL_LABEL)))],
