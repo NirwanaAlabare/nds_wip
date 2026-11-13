@@ -277,6 +277,20 @@ class StockerController extends Controller
             leftJoin("master_secondary as master_secondary_new", "master_secondary_new.id", "=", "part_detail_secondary.master_secondary_id")->
             where("form_cut_input.id", $formCutId)->
             whereRaw("(part_detail.status IS NULL OR part_detail.status = 'active')")->
+            // part detail yang pertama kali dipakai oleh stocker manual SM-10112026 9:15 (injectan) tidak ditampilkan
+            whereRaw("part_detail.id NOT IN (
+                SELECT part_detail_id FROM (
+                    SELECT s.part_detail_id
+                    FROM stocker_input s
+                    INNER JOIN (
+                        SELECT part_detail_id, MIN(id) min_id
+                        FROM stocker_input
+                        WHERE part_detail_id IN (SELECT part_detail_id FROM stocker_input WHERE notes = 'STOCKER MANUAL SM-10112026 9:15')
+                        GROUP BY part_detail_id
+                    ) f ON f.min_id = s.id
+                    WHERE s.notes = 'STOCKER MANUAL SM-10112026 9:15'
+                ) pd_manual
+            )")->
             groupBy("part_detail.id")->
             get();
 

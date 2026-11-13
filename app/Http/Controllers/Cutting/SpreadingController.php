@@ -2003,7 +2003,20 @@ class SpreadingController extends Controller
             LEFT JOIN part_detail on part_detail.part_id = part.id
             LEFT JOIN master_part on master_part.id = part_detail.master_part_id
             LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = cutting.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= cutting.tanggal ELSE 1=1 END)
+            LEFT JOIN (
+                -- part detail yang pertama kali dipakai oleh stocker manual SM-10112026 9:15 (injectan) tidak dihitung
+                SELECT s.part_detail_id
+                FROM stocker_input s
+                INNER JOIN (
+                    SELECT part_detail_id, MIN(id) min_id
+                    FROM stocker_input
+                    WHERE part_detail_id IN (SELECT part_detail_id FROM stocker_input WHERE notes = 'STOCKER MANUAL SM-10112026 9:15')
+                    GROUP BY part_detail_id
+                ) f ON f.min_id = s.id
+                WHERE s.notes = 'STOCKER MANUAL SM-10112026 9:15'
+            ) pd_manual ON pd_manual.part_detail_id = part_detail.id
             WHERE
+                pd_manual.part_detail_id IS NULL AND
                 (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL) AND
                 (CASE WHEN tanggal > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
             GROUP BY

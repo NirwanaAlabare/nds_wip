@@ -774,7 +774,7 @@ class LoadingLineController extends Controller
                 (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) type,
                 (CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE(part_com.panel, part.panel) ELSE part.panel END) panel,
                 (CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE(part_com.panel_status, part.panel_status) ELSE part.panel_status END) panel_status,
-                master_part.nama_part part,
+                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) part,
                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                 loading_line.no_bon,
                 DATE_FORMAT(loading_line.updated_at, '%H:%i:%s') waktu_loading,
@@ -832,6 +832,7 @@ class LoadingLineController extends Controller
             ) AS loading_qty ON loading_qty.id_qr_stocker = stocker_input.id_qr_stocker
             WHERE (stocker_input.cancel IS NULL OR stocker_input.cancel != 'Y')
                 AND loading_line_plan.id IN ('{$loadingPlanIdsStr}')
+                AND NOT (COALESCE(master_part.nama_part, '') = 'STK' AND COALESCE(stocker_input.notes, '') = 'INJECT 10-11-2026 10:00')
                 {$innerDetailDateFilter}
             GROUP BY stocker_input.id_qr_stocker
 

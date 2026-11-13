@@ -987,11 +987,104 @@ class PackingCentralSwitchingController extends Controller
             $item[$kunci($m->ws, $m->styleno, $m->color, $m->size)] = true;
         }
 
-        $today = date('Y-m-d');
+        // Hasil sama dengan buildQueryDetailTransaksi($today, $today, '', $po) -> SUM(saldo_akhir),
+        // tetapi filter PO dipasang di tiap sumber (bukan di akhir) supaya tidak menghitung semua PO.
+        // Sumber tanpa PO (bppb, inject mutasi, wip_adjustment, wip_switching_adj) selalu 'TANPA PO' -> tidak ikut.
+        $tgl_saldo = self::WIP_TGL_SALDO;
+        $mulai = date('Y-m-d', strtotime($tgl_saldo . ' +1 day'));
+        $tgl_akhir = max(date('Y-m-d'), $mulai);
+
+        $idPpic = DB::table('ppic_master_so')->where('po', $po)->pluck('id')->all();
+        if (empty($idPpic)) {
+            $idPpic = [null];
+        }
+        $in = implode(',', array_fill(0, count($idPpic), '?'));
+
+        $bindings = array_merge(
+            [$tgl_saldo], $idPpic, [$po],   // snapshot
+            $idPpic,                        // packing line
+            $idPpic,                        // packing out scan
+            $idPpic, [$po],                 // switching out
+            $idPpic,                        // switching in
+            $idPpic, [$po],                 // gudang stok + temporary
+            $idPpic, [$po]                  // keluar gudang stok
+        );
+
+        $rows = DB::select("
+            SELECT t.ws, t.styleno, t.color, t.size, SUM(t.qty) AS qty
+            FROM (
+                SELECT s.ws, s.styleno, s.color, s.size, s.qty AS qty
+                FROM saldo_wip_packing_central s
+                WHERE s.tgl_saldo = ?
+                    AND (s.id_ppic_master_so IN ($in) OR (s.id_ppic_master_so IS NULL AND s.po = ?))
+
+                UNION ALL
+
+                SELECT msw.ws, msw.styleno, msw.color, msw.size, pi.qty
+                FROM packing_packing_in pi
+                    JOIN packing_trf_garment b ON pi.id_trf_garment = b.id
+                    JOIN ppic_master_so pms ON pms.id = pi.id_ppic_master_so
+                    INNER JOIN master_sb_ws msw ON msw.id_so_det = pms.id_so_det
+                WHERE pi.tgl_penerimaan >= '{$mulai} 00:00:00'
+                    AND pi.tgl_penerimaan <= '{$tgl_akhir} 23:59:59'
+                    AND pi.id_ppic_master_so IN ($in)
+
+                UNION ALL
+
+                SELECT msw.ws, msw.styleno, msw.color, msw.size, -COUNT(*)
+                FROM packing_packing_out_scan s
+                    LEFT JOIN master_sb_ws msw ON msw.id_so_det = s.id_so_det
+                WHERE s.id_ppic IN ($in)
+                    AND s.tgl_trans >= '{$mulai}'
+                    AND s.tgl_trans <= '{$tgl_akhir}'
+                GROUP BY msw.ws, msw.styleno, msw.color, msw.size
+
+                UNION ALL
+
+                SELECT msw.ws, msw.styleno, msw.color, msw.size, -sw.qty_switch
+                FROM packing_central_switching sw
+                    LEFT JOIN packing_packing_in asal ON asal.id = sw.packing_packing_in_id
+                    LEFT JOIN master_sb_ws msw ON msw.id_so_det = sw.asal_so_det_id
+                WHERE date(sw.created_at) >= '{$mulai}'
+                    AND date(sw.created_at) <= '{$tgl_akhir}'
+                    AND (sw.asal_ppic_master_so_id IN ($in) OR (sw.asal_ppic_master_so_id IS NULL AND asal.po = ?))
+
+                UNION ALL
+
+                SELECT msw.ws, msw.styleno, msw.color, msw.size, sw.qty_switch
+                FROM packing_central_switching sw
+                    LEFT JOIN master_sb_ws msw ON msw.id_so_det = sw.tujuan_so_det_id
+                WHERE date(sw.created_at) >= '{$mulai}'
+                    AND date(sw.created_at) <= '{$tgl_akhir}'
+                    AND sw.tujuan_ppic_master_so_id IN ($in)
+
+                UNION ALL
+
+                SELECT msw.ws, msw.styleno, msw.color, msw.size, pi.qty
+                FROM packing_packing_in pi
+                    LEFT JOIN master_sb_ws msw ON msw.id_so_det = pi.id_so_det
+                WHERE pi.tgl_penerimaan >= '{$mulai}'
+                    AND pi.tgl_penerimaan <= '{$tgl_akhir}'
+                    AND pi.sumber IN ('FGS', 'TEMPORARY PACKING')
+                    AND (pi.id_ppic_master_so IN ($in) OR (pi.id_ppic_master_so IS NULL AND pi.po = ?))
+
+                UNION ALL
+
+                SELECT msw.ws, msw.styleno, msw.color, msw.size, -g.qty
+                FROM packing_out_gudang_stok g
+                    LEFT JOIN master_sb_ws msw ON msw.id_so_det = g.so_det_id
+                WHERE g.created_at >= '{$mulai} 00:00:00'
+                    AND g.created_at <= '{$tgl_akhir} 23:59:59'
+                    AND g.lokasi_asal = 'PACKING CENTRAL'
+                    AND (g.ppic_master_so_id IN ($in) OR (g.ppic_master_so_id IS NULL AND g.po = ?))
+            ) t
+            GROUP BY t.ws, t.styleno, t.color, t.size
+        ", $bindings);
+
         $saldo = 0;
-        foreach ($this->buildQueryDetailTransaksi($today, $today, '', $po) as $row) {
+        foreach ($rows as $row) {
             if (isset($item[$kunci($row->ws, $row->styleno, $row->color, $row->size)])) {
-                $saldo += (int) $row->saldo_akhir;
+                $saldo += (int) $row->qty;
             }
         }
 

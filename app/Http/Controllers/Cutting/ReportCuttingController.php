@@ -5917,7 +5917,7 @@ class ReportCuttingController extends Controller
         $sheet = $excel->sheet();
 
         $sheet->writeRow(
-            ['Report Penerimaan Fabric Cutting'],
+            ['Report Pengeluaran Fabric ke Cutting'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 14,
@@ -9131,7 +9131,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_input
                                 LEFT JOIN (
@@ -9230,7 +9230,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_piece
                                 LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -9289,7 +9289,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 laravel_nds.form_cut_input
                                 LEFT JOIN (
@@ -9390,7 +9390,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_reject
                                 LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
@@ -9465,7 +9465,7 @@ class ReportCuttingController extends Controller
                                     pd_asal.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
                                     mp_asal.id AS master_part_id,
-                                    mp_asal.nama_part AS nama_part,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_out,
                                     0 AS total_in
                                 FROM
@@ -9506,7 +9506,7 @@ class ReportCuttingController extends Controller
                                     pd_tujuan.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
                                     mp_tujuan.id AS master_part_id,
-                                    mp_tujuan.nama_part AS nama_part,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
                                     0 AS total_out,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_in
                                 FROM
@@ -9547,7 +9547,7 @@ class ReportCuttingController extends Controller
                                     pd_asal.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
                                     mp_asal.id AS master_part_id,
-                                    mp_asal.nama_part AS nama_part,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_out,
                                     0 AS total_in
                                 FROM
@@ -9591,7 +9591,7 @@ class ReportCuttingController extends Controller
                                     pd_tujuan.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
                                     mp_tujuan.id AS master_part_id,
-                                    mp_tujuan.nama_part AS nama_part,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
                                     0 AS total_out,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_in
                                 FROM
@@ -9635,7 +9635,7 @@ class ReportCuttingController extends Controller
                                     pd_asal.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
                                     mp_asal.id AS master_part_id,
-                                    mp_asal.nama_part AS nama_part,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_out,
                                     0 AS total_in
                                 FROM
@@ -9676,7 +9676,7 @@ class ReportCuttingController extends Controller
                                     pd_tujuan.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
                                     mp_tujuan.id AS master_part_id,
-                                    mp_tujuan.nama_part AS nama_part,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
                                     0 AS total_out,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_in
                                 FROM
@@ -9757,7 +9757,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_input
                                 LEFT JOIN (
@@ -9856,7 +9856,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_piece
                                 LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -9915,7 +9915,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 laravel_nds.form_cut_input
                                 LEFT JOIN (
@@ -10016,7 +10016,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_reject
                                 LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
@@ -10091,7 +10091,7 @@ class ReportCuttingController extends Controller
                                     pd_asal.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
                                     mp_asal.id AS master_part_id,
-                                    mp_asal.nama_part AS nama_part,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_out,
                                     0 AS total_in
                                 FROM
@@ -10132,7 +10132,7 @@ class ReportCuttingController extends Controller
                                     pd_tujuan.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
                                     mp_tujuan.id AS master_part_id,
-                                    mp_tujuan.nama_part AS nama_part,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
                                     0 AS total_out,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_in
                                 FROM
@@ -10173,7 +10173,7 @@ class ReportCuttingController extends Controller
                                     pd_asal.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
                                     mp_asal.id AS master_part_id,
-                                    mp_asal.nama_part AS nama_part,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_out,
                                     0 AS total_in
                                 FROM
@@ -10217,7 +10217,7 @@ class ReportCuttingController extends Controller
                                     pd_tujuan.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
                                     mp_tujuan.id AS master_part_id,
-                                    mp_tujuan.nama_part AS nama_part,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
                                     0 AS total_out,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_in
                                 FROM
@@ -10261,7 +10261,7 @@ class ReportCuttingController extends Controller
                                     pd_asal.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
                                     mp_asal.id AS master_part_id,
-                                    mp_asal.nama_part AS nama_part,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_out,
                                     0 AS total_in
                                 FROM
@@ -10302,7 +10302,7 @@ class ReportCuttingController extends Controller
                                     pd_tujuan.id AS part_detail_id,
                                     COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
                                     mp_tujuan.id AS master_part_id,
-                                    mp_tujuan.nama_part AS nama_part,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
                                     0 AS total_out,
                                     form_cut_input_detail_output_logs.qty_transfer AS total_in
                                 FROM
@@ -10401,7 +10401,7 @@ class ReportCuttingController extends Controller
                                             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                             COALESCE(msb.size, s.size) size,
                                             mp.id master_part_id,
-                                            mp.nama_part,
+                                            (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                             pd.id as part_detail_id,
                                             pd.part_status,
                                             coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -10419,7 +10419,7 @@ class ReportCuttingController extends Controller
                                             a.tgl_trans >= '".$tgl_saldo."' AND a.tgl_trans < '".$start_date."'
                                             AND s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                             pd.part_status = 'main'
                                     UNION ALL
                                     SELECT
@@ -10449,7 +10449,7 @@ class ReportCuttingController extends Controller
                                             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                             COALESCE(msb.size, s.size) size,
                                             mp.id master_part_id,
-                                            mp.nama_part,
+                                            (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                             pd.id as part_detail_id,
                                             COALESCE(pcust.set_part_status, pd.part_status) part_status,
                                             coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -10470,7 +10470,7 @@ class ReportCuttingController extends Controller
                                             a.tgl_trans >= '".$tgl_saldo."' AND a.tgl_trans < '".$start_date."'
                                             AND s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL)
                                 ) dc
                                 left join master_sb_ws m on dc.so_det_id = m.id_so_det
@@ -10530,7 +10530,7 @@ class ReportCuttingController extends Controller
                                             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                             COALESCE(msb.size, s.size) size,
                                             mp.id master_part_id,
-                                            mp.nama_part,
+                                            (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                             pd.id as part_detail_id,
                                             pd.part_status,
                                             coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -10548,7 +10548,7 @@ class ReportCuttingController extends Controller
                                             a.tgl_trans >= '".$start_date."' AND a.tgl_trans <= '".$end_date."'
                                             AND s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                             pd.part_status = 'main'
                                     UNION ALL
                                     SELECT
@@ -10578,7 +10578,7 @@ class ReportCuttingController extends Controller
                                             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                             COALESCE(msb.size, s.size) size,
                                             mp.id master_part_id,
-                                            mp.nama_part,
+                                            (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                             pd.id as part_detail_id,
                                             COALESCE(pcust.set_part_status, pd.part_status) part_status,
                                             coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -10599,7 +10599,7 @@ class ReportCuttingController extends Controller
                                             a.tgl_trans >= '".$start_date."' AND a.tgl_trans <= '".$end_date."'
                                             AND s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL)
                                 ) dc
                                 left join master_sb_ws m on dc.so_det_id = m.id_so_det
@@ -10617,7 +10617,7 @@ class ReportCuttingController extends Controller
                                         part.panel_status,
                                         part_detail.id part_detail_id,
                                         master_part.id master_part_id,
-                                        master_part.nama_part,
+                                        (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part,
                                         part_detail.part_status,
                                         sum(mut_cut_pcs_tmp_detail.saldo) qty_cut_awal,
                                         0 as qty_dc_awal,
@@ -10775,7 +10775,7 @@ class ReportCuttingController extends Controller
                                 pd.id as part_detail_id,
                                 (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
                                 (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
-                                mp.nama_part AS nama_part,
+                                (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) AS nama_part,
                                 pd.part_status AS part_status,
                                 fss.qty,
                                 fcs.status
@@ -10807,7 +10807,7 @@ class ReportCuttingController extends Controller
                                 pd.id as part_detail_id,
                                 (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
                                 (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
-                                mp.nama_part AS nama_part,
+                                (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) AS nama_part,
                                 pd.part_status AS part_status,
                                 fss.qty,
                                 fcs.status
@@ -12582,7 +12582,7 @@ class ReportCuttingController extends Controller
                                         COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                         COALESCE(msb.size, s.size) size,
                                         mp.id master_part_id,
-                                        mp.nama_part,
+                                        (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                         pd.id as part_detail_id,
                                         pd.part_status,
                                         coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -12600,7 +12600,7 @@ class ReportCuttingController extends Controller
                                         a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                         AND s.id is not null AND
                                         (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                         pd.part_status = 'main'
                                 UNION ALL
                                 SELECT
@@ -12609,11 +12609,11 @@ class ReportCuttingController extends Controller
                                         a.tgl_trans,
                                         s.act_costing_ws,
                                         s.color,
-                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
-                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.style ELSE p.style END as style,
-                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel ELSE p.panel END as panel,
-                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.id ELSE p.id  END as part_id,
-                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.buyer, p.buyer) ELSE p.buyer END as buyer,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.style, p.style) ELSE p.style END as style,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel, p.panel) ELSE p.panel END as panel,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.id, p.id) ELSE p.id  END as part_id,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel_status, p.panel_status) ELSE p.panel_status END as panel_status,
                                         s.so_det_id,
                                         s.ratio,
                                         a.qty_awal,
@@ -12630,7 +12630,7 @@ class ReportCuttingController extends Controller
                                         COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                         COALESCE(msb.size, s.size) size,
                                         mp.id master_part_id,
-                                        mp.nama_part,
+                                        (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                         pd.id as part_detail_id,
                                         pd.part_status,
                                         coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -12651,7 +12651,7 @@ class ReportCuttingController extends Controller
                                         a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                         AND s.id is not null AND
                                         (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL)
                             ) dc
                             left join master_sb_ws m on dc.so_det_id = m.id_so_det
@@ -13082,7 +13082,7 @@ class ReportCuttingController extends Controller
                                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                 COALESCE(msb.size, s.size) size,
                                 mp.id master_part_id,
-                                mp.nama_part,
+                                (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                 pd.id as part_detail_id,
                                 pd.part_status,
                                 coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -13100,7 +13100,7 @@ class ReportCuttingController extends Controller
                                 a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                 AND s.id is not null AND
                                 (s.cancel IS NULL OR s.cancel != 'y') and
-                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                 pd.part_status = 'main'
                         UNION ALL
                         SELECT
@@ -13109,11 +13109,11 @@ class ReportCuttingController extends Controller
                                 a.tgl_trans,
                                 s.act_costing_ws,
                                 s.color,
-                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
-                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.style ELSE p.style END as style,
-                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel ELSE p.panel END as panel,
-                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.id ELSE p.id  END as part_id,
-                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.buyer, p.buyer) ELSE p.buyer END as buyer,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.style, p.style) ELSE p.style END as style,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel, p.panel) ELSE p.panel END as panel,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.id, p.id) ELSE p.id  END as part_id,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel_status, p.panel_status) ELSE p.panel_status END as panel_status,
                                 s.so_det_id,
                                 s.ratio,
                                 a.qty_awal,
@@ -13130,7 +13130,7 @@ class ReportCuttingController extends Controller
                                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                 COALESCE(msb.size, s.size) size,
                                 mp.id master_part_id,
-                                mp.nama_part,
+                                (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                 pd.id as part_detail_id,
                                 pd.part_status,
                                 coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -13151,7 +13151,7 @@ class ReportCuttingController extends Controller
                                 a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                 AND s.id is not null AND
                                 (s.cancel IS NULL OR s.cancel != 'y') and
-                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                 (pd.part_status != 'main' OR pd.part_status IS NULL)
                     ) dc
                     left join master_sb_ws m on dc.so_det_id = m.id_so_det

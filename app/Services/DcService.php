@@ -90,7 +90,7 @@ class DcService
                                             a.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             COALESCE(pcust.set_part_status, pd.part_status) = 'main'
                                     UNION ALL
                                     SELECT
@@ -130,7 +130,7 @@ class DcService
                                             a.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                             ),
 
@@ -166,7 +166,7 @@ class DcService
                                             sii_in.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             COALESCE(pcust.set_part_status, pd.part_status) = 'main'
                                     GROUP BY s.id, sii_in.urutan
                                     UNION ALL
@@ -201,7 +201,7 @@ class DcService
                                             sii_in.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                                     GROUP BY s.id, sii_in.urutan
                             ),
@@ -239,7 +239,7 @@ class DcService
                                             sii.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main'
                                     GROUP BY s.id, sii.urutan
                                     UNION ALL
@@ -274,7 +274,7 @@ class DcService
                                             sii.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                                     GROUP BY s.id, sii.urutan
 
@@ -316,7 +316,7 @@ class DcService
                                             si.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY s.id, si.urutan
@@ -357,7 +357,7 @@ class DcService
                                             si.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY s.id, si.urutan
@@ -399,7 +399,7 @@ class DcService
                                             siu.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY siu.id
@@ -441,7 +441,7 @@ class DcService
                                             siu.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY siu.id
@@ -480,7 +480,7 @@ class DcService
                                             wo.tgl_form < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main'
                                     group by
                                             s.id
@@ -517,7 +517,7 @@ class DcService
                                             wo.tgl_form < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                                     group by
                                             s.id
@@ -560,7 +560,7 @@ class DcService
                                             si.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY s.id, si.urutan
@@ -601,7 +601,7 @@ class DcService
                                             si.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY s.id, si.urutan
@@ -643,7 +643,7 @@ class DcService
                                             siu.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY siu.id
@@ -685,7 +685,7 @@ class DcService
                                             siu.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY siu.id
@@ -738,7 +738,7 @@ class DcService
                                             ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             ll.tanggal_loading < '".$dateFrom."'
                                             AND COALESCE(s.cancel, 'n') != 'y'
-                                            AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+                                            AND ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK')))
                             ),
 
                             loading_line as (
@@ -766,7 +766,7 @@ class DcService
                                                     ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                     ll.tanggal_loading < '".$dateFrom."' and
                                                     (s.cancel IS NULL OR s.cancel != 'y') and
-                                                    (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+                                                    ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK')))
                                             group by
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END),
                                                     s.form_cut_id,
@@ -971,7 +971,7 @@ class DcService
                                             a.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             COALESCE(pcust.set_part_status, pd.part_status) = 'main'
                                     UNION ALL
                                     SELECT
@@ -1010,7 +1010,7 @@ class DcService
                                             a.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                             ),
 
@@ -1045,7 +1045,7 @@ class DcService
                                             sii_in.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             COALESCE(pcust.set_part_status, pd.part_status) = 'main'
                                     GROUP BY s.id, sii_in.urutan
                                     UNION ALL
@@ -1079,7 +1079,7 @@ class DcService
                                             sii_in.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                                     GROUP BY s.id, sii_in.urutan
                             ),
@@ -1115,7 +1115,7 @@ class DcService
                                             sii.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main'
                                     GROUP BY s.id, sii.urutan
                                     UNION ALL
@@ -1149,7 +1149,7 @@ class DcService
                                             sii.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                                     GROUP BY s.id, sii.urutan
                                     UNION ALL
@@ -1188,7 +1188,7 @@ class DcService
                                             si.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY s.id, si.urutan
@@ -1228,7 +1228,7 @@ class DcService
                                             si.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY s.id, si.urutan
@@ -1269,7 +1269,7 @@ class DcService
                                             siu.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY siu.id
@@ -1310,7 +1310,7 @@ class DcService
                                             siu.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY siu.id
@@ -1348,7 +1348,7 @@ class DcService
                                             wo.tgl_form between '".$dateFrom."' AND '$dateTo' and
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%' OR s.notes = 'STOCKER MANUAL SM-10112026 9:15') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main'
                                     group by
                                             s.id
@@ -1384,7 +1384,7 @@ class DcService
                                             wo.tgl_form between '".$dateFrom."' AND '$dateTo' and
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%' OR s.notes = 'STOCKER MANUAL SM-10112026 9:15') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                                     group by
                                             s.id
@@ -1426,7 +1426,7 @@ class DcService
                                             si.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY s.id, si.urutan
@@ -1466,7 +1466,7 @@ class DcService
                                             si.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY s.id, si.urutan
@@ -1507,7 +1507,7 @@ class DcService
                                             siu.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY siu.id
@@ -1548,7 +1548,7 @@ class DcService
                                             siu.tgl_trans between '".$dateFrom."' AND '$dateTo' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY siu.id
@@ -1600,7 +1600,7 @@ class DcService
                                     WHERE
                                             ll.tanggal_loading BETWEEN '$dateFrom' AND '$dateTo'
                                             AND COALESCE(s.cancel, 'n') != 'y'
-                                            AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+                                            AND ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK')))
                             ),
 
                             loading_line as (
@@ -1627,7 +1627,7 @@ class DcService
                                                     where
                                                             ll.tanggal_loading between '".$dateFrom."' AND '$dateTo' AND
                                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+                                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK')))
                                                     group by
                                                             (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END),
                                                             s.form_cut_id,
@@ -1817,7 +1817,7 @@ class DcService
                                             a.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             COALESCE(pcust.set_part_status, pd.part_status) = 'main'
                                     UNION ALL
                                     SELECT
@@ -1861,7 +1861,7 @@ class DcService
                                             a.tgl_trans < '".$dateFrom."' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                             ),
 
@@ -1902,7 +1902,7 @@ class DcService
                                             sii_in.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             COALESCE(pcust.set_part_status, pd.part_status) = 'main'
                                     GROUP BY s.id, sii_in.urutan
                                     UNION ALL
@@ -1942,7 +1942,7 @@ class DcService
                                             sii_in.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                                     GROUP BY s.id, sii_in.urutan
                             ),
@@ -1985,7 +1985,7 @@ class DcService
                                             sii.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main'
                                     GROUP BY s.id, sii.urutan
                                     UNION ALL
@@ -2024,7 +2024,7 @@ class DcService
                                             sii.tgl_trans < '".$dateFrom."' AND
                                             sii.tgl_trans >= '2026-05-01' AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                                     GROUP BY s.id, sii.urutan
 
@@ -2071,7 +2071,7 @@ class DcService
                                             si.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY s.id, si.urutan
@@ -2117,7 +2117,7 @@ class DcService
                                             si.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY s.id, si.urutan
@@ -2164,7 +2164,7 @@ class DcService
                                             siu.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY siu.id
@@ -2211,7 +2211,7 @@ class DcService
                                             siu.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY DALAM'
                                     GROUP BY siu.id
@@ -2255,7 +2255,7 @@ class DcService
                                             wo.tgl_form >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main'
                                     group by
                                             s.id
@@ -2297,7 +2297,7 @@ class DcService
                                             wo.tgl_form >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL)
                                     group by
                                             s.id
@@ -2345,7 +2345,7 @@ class DcService
                                             si.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY s.id, si.urutan
@@ -2391,7 +2391,7 @@ class DcService
                                             si.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY s.id, si.urutan
@@ -2438,7 +2438,7 @@ class DcService
                                             siu.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             pd.part_status= 'main' AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY siu.id
@@ -2485,7 +2485,7 @@ class DcService
                                             siu.tgl_trans >= '2026-05-01' AND
                                             s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK'))) and
                                             (COALESCE(pcust.set_part_status, pd.part_status) != 'main' OR COALESCE(pcust.set_part_status, pd.part_status) IS NULL) AND
                                             COALESCE(mms.tujuan, ms.tujuan, dc.tujuan) = 'SECONDARY LUAR'
                                     GROUP BY siu.id
@@ -2541,7 +2541,7 @@ class DcService
                                             ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                             ll.tanggal_loading < '".$dateFrom."'
                                             AND COALESCE(s.cancel, 'n') != 'y'
-                                            AND (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+                                            AND ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK')))
                             ),
 
                             loading_line as (
@@ -2569,7 +2569,7 @@ class DcService
                                                     ll.tanggal_loading > COALESCE((select MAX(tanggal) from dc_rekap), '2026-01-01') AND
                                                     ll.tanggal_loading < '".$dateFrom."' and
                                                     (s.cancel IS NULL OR s.cancel != 'y') and
-                                                    (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%')
+                                                    ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK')))
                                             group by
                                                     (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END),
                                                     s.form_cut_id,

@@ -81,7 +81,7 @@ class ExportReportQcReject extends DefaultValueBinder implements FromView, Shoul
                         a.created_at >= '{$tglAwal} 00:00:00'
                         AND a.created_at <= '{$tglAkhir} 23:59:59'
                         AND mp.cancel = 'N'
-                        AND b.output_type != 'qc_fns_pck_return'
+                        AND a.output_type != 'qc_fns_pck_return'
                     GROUP BY so_det_id, DATE(a.created_at)
 
                     UNION ALL

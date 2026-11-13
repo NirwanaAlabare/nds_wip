@@ -140,6 +140,7 @@ class DCInController extends Controller
                 COALESCE(msb.size, s.size) size,
                 mp.nama_part,
                 s.notes,
+                reject_source.id_qr_stocker stocker_reject,
                 UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) part_status,
                 (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) as panel,
                 (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) as panel_status
@@ -156,6 +157,11 @@ class DCInController extends Controller
                 left join part p_com on p_com.id = pd_com.part_id
                 left join master_part mp on mp.id = pd.master_part_id
                 left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= a.tgl_trans ELSE 1=1 END)
+                LEFT JOIN stocker_reject srej ON srej.id = s.stocker_reject
+                LEFT JOIN dc_in_input dc ON dc.id = srej.dc_in_id
+                LEFT JOIN secondary_inhouse_input sii ON sii.id = srej.secondary_inhouse_id
+                LEFT JOIN secondary_in_input si ON si.id = srej.secondary_in_id
+                LEFT JOIN stocker_input reject_source ON reject_source.id_qr_stocker = COALESCE(dc.id_qr_stocker, sii.id_qr_stocker, si.id_qr_stocker)
             where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                 " . $additionalQuery . "
@@ -185,6 +191,7 @@ class DCInController extends Controller
                 size,
                 part as nama_part,
                 'INJECT' notes,
+                null stocker_reject,
                 part_status,
                 panel,
                 panel_status
@@ -258,7 +265,11 @@ class DCInController extends Controller
         $from = $request->from ? $request->from : date('Y-m-d');
         $to = $request->to ? $request->to : date('Y-m-d');
 
-        $data = $this->dcInQuery($request, $from, $to)->orderByDesc('tgl_trans')->get();
+        $data = $this->dcInQuery($request, $from, $to)
+            // jangan tampilkan stocker inject part STK (notes INJECT 10-11-2026 10:00)
+            ->whereRaw("NOT (COALESCE(notes, '') = ? AND COALESCE(nama_part, '') = ?)", ['INJECT 10-11-2026 10:00', 'STK'])
+            ->orderByDesc('tgl_trans')
+            ->get();
 
         // Calculate totals
         $totalQtyAwal = 0;
@@ -307,6 +318,7 @@ class DCInController extends Controller
         $sheet->writeTo('W2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('X2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('Y2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Z2', 'Stocker Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             $sheet->writeAreas();
@@ -338,6 +350,7 @@ class DCInController extends Controller
                     $row->notes ?? "-",
                     $row->user ?? "-",
                     $row->created_at ?? "-",
+                    $row->stocker_reject ? "Reject dari " . $row->stocker_reject : "-",
                 ];
 
                 $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -653,11 +666,17 @@ class DCInController extends Controller
                         LIMIT 1
                     ),
                     '-'
-                ) AS lokasi_terkini
+                ) AS lokasi_terkini,
+                reject_source.id_qr_stocker stocker_reject
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
                 LEFT JOIN stocker_input ms ON ms.form_cut_id = y.form_cut_id AND ms.so_det_id = y.so_det_id AND ms.group_stocker = y.group_stocker AND ms.ratio = y.ratio AND COALESCE(ms.stocker_reject, '') = COALESCE(y.stocker_reject, '')
+                LEFT JOIN stocker_reject srej ON srej.id = y.stocker_reject
+                LEFT JOIN dc_in_input dc ON dc.id = srej.dc_in_id
+                LEFT JOIN secondary_inhouse_input sii ON sii.id = srej.secondary_inhouse_id
+                LEFT JOIN secondary_in_input si ON si.id = srej.secondary_in_id
+                LEFT JOIN stocker_input reject_source ON reject_source.id_qr_stocker = COALESCE(dc.id_qr_stocker, sii.id_qr_stocker, si.id_qr_stocker)
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
                 left join part_detail pd on ms.part_detail_id = pd.id
@@ -714,11 +733,17 @@ class DCInController extends Controller
                         LIMIT 1
                     ),
                     '-'
-                ) AS lokasi_terkini
+                ) AS lokasi_terkini,
+                reject_source.id_qr_stocker stocker_reject
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
                 LEFT JOIN stocker_input ms ON ms.form_reject_id = y.form_reject_id AND ms.so_det_id = y.so_det_id AND ms.shade = y.shade AND COALESCE(ms.stocker_reject, '') = COALESCE(y.stocker_reject, '')
+                LEFT JOIN stocker_reject srej ON srej.id = y.stocker_reject
+                LEFT JOIN dc_in_input dc ON dc.id = srej.dc_in_id
+                LEFT JOIN secondary_inhouse_input sii ON sii.id = srej.secondary_inhouse_id
+                LEFT JOIN secondary_in_input si ON si.id = srej.secondary_in_id
+                LEFT JOIN stocker_input reject_source ON reject_source.id_qr_stocker = COALESCE(dc.id_qr_stocker, sii.id_qr_stocker, si.id_qr_stocker)
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
                 left join part_detail pd on ms.part_detail_id = pd.id
@@ -775,11 +800,17 @@ class DCInController extends Controller
                         LIMIT 1
                     ),
                     '-'
-                ) AS lokasi_terkini
+                ) AS lokasi_terkini,
+                reject_source.id_qr_stocker stocker_reject
             FROM
                 tmp_dc_in_input_new x
                 left JOIN stocker_input y ON x.id_qr_stocker = y.id_qr_stocker
                 LEFT JOIN stocker_input ms ON ms.form_piece_id = y.form_piece_id AND ms.so_det_id = y.so_det_id AND COALESCE(ms.stocker_reject, '') = COALESCE(y.stocker_reject, '')
+                LEFT JOIN stocker_reject srej ON srej.id = y.stocker_reject
+                LEFT JOIN dc_in_input dc ON dc.id = srej.dc_in_id
+                LEFT JOIN secondary_inhouse_input sii ON sii.id = srej.secondary_inhouse_id
+                LEFT JOIN secondary_in_input si ON si.id = srej.secondary_in_id
+                LEFT JOIN stocker_input reject_source ON reject_source.id_qr_stocker = COALESCE(dc.id_qr_stocker, sii.id_qr_stocker, si.id_qr_stocker)
                 LEFT JOIN master_sb_ws msb ON msb.id_so_det = ms.so_det_id
                 LEFT JOIN tmp_dc_in_input_new tmp ON tmp.id_qr_stocker = ms.id_qr_stocker
                 left join part_detail pd on ms.part_detail_id = pd.id
