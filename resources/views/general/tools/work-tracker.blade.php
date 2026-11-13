@@ -460,13 +460,10 @@
         .wt-type-pills button.active[data-type="request"] { background: #f1e9ff; border-color: #c8adf0; color: #7338c9; }
         .wt-mini-head { display: flex; align-items: center; gap: 7px; margin: 20px 0 6px; font-size: 12.5px; font-weight: 700; color: var(--wt-navy); }
         .wt-mini-head > i { color: var(--wt-blue); }
-        .wt-more { margin-top: 18px; border-top: 1px solid var(--wt-line); }
-        .wt-more summary { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 12px 0 4px; color: var(--wt-navy); font-size: 13px; font-weight: 600; list-style: none; cursor: pointer; }
-        .wt-more summary::-webkit-details-marker { display: none; }
-        .wt-more summary > i { font-size: 10px; transition: transform .2s; }
-        .wt-more[open] summary > i { transform: rotate(90deg); }
-        .wt-more summary:hover { color: var(--wt-blue); }
-        .wt-more[open] > .row { animation: wt-rise .25s ease both; }
+        #wt-item-form .modal-body label { color: var(--wt-navy); font-size: 12.5px; }
+        .wt-suffix { position: relative; }
+        .wt-suffix .form-control { padding-right: 38px; }
+        .wt-suffix > span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 12.5px; color: var(--wt-muted); pointer-events: none; }
 
         /* Bagian di dalam modal */
         .wt-sec { padding: 14px 0; border-top: 1px solid var(--wt-line); }
@@ -733,9 +730,20 @@
                     </div>
                     <div class="d-none"><select class="wt-select-modal" name="type" id="wt-i-type" aria-hidden="true" tabindex="-1"><option value="plan">Plan</option><option value="bug">Masalah</option><option value="request">Request</option></select></div>
 
-                    <div class="row g-3 mt-1">
+                    <div class="row g-3 mt-1 wt-form-grid">
                         <div class="col-sm-6"><label>Anggota</label><select class="wt-select-modal" name="programmer_id" id="wt-i-programmer"></select></div>
-                        <div class="col-sm-6"><label>Target selesai</label><input type="date" class="form-control" name="target_date"></div>
+                        <div class="col-sm-6"><label>Peminta / pelapor</label><input class="form-control" name="requester" maxlength="100" placeholder="Nama peminta"></div>
+                        <div class="col-sm-6"><label>Modul</label><input class="form-control" name="module" maxlength="100" placeholder="Contoh: Cutting"></div>
+                        <div class="col-sm-6"><label>Departemen</label><input class="form-control" name="requester_dept" maxlength="100" placeholder="Contoh: Marketing"></div>
+                        <div class="col-sm-6 wt-not-plan"><label>Level</label>
+                            <select class="wt-select-modal" name="level" id="wt-i-level"><option value="">Belum ditentukan</option><option value="major">Major</option><option value="minor">Minor</option><option value="tidak">Tidak dikerjakan</option></select>
+                        </div>
+                        <div class="col-sm-6 d-none" id="wt-i-reason-box"><label>Alasan tidak dikerjakan</label><input class="form-control" name="reject_reason" maxlength="500"></div>
+                        <div class="col-sm-5 col-6"><label>Tanggal mulai</label><input type="date" class="form-control" name="start_date"></div>
+                        <div class="col-sm-5 col-6"><label>Target selesai</label><input type="date" class="form-control" name="target_date"></div>
+                        <div class="col-sm-2 col-6"><label>Durasi</label>
+                            <div class="wt-suffix"><input type="number" class="form-control" name="estimate_days" min="0.5" max="999" step="0.5" placeholder="Otomatis" title="Otomatis dari tanggal, boleh diubah"><span>hari</span></div>
+                        </div>
                     </div>
 
                     <div class="wt-mini-head"><i class="fa-solid fa-list-check"></i> Poin-poin <span class="wt-todo-count ms-auto" id="wt-i-points-count"></span></div>
@@ -747,6 +755,8 @@
                         <button class="btn btn-outline-primary btn-sm" type="button" id="wt-i-point-add">Tambah</button>
                     </div>
 
+                    <div class="mt-3"><label>Catatan</label><textarea class="form-control" name="description" rows="2" maxlength="5000"></textarea></div>
+
                     <div class="wt-mini-head"><i class="fa-solid fa-paperclip"></i> <span id="wt-i-files-label">Lampiran</span></div>
                     <label class="wt-drop compact" id="wt-i-drop">
                         <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip,.html,.htm">
@@ -754,22 +764,6 @@
                         <span><b>Tarik foto/file ke sini</b> atau klik untuk pilih<br><span class="wt-sub">Maks 10 file, 10 MB per file</span></span>
                     </label>
                     <div id="wt-i-files"></div>
-
-                    <details class="wt-more" id="wt-i-more">
-                        <summary><i class="fa-solid fa-chevron-right"></i> Detail lainnya <span class="wt-sub">modul, peminta, catatan, tanggal mulai, estimasi, level</span></summary>
-                        <div class="row g-3 pt-1">
-                            <div class="col-sm-6"><label>Modul</label><input class="form-control" name="module" maxlength="100" placeholder="Contoh: Cutting"></div>
-                            <div class="col-sm-6 wt-not-plan"><label>Level</label>
-                                <select class="wt-select-modal" name="level" id="wt-i-level"><option value="">Belum ditentukan</option><option value="major">Major</option><option value="minor">Minor</option><option value="tidak">Tidak dikerjakan</option></select>
-                            </div>
-                            <div class="col-12 d-none" id="wt-i-reason-box"><label>Alasan tidak dikerjakan</label><input class="form-control" name="reject_reason" maxlength="500"></div>
-                            <div class="col-sm-6"><label>Peminta / pelapor</label><input class="form-control" name="requester" maxlength="100"></div>
-                            <div class="col-sm-6"><label>Departemen</label><input class="form-control" name="requester_dept" maxlength="100" placeholder="Contoh: Marketing"></div>
-                            <div class="col-sm-6"><label>Mulai</label><input type="date" class="form-control" name="start_date"></div>
-                            <div class="col-sm-6"><label>Estimasi (hari)</label><input type="number" class="form-control" name="estimate_days" min="0.5" max="999" step="0.5" placeholder="Otomatis dari tanggal"></div>
-                            <div class="col-12"><label>Catatan</label><textarea class="form-control" name="description" rows="2" maxlength="5000"></textarea></div>
-                        </div>
-                    </details>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-danger btn-sm me-auto d-none" id="wt-item-delete"><i class="fa-solid fa-trash"></i> Hapus</button>
@@ -2283,8 +2277,8 @@
                 $('#wt-item-title').text(item ? 'Edit ' + item.code : 'Tambah Kerjaan');
                 $('#wt-item-delete').toggleClass('d-none', !item);
                 $('#wt-i-files-label').text(item ? 'Tambah lampiran' : 'Lampiran');
-                // Detail lainnya langsung terbuka kalau kerjaan yang diedit sudah punya isinya
-                $('#wt-i-more').prop('open', !!item && !!(item.module || item.requester || item.requester_dept || item.description || item.level || item.reject_reason));
+                // Kerjaan baru langsung mulai hari ini
+                if (!item) form.elements.start_date.value = isoOf(new Date());
                 clearPending(state.formFiles);
                 $('#wt-i-files').empty();
 
