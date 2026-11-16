@@ -28,6 +28,20 @@
                         <input type="date" class="form-control form-control-sm" id="dateTo" name="dateTo" value="{{ date('Y-m-d') }}" onchange="datatableLoadingLineReload(); updateFilter();">
                     </div>
                     <div>
+                        <label class="form-label"><small>Tampilan</small></label>
+                        <select class="form-select form-select-sm" id="group_mode" name="group_mode" onchange="datatableLoadingLineReload();">
+                            <option value="daily" selected>Harian</option>
+                            <option value="range">Rentang harian</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label"><small>Panel</small></label>
+                        <select class="form-select form-select-sm" id="panel_mode" name="panel_mode" onchange="datatableLoadingLineReload();">
+                            <option value="no_panel" selected>Tanpa Panel</option>
+                            <option value="with_panel">Dengan Panel</option>
+                        </select>
+                    </div>
+                    <div>
                         <button class="btn btn-primary btn-sm" onclick="datatableLoadingLineReload()"><i class="fa fa-search"></i></button>
                     </div>
                 </div>
@@ -51,6 +65,7 @@
                             <th>Style</th>
                             <th>Color</th>
                             <th>Size</th>
+                            <th>Panel</th>
                             <th>Loading Qty</th>
                         </tr>
                     </thead>
@@ -58,7 +73,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="6" class="text-end">TOTAL</th>
+                            <th colspan="7" class="text-end">TOTAL</th>
                             <th id="total-loading-summary">0</th>
                         </tr>
                     </tfoot>
@@ -112,6 +127,13 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-sm-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Panel</label>
+                                <select class="form-select select2bs4filter" name="filter_panel[]" id="filter_panel" multiple="multiple">
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -144,7 +166,7 @@
             updateFilter();
         });
 
-        var datatableLoadingLineParameter = ['tanggal_loading', 'nama_line', 'act_costing_ws', 'style', 'color', 'size', 'loading_qty']
+        var datatableLoadingLineParameter = ['tanggal_loading', 'nama_line', 'act_costing_ws', 'style', 'color', 'size', 'panel', 'loading_qty']
 
         let datatableLoadingLine = $("#datatable-loading-line").DataTable({
             ordering: false,
@@ -156,12 +178,16 @@
                 data: function (d) {
                     d.dateFrom = $("#dateFrom").val();
                     d.dateTo = $("#dateTo").val();
+                    d.group_mode = $("#group_mode").val();
+                    d.panel_mode = $("#panel_mode").val();
                     d.filter_line = $('#filter_line').val();
                     d.filter_ws = $('#filter_ws').val();
                     d.filter_style = $('#filter_style').val();
                     d.filter_color = $('#filter_color').val();
                     d.filter_size = $('#filter_size').val();
+                    d.filter_panel = $('#filter_panel').val();
                     d.size_filter = $('#size_filter').val();
+                    d.panel_filter = $('#panel_filter').val();
                 }
             },
             columns: [
@@ -184,6 +210,9 @@
                     data: 'size'
                 },
                 {
+                    data: 'panel'
+                },
+                {
                     data: 'loading_qty'
                 },
             ],
@@ -193,7 +222,7 @@
                     className: 'align-middle text-nowrap'
                 },
                 {
-                    targets: [6],
+                    targets: [7],
                     render: (data, type, row, meta) => {
                         return Number(data).toLocaleString('id-ID')
                     }
@@ -211,6 +240,9 @@
                 $('#size_filter').select2({
                     theme: 'bootstrap4',
                 });
+                $('#panel_filter').select2({
+                    theme: 'bootstrap4',
+                });
             }
         });
 
@@ -225,6 +257,7 @@
             { id: 'filter_style', label: 'Style' },
             { id: 'filter_color', label: 'Color' },
             { id: 'filter_size', label: 'Size' },
+            { id: 'filter_panel', label: 'Panel' },
         ];
 
         function renderActiveFilters() {
@@ -277,12 +310,24 @@
             datatableLoadingLineReload();
         }
 
+        // Tampilkan/sembunyikan kolom filter saat panel_mode berubah
+        $('#panel_mode').on('change', function() {
+            let mode = $(this).val();
+            let isWithPanel = (mode === 'with_panel');
+
+            datatableLoadingLine.column(6).visible(isWithPanel);
+            // Sesuaikan visibility input filter di header kedua
+            $('#datatable-loading-line thead tr:eq(1) th').eq(6).toggle(isWithPanel);
+
+            datatableLoadingLineReload();
+        });
+
         $('#datatable-loading-line thead tr').clone(true).appendTo('#datatable-loading-line thead');
         $('#datatable-loading-line thead tr:eq(1) th').each(function(i) {
-            if (i < 6) {
+            if (i < 7) {
                 var title = $(this).text();
 
-                if (datatableLoadingLineParameter[i] == "size") {
+                if (datatableLoadingLineParameter[i] == "size" || datatableLoadingLineParameter[i] == "panel") {
                     $(this).html('<select class="form-select" id="'+datatableLoadingLineParameter[i]+'_filter" multiple="multiple"></select>');
                 } else {
                     $(this).html('<input type="text" class="form-control" id="'+datatableLoadingLineParameter[i]+'_filter" />');
@@ -310,18 +355,22 @@
                 data: {
                     dateFrom: $("#dateFrom").val(),
                     dateTo: $("#dateTo").val(),
-                    tanggal_loading: $("#tanggal_loading_filter").val(),
+                    tanggal_loading: $("#group_mode").val() == 'range' ? '' : $("#tanggal_loading_filter").val(),
                     nama_line: $("#nama_line_filter").val(),
                     act_costing_ws: $("#act_costing_ws_filter").val(),
                     style: $("#style_filter").val(),
                     color: $("#color_filter").val(),
                     size: $("#size_filter").val(),
+                    panel: $("#panel_filter").val(),
                     filter_line: $('#filter_line').val(),
                     filter_ws: $('#filter_ws').val(),
                     filter_style: $('#filter_style').val(),
                     filter_color: $('#filter_color').val(),
                     filter_size: $('#filter_size').val(),
-                    size_filter: $('#size_filter').val()
+                    filter_panel: $('#filter_panel').val(),
+                    size_filter: $('#size_filter').val(),
+                    panel_filter: $('#panel_filter').val(),
+                    panel_mode: $("#panel_mode").val(),
                 },
                 success: function(res) {
                     $("#total-loading-summary").html(Number(res).toLocaleString('id-ID'));
@@ -357,6 +406,8 @@
                 data: {
                     dateFrom : $('#dateFrom').val(),
                     dateTo : $('#dateTo').val(),
+                    group_mode : $('#group_mode').val(),
+                    panel_mode : $('#panel_mode').val(),
                 },
                 xhrFields: { responseType : 'blob' },
                 success: function(res) {
@@ -379,6 +430,13 @@
                     link.download = "Summary Loading "+$('#dateFrom').val()+" - "+$('#dateTo').val()+".xlsx";
                     link.click();
                 }, error: function (jqXHR) {
+                    elm.removeAttribute('disabled');
+                    elm.innerText = "Export ";
+                    let icon = document.createElement('i');
+                    icon.classList.add('fa-solid');
+                    icon.classList.add('fa-file-excel');
+                    elm.appendChild(icon);
+
                     let res = jqXHR.responseJSON;
                     let message = '';
                     console.log(res.message);
@@ -451,6 +509,16 @@
                                 $('#size_filter').append('<option value="'+value+'">'+value+'</option>');
                             });
                         }
+
+                        if (response.panel && response.panel.length > 0) {
+                            let panel = response.panel;
+                            $("#filter_panel").empty();
+                            $("#panel_filter").empty();
+                            $.each(panel, function(index, value) {
+                                $('#filter_panel').append('<option value="'+value+'">'+value+'</option>');
+                                $('#panel_filter').append('<option value="'+value+'">'+value+'</option>');
+                            });
+                        }
                     }
 
                     renderActiveFilters();
@@ -463,8 +531,39 @@
             });
         }
 
+        function syncHeaderVisibility(isVisible) {
+            // 1. Column visibility (affects body/main head)
+            datatableLoadingLine.column(6).visible(isVisible);
+
+            // 2. Second header (cloned filter row) visibility
+            // Target the specific <th> cell in the second row (eq 1)
+            let secondTheadCell = $('#datatable-loading-line thead tr:eq(1) th').eq(6);
+
+            if (isVisible) {
+                secondTheadCell.show();
+            } else {
+                secondTheadCell.hide();
+            }
+        }
+
         $("#size_filter").on("change", function() {
             datatableLoadingLineReload();
+        });
+
+        $("#panel_filter").on("change", function() {
+            datatableLoadingLineReload();
+        });
+
+        let panelMode = $('#panel_mode').val();
+        datatableLoadingLine.column(6).visible(panelMode === 'with_panel');
+        syncHeaderVisibility(panelMode === 'with_panel');
+
+        $('#panel_mode').on('change', function() {
+            let mode = $(this).val();
+            datatableLoadingLineParameter[6] = mode === 'with_panel' ? 'panel' : null;
+            datatableLoadingLine.column(6).visible(mode === 'with_panel');
+            syncHeaderVisibility(mode === 'with_panel');
+            datatableLoadingLine.ajax.reload();
         });
     </script>
 @endsection
