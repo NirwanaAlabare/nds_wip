@@ -1264,6 +1264,7 @@
             let gBack = null;
             function gGo(id, smooth) { const t = gEl.querySelector(id); if (t) t.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }); }
             function spotOff() {
+                spotTok++;
                 document.querySelectorAll('.pc-spot, .pc-spot-l, .pc-spot-cv').forEach(x => x.remove());
                 removeEventListener('scroll', spotOff, true); removeEventListener('resize', spotOff);
                 if (gBack) {
@@ -1272,6 +1273,7 @@
                     gBs.show();
                 }
             }
+            let spotTok = 0;
             const SPOT_DESC = {
                 '.pc-head-r': '<b>Panduan</b> membuka halaman ini · <b>Animasi &amp; suara</b> menyalakan/mematikan efek dan bunyi scan · <b>BPPB [bulan]</b> memilih bulan yang dipantau · <b>Tampilan lama</b> membuka alur scan → daftar → simpan · <b>Kembali</b> ke daftar penerimaan.',
                 '#pc-scan-card': 'Pakai scanner, ketik lalu Enter/Get, atau kamera. Setiap scan langsung tersimpan.',
@@ -1285,8 +1287,19 @@
                 const el = [...document.querySelectorAll(sel)].find(x => x.offsetParent !== null);
                 gBack = back;
                 if (!el) { toast('Bagian ini belum tampil di halaman'); spotOff(); return; }
-                el.scrollIntoView({ block: 'center' });
-                setTimeout(() => {
+                const tok = ++spotTok;
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // tunggu scroll benar-benar berhenti (posisi elemen stabil beberapa frame), baru pasang sorotan
+                let last = null, still = 0;
+                const t0 = performance.now();
+                (function wait() {
+                    if (tok !== spotTok) return;
+                    const top = el.getBoundingClientRect().top;
+                    still = last !== null && Math.abs(top - last) < 0.5 ? still + 1 : 0;
+                    last = top;
+                    if (still >= 6 || performance.now() - t0 > 2000) draw(); else requestAnimationFrame(wait);
+                })();
+                function draw() {
                     const r = el.getBoundingClientRect(), pad = 6;
                     const cv = document.createElement('div'); cv.className = 'pc-spot-cv'; cv.onclick = spotOff;
                     const s = document.createElement('div'); s.className = 'pc-spot';
@@ -1297,8 +1310,12 @@
                     const lh = l.offsetHeight, below = r.bottom + 16 + lh < innerHeight;
                     l.style.left = Math.max(8, Math.min(innerWidth - l.offsetWidth - 8, r.left)) + 'px';
                     l.style.top = (below ? r.bottom + 16 : Math.max(8, r.top - lh - 16)) + 'px';
-                    setTimeout(() => { addEventListener('scroll', spotOff, true); addEventListener('resize', spotOff); }, 300);
-                }, 350);
+                    // mulai dengarkan scroll user setelah sorotan tampil
+                    setTimeout(() => {
+                        if (tok !== spotTok || !document.querySelector('.pc-spot')) return;
+                        addEventListener('scroll', spotOff, true); addEventListener('resize', spotOff);
+                    }, 250);
+                }
             }
             gEl.addEventListener('click', e => {
                 const a = e.target.closest('.pc-map-n, .pc-g-nav a');
