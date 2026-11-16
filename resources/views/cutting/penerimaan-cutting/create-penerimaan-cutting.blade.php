@@ -118,11 +118,18 @@
         .pc-sum .pc-card-h .lbl { color: #9fd6d3; }
         .pc-ring { position: relative; width: 156px; height: 156px; margin: 18px auto 14px; }
         .pc-ring svg { transform: rotate(-90deg); }
-        #pc-rp { transition: stroke-dashoffset .7s ease; }
+        #pc-rp, #pc-rpm { transition: stroke-dashoffset .7s ease; }
+        /* kilau tipis menyapu busur progres (keliling 2π·66 ≈ 414,7), lalu jeda */
+        .pc-ring-sh { opacity: .3; stroke-dashoffset: 30; animation: pcShine 4.5s ease-in-out infinite; }
+        @keyframes pcShine { 0% { stroke-dashoffset: 30; } 55%, 100% { stroke-dashoffset: -415; } }
+        .pc-nofx .pc-ring-sh { animation: none; opacity: 0; }
         .pc-ring .c { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
         .pc-ring .c b { font-size: 25px; font-weight: 700; display: block; line-height: 1; color: var(--pc-pri); letter-spacing: -1px; }
         .pc-ring .c span { font-size: 12px; color: var(--pc-muted); }
         .pc-ring.bump { animation: pcBump .5s; }
+        .pc-ring-dash { transform-origin: 78px 78px; animation: pcDashSpin 24s linear infinite; }
+        @keyframes pcDashSpin { to { transform: rotate(360deg) } }
+        .pc-nofx .pc-ring-dash { animation: none; }
         @keyframes pcBump { 40% { transform: scale(1.06) rotate(5deg) } }
         .pc-kv { margin: 0 16px; }
         .pc-kr { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 12px; column-gap: 10px; row-gap: 1px; align-items: center; cursor: pointer; margin: 0 -8px; padding: 9px 8px; border-radius: .4rem; border-bottom: 1px dashed var(--pc-line); transition: background .15s; }
@@ -185,6 +192,15 @@
         .pc-br .dt2 { font-weight: 600; font-size: 13px; }
         .pc-br .tr { height: 10px; border-radius: 5px; background: #e9edf2; overflow: hidden; }
         .pc-br .tr i { display: block; height: 100%; border-radius: 5px; min-width: 6px; transition: width .6s; }
+        /* garis miring bergerak di bar horizontal (warna bar diset inline, jadi motif ditaruh di ::after) */
+        .pc-abar i, .pc-br .tr i { position: relative; overflow: hidden; }
+        .pc-abar i:after, .pc-br .tr i:after {
+            content: ""; position: absolute; inset: 0;
+            background-image: linear-gradient(45deg, rgba(255,255,255,.28) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.28) 50%, rgba(255,255,255,.28) 75%, transparent 75%, transparent);
+            background-size: 10px 10px; animation: pcBarStripe 1s linear infinite;
+        }
+        @keyframes pcBarStripe { from { background-position: 10px 0; } to { background-position: 0 0; } }
+        .pc-nofx .pc-abar i:after, .pc-nofx .pc-br .tr i:after { animation: none; }
         .pc-br .q { font-size: 12.5px; color: var(--pc-ink2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pc-br .q b { color: var(--pc-ink); }
         .pc-br .ag { text-align: right; }
@@ -783,7 +799,13 @@
                             <circle cx="78" cy="78" r="${R}" fill="none" stroke="#e9edf2" stroke-width="15"/>
                             <circle id="pc-rp" cx="78" cy="78" r="${R}" fill="none" stroke="${pct === 100 ? '#2e8a57' : '#238380'}" stroke-width="15" stroke-linecap="round"
                                 stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - prevPct / 100)}"/>
-                            <circle cx="78" cy="78" r="52" fill="none" stroke="#c5ccd6" stroke-width="1.2" stroke-dasharray="3 4"/>
+                            <mask id="pc-rmask" maskUnits="userSpaceOnUse" x="0" y="0" width="156" height="156">
+                                <circle id="pc-rpm" cx="78" cy="78" r="${R}" fill="none" stroke="#fff" stroke-width="15" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - prevPct / 100)}"/>
+                            </mask>
+                            <filter id="pc-rblur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.5"/></filter>
+                            <g mask="url(#pc-rmask)">
+                                <circle class="pc-ring-sh" filter="url(#pc-rblur)" style="animation-delay:-${((performance.now() / 1000) % 4.5).toFixed(2)}s" cx="78" cy="78" r="${R}" fill="none" stroke="#fff" stroke-width="9" stroke-dasharray="30 500"/></g>
+                            <circle class="pc-ring-dash" style="animation-delay:-${((performance.now() / 1000) % 24).toFixed(2)}s" cx="78" cy="78" r="52" fill="none" stroke="#c5ccd6" stroke-width="1.2" stroke-dasharray="3 4"/>
                         </svg>
                         <div class="c"><div><b>${pctTxt(pct)}</b><span>${got.length} / ${all.length} roll</span></div></div>
                     </div>
@@ -796,7 +818,7 @@
                     <div class="pc-khint mb-3"><i class="fa fa-hand-pointer"></i> Klik baris di atas untuk lihat detail</div>
                     ${oldest ? `<div class="pc-old d-none">Paling lama pending:<br><b>${fds(oldest.tgl)}</b> · <span class="pc-age ${ageCls(ago(oldest.tgl))}">${ago(oldest.tgl)} hari</span> · <span class="mono">${esc(oldest.bc)}</span></div>`
                              : `<div class="pc-old d-none"><b>Semua sudah diterima ✓</b></div>`}`;
-                requestAnimationFrame(() => requestAnimationFrame(() => { const rp = $id('pc-rp'); if (rp) rp.style.strokeDashoffset = C * (1 - pct / 100); }));
+                requestAnimationFrame(() => requestAnimationFrame(() => { ['pc-rp', 'pc-rpm'].forEach(id => { const el = $id(id); if (el) el.style.strokeDashoffset = C * (1 - pct / 100); }); }));
                 prevPct = pct;
             }
             $id('pc-sum').addEventListener('click', e => {
@@ -1147,7 +1169,7 @@
 
             /* ===== animasi & suara ===== */
             let FX = true; try { FX = localStorage.getItem('pc_fx') !== '0'; } catch (e) {}
-            function fxLabel() { $id('pc-fx').innerHTML = FX ? '<i class="fa fa-volume-up"></i> Animasi & suara: ON' : '<i class="fa fa-volume-mute"></i> Animasi & suara: OFF'; }
+            function fxLabel() { document.querySelector('.pc-wrap').classList.toggle('pc-nofx', !FX); $id('pc-fx').innerHTML = FX ? '<i class="fa fa-volume-up"></i> Animasi & suara: ON' : '<i class="fa fa-volume-mute"></i> Animasi & suara: OFF'; }
             $id('pc-fx').onclick = () => { FX = !FX; try { localStorage.setItem('pc_fx', FX ? '1' : '0'); } catch (e) {} fxLabel(); focus(); };
             fxLabel();
 
