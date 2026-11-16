@@ -65,6 +65,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-penerimaan-cutting')->middleware("role:superadmin");
         Route::post('/export', 'exportPenerimaanCutting')->name('export-penerimaan-cutting');
         Route::get('/get-scanned-item/{id?}', 'getBarcodeFabric')->name('get-scanned-penerimaan-cutting');
+        Route::get('/scan-barcode/{id?}', 'scanBarcode')->name('scan-barcode-penerimaan-cutting');
+        Route::post('/store-scan', 'storeScan')->name('store-scan-penerimaan-cutting');
+        Route::get('/summary', 'summary')->name('summary-penerimaan-cutting');
     });
 
     // CUTTING :
