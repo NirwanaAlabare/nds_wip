@@ -1,384 +1,234 @@
-@extends('layouts.index')
+{{-- ===========================================================================
+     Stock Opname Fabric - pilih rak untuk di-scan (Proses > Stock Opname).
+     Dipakai di tablet & HP: satu kartu per rak (seluruh kartu bisa ditekan),
+     kotak status sekaligus filter, pilihan SO / halaman / pencarian diingat
+     (sessionStorage) supaya kembali dari halaman scan tetap di posisi yang sama.
+     =========================================================================== --}}
+@extends('layouts.index', ['containerFluid' => true])
 
 @section('custom-link')
-<!-- DataTables -->
 <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-<link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-<link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
-<!-- <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script> -->
+<link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+@include('stock_opname._skin')
+<style>
+/* Daftar rak: DataTables tetap dipakai untuk data & halaman, tapi tiap baris tampil sebagai kartu */
+.so-rak-tabel, .so-rak-tabel tbody { display: block; width: 100% !important; margin: 0 !important; }
+.so-rak-tabel thead { display: none; }
+.so-rak-tabel tbody { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.so-rak-tabel tbody tr { display: block; background: transparent !important; }
+.so-rak-tabel tbody td { display: block; padding: 0; border: 0; height: 100%; }
+/* Baris "tidak ada rak" selebar daftar (item grid-nya tr, bukan td) */
+.so-rak-tabel tbody tr:has(td.dataTables_empty) { grid-column: 1 / -1; }
+.so-rak-tabel tbody td.dataTables_empty { height: auto; padding: 34px 12px; text-align: center; color: var(--muted); background: #fff; border: 1px dashed var(--line-2); border-radius: 14px; }
+@media (max-width: 575px) { .so-rak-tabel tbody { grid-template-columns: 1fr; gap: 10px; } }
 
-    <!-- Select2 -->
-    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-    @endsection
+.so-rak {
+  display: flex; flex-direction: column; gap: 11px; height: 100%; padding: 14px 16px; color: var(--ink); text-decoration: none;
+  background: #fff; border: 1px solid var(--line); border-left: 5px solid #cbd5e1; border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 10px 22px -18px var(--bayang); transition: box-shadow .12s ease, transform .1s ease; touch-action: manipulation;
+}
+.so-rak:hover { color: var(--ink); border-color: var(--n-300); box-shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 14px 26px -16px var(--bayang); }
+.so-rak:active { transform: scale(.985); }
+.so-rak:focus-visible { outline: 0; box-shadow: 0 0 0 3px var(--fokus); }
+.so-rak.is-partial { border-left-color: #f59e0b; }
+.so-rak.is-completed { border-left-color: #22c55e; }
+.so-rak-atas { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.so-rak-label { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: var(--muted); }
+.so-rak-kode { display: block; font-size: 18px; font-weight: 800; letter-spacing: .3px; color: var(--n-950); line-height: 1.2; word-break: break-word; }
+.so-rak-angka { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.so-rak-angka small { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: var(--muted); }
+.so-rak-angka b { font-size: 14px; color: var(--n-950); font-variant-numeric: tabular-nums; }
+.so-rak-buka { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 13.5px; font-weight: 700; color: var(--n-700); }
+.so-rak-buka i.fa-chevron-right { font-size: 12px; opacity: .7; }
 
-    @section('content')
-    <div class="card card-sb">
-        <div class="card-header">
-            <h5 class="card-title fw-bold mb-0">Data Stock Opname</h5>
+.so-total { margin-top: 14px; }
+</style>
+@endsection
+
+@section('content')
+<div class="so-skin">
+
+    <div class="so-kepala">
+        <div class="so-kepala-kiri">
+            <span class="so-kepala-ikon"><i class="fas fa-clipboard-check"></i></span>
+            <div class="so-kepala-teks">
+                <h1 class="so-kepala-judul">Stock Opname Fabric</h1>
+                <p class="so-kepala-sub">Pilih rak untuk mulai scan barcode</p>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="d-flex align-items-end gap-3 mb-3">
-                <div class="col-md-12">
-                    <div class="form-group row">
-            <!-- <div class="col-md-2">
-            <div class="mb-1">
-                <div class="form-group">
-                <label class="form-label">From</label>
-                    <input type="date" class="form-control form-control" id="tgl_awal" name="tgl_awal"
-                        value="{{ date('Y-m-d') }}">
-                </div>
-            </div>
-        </div> -->
+    </div>
 
-            <!-- <div class="col-md-2">
-            <div class="mb-1">
-                <div class="form-group">
-                <label class="form-label">To</label>
-                    <input type="date" class="form-control form-control" id="tgl_akhir" name="tgl_akhir"
-                        value="{{ date('Y-m-d') }}">
-                </div>
-            </div>
-        </div> -->
-
-        <div class="col-md-3">
-            <div class="mb-1">
-                <div class="form-group">
-                    <label>No Transaksi</label>
-                    <select class="form-control select2supp" id="no_transaksi" name="no_transaksi" style="width: 100%;">
-                        <!-- <option selected="selected" value="">Select no transaksi</option> -->
+    {{-- ===== SO & pencarian rak ===== --}}
+    <div class="so-kartu">
+        <div class="so-kartu-isi">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="so-label" for="no_transaksi">No Transaksi</label>
+                    <select class="form-control" id="no_transaksi" name="no_transaksi" style="width: 100%;">
                         @foreach ($no_transaksi as $notrans)
-                        <option value="{{ $notrans->no_transaksi }}">
-                            {{ $notrans->no_transaksi }}
-                        </option>
+                        <option value="{{ $notrans->no_transaksi }}">{{ $notrans->no_transaksi }}</option>
                         @endforeach
                     </select>
                 </div>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="mb-1">
-                <div class="form-group">
-                    <label>Status</label>
-                    <select class="form-control select2supp" id="status" name="status" style="width: 100%;">
-                        <option selected="selected" value="ALL">ALL</option>
-                        @foreach ($status_so as $sts)
-                        <option value="{{ $sts->nama_pilihan }}">
-                            {{ $sts->nama_pilihan }}
-                        </option>
-                        @endforeach
-                    </select>
+                <div class="col-md-7">
+                    <label class="so-label" for="so-cari-rak">Cari Rak</label>
+                    <div class="so-cari">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <input type="search" class="form-control" id="so-cari-rak" placeholder="Ketik kode rak, mis. GB.C.15"
+                            autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="search">
+                    </div>
                 </div>
             </div>
+            <div class="so-total">
+                <div class="so-progres-baris">
+                    <span><i class="fas fa-barcode me-1"></i> Roll tersimpan di SO ini</span>
+                    <b id="so-total-teks">-</b>
+                </div>
+                <div class="so-progres" id="so-total-bar"><span style="width: 0%"></span></div>
+            </div>
         </div>
-
-        <div class="col-md-6" style="padding-top: 0.5rem;">
-            <div class="mt-4 ">
-                <button class="btn btn-primary " onclick="dataTableReload()"> <i class="fas fa-search"></i> Search</button>
-                <!-- <button class="btn btn-info" onclick="tambahdata()"> <i class="fas fa-plus"></i> Add Data</button> -->
-                <!-- <a onclick="export_excel()" class="btn btn-success position-relative">
-                    <i class="fas fa-file-excel"></i>
-                    Export
-                </a> -->
-                <!-- <button class="btn btn-success" onclick="printbarcode('SA')"> <i class="fa-solid fa-barcode"></i> Saldo Awal</button> -->
-            <!-- <a href="http://10.10.5.62:8080/erp/pages/forms/pdfBarcode_whsSA.php?id='SA'&mode='barcode'" class="btn btn-success">
-                <i class="fa-solid fa-barcode"></i>
-                Saldo Awal
-            </a> -->
-        </div>
-
     </div>
-</div>
-</div>
-</div>
-<!-- <div class="d-flex justify-content-between">
-    <div class="ml-auto">
-        <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+
+    {{-- ===== Status rak: sekaligus filter ===== --}}
+    <input type="hidden" id="status" name="status" value="ALL">
+    @php($ikonStatus = ['Pending' => 'fa-hourglass-start', 'Partial' => 'fa-circle-half-stroke', 'Completed' => 'fa-circle-check'])
+    @php($ketStatus = ['Pending' => 'Belum di-scan', 'Partial' => 'Sebagian', 'Completed' => 'Selesai'])
+    <div class="so-stat-grid" id="so-status">
+        <button type="button" class="so-stat is-aktif" data-status="ALL" aria-pressed="true">
+            <span class="so-stat-ikon"><i class="fas fa-layer-group"></i></span>
+            <span class="so-stat-isi">
+                <span class="so-stat-label">Semua Rak</span>
+                <span class="so-stat-angka" data-n="rak">-</span>
+                <span class="so-stat-ket">di SO ini</span>
+            </span>
+        </button>
+        @foreach ($status_so as $sts)
+        <button type="button" class="so-stat is-{{ strtolower($sts->nama_pilihan) }}" data-status="{{ $sts->nama_pilihan }}" aria-pressed="false">
+            <span class="so-stat-ikon"><i class="fas {{ $ikonStatus[$sts->nama_pilihan] ?? 'fa-tag' }}"></i></span>
+            <span class="so-stat-isi">
+                <span class="so-stat-label">{{ $sts->nama_pilihan }}</span>
+                <span class="so-stat-angka" data-n="{{ $sts->nama_pilihan }}">-</span>
+                <span class="so-stat-ket">{{ $ketStatus[$sts->nama_pilihan] ?? 'rak' }}</span>
+            </span>
+        </button>
+        @endforeach
     </div>
-    <input type="text"  id="cari_grdok" name="cari_grdok" autocomplete="off" placeholder="Search GR Document..." onkeyup="carigrdok()">
-</div> -->
-<div class="table-responsive">
-    <table id="datatable" class="table table-bordered table-head-fixed 100 text-nowrap">
+
+    {{-- ===== Daftar rak ===== --}}
+    <table id="datatable" class="so-rak-tabel">
         <thead>
             <tr>
-                <th class="text-center">No Transaksi</th>
-                <th class="text-center">Item Type</th>
-                <th class="text-center">Kode Rak</th>
-                <th class="text-center">Item Desc</th>
-                <th class="text-center">Qty Rak</th>
-                <th class="text-center">Qty Roll Rak</th>
-                <th class="text-center">Qty Scan</th>
-                <th class="text-center">Qty Roll Scan</th>
-                <th class="text-center">Status</th>
-                <th class="text-center">Aksi</th>
+                <th>Rak</th>
+                <th>Item</th>
             </tr>
         </thead>
-        <tbody>
-        </tbody>
+        <tbody></tbody>
     </table>
-</div>
-</div>
-</div>
 
-<div class="modal fade" id="modal-appv-material">
-    <form action="{{ route('approve-material') }}" method="post" onsubmit="submitForm(this, event)">
-     @method('GET')
-     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-sb text-light">
-                <h4 class="modal-title">Confirm Dialog</h4>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!--  -->
-                <div class="form-group row">
-                    <label for="id_inv" class="col-sm-12 col-form-label" >Sure Approve Receive material Number :</label>
-                    <br>
-                    <div class="col-sm-3">
-                    </div>
-                    <div class="col-sm-6">
-                        <input type="text" class="form-control" id="txt_nodok" name="txt_nodok" style="border:none;text-align: center;" readonly>
-                    </div>
-                </div>
-                <!-- Hidden Text -->
-                <!--  -->
-            </div>
-            <div class="modal-footer justify-content-between">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Approve</button>
-            </div>
-        </div>
-    </div>
-</form>
-</div>
-
-
-<div class="modal fade" id="modal-edit-lokasi">
-    <form action="{{ route('simpan-edit') }}" method="post" onsubmit="submitForm(this, event)">
-     @method('GET')
-     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-sb text-light">
-                <h4 class="modal-title">Add Location</h4>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!--  -->
-                <div class="form-group row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>ID</label>
-                                        <input type="text" class="form-control " id="txt_id" name="txt_id" value="" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>Storage Initial</label>
-                                        <input type="text" class="form-control " id="txt_inisial" name="txt_inisial" value="">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>Row</label>
-                                        <input type="number" class="form-control " id="txt_baris" name="txt_baris" value="" min="0">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>Level</label>
-                                        <input type="number" class="form-control " id="txt_level" name="txt_level" value="" min="0">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>Number</label>
-                                        <input type="text" class="form-control " id="txt_num" name="txt_num" value="" maxlength="2">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>Capacity</label>
-                                        <input type="number" class="form-control " id="txt_capacity" name="txt_capacity" value="" min="0">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer justify-content-between">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Save</button>
-            </div>
-        </div>
-    </div>
-</form>
-</div>
-
-
-<div class="modal fade" id="modal-tambah-lokasi">
-    <form action="{{ route('store-lokasi') }}" method="post" onsubmit="submitForm(this, event)">
-     @method('POST')
-     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-sb text-light">
-                <h4 class="modal-title">Add Location</h4>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!--  -->
-                <div class="form-group row">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <div class="col-md-12">
-                                <div class="mb-1">
-
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>Storage Initial</label>
-                                        <input type="text" class="form-control " id="txt_inisial_new" name="txt_inisial_new" value="">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>Row</label>
-                                        <input type="number" class="form-control " id="txt_baris_new" name="txt_baris_new" value="" min="0">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>Level</label>
-                                        <input type="number" class="form-control " id="txt_level_new" name="txt_level_new" value="" min="0">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>Number</label>
-                                        <input type="text" class="form-control " id="txt_num_new" name="txt_num_new" value="" maxlength="2">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="mb-1">
-                                    <div class="form-group">
-                                        <label>Capacity</label>
-                                        <input type="number" class="form-control " id="txt_capacity_new" name="txt_capacity_new" value="" min="0">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer justify-content-between">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-window-close" aria-hidden="true"></i> Close</button>
-                <button type="submit" class="btn btn-primary toastsDefaultDanger"><i class="fa fa-thumbs-up" aria-hidden="true"></i> Save</button>
-            </div>
-        </div>
-    </div>
-</form>
 </div>
 @endsection
 
 @section('custom-script')
-<!-- DataTables & Plugins -->
 <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
-<!-- <script src="{{ asset('plugins/ionicons/js/ionicons.esm.js') }}"></script>
-    <script src="{{ asset('plugins/ionicons/js/ionicons.js') }}"></script> -->
+<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+<script>
+    var RUT_SCAN = @json(route('proses-scan-so'));
+    var KUNCI_FILTER = 'so_daftar_rak_filter';
+    var KELAS_STATUS = { Pending: 'is-pending', Partial: 'is-partial', Completed: 'is-completed' };
 
-    <!-- Select2 -->
-    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <script>
-        $('.select2master').select2({
-            theme: 'bootstrap4'
-        })
-        $('.select2bs4').select2({
-            theme: 'bootstrap4'
-        })
+    function teks(v) { return $('<div>').text(v == null ? '' : String(v)).html(); }
+    // Nilai dari server sudah di-escape Yajra DataTables (escape = '*'): untuk tampilan dipakai apa
+    // adanya, untuk URL dikembalikan dulu ke teks aslinya
+    function asli(v) { return $('<textarea>').html(v == null ? '' : String(v)).val(); }
+    function angka(v, des) {
+        return (parseFloat(v) || 0).toLocaleString('id-ID', { minimumFractionDigits: des, maximumFractionDigits: des });
+    }
 
-        $('.select2roll').select2({
-            theme: 'bootstrap4'
-        })
-        $('.select2supp').select2({
-            theme: 'bootstrap4'
-        })
-        $('.select2type').select2({
-            theme: 'bootstrap4'
-        })
+    // Pilihan SO & status diingat selama tab browser terbuka (kembali dari halaman scan / setelah Save)
+    function bacaFilter() {
+        try { return JSON.parse(sessionStorage.getItem(KUNCI_FILTER) || 'null'); } catch (e) { return null; }
+    }
+    function simpanFilter() {
+        try {
+            sessionStorage.setItem(KUNCI_FILTER, JSON.stringify({ no_transaksi: $('#no_transaksi').val(), status: $('#status').val() }));
+        } catch (e) { /* mode privat: cukup tidak diingat */ }
+    }
 
-    </script>
+    var awal = bacaFilter();
+    if (awal) {
+        if (awal.no_transaksi && $('#no_transaksi option').filter(function () { return this.value === awal.no_transaksi; }).length) {
+            $('#no_transaksi').val(awal.no_transaksi);
+        }
+        if (awal.status && $('#so-status [data-status="' + awal.status + '"]').length) {
+            $('#status').val(awal.status);
+        }
+    }
+    tandaiStatus();
 
-    <script type="text/javascript">
-        $('.select2pchtype').select2({
-            theme: 'bootstrap4'
-        })
-    </script>
+    $('#no_transaksi').select2({ theme: 'bootstrap4', width: '100%', dropdownCssClass: 'so-dropdown' });
 
-    <script>
-     let datatable = $("#datatable").DataTable({
+    function tandaiStatus() {
+        var s = $('#status').val();
+        $('#so-status .so-stat').each(function () {
+            var aktif = $(this).data('status') === s;
+            $(this).toggleClass('is-aktif', aktif).attr('aria-pressed', aktif ? 'true' : 'false');
+        });
+    }
+
+    // Satu kartu per rak; seluruh kartu adalah link ke halaman scan
+    function kartuRak(kode, type, r) {
+        if (type !== 'display') { return kode; }
+        var roll = parseInt(r.qty_roll, 10) || 0;
+        var scan = parseInt(r.qty_roll_scan, 10) || 0;
+        var persen = roll > 0 ? Math.min(100, Math.round(scan / roll * 100)) : 0;
+        var kelas = KELAS_STATUS[r.status] || 'is-partial';
+        var label = r.status || 'Lebih scan';
+        var url = RUT_SCAN + '/' + encodeURIComponent(asli(kode)) + '/' + encodeURIComponent(asli(r.id));
+
+        return '<a class="so-rak ' + kelas + '" href="' + teks(url) + '">'
+            + '<div class="so-rak-atas">'
+            +   '<div><span class="so-rak-label">Rak</span><span class="so-rak-kode">' + kode + '</span></div>'
+            +   '<span class="so-pil ' + kelas + '"' + (r.status ? '' : ' title="Roll tersimpan melebihi saldo rak"') + '>'
+            +     '<span class="so-pil-titik"></span>' + label + '</span>'
+            + '</div>'
+            + '<div>'
+            +   '<div class="so-progres-baris"><span>Roll</span><b>' + angka(scan, 0) + ' / ' + angka(roll, 0) + '</b></div>'
+            +   '<div class="so-progres ' + kelas + '"><span style="width:' + persen + '%"></span></div>'
+            + '</div>'
+            + '<div class="so-rak-angka">'
+            +   '<div><small>Qty Rak</small><b>' + angka(r.qty, 2) + '</b></div>'
+            +   '<div><small>Qty Scan</small><b>' + angka(r.qty_scan, 2) + '</b></div>'
+            + '</div>'
+            + '<div class="so-rak-buka"><span><i class="fas fa-barcode me-1"></i> ' + (r.status === 'Completed' ? 'Lihat / scan lagi' : 'Mulai scan') + '</span>'
+            +   '<i class="fas fa-chevron-right"></i></div>'
+            + '</a>';
+    }
+
+    var hp = window.matchMedia('(max-width: 575px)').matches;
+
+    let datatable = $("#datatable").DataTable({
         serverSide: true,
         processing: true,
         ordering: false,
-        scrollX: true,
         autoWidth: false,
-        scrollY: true,
-        pageLength: 10,
+        pageLength: 24,
+        lengthMenu: [12, 24, 48, 96],
+        // Halaman & pencarian diingat (sessionStorage) - kembali dari halaman scan tetap di posisi yang sama
+        stateSave: true,
+        stateDuration: -1,
+        pagingType: hp ? 'simple' : 'simple_numbers',
+        dom: "t<'so-dt-bawah'<'so-dt-info'i><'so-dt-hal'p>>",
+        language: {
+            processing: '<span class="spinner-border spinner-border-sm me-2"></span> Memuat...',
+            emptyTable: '<div class="so-kosong"><i class="fas fa-warehouse"></i><span>Tidak ada rak untuk filter ini.</span></div>',
+            zeroRecords: '<div class="so-kosong"><i class="fas fa-magnifying-glass"></i><span>Tidak ada rak yang cocok.</span></div>',
+            info: '_START_-_END_ dari _TOTAL_ rak',
+            infoEmpty: '0 rak',
+            infoFiltered: '',
+            paginate: { previous: '<i class="fas fa-chevron-left"></i>', next: '<i class="fas fa-chevron-right"></i>' }
+        },
         ajax: {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -392,258 +242,49 @@
             },
         },
         columns: [
-        { data: 'no_transaksi' },
-        { data: 'tipe_item' },
-        { data: 'kode_lok' },
-        { data: 'itemdesc' },
-        { 
-            data: 'qty',
-            render: function(data) {
-                return parseFloat(data || 0)
-                .toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            },
-            className: "text-end" 
-        },
-        { 
-            data: 'qty_roll',
-            render: function(data) {
-                return parseFloat(data || 0)
-                .toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            },
-            className: "text-end"
-        },
-        { 
-            data: 'qty_scan',
-            render: function(data) {
-                return parseFloat(data || 0)
-                .toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            },
-            className: "text-end"
-        },
-        { 
-            data: 'qty_roll_scan',
-            render: function(data) {
-                return parseFloat(data || 0)
-                .toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            },
-            className: "text-end"
-        },
+            { data: 'kode_lok', render: kartuRak },
+            { data: 'itemdesc', visible: false }
+        ]
+    });
 
-        { data: 'status' },
-        { data: 'kode_lok' }
-        ],
-        columnDefs: [
-        {
-            targets: [3],
-            className: "d-none",
-            render: (data, type, row, meta) => data ? data.split(",").join("<br/>") : "-"
-        },
-        {
-            targets: [8],
-            className: "text-center", 
-            render: (data, type, row, meta) => {
-                if (data === 'Pending') {
-                    return `<span class="badge bg-secondary" style="font-size:12px; font-weight:bold; padding:6px 10px;">
-                    Pending
-                    </span>`;
-                } else if (data === 'Partial') {
-                    return `<span class="badge bg-warning text-dark" style="font-size:12px; font-weight:bold; padding:6px 10px;">
-                    <i class="fa-solid fa-spinner fa-spin"></i> Partial
-                    </span>`;
-                } else if (data === 'Completed') {
-                    return `<span class="badge bg-success" style="font-size:12px; font-weight:bold; padding:6px 10px;">
-                    <i class="fa-solid fa-circle-check"></i> Completed
-                    </span>`;
-                } else {
-                    return data || "-";
-                }
-            }
-        },
-        {
-            targets: [9],
-            render: (data, type, row, meta) => {
-                return `<div class='d-flex gap-1 justify-content-center'>
-                <a href="{{ route('proses-scan-so') }}/${data}/${row.id}">
-                <button type='button' class='btn btn-sm btn-info'>
-                <i class="fa-solid fa-pen-to-square"></i>
-                </button>
-                </a>
-                </div>`;
-            }
-        }
-        ],
-        rowCallback: function(row, data) {
-        // reset dulu biar tidak double class
-        $(row).removeClass('table-warning table-success table-secondary');
-
-        if (data.status === 'Pending') {
-            $(row).addClass('table-secondary'); // abu-abu
-        } else if (data.status === 'Partial') {
-            $(row).addClass('table-warning'); // kuning
-        } else if (data.status === 'Completed') {
-            $(row).addClass('table-success'); // hijau
-        }
-    }
-});
-
-
-function dataTableReload() {
-    datatable.ajax.reload();
-}
-
-</script>
-<script type="text/javascript">
-    function approve_inmaterial($nodok){
-        // alert($id);
-        let nodok  = $nodok;
-
-        $('#txt_nodok').val(nodok);
-        $('#modal-appv-material').modal('show');
-    }
-
-
-    function nonactive_lokasi($id,$status,$kode_lok){
-        // alert($id);
-        let id  = $id;
-        let status  = $status;
-        let kode  = $kode_lok;
-        let idnya  = $id;
-
-        $('#txt_kode_lok').val(kode);
-        $('#id_lok').val(idnya);
-        $('#status_lok').val(status);
-        $('#modal-active-lokasi').modal('show');
-    }
-
-
-    function editdata($id,$kapasitas,$inisial_lok,$baris,$level,$nomor,$area,$unit,$u_roll,$u_bundle,$u_box,$u_pack){
-        // alert($id);
-        $("#ROLL_edit").prop("checked", false);
-        $("#BUNDLE_edit").prop("checked", false);
-        $("#BOX_edit").prop("checked", false);
-        $("#PACK_edit").prop("checked", false);
-        let kapasitas  = $kapasitas;
-        let inisial_lok  = $inisial_lok;
-        let idnya  = $id;
-        let baris  = $baris;
-        let level  = $level;
-        let nomor  = $nomor;
-        let area  = $area;
-        let unit  = $unit;
-        let u_roll  = $u_roll;
-        let u_bundle  = $u_bundle;
-        let u_box  = $u_box;
-        let u_pack  = $u_pack;
-
-        console.log(u_roll);
-
-        if (u_roll == 'ROLL') {
-            $("#ROLL_edit").prop("checked", true);
-        }
-
-        if (u_bundle == 'BUNDLE') {
-            $("#BUNDLE_edit").prop("checked", true);
-        }
-
-        if (u_box == 'BOX') {
-            $("#BOX_edit").prop("checked", true);
-        }
-
-        if (u_pack == 'PACK') {
-            $("#PACK_edit").prop("checked", true);
-        }
-
-        $('#txt_id').val(idnya);
-        $('#txt_inisial').val(inisial_lok);
-        $('#txt_capacity').val(kapasitas);
-        $('#txt_baris').val(baris);
-        $('#txt_level').val(level);
-        $('#txt_num').val(nomor);
-        $('#txt_area').val(area);
-    // document.getElementById('txt_area').value=area;
-    // document.getElementById('txt_area').selected=true;
-    $('#modal-edit-lokasi').modal('show');
-}
-
-function tambahdata(){
-    $('#modal-tambah-lokasi').modal('show');
-}
-</script>
-
-<script type="text/javascript">
-
-    function carigrdok() {
-        // Declare variables
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("cari_grdok");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("datatable");
-        tr = table.getElementsByTagName("tr");
-
-        // Loop through all table rows, and hide those who don't match the search query
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[0]; //kolom ke berapa
-            if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
-        }
-    }
-</script>
-
-<script type="text/javascript">
-    function printbarcode(id) {
-
-        $.ajax({
-            url: '{{ route('print-barcode-inmaterial') }}/'+id,
-            type: 'post',
-            processData: false,
-            contentType: false,
-            xhrFields:
-            {
-                responseType: 'blob'
-            },
-            success: function(res) {
-                if (res) {
-                    console.log(res);
-
-                    var blob = new Blob([res], {type: 'application/pdf'});
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = id+".pdf";
-                    link.click();
-                }
-            }
+    // Kotak status & progres SO dari ringkasan server (semua rak, sebelum difilter)
+    datatable.on('xhr.dt', function (e, settings, json) {
+        var r = (json && json.ringkas) || null;
+        $('#so-status [data-n]').each(function () {
+            var k = $(this).data('n');
+            $(this).text(r && r[k] != null ? angka(r[k], 0) : '-');
         });
+        var roll = r ? r.roll : 0;
+        var scan = r ? r.roll_scan : 0;
+        var persen = roll > 0 ? Math.min(100, Math.round(scan / roll * 100)) : 0;
+        $('#so-total-teks').text(r ? angka(scan, 0) + ' / ' + angka(roll, 0) + ' roll (' + persen + '%)' : '-');
+        $('#so-total-bar').toggleClass('is-completed', roll > 0 && scan >= roll).children('span').css('width', persen + '%');
+    });
+
+    function dataTableReload() {
+        datatable.ajax.reload();
     }
 
-    function printpdf(id) {
+    $('#so-cari-rak').val(datatable.search());
+    var tundaCari;
+    $('#so-cari-rak').on('input search', function () {
+        var v = $.trim(this.value);
+        clearTimeout(tundaCari);
+        tundaCari = setTimeout(function () {
+            if (v !== datatable.search()) { datatable.search(v).draw(); }
+        }, 350);
+    });
 
-        $.ajax({
-            url: '{{ route('print-pdf-inmaterial') }}/'+id,
-            type: 'post',
-            processData: false,
-            contentType: false,
-            xhrFields:
-            {
-                responseType: 'blob'
-            },
-            success: function(res) {
-                if (res) {
-                    console.log(res);
+    $('#no_transaksi').on('change', function () {
+        simpanFilter();
+        dataTableReload();
+    });
 
-                    var blob = new Blob([res], {type: 'application/pdf'});
-                    var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-                    link.download = id+".pdf";
-                    link.click();
-                }
-            }
-        });
-    }
+    $('#so-status').on('click', '.so-stat', function () {
+        $('#status').val($(this).data('status'));
+        tandaiStatus();
+        simpanFilter();
+        dataTableReload();
+    });
 </script>
 @endsection
