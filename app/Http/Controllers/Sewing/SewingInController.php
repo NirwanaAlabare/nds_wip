@@ -8,6 +8,7 @@ use App\Models\Stocker\Stocker;
 use App\Services\SewingInStockService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use DB;
 
 class SewingInController extends Controller
@@ -91,6 +92,136 @@ class SewingInController extends Controller
      */
     public function history(Request $request)
     {
+        $headers = $this->historyData($request);
+
+        $active = $headers->where("cancel", "N");
+
+        return response()->json([
+            "status" => 200,
+            "data" => $headers->values(),
+            "total_set" => $active->count(),
+            "total_qty" => $active->sum("qty_set"),
+        ]);
+    }
+
+    /**
+     * Export Excel riwayat Sewing In (ikut filter modal): sheet per set & sheet rincian per stocker.
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function historyExport(Request $request)
+    {
+        $headers = $this->historyData($request);
+
+        // Filter status & cari sama seperti di modal (di sana difilter di browser)
+        if ($request->status) {
+            $headers = $headers->where("cancel", $request->status);
+        }
+
+        $search = strtolower(trim($request->search ?? ""));
+
+        if ($search !== "") {
+            $headers = $headers->filter(function ($header) use ($search) {
+                $text = collect([$header->kode, $header->act_costing_ws, $header->style, $header->color, $header->size, $header->nama_line])->
+                    merge($header->details->pluck("id_qr_stocker"))->
+                    implode(" ");
+
+                return str_contains(strtolower($text), $search);
+            });
+        }
+
+        $border = \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN;
+        $periode = date("d-m-Y", strtotime($request->tanggal_awal))." s/d ".date("d-m-Y", strtotime($request->tanggal_akhir));
+        $lineLabel = $request->line_id ? (UserLine::where("line_id", $request->line_id)->value("username") ?? $request->line_id) : "Semua Line";
+
+        // Subtotal (baris 3) berupa rumus, hanya baris berstatus Aktif (sama seperti ringkasan di modal).
+        // Data mulai baris 5 (judul, periode, subtotal, header kolom).
+        $lastSet = max(5, 4 + $headers->count());
+        $lastStocker = max(5, 4 + $headers->sum(fn ($header) => $header->details->count()));
+
+        $excel = FastExcel::create(["Per Set", "Per Stocker"]);
+
+        // Sheet 1: 1 baris = 1 set
+        $sheetSet = $excel->sheet("Per Set");
+        $sheetSet->setAutofilter(4, 1);
+        $sheetSet->writeRow(["Riwayat Sewing In - Per Set"])->applyFontStyleBold()->applyFontSize(14);
+        $sheetSet->writeRow(["Periode: ".$periode." | Line: ".$lineLabel]);
+        $sheetSet->writeRow([
+            "Subtotal (Aktif)", "=COUNTIF(L5:L{$lastSet},\"Aktif\")", "", "", "", "", "", "", "", "",
+            "=SUMIF(L5:L{$lastSet},\"Aktif\",K5:K{$lastSet})", "",
+        ])->applyFontStyleBold()->applyBorder($border);
+        $sheetSet->writeRow([
+            "No", "Kode", "Tanggal", "Jam", "Line", "WS", "Style", "Color", "Size", "Total Part", "Qty Set", "Status",
+        ])->applyFontStyleBold()->applyBorder($border);
+
+        $no = 1;
+        foreach ($headers as $header) {
+            $sheetSet->writeRow([
+                $no++,
+                $header->kode,
+                date("d-m-Y", strtotime($header->created_at)),
+                date("H:i", strtotime($header->created_at)),
+                $header->nama_line,
+                $header->act_costing_ws,
+                $header->style ?? "-",
+                $header->color,
+                $header->size,
+                (int) $header->total_part,
+                (int) $header->qty_set,
+                $header->cancel == "Y" ? "Cancel" : "Aktif",
+            ])->applyBorder($border);
+        }
+
+        // Sheet 2: rincian per stocker dalam tiap set
+        $sheetStocker = $excel->sheet("Per Stocker");
+        $sheetStocker->setAutofilter(4, 1);
+        $sheetStocker->writeRow(["Riwayat Sewing In - Rincian Per Stocker"])->applyFontStyleBold()->applyFontSize(14);
+        $sheetStocker->writeRow(["Periode: ".$periode." | Line: ".$lineLabel]);
+        $sheetStocker->writeRow([
+            "Subtotal (Aktif)", "=COUNTIF(N5:N{$lastStocker},\"Aktif\")", "", "", "", "", "", "", "", "", "",
+            "=SUMIF(N5:N{$lastStocker},\"Aktif\",L5:L{$lastStocker})",
+            "=SUMIF(N5:N{$lastStocker},\"Aktif\",M5:M{$lastStocker})", "",
+        ])->applyFontStyleBold()->applyBorder($border);
+        $sheetStocker->writeRow([
+            "No", "Kode", "Tanggal", "Jam", "Line", "WS", "Style", "Color", "Size", "Stocker", "Part", "Qty Stocker", "Terpakai", "Status",
+        ])->applyFontStyleBold()->applyBorder($border);
+
+        $no = 1;
+        foreach ($headers as $header) {
+            foreach ($header->details as $detail) {
+                $sheetStocker->writeRow([
+                    $no++,
+                    $header->kode,
+                    date("d-m-Y", strtotime($header->created_at)),
+                    date("H:i", strtotime($header->created_at)),
+                    $header->nama_line,
+                    $header->act_costing_ws,
+                    $header->style ?? "-",
+                    $header->color,
+                    $header->size,
+                    $detail->id_qr_stocker,
+                    $detail->nama_part ?? "-",
+                    $detail->qty_stocker !== null ? (int) $detail->qty_stocker : "-",
+                    (int) $detail->qty_act,
+                    $header->cancel == "Y" ? "Cancel" : "Aktif",
+                ])->applyBorder($border);
+            }
+        }
+
+        $filename = "Riwayat Sewing In ".$request->tanggal_awal." sd ".$request->tanggal_akhir.".xlsx";
+        $tmpFile = sys_get_temp_dir().DIRECTORY_SEPARATOR.uniqid("xlsx_export_").".xlsx";
+        $excel->save($tmpFile);
+
+        return response()->download($tmpFile, $filename)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Header Sewing In per rentang tanggal (dan line kalau dipilih), masing-masing dengan detail stocker.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    private function historyData(Request $request)
+    {
         $request->validate([
             "tanggal_awal" => "required|date",
             "tanggal_akhir" => "required|date|after_or_equal:tanggal_awal",
@@ -124,14 +255,7 @@ class SewingInController extends Controller
             $header->details = $details->get($header->id, collect())->values();
         });
 
-        $active = $headers->where("cancel", "N");
-
-        return response()->json([
-            "status" => 200,
-            "data" => $headers->values(),
-            "total_set" => $active->count(),
-            "total_qty" => $active->sum("qty_set"),
-        ]);
+        return $headers;
     }
 
     /**
@@ -141,7 +265,88 @@ class SewingInController extends Controller
      */
     public function outstanding(Request $request)
     {
-        $data = $this->stock->outstandingStockers($request->line_id ?: null)->values()->map(fn ($stocker) => [
+        $data = $this->outstandingData($request);
+
+        return response()->json([
+            "status" => 200,
+            "data" => $data,
+            "total_stocker" => $data->count(),
+            "total_sisa" => $data->sum("qty_sisa"),
+        ]);
+    }
+
+    /**
+     * Export Excel outstanding (ikut filter line & cari di modal).
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function outstandingExport(Request $request)
+    {
+        $data = $this->outstandingData($request);
+
+        // Filter cari sama seperti di modal (di sana difilter di browser)
+        $search = strtolower(trim($request->search ?? ""));
+
+        if ($search !== "") {
+            $data = $data->filter(fn ($item) => str_contains(
+                strtolower(implode(" ", [$item["id_qr_stocker"], $item["act_costing_ws"], $item["color"], $item["size"], $item["nama_part"], $item["nama_line"]])),
+                $search
+            ))->values();
+        }
+
+        $border = \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN;
+        $lineLabel = $request->line_id ? (UserLine::where("line_id", $request->line_id)->value("username") ?? $request->line_id) : "Semua Line";
+
+        // Data mulai baris 5 (judul, keterangan, subtotal, header kolom).
+        // SUBTOTAL() ikut menyesuaikan saat baris disaring lewat autofilter.
+        $last = max(5, 4 + $data->count());
+
+        $excel = FastExcel::create("Outstanding");
+
+        $sheet = $excel->sheet("Outstanding");
+        $sheet->setAutofilter(4, 1);
+        $sheet->writeRow(["Outstanding Sewing In"])->applyFontStyleBold()->applyFontSize(14);
+        $sheet->writeRow(["Line: ".$lineLabel." | Per: ".date("d-m-Y H:i")]);
+        $sheet->writeRow([
+            "Subtotal", "=SUBTOTAL(3,B5:B{$last})", "", "", "", "", "", "",
+            "=SUBTOTAL(9,I5:I{$last})", "=SUBTOTAL(9,J5:J{$last})", "=SUBTOTAL(9,K5:K{$last})",
+        ])->applyFontStyleBold()->applyBorder($border);
+        $sheet->writeRow([
+            "No", "Stocker", "WS", "Color", "Size", "Part", "Line", "Terakhir", "Qty", "Terpakai", "Sisa",
+        ])->applyFontStyleBold()->applyBorder($border);
+
+        $no = 1;
+        foreach ($data as $item) {
+            $sheet->writeRow([
+                $no++,
+                $item["id_qr_stocker"],
+                $item["act_costing_ws"],
+                $item["color"],
+                $item["size"],
+                $item["nama_part"] ?? "-",
+                $item["nama_line"] ?? "-",
+                $item["last_at"] ? date("d-m-Y H:i", strtotime($item["last_at"])) : "-",
+                (int) $item["qty"],
+                (int) $item["qty_used"],
+                (int) $item["qty_sisa"],
+            ])->applyBorder($border);
+        }
+
+        $filename = "Outstanding Sewing In ".date("Y-m-d").".xlsx";
+        $tmpFile = sys_get_temp_dir().DIRECTORY_SEPARATOR.uniqid("xlsx_export_").".xlsx";
+        $excel->save($tmpFile);
+
+        return response()->download($tmpFile, $filename)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Data stocker outstanding (line opsional).
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    private function outstandingData(Request $request)
+    {
+        return $this->stock->outstandingStockers($request->line_id ?: null)->values()->map(fn ($stocker) => [
             "id_qr_stocker" => $stocker->id_qr_stocker,
             "act_costing_ws" => $stocker->act_costing_ws,
             "color" => $stocker->color,
@@ -152,13 +357,6 @@ class SewingInController extends Controller
             "qty_sisa" => $stocker->qty_sisa,
             "nama_line" => $stocker->nama_line,
             "last_at" => $stocker->last_at,
-        ]);
-
-        return response()->json([
-            "status" => 200,
-            "data" => $data,
-            "total_stocker" => $data->count(),
-            "total_sisa" => $data->sum("qty_sisa"),
         ]);
     }
 

@@ -37,7 +37,9 @@ Route::controller(SewingInController::class)->prefix("sewing-in")->group(functio
     Route::get('/scan-stocker', 'scanStocker')->name('sewing-in-scan-stocker');
     Route::post('/store', 'store')->name('sewing-in-store');
     Route::get('/history', 'history')->name('sewing-in-history');
+    Route::get('/history-export', 'historyExport')->name('sewing-in-history-export');
     Route::get('/outstanding', 'outstanding')->name('sewing-in-outstanding');
+    Route::get('/outstanding-export', 'outstandingExport')->name('sewing-in-outstanding-export');
 });
 
 Route::middleware('auth')->group(function () {
