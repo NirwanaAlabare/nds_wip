@@ -2,7 +2,7 @@
 
 @section('custom-link')
     <style>
-        .pc-wrap, #pcModal {
+        .pc-wrap, #pcModal, #pcGuide {
             --pc-pri: var(--sb-color, #082149);
             --pc-pri2: #1d4a8a;
             --pc-pri-lt: #e9eef6;
@@ -300,7 +300,7 @@
         /* modal */
         #pcModal .modal-header .sub { font-size: 13px; color: #c9d4e6; margin-top: 2px; }
         #pcModal .modal-header .sub b { color: #fff; }
-        #pcModal .modal-header .lbl { font-size: 11px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: #9fd6d3; }
+        #pcModal .modal-header .lbl, #pcGuide .modal-header .lbl { font-size: 11px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; color: #9fd6d3; }
         #pcModal .pc-mt { display: flex; gap: 10px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--pc-line); flex-wrap: wrap; }
         #pcModal .pc-mt input { flex: 1; min-width: 200px; }
         #pcModal .pc-fchip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; background: var(--pc-pri-lt); border: 1px solid #c5d1e3; color: var(--pc-pri); border-radius: 20px; padding: 3px 6px 3px 10px; }
@@ -335,6 +335,99 @@
             .pc-bars-h2, .pc-under .hint { display: none; }
             #pc-scan { font-size: 17px; }
         }
+        /* panduan */
+        .pc-g { padding: 0 20px 20px; color: var(--pc-ink); font-size: 13.5px; scroll-behavior: smooth; }
+        .pc-g-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 0; background: #fff; border-bottom: 1px solid var(--pc-line); margin-bottom: 4px; }
+        .pc-g-nav a { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--pc-soft); color: var(--pc-pri); text-decoration: none; border: 1px solid var(--pc-line); }
+        .pc-g-nav a:hover { background: var(--pc-pri); color: #fff; }
+        .pc-g section { padding-top: 16px; scroll-margin-top: 56px; }
+        .pc-g h6 { font-weight: 700; color: var(--pc-pri); border-left: 4px solid var(--pc-sec); padding-left: 8px; margin-bottom: 10px; }
+        .pc-g ul { padding-left: 18px; margin-bottom: 0; }
+        .pc-g li { margin-bottom: 6px; line-height: 1.5; }
+        .pc-g-t { margin-bottom: 0; }
+        .pc-g-t td { vertical-align: top; padding: 7px 8px; line-height: 1.5; }
+        .pc-g-t td:first-child { width: 210px; white-space: nowrap; color: var(--pc-pri); }
+        .pc-g-btn { display: inline-block; font-size: 12px; padding: 2px 8px; border: 1px solid #c5ccd6; border-radius: .3rem; background: #fff; }
+        .pc-g-b { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; color: #fff; }
+        .pc-g-b.ok { background: var(--pc-ok); } .pc-g-b.warn { background: var(--pc-warn); } .pc-g-b.err { background: var(--pc-err); } .pc-g-b.pick { background: var(--pc-sec); }
+        .pc-g-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--pc-ok); vertical-align: middle; }
+        .pc-g-c { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 4px 0 2px; vertical-align: middle; }
+        .pc-g-leg { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 4px 0; font-size: 12px; }
+        .pc-g-leg i { display: inline-block; width: 18px; height: 8px; border-radius: 4px; margin-right: 5px; vertical-align: middle; }
+        .pc-g-flow { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .pc-g-flow > div { flex: 1; min-width: 150px; background: var(--pc-soft); border: 1px solid var(--pc-line); border-radius: .5rem; padding: 8px 12px; }
+        .pc-g-flow > div.ok { background: #e6f4ec; border-color: #b9dfc8; }
+        .pc-g-flow b { display: block; color: var(--pc-pri); } .pc-g-flow span { font-size: 12px; color: var(--pc-muted); }
+        .pc-g-flow > i { align-self: center; font-style: normal; font-weight: 700; color: var(--pc-sec); }
+        .pc-g-faq dt { color: var(--pc-pri); margin-top: 8px; } .pc-g-faq dd { margin: 2px 0 0; color: var(--pc-ink); }
+        .pc-g kbd { font-size: 11px; padding: 1px 5px; }
+        @media (max-width: 576px) { .pc-g-t td:first-child { width: auto; white-space: normal; } .pc-g-flow > i { display: none; } }
+        /* panduan: peta & sorot */
+        .pc-g h6 { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .pc-g-show { border: 1px solid var(--pc-sec); background: #fff; color: var(--pc-sec); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 2px 10px; }
+        .pc-g-show:hover { background: var(--pc-sec); color: #fff; }
+        .pc-g-note { font-size: 12.5px; color: var(--pc-muted); margin-bottom: 10px; }
+        .pc-map { background: var(--pc-soft); border: 1px solid var(--pc-line); border-radius: .6rem; padding: 14px; max-width: 760px; }
+        .pc-map-n { position: absolute; top: -9px; left: -9px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; background: var(--pc-acc); color: #fff !important; font-size: 12px; font-weight: 700; display: grid; place-items: center; text-decoration: none; box-shadow: 0 0 0 2px #fff; }
+        .pc-map-n.sm { width: 18px; height: 18px; font-size: 10.5px; top: -7px; left: -7px; }
+        .pc-map-n:hover { background: var(--pc-pri); }
+        .pc-map-n:hover, .pc-map-n:focus-visible { z-index: 5; }
+        .pc-map-tip { position: absolute; top: calc(100% + 8px); left: -4px; width: 230px; padding: 8px 10px; border-radius: .45rem; background: var(--pc-pri); color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45; text-align: left; box-shadow: 0 6px 18px rgba(8,33,73,.3); opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity .15s, transform .15s, visibility .15s; pointer-events: none; }
+        .pc-map-tip:before { content: ""; position: absolute; top: -5px; left: 10px; width: 10px; height: 10px; background: var(--pc-pri); transform: rotate(45deg); }
+        .pc-map-n.tip-l .pc-map-tip { left: auto; right: -4px; }
+        .pc-map-n.tip-l .pc-map-tip:before { left: auto; right: 10px; }
+        .pc-map-z:hover { z-index: 6; }
+        .pc-map-tip b { display: block; font-size: 12.5px; margin-bottom: 2px; color: #9fd6d3; }
+        .pc-map-tip small { display: block; margin-top: 5px; font-size: 10.5px; color: rgba(255,255,255,.65); }
+        .pc-map-n:hover .pc-map-tip, .pc-map-n:focus-visible .pc-map-tip { opacity: 1; visibility: visible; transform: none; }
+        .pc-map-z { position: relative; cursor: pointer; transition: box-shadow .15s; }
+        .pc-map-z:hover { box-shadow: 0 0 0 2px var(--pc-acc); }
+        .pc-map-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .pc-map-head .t b { display: block; font-size: 12.5px; color: var(--pc-pri); }
+        .pc-map-head .t span { font-size: 10.5px; color: var(--pc-muted); }
+        .pc-map-head .r { display: flex; gap: 4px; padding: 4px; border-radius: .35rem; }
+        .pc-map-head .r i { width: 30px; height: 14px; border-radius: 3px; border: 1px solid #b8c2cf; background: #fff; }
+        .pc-map-head .r i.w { width: 52px; }
+        .pc-map-head .r i.p { background: #2c7be5; border-color: #2c7be5; }
+        .pc-map-grid { display: grid; grid-template-columns: 1.75fr 1fr; gap: 12px; }
+        .pc-map-col { display: flex; flex-direction: column; gap: 12px; }
+        .pc-map-card { background: #fff; border: 1px solid var(--pc-line); border-radius: .45rem; padding: 0 8px 8px; }
+        .pc-map-card .h { margin: 0 -8px 8px; padding: 4px 8px 4px 18px; font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; background: var(--pc-pri); color: #fff; border-radius: .45rem .45rem 0 0; }
+        .pc-map-card .inp { display: flex; gap: 4px; margin-bottom: 8px; }
+        .pc-map-card .inp span { flex: 1; font-size: 10px; color: #9aa4b1; border: 1.5px solid var(--pc-sec); border-radius: .3rem; padding: 3px 6px; }
+        .pc-map-card .inp i { font-style: normal; font-size: 10px; border-radius: .3rem; padding: 3px 8px; }
+        .pc-map-card .inp .g { background: var(--pc-sec); color: #fff; }
+        .pc-map-card .inp .c { width: 24px; border: 1px solid #2c7be5; }
+        .pc-map-card .res { border: 1px dashed #b9dfc8; background: #eef8f2; border-radius: .35rem; padding: 6px 8px; }
+        .pc-map-card .res em { font-style: normal; font-size: 9.5px; font-weight: 700; color: #fff; background: var(--pc-ok); border-radius: 10px; padding: 1px 7px; }
+        .pc-map-card .res s { display: block; height: 6px; border-radius: 3px; background: #cfe6d8; margin-top: 6px; width: 80%; }
+        .pc-map-card .res s.s { width: 55%; }
+        .pc-map-card .kp { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 8px; border-radius: .3rem; }
+        .pc-map-card .kp i { height: 26px; border-radius: .3rem; background: #e8edf5; }
+        .pc-map-card .kp i.o { background: #ffe7cc; }
+        .pc-map-card .ag { display: flex; gap: 2px; height: 7px; border-radius: 4px; overflow: hidden; margin-bottom: 7px; }
+        .pc-map-card .br { height: 7px; border-radius: 4px; background: #e9edf2; margin-top: 5px; overflow: hidden; }
+        .pc-map-card .br b { display: block; height: 100%; background: #ff971f; }
+        .pc-map-card .ring { width: 58px; height: 58px; margin: 2px auto 8px; border-radius: 50%; background: conic-gradient(var(--pc-sec) 0 72%, #e9edf2 72% 100%); -webkit-mask: radial-gradient(circle, transparent 18px, #000 19px); mask: radial-gradient(circle, transparent 18px, #000 19px); }
+        .pc-map-card .kv i { display: block; height: 7px; border-radius: 4px; margin-top: 4px; opacity: .8; }
+        .pc-map-card .rak { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; padding-bottom: 4px; border-bottom: 3px solid var(--pc-pri); margin-bottom: 8px; align-items: end; }
+        .pc-map-card .rak span { aspect-ratio: 1; border-radius: 50%; background: #3e6fb0; }
+        .pc-map-card .rak span.b { background: #c0392b; }
+        .pc-map-card .rak span.s { transform: scale(.7); transform-origin: bottom; }
+        .pc-map-card .rak span.e { background: none; border: 1px dashed var(--pc-sec); }
+        .pc-map-card .rt { display: flex; align-items: flex-end; gap: 3px; height: 26px; border-bottom: 1px solid var(--pc-line); }
+        .pc-map-card .rt i { flex: 1; background: var(--pc-sec); border-radius: 2px 2px 0 0; }
+        .pc-map-card .rt i.pk { background: var(--pc-pri); }
+        .pc-map-card .rt i.nw { background: var(--pc-acc); }
+        .pc-spot { position: fixed; z-index: 2000; border-radius: .6rem; box-shadow: 0 0 0 9999px rgba(8,33,73,.6); outline: 3px solid #ff971f; outline-offset: 3px; pointer-events: none; animation: pcSpot 1.2s ease-in-out infinite; }
+        @keyframes pcSpot { 50% { outline-offset: 8px; outline-color: rgba(255,151,31,.6) } }
+        .pc-spot-l { position: fixed; z-index: 2001; background: #fff; color: #082149; font-size: 13px; padding: 9px 12px; border-radius: .5rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); max-width: 340px; pointer-events: none; }
+        .pc-spot-l > b { display: block; font-weight: 700; }
+        .pc-spot-l > span { display: block; color: #3d4450; font-size: 12.5px; line-height: 1.5; margin-top: 3px; }
+        .pc-spot-l > span b { color: #082149; }
+        .pc-spot-l small { display: block; font-weight: 400; color: #6c757d; font-size: 11.5px; margin-top: 6px; padding-top: 5px; border-top: 1px solid #e2e6ec; }
+        .pc-spot-cv { position: fixed; inset: 0; z-index: 1999; cursor: pointer; }
+        @media (max-width: 576px) { .pc-map-grid { grid-template-columns: 1fr; } }
         @media (prefers-reduced-motion: reduce) { .pc-wrap *, .pc-flyer, .pc-thr { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
     </style>
 @endsection
@@ -347,6 +440,7 @@
                 <p>Scan barcode kain dari gudang. Langsung tersimpan.</p>
             </div>
             <div class="pc-head-r">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#pcGuide"><i class="fa fa-book-open"></i> Panduan</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="pc-fx"></button>
                 <select class="form-select form-select-sm" id="pc-month" title="Bulan BPPB"></select>
                 <a href="{{ route('create-old-penerimaan-cutting') }}" class="btn btn-outline-secondary btn-sm" title="Buka tampilan lama (scan → daftar → simpan)"><i class="fas fa-history"></i> Tampilan lama</a>
@@ -410,6 +504,178 @@
                     </table>
                 </div>
                 <div class="modal-footer pc-mf" id="pcModalFoot"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="pcGuide" tabindex="-1" aria-labelledby="pcGuideTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <div>
+                        <span class="lbl">Panduan</span>
+                        <h5 class="modal-title fw-bold" id="pcGuideTitle">Penerimaan Fabric Cutting · Tampilan Baru</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body pc-g">
+                    <nav class="pc-g-nav">
+                        <a href="#pcg-peta">Peta halaman</a><a href="#pcg-alur">Alur singkat</a><a href="#pcg-atas">Tombol atas</a><a href="#pcg-scan">Scan barcode</a><a href="#pcg-hasil">Hasil scan</a>
+                        <a href="#pcg-prog">Progres</a><a href="#pcg-sisa">Sisa roll</a><a href="#pcg-detail">Detail roll</a><a href="#pcg-hari">Hari ini</a><a href="#pcg-tips">Tips &amp; FAQ</a>
+                    </nav>
+
+                    <section id="pcg-peta">
+                        <h6><span>Peta halaman</span></h6>
+                        <p class="pc-g-note">Klik <b>nomor</b> untuk membaca penjelasannya, atau klik <b>kotaknya</b> untuk melihat langsung di halaman.</p>
+                        <div class="pc-map">
+                            <div class="pc-map-head">
+                                <div class="t"><b>Penerimaan Fabric Cutting</b><span>Scan barcode kain dari gudang. Langsung tersimpan.</span></div>
+                                <div class="pc-map-z r" data-spot=".pc-head-r" data-lbl="Tombol di kanan atas"><a href="#pcg-atas" class="pc-map-n tip-l" aria-label="Tombol di kanan atas">2<span class="pc-map-tip" role="tooltip"><b>Tombol di kanan atas</b>Panduan, Animasi &amp; suara, pilihan bulan BPPB, Tampilan lama, dan Kembali.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i><i class="w"></i><i></i><i class="p"></i></div>
+                            </div>
+                            <div class="pc-map-grid">
+                                <div class="pc-map-col">
+                                    <div class="pc-map-z pc-map-card" data-spot="#pc-scan-card" data-lbl="Kartu Scan Barcode Fabric">
+                                        <a href="#pcg-scan" class="pc-map-n" aria-label="Scan barcode">3<span class="pc-map-tip" role="tooltip"><b>Scan barcode</b>Pakai scanner, ketik lalu Enter/Get, atau kamera. Setiap scan langsung tersimpan.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h">Scan Barcode Fabric</div>
+                                        <div class="inp"><span>Scan barcode di sini</span><i class="g">Get</i><i class="c"></i></div>
+                                        <div class="pc-map-z res" data-spot="#pc-res" data-lbl="Hasil scan muncul di sini"><a href="#pcg-hasil" class="pc-map-n sm" aria-label="Hasil scan">4<span class="pc-map-tip" role="tooltip"><b>Hasil scan</b>Hijau = tersimpan, kuning = sudah diterima, merah = gagal/tidak dikenal, teal = pilih kiriman.<small>Klik nomor untuk penjelasan lengkap</small></span></a><em>&#10003; TERSIMPAN</em><s></s><s class="s"></s></div>
+                                    </div>
+                                    <div class="pc-map-z pc-map-card" data-spot="#pc-sisa" data-lbl="Kartu Sisa roll belum diterima">
+                                        <a href="#pcg-sisa" class="pc-map-n" aria-label="Sisa roll belum diterima">6<span class="pc-map-tip" role="tooltip"><b>Sisa roll belum diterima</b>Roll yang sudah keluar dari gudang tapi belum di-scan terima, beserta umur pendingnya.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h">Sisa roll belum diterima</div>
+                                        <div class="kp pc-map-z" data-spot="#pc-sisa .pc-kp, #pc-sum .pc-kv" data-lbl="Klik angka di sini untuk membuka detail roll"><a href="#pcg-detail" class="pc-map-n sm" aria-label="Detail roll">7<span class="pc-map-tip" role="tooltip"><b>Detail roll</b>Klik kotak angka untuk membuka daftar roll lengkap dengan pencarian.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i class="o"></i><i></i><i></i></div>
+                                        <div class="ag"><i style="flex:5;background:#2c9efc"></i><i style="flex:3;background:#ffc107"></i><i style="flex:2;background:#ff971f"></i><i style="flex:1;background:#fa4456"></i></div>
+                                        <div class="br"><b style="width:70%"></b></div><div class="br"><b style="width:35%"></b></div><div class="br"><b style="width:12%;background:#2c9efc"></b></div>
+                                    </div>
+                                </div>
+                                <div class="pc-map-col">
+                                    <div class="pc-map-z pc-map-card" data-spot="#pc-sum" data-lbl="Kartu Progres penerimaan">
+                                        <a href="#pcg-prog" class="pc-map-n tip-l" aria-label="Progres penerimaan">5<span class="pc-map-tip" role="tooltip"><b>Progres penerimaan</b>Persen roll diterima dari total keluar pada bulan BPPB terpilih.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h">Progres penerimaan</div>
+                                        <div class="ring"></div>
+                                        <div class="kv"><i style="background:var(--pc-ok)"></i><i style="background:var(--pc-acc)"></i><i style="background:var(--pc-pri)"></i></div>
+                                    </div>
+                                    <div class="pc-map-z pc-map-card" data-spot="#pc-aktv" data-lbl="Kartu Penerimaan hari ini">
+                                        <a href="#pcg-hari" class="pc-map-n tip-l" aria-label="Penerimaan hari ini">8<span class="pc-map-tip" role="tooltip"><b>Penerimaan hari ini</b>Rak roll yang diterima hari ini, ritme scan per jam, dan 3 scan terakhir.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h">Penerimaan hari ini</div>
+                                        <div class="rak"><span></span><span></span><span class="b"></span><span></span><span class="s"></span><span></span><span class="b"></span><span class="e"></span></div>
+                                        <div class="rt"><i style="height:30%"></i><i style="height:70%"></i><i class="pk" style="height:100%"></i><i style="height:55%"></i><i class="nw" style="height:40%"></i><i style="height:0"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="pcg-alur">
+                        <h6>1. Alur singkat</h6>
+                        <div class="pc-g-flow">
+                            <div><b>Scan</b><span>barcode roll dari label</span></div><i>→</i>
+                            <div><b>Dicek</b><span>ke data pengeluaran gudang ke Cutting</span></div><i>→</i>
+                            <div class="ok"><b>Langsung tersimpan</b><span>tanpa tombol simpan</span></div>
+                        </div>
+                        <ul>
+                            <li><b>Tanggal terima</b> otomatis hari ini. <b>Penerima</b> otomatis akun yang sedang login.</li>
+                            <li>Hanya pengeluaran dengan <b>tanggal BPPB mulai 1 Oktober 2026</b> yang bisa diterima di sini.</li>
+                            <li>Satu pengeluaran hanya bisa diterima <b>satu kali</b>. Scan ulang tidak akan membuat data ganda.</li>
+                            <li>Qty dalam yard otomatis dikonversi ke <b>meter</b> (× 0,9144).</li>
+                        </ul>
+                    </section>
+
+                    <section id="pcg-atas">
+                        <h6><span>2. Tombol di kanan atas</span> <button type="button" class="pc-g-show" data-spot=".pc-head-r" data-lbl="Tombol di kanan atas"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm pc-g-t">
+                            <tr><td><span class="pc-g-btn">Panduan</span></td><td>Membuka halaman ini.</td></tr>
+                            <tr><td><span class="pc-g-btn">Animasi &amp; suara: ON/OFF</span></td><td>Menyalakan atau mematikan efek gerak dan bunyi saat scan. Pilihan tersimpan di browser ini. Bunyi tetap berguna sebagai tanda tanpa harus melihat layar.</td></tr>
+                            <tr><td><span class="pc-g-btn">BPPB [bulan]</span></td><td>Memilih bulan BPPB yang dipantau di kartu <i>Progres</i> dan <i>Sisa roll</i>. Tidak membatasi scan.</td></tr>
+                            <tr><td><span class="pc-g-btn">Tampilan lama</span></td><td>Membuka tampilan lama (scan → daftar → simpan).</td></tr>
+                            <tr><td><span class="pc-g-btn">Kembali</span></td><td>Kembali ke daftar penerimaan.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="pcg-scan">
+                        <h6><span>3. Kartu Scan Barcode Fabric</span> <button type="button" class="pc-g-show" data-spot="#pc-scan-card" data-lbl="Kartu Scan Barcode Fabric"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm pc-g-t">
+                            <tr><td><b>Kolom scan</b></td><td>Selalu siap menerima scan. Scanner otomatis menekan Enter. Kalau mengetik manual, tekan <kbd>Enter</kbd> atau tombol <b>Get</b>. Klik area kosong di halaman akan mengembalikan kursor ke kolom ini.</td></tr>
+                            <tr><td><b><i class="fa fa-camera"></i> Kamera</b></td><td>Scan pakai kamera belakang. Di tablet/HP kamera menyala otomatis. Barcode yang sama dalam 3 detik diabaikan supaya tidak terbaca dua kali.</td></tr>
+                            <tr><td><b>Status</b></td><td><span class="pc-g-dot"></span> <i>Siap scan</i> atau <i>Memproses…</i>. Scan yang masuk saat masih memproses akan diantre, tidak hilang.</td></tr>
+                            <tr><td><b>Detail kain</b></td><td>Setelah scan muncul ID item, warna, lot · roll, qty, lalu No. BPPB · tanggal · No. req · style · WS dan nama barang.</td></tr>
+                            <tr><td><b>Keluar Nx</b></td><td>Muncul kalau barcode yang sama pernah keluar lebih dari sekali. <b>✓</b> = sudah diterima, <b>○</b> = belum.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="pcg-hasil">
+                        <h6><span>4. Arti hasil scan</span> <button type="button" class="pc-g-show" data-spot="#pc-res" data-lbl="Hasil scan muncul di sini"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm pc-g-t">
+                            <tr><td><span class="pc-g-b ok">✓ Tersimpan</span></td><td>Penerimaan berhasil dicatat. Roll muncul di rak <i>Penerimaan hari ini</i>.</td></tr>
+                            <tr><td><span class="pc-g-b pick">? Pilih kiriman</span></td><td>Barcode punya lebih dari satu pengeluaran yang belum diterima. Pilih dengan <kbd>←</kbd><kbd>→</kbd> lalu <kbd>Enter</kbd>, tekan angkanya (<kbd>1</kbd>, <kbd>2</kbd>, …), atau klik kotaknya.</td></tr>
+                            <tr><td><span class="pc-g-b warn">! Sudah diterima</span></td><td>Pengeluaran ini sudah pernah diterima. <b>Tidak disimpan dua kali.</b></td></tr>
+                            <tr><td><span class="pc-g-b err">✕ Tidak dikenal</span></td><td>Barcode tidak ada di pengeluaran gudang ke Cutting, atau tanggal BPPB-nya sebelum 1 Oktober 2026. Cek label atau tanyakan ke gudang.</td></tr>
+                            <tr><td><span class="pc-g-b err">✕ Belum bisa diterima</span></td><td>Tanggal BPPB lebih dari hari ini.</td></tr>
+                            <tr><td><span class="pc-g-b err">✕ Gagal</span></td><td>Koneksi atau server bermasalah. Data tidak tersimpan, ulangi scan.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="pcg-prog">
+                        <h6><span>5. Kartu Progres penerimaan</span> <button type="button" class="pc-g-show" data-spot="#pc-sum" data-lbl="Kartu Progres penerimaan"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li><b>Lingkaran %</b> = roll diterima ÷ total roll keluar pada bulan BPPB terpilih. Selama masih ada yang pending, angka dibulatkan ke bawah dan paling tinggi <b>99,99%</b>. Angka <b>100%</b> berarti benar-benar semua sudah diterima.</li>
+                            <li><span class="pc-g-c" style="background:var(--pc-ok)"></span><b>Diterima</b>, <span class="pc-g-c" style="background:var(--pc-acc)"></span><b>Pending</b>, <span class="pc-g-c" style="background:var(--pc-pri)"></span><b>Total keluar</b>: jumlah roll dan qty. Klik barisnya untuk melihat daftar roll.</li>
+                            <li><b>＋ N roll pending bulan sebelumnya</b>: roll dari bulan sebelumnya (sampai 3 bulan ke belakang) yang belum diterima. Klik untuk melihat daftarnya.</li>
+                        </ul>
+                    </section>
+
+                    <section id="pcg-sisa">
+                        <h6><span>6. Kartu Sisa roll belum diterima</span> <button type="button" class="pc-g-show" data-spot="#pc-sisa" data-lbl="Kartu Sisa roll belum diterima"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li><b>Roll pending</b> (kotak oranye): semua roll yang sudah keluar dari gudang tapi belum di-scan terima, bulan terpilih ditambah bulan sebelumnya. Klik untuk detail.</li>
+                            <li><b>Qty pending</b>: total qty roll pending per satuan. <b>Paling lama</b>: umur pending tertua dalam hari.</li>
+                            <li><b>Durasi pending</b>: umur dihitung dari tanggal BPPB sampai hari ini.
+                                <span class="pc-g-leg"><span><i style="background:#2c9efc"></i>&lt; 7 hari</span><span><i style="background:#ffc107"></i>7–20 hari</span><span><i style="background:#ff971f"></i>21–29 hari</span><span><i style="background:#fa4456"></i>≥ 30 hari</span></span></li>
+                            <li><b>Per tanggal BPPB</b>: satu baris per tanggal. Panjang bar = persen yang masih pending dari total keluar di tanggal itu. Contoh <i>1 roll · dari 600 roll</i> berarti 599 sudah diterima. Klik barisnya untuk daftar barcode.</li>
+                            <li>Hitungan memakai <b>baris pengeluaran</b>, bukan barcode unik. Barcode yang keluar dua kali dihitung 2.</li>
+                            <li>Yang ditampilkan 8 tanggal tertua. Tekan <b>Tampilkan semua</b> untuk sisanya.</li>
+                        </ul>
+                    </section>
+
+                    <section id="pcg-detail">
+                        <h6><span>7. Jendela detail roll</span> <button type="button" class="pc-g-show" data-spot="#pc-sisa .pc-kp, #pc-sum .pc-kv" data-lbl="Klik angka di sini untuk membuka detail roll"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li>Terbuka saat mengklik angka atau baris di kartu Progres dan Sisa roll.</li>
+                            <li><b>Kolom cari</b>: barcode, No. BPPB, WS, ID item, warna, lot, atau No. req.</li>
+                            <li><b>Chip filter</b> (misalnya <i>Tanggal: 3 Nov 2026</i>): tekan <b>✕</b> untuk melihat semua.</li>
+                            <li><i>keluar ke-2 dari 3</i> = pengeluaran kedua dari tiga kali barcode itu keluar.</li>
+                            <li>Maksimal 300 baris yang ditampilkan. Persempit dengan pencarian bila lebih. Tekan <kbd>Esc</kbd> untuk menutup.</li>
+                        </ul>
+                    </section>
+
+                    <section id="pcg-hari">
+                        <h6><span>8. Kartu Penerimaan hari ini</span> <button type="button" class="pc-g-show" data-spot="#pc-aktv" data-lbl="Kartu Penerimaan hari ini"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li><b>Rak</b>: setiap roll yang diterima hari ini diletakkan di rak, 8 roll per baris, urut dari yang pertama. Slot yang <b>berdenyut</b> adalah tempat roll berikutnya.</li>
+                            <li><b>Warna roll</b> mengikuti warna kain. <b>Ukuran roll</b> mengikuti qty: roll paling panjang hari ini tampil paling besar.</li>
+                            <li><b>Klik roll</b> untuk melihat barcode, warna, qty, jam terima, penerima, dan urutannya hari ini.</li>
+                            <li><b>Label baris</b>, contoh <i>Baris 3 · 09:14–10:02 · 6/8</i>: jam roll pertama sampai terakhir di baris itu dan isinya. Rak menampilkan maksimal 5 baris, baris lama diringkas jadi <i>+N roll di baris sebelumnya</i>.</li>
+                            <li><b>Ritme per jam</b>: jumlah roll diterima per jam.
+                                <span class="pc-g-leg"><span><i style="background:var(--pc-sec)"></i>ada scan</span><span><i style="background:var(--pc-pri)"></i>jam puncak</span><span><i style="background:var(--pc-acc)"></i>jam sekarang</span></span>
+                                Arahkan kursor ke batang untuk melihat jumlah roll dan qty.</li>
+                            <li><b>Scan terakhir</b>: 3 roll terakhir yang diterima hari ini.</li>
+                        </ul>
+                    </section>
+
+                    <section id="pcg-tips">
+                        <h6>9. Tips &amp; FAQ</h6>
+                        <dl class="pc-g-faq">
+                            <dt>Salah scan / roll keliru diterima?</dt>
+                            <dd>Buka daftar penerimaan (tombol <b>Kembali</b>) untuk mengubah data. Menghapus penerimaan hanya bisa oleh superadmin.</dd>
+                            <dt>Barcode BPPB sebelum 1 Oktober 2026?</dt>
+                            <dd>Tidak bisa diterima di tampilan ini. Hubungi admin.</dd>
+                            <dt>Angka di kartu tidak berubah?</dt>
+                            <dd>Kartu langsung diperbarui setiap scan dari layar ini. Scan dari komputer lain baru terlihat setelah halaman di-refresh atau bulan dipilih ulang.</dd>
+                            <dt>Kursor hilang dari kolom scan?</dt>
+                            <dd>Klik area kosong di halaman, kursor kembali ke kolom scan.</dd>
+                        </dl>
+                    </section>
+                </div>
             </div>
         </div>
     </div>
@@ -600,6 +866,7 @@
             const moBs = bootstrap.Modal.getOrCreateInstance(moEl);
             moEl.addEventListener('shown.bs.modal', () => $id('pcModalQ').focus());
             moEl.addEventListener('hidden.bs.modal', () => focus());
+            $id('pcGuide').addEventListener('hidden.bs.modal', () => focus());
 
             function openModal(d, m, sc) {
                 if (!loaded) return;
@@ -757,7 +1024,7 @@
 
             /* ===== scan ===== */
             const inp = $id('pc-scan');
-            function focus() { setTimeout(() => { if (!moEl.classList.contains('show')) inp.focus({ preventScroll: true }); }, 20); }
+            function focus() { setTimeout(() => { if (!document.querySelector('.modal.show')) inp.focus({ preventScroll: true }); }, 20); }
             document.querySelector('.pc-wrap').addEventListener('click', e => {
                 if (!e.target.closest('input,select,button,a,.pc-opt,.pc-br,.pc-kpi,.pc-kr,.pc-carry,#pc-reader-wrap,.pc-pop')) focus();
             });
@@ -991,6 +1258,58 @@
                 const touch = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
                 if (pref === '1' || (pref === null && touch)) camStart();
             }
+
+            /* ===== panduan: sorot elemen asli ===== */
+            const gEl = $id('pcGuide'), gBs = bootstrap.Modal.getOrCreateInstance(gEl);
+            let gBack = null;
+            function gGo(id, smooth) { const t = gEl.querySelector(id); if (t) t.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }); }
+            function spotOff() {
+                document.querySelectorAll('.pc-spot, .pc-spot-l, .pc-spot-cv').forEach(x => x.remove());
+                removeEventListener('scroll', spotOff, true); removeEventListener('resize', spotOff);
+                if (gBack) {
+                    const id = gBack; gBack = null;
+                    gEl.addEventListener('shown.bs.modal', () => gGo('#' + id), { once: true });
+                    gBs.show();
+                }
+            }
+            const SPOT_DESC = {
+                '.pc-head-r': '<b>Panduan</b> membuka halaman ini · <b>Animasi &amp; suara</b> menyalakan/mematikan efek dan bunyi scan · <b>BPPB [bulan]</b> memilih bulan yang dipantau · <b>Tampilan lama</b> membuka alur scan → daftar → simpan · <b>Kembali</b> ke daftar penerimaan.',
+                '#pc-scan-card': 'Pakai scanner, ketik lalu Enter/Get, atau kamera. Setiap scan langsung tersimpan.',
+                '#pc-res': 'Hijau = tersimpan, kuning = sudah diterima, merah = gagal/tidak dikenal, teal = pilih kiriman.',
+                '#pc-sum': 'Persen roll diterima dari total keluar pada bulan BPPB terpilih. Klik barisnya untuk melihat daftar roll.',
+                '#pc-sisa': 'Roll yang sudah keluar dari gudang tapi belum di-scan terima, beserta umur pendingnya per tanggal BPPB.',
+                '#pc-sisa .pc-kp, #pc-sum .pc-kv': 'Klik kotak angka untuk membuka daftar roll lengkap dengan pencarian.',
+                '#pc-aktv': 'Rak roll yang diterima hari ini, ritme scan per jam, dan 3 scan terakhir. Klik roll untuk detailnya.',
+            };
+            function spotOn(sel, lbl, back) {
+                const el = [...document.querySelectorAll(sel)].find(x => x.offsetParent !== null);
+                gBack = back;
+                if (!el) { toast('Bagian ini belum tampil di halaman'); spotOff(); return; }
+                el.scrollIntoView({ block: 'center' });
+                setTimeout(() => {
+                    const r = el.getBoundingClientRect(), pad = 6;
+                    const cv = document.createElement('div'); cv.className = 'pc-spot-cv'; cv.onclick = spotOff;
+                    const s = document.createElement('div'); s.className = 'pc-spot';
+                    Object.assign(s.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px' });
+                    const l = document.createElement('div'); l.className = 'pc-spot-l';
+                    l.innerHTML = `<b>${esc(lbl)}</b>${SPOT_DESC[sel] ? `<span>${SPOT_DESC[sel]}</span>` : ''}<small>Klik di mana saja untuk kembali ke panduan</small>`;
+                    document.body.append(cv, s, l);
+                    const lh = l.offsetHeight, below = r.bottom + 16 + lh < innerHeight;
+                    l.style.left = Math.max(8, Math.min(innerWidth - l.offsetWidth - 8, r.left)) + 'px';
+                    l.style.top = (below ? r.bottom + 16 : Math.max(8, r.top - lh - 16)) + 'px';
+                    setTimeout(() => { addEventListener('scroll', spotOff, true); addEventListener('resize', spotOff); }, 300);
+                }, 350);
+            }
+            gEl.addEventListener('click', e => {
+                const a = e.target.closest('.pc-map-n, .pc-g-nav a');
+                if (a) { e.preventDefault(); e.stopPropagation(); gGo(a.getAttribute('href'), true); return; }
+                const b = e.target.closest('[data-spot]');
+                if (!b) return;
+                const sec = b.closest('section'), sel = b.dataset.spot, lbl = b.dataset.lbl;
+                gEl.addEventListener('hidden.bs.modal', () => spotOn(sel, lbl, sec ? sec.id : null), { once: true });
+                gBs.hide();
+            });
+            document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.pc-spot')) spotOff(); });
 
             loadSummary();
             focus();
