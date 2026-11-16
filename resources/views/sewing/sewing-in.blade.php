@@ -368,6 +368,19 @@
             color: #fff;
         }
 
+        .btn-si-export {
+            border-radius: 8px !important;
+            background: #1d6f42;
+            color: #fff;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .btn-si-export:hover {
+            background: #185c37;
+            color: #fff;
+        }
+
         /* Modal riwayat lebar & tinggi tetap supaya tidak "loncat" saat data sedikit */
         .si-history-dialog {
             max-width: min(1600px, 96vw);
@@ -1747,6 +1760,11 @@
                                 <label for="history_search">Cari</label>
                                 <input type="text" class="form-control" id="history_search" placeholder="Kode / WS / style / color / stocker" autocomplete="off">
                             </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-si-export" onclick="historyTab == 'riwayat' ? exportHistory() : exportOutstanding()" title="Export Excel (ikut filter)">
+                                    <i class="fa-solid fa-file-excel"></i> <span>Export</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -2929,6 +2947,37 @@
             $("#history_total_set").text(active.length);
             $("#history_total_qty").text(active.reduce((total, item) => total + Number(item.qty_set), 0));
             $("#history_total_cancel").text(rows.length - active.length);
+        }
+
+        // Export Excel: ikut semua filter yang sedang aktif di modal
+        function exportHistory() {
+            let dari = $("#history_dari").val();
+            let sampai = $("#history_sampai").val();
+
+            if (!dari || !sampai || sampai < dari) {
+                Swal.fire({ icon: "warning", title: "Tanggal tidak valid", text: "Isi tanggal dari & sampai, dan tanggal sampai tidak boleh sebelum tanggal dari." });
+                return;
+            }
+
+            let params = $.param({
+                tanggal_awal: $("#history_dari").val(),
+                tanggal_akhir: $("#history_sampai").val(),
+                line_id: $("#history_line").val() ?? "",
+                status: $("#history_status").val() ?? "",
+                search: $("#history_search").val().trim(),
+            });
+
+            window.location.href = "{{ route('sewing-in-history-export') }}?" + params;
+        }
+
+        // Export Excel outstanding: ikut filter line & cari
+        function exportOutstanding() {
+            let params = $.param({
+                line_id: $("#history_line").val() ?? "",
+                search: $("#history_search").val().trim(),
+            });
+
+            window.location.href = "{{ route('sewing-in-outstanding-export') }}?" + params;
         }
 
         function toggleHistoryRow(row) {
