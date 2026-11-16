@@ -1619,10 +1619,10 @@ class DcService
                                                             loading_line ll
                                                             left join stocker_input s on s.id = ll.stocker_id
                                                             left join part_detail pd on pd.id = s.part_detail_id
-                                                left join master_sb_ws msb on msb.id_so_det = s.so_det_id
-                                                left join part p on p.id = pd.part_id
+                                                            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+                                                            left join part p on p.id = pd.part_id
                                                             left join part_detail pd_com on pd_com.id = pd.from_part_detail
-                                                left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+                                                            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
                                                             left join part p_com on p_com.id = pd_com.part_id
                                                     where
                                                             ll.tanggal_loading between '".$dateFrom."' AND '$dateTo' AND
