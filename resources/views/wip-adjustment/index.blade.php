@@ -196,6 +196,7 @@
                         <option value="CUTTING_FABRIC_BARCODE">Cutting Fabric Barcode</option>
                         <option value="CUTTING_PCS">Cutting PCS</option>
                         <option value="DC">DC</option>
+                        <option value="DC_SET">DC Set</option>
                         <option value="SEWING">Sewing</option>
                         <option value="PACKING">Packing</option>
                     </select>
@@ -281,6 +282,10 @@
                                 <i class="fa fa-truck"></i> DC
                                 <div class="import-type-desc">Mutasi DC</div>
                             </button>
+                            <button type="button" class="template-type-btn import-type-btn" data-type="DC_SET">
+                                <i class="fa fa-layer-group"></i> DC Set
+                                <div class="import-type-desc">Mutasi DC Set</div>
+                            </button>
                             <button type="button" class="template-type-btn import-type-btn" data-type="SEWING">
                                 <i class="fa fa-tshirt"></i> Sewing
                                 <div class="import-type-desc">Mutasi Sewing</div>
@@ -337,6 +342,9 @@
                         </button>
                         <button type="button" class="template-type-btn" data-type="DC">
                             <i class="fa fa-truck"></i> DC
+                        </button>
+                        <button type="button" class="template-type-btn" data-type="DC_SET">
+                            <i class="fa fa-layer-group"></i> DC Set
                         </button>
                         <button type="button" class="template-type-btn" data-type="SEWING">
                             <i class="fa fa-tshirt"></i> Sewing
@@ -412,6 +420,10 @@
                 ['Mutasi Secondary Dalam', 'mutasi_secondary_dalam', true],
                 ['Mutasi Secondary Luar', 'mutasi_secondary_luar', true],
                 ['Terima Transit Secondary Luar', 'terima_transit_secondary_luar', true],
+            ],
+            DC_SET: [
+                ['WS', 'no_ws'], ['Buyer', 'buyer'], ['Style', 'style'], ['Color', 'color'], ['Size', 'size'],
+                ['Mutasi DC', 'mutasi_dc', true],
             ],
             CUTTING_PCS: [
                 ['WS', 'no_ws'], ['Buyer', 'buyer'], ['Style', 'style'], ['Color', 'color'], ['Size', 'size'],
@@ -881,6 +893,11 @@
                 label: 'DC',
                 file: "{{ asset('example/template_wip_adjustment_dc.xlsx') }}",
                 columns: ['tgl_saldo', 'ws', 'buyer', 'style', 'color', 'size', 'panel', 'part', 'qty mutasi dc', 'qty mutasi secondary dalam', 'qty mutasi secondary luar', 'qty terima transit secondary luar']
+            },
+            DC_SET: {
+                label: 'DC Set',
+                file: "{{ asset('example/template_wip_adjustment_dc_set.xlsx') }}",
+                columns: ['tgl_saldo', 'ws', 'buyer', 'style', 'color', 'size', 'qty']
             },
             CUTTING_PCS: {
                 label: 'Cutting PCS',

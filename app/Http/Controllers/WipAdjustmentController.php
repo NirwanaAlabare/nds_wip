@@ -139,6 +139,22 @@ class WipAdjustmentController extends Controller
                 'terima_transit_secondary_luar' => 'TERIMA_TRANSIT_SECONDARY_LUAR',
             ],
         ],
+        'DC_SET' => [
+            'text' => [
+                'ws'    => 'no_ws',
+                'buyer' => 'buyer',
+                'style' => 'style',
+                'color' => 'color',
+                'size'  => 'size',
+            ],
+            'qty' => [
+                'qty' => 'mutasi_dc',
+            ],
+            'required' => ['no_ws', 'buyer', 'style', 'color', 'size'],
+            'type_map' => [
+                'mutasi_dc' => 'DC_SET',
+            ],
+        ],
         'CUTTING_PCS' => [
             'text' => [
                 'ws'    => 'no_ws',

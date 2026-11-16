@@ -423,36 +423,385 @@ class DcReportController extends Controller
 
     public function buildQueryMutasiWipDcSet($dateFrom, $dateTo){
 
-        $dcQuery = $this->buildQuery($dateFrom, $dateTo);
+        // Modul DC Set mulai tanggal ini: saldo awal = 0,
+        // setelahnya saldo awal = SUM(masuk - loading + adjustment) dari tanggal ini s/d sehari sebelum tanggal awal
+        $awalModul = '2026-10-01';
+
+        if ($dateFrom < $awalModul) {
+            $mutasi = $this->queryMutasiWipDcSetPeriode($dateFrom, $dateTo);
+        } else {
+            $mutasi = "
+                    SELECT
+                        ws,
+                        buyer,
+                        style,
+                        color,
+                        size,
+                        0 current_saldo_awal_adjustment,
+                        qty_in,
+                        loading,
+                        adjustment
+                    FROM (
+                        ".$this->queryMutasiWipDcSetRingan($dateFrom, $dateTo)."
+                    ) periode
+            ";
+
+            if ($dateFrom > $awalModul) {
+                $sebelum = date('Y-m-d', strtotime($dateFrom . ' -1 day'));
+
+                $mutasi .= "
+                    UNION ALL
+                    SELECT
+                        ws,
+                        buyer,
+                        style,
+                        color,
+                        size,
+                        qty_in - loading + adjustment current_saldo_awal_adjustment,
+                        0 qty_in,
+                        0 loading,
+                        0 adjustment
+                    FROM (
+                        ".$this->queryMutasiWipDcSetRingan($awalModul, $sebelum)."
+                    ) sebelum
+                ";
+            }
+        }
 
         return "
                 SELECT
+                    ws,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    SUM(current_saldo_awal_adjustment) current_saldo_awal_adjustment,
+                    SUM(qty_in) qty_in,
+                    SUM(loading) loading,
+                    SUM(adjustment) adjustment,
+                    (
+                        SUM(current_saldo_awal_adjustment)
+                        + SUM(qty_in)
+                        - SUM(loading)
+                        + SUM(adjustment)
+                    ) current_saldo_akhir_adjustment
+                FROM (
+                    ".$mutasi."
+                ) mutasi_dc_set
+                GROUP BY
+                    ws,
+                    buyer,
+                    style,
+                    color,
+                    size
+                ORDER BY
+                    ws,
+                    color,
+                    size
+        ";
+    }
+
+    // Mutasi DC Set 1 periode versi ringan (khusus periode mulai awal modul DC Set):
+    // hanya hitung masuk & loading per panel (MAX per set) + adjustment DC_SET.
+    // Tidak memakai query DC lengkap (saldo before, secondary, dll) karena saldo awal DC Set
+    // diambil dari saldo tersimpan / mutasi sebelumnya, dan adjustment DC per panel sudah tidak berlaku.
+    // Logika masuk & loading mengikuti DcService::buildBaseCte (dc_current_saldo) & dc_loading_inject / dc_in_dump.
+    private function queryMutasiWipDcSetRingan($dateFrom, $dateTo){
+
+        $filterStocker = "
+            (s.cancel IS NULL OR s.cancel != 'y') and
+            ((s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') AND NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND s.part_detail_id IN (SELECT pd_stk.id FROM part_detail pd_stk JOIN master_part mp_stk ON mp_stk.id = pd_stk.master_part_id WHERE mp_stk.nama_part = 'STK')))
+        ";
+
+        $panel = "COALESCE((CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END), '-')";
+        $namaPart = "COALESCE(NULLIF((CASE WHEN mp.nama_part = 'STK' AND COALESCE(mp.bag, '') != '' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END), ''), '-')";
+
+        $joinPart = "
+            left join master_sb_ws msb on msb.id_so_det = s.so_det_id
+            left join part_detail pd on pd.id = s.part_detail_id
+            left join part p on p.id = pd.part_id
+            left join part_detail pd_com on pd_com.id = pd.from_part_detail
+            left join part p_com on p_com.id = pd_com.part_id
+            left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+            left join master_part mp on mp.id = pd.master_part_id
+        ";
+
+        return "
+            SELECT
+                ws,
+                buyer,
+                style,
+                color,
+                size,
+                0 current_saldo_awal_adjustment,
+                COALESCE(MAX(qty_in), 0) qty_in,
+                COALESCE(MAX(loading), 0) loading,
+                0 adjustment
+            FROM (
+                -- Total per panel & part
+                SELECT
+                    ws,
+                    MAX(buyer) buyer,
+                    MAX(style) style,
+                    color,
+                    size,
+                    SUM(qty_in) qty_in,
+                    SUM(loading) loading
+                FROM (
+                    -- Masuk DC
+                    SELECT
+                        msb.ws,
+                        msb.buyer,
+                        msb.styleno style,
+                        UPPER(TRIM(msb.color)) color,
+                        msb.size,
+                        ".$panel." panel,
+                        ".$namaPart." nama_part,
+                        a.qty_awal qty_in,
+                        0 loading
+                    FROM
+                        dc_in_input a
+                        inner join stocker_input s on s.id_qr_stocker = a.id_qr_stocker
+                        ".$joinPart."
+                    WHERE
+                        a.tgl_trans between '".$dateFrom."' and '".$dateTo."' and
+                        ".$filterStocker."
+                    UNION ALL
+                    -- Loading line (qty per bundle = MIN qty dalam 1 panel)
+                    SELECT
+                        msb.ws,
+                        msb.buyer,
+                        msb.styleno style,
+                        UPPER(TRIM(msb.color)) color,
+                        msb.size,
+                        ".$panel." panel,
+                        ".$namaPart." nama_part,
+                        0 qty_in,
+                        COALESCE(
+                            MIN(ll.qty) OVER (
+                                PARTITION BY
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END),
+                                    s.form_cut_id,
+                                    s.form_reject_id,
+                                    s.form_piece_id,
+                                    s.so_det_id,
+                                    s.group_stocker,
+                                    s.ratio,
+                                    s.stocker_reject
+                            ),
+                            ll.qty
+                        ) loading
+                    FROM
+                        loading_line ll
+                        inner join stocker_input s on s.id = ll.stocker_id
+                        ".$joinPart."
+                    WHERE
+                        ll.tanggal_loading between '".$dateFrom."' and '".$dateTo."' and
+                        ".$filterStocker."
+                    UNION ALL
+                    -- Masuk DC dari data dump
+                    SELECT
+                        dc_in_dump.ws,
+                        dc_in_dump.buyer,
+                        dc_in_dump.style,
+                        UPPER(TRIM(dc_in_dump.color)) color,
+                        dc_in_dump.size,
+                        COALESCE(dc_in_dump.panel, '-') panel,
+                        COALESCE(NULLIF(dc_in_dump.part, ''), '-') nama_part,
+                        dc_in_dump.qty_in,
+                        0 loading
+                    FROM
+                        dc_in_dump
+                    WHERE
+                        dc_in_dump.tgl_trans between '".$dateFrom."' and '".$dateTo."' and
+                        EXISTS (
+                            SELECT 1
+                            FROM part
+                            inner join part_detail on part_detail.part_id = part.id
+                            inner join master_part on master_part.id = part_detail.master_part_id
+                            WHERE
+                                part.act_costing_ws = dc_in_dump.ws and
+                                part.panel = dc_in_dump.panel and
+                                master_part.nama_part = dc_in_dump.part
+                        )
+                    UNION ALL
+                    -- Loading inject
+                    SELECT
                         ws,
-                        MAX(buyer) buyer,
-                        MAX(style) style,
+                        buyer,
+                        style,
+                        UPPER(TRIM(color)) color,
+                        size,
+                        COALESCE(panel, '-') panel,
+                        COALESCE(NULLIF(part, ''), '-') nama_part,
+                        0 qty_in,
+                        qty loading
+                    FROM
+                        dc_loading_inject
+                    WHERE
+                        tanggal between '".$dateFrom."' and '".$dateTo."'
+                ) mutasi_panel
+                GROUP BY
+                    ws,
+                    color,
+                    size,
+                    panel,
+                    nama_part
+            ) mutasi_set
+            GROUP BY
+                ws,
+                buyer,
+                style,
+                color,
+                size
+            UNION ALL
+            SELECT
+                no_ws ws,
+                buyer,
+                style,
+                color,
+                size,
+                0 current_saldo_awal_adjustment,
+                0 qty_in,
+                0 loading,
+                SUM(qty) adjustment
+            FROM
+                wip_adjustment
+            WHERE
+                tgl_saldo between '".$dateFrom."' and '".$dateTo."' and
+                type_report = 'DC_SET' and
+                status = 'Y'
+            GROUP BY
+                no_ws,
+                buyer,
+                style,
+                color,
+                size
+        ";
+    }
+
+    // Mutasi DC Set 1 periode (belum digabung): baris data DC (MAX per panel) + baris adjustment DC_SET
+    private function queryMutasiWipDcSetPeriode($dateFrom, $dateTo){
+
+        $dcQuery = $this->buildQuery($dateFrom, $dateTo);
+
+        // Adjustment DC (per panel) hanya berlaku sebelum tanggal ini, setelahnya pakai adjustment DC_SET
+        $batasAdjustmentDc = '2026-10-01';
+
+        // Adjustment DC mulai batas tanggal dikeluarkan dengan baris minus per panel & part
+        // (pakai UNION ALL + GROUP BY, bukan JOIN ke hasil dcQuery yang tidak punya index).
+        // Periode sebelum batas tanggal tidak perlu bagian ini.
+        $keluarkanAdjustmentDc = $dateTo < $batasAdjustmentDc ? "" : "
+            UNION ALL
+            SELECT
+                no_ws ws,
+                NULL buyer,
+                NULL style,
+                color,
+                size,
+                COALESCE(panel, '-') panel,
+                COALESCE(NULLIF(part, ''), '-') nama_part,
+                -SUM(IF(tgl_saldo < '".$dateFrom."', qty, 0)) current_saldo_awal_adjustment,
+                0 qty_in,
+                0 loading_qty,
+                -SUM(IF(tgl_saldo >= '".$dateFrom."', qty, 0)) adjustment,
+                0 is_dc
+            FROM
+                wip_adjustment
+            WHERE
+                tgl_saldo >= '".$batasAdjustmentDc."' and
+                tgl_saldo <= '".$dateTo."' and
+                type_report = 'DC' and
+                status = 'Y'
+            GROUP BY
+                no_ws,
+                color,
+                size,
+                COALESCE(panel, '-'),
+                COALESCE(NULLIF(part, ''), '-')
+        ";
+
+        return "
+            SELECT
+                ws,
+                buyer,
+                style,
+                color,
+                size,
+                COALESCE(MAX(current_saldo_awal_adjustment), 0) current_saldo_awal_adjustment,
+                COALESCE(MAX(qty_in), 0) qty_in,
+                COALESCE(MAX(loading_qty), 0) loading,
+                COALESCE(MAX(adjustment), 0) adjustment
+            FROM (
+                -- Total per panel & part (data DC dikurangi adjustment DC mulai batas tanggal)
+                SELECT
+                    ws,
+                    MAX(buyer) buyer,
+                    MAX(style) style,
+                    color,
+                    size,
+                    SUM(current_saldo_awal_adjustment) current_saldo_awal_adjustment,
+                    SUM(qty_in) qty_in,
+                    SUM(loading_qty) loading_qty,
+                    SUM(adjustment) adjustment
+                FROM (
+                    SELECT
+                        ws,
+                        buyer,
+                        style,
                         color,
                         size,
-                        MAX(current_saldo_awal_adjustment) current_saldo_awal_adjustment,
-                        MAX(qty_in) qty_in,
-                        MAX(loading_qty) loading,
-                        MAX(adjustment) adjustment,
-                        (
-                                COALESCE(MAX(current_saldo_awal_adjustment), 0)
-                                + COALESCE(MAX(qty_in), 0)
-                                - COALESCE(MAX(loading_qty), 0)
-                                + COALESCE(MAX(adjustment), 0)
-                        ) current_saldo_akhir_adjustment
-                FROM (
+                        COALESCE(panel, '-') panel,
+                        nama_part,
+                        current_saldo_awal_adjustment,
+                        qty_in,
+                        loading_qty,
+                        adjustment,
+                        1 is_dc
+                    FROM (
                         ".$dcQuery."
-                ) mutasi_dc
+                    ) mutasi_dc
+                    ".$keluarkanAdjustmentDc."
+                ) dc_panel
                 GROUP BY
-                        ws,
-                        color,
-                        size
-                ORDER BY
-                        ws,
-                        color,
-                        size
+                    ws,
+                    color,
+                    size,
+                    panel,
+                    nama_part
+                -- Panel yang hanya ada di adjustment (tidak ada di data DC) tidak dihitung
+                HAVING
+                    MAX(is_dc) = 1
+            ) dc_set
+            GROUP BY
+                ws,
+                buyer,
+                style,
+                color,
+                size
+            UNION ALL
+            SELECT
+                no_ws ws,
+                buyer,
+                style,
+                color,
+                size,
+                SUM(IF(tgl_saldo < '".$dateFrom."', qty, 0)) current_saldo_awal_adjustment,
+                0 qty_in,
+                0 loading,
+                SUM(IF(tgl_saldo >= '".$dateFrom."', qty, 0)) adjustment
+            FROM
+                wip_adjustment
+            WHERE
+                tgl_saldo <= '".$dateTo."' and
+                type_report = 'DC_SET' and
+                status = 'Y'
+            GROUP BY
+                no_ws,
+                buyer,
+                style,
+                color,
+                size
         ";
     }
 
@@ -481,6 +830,9 @@ class DcReportController extends Controller
     }
 
     public function export_excel_report_mutasi_wip_dc_set(Request $request){
+        ini_set("max_execution_time", 36000);
+        ini_set('memory_limit', '1024M');
+
         $start_date = $request->from;
         $end_date = $request->to;
         $dateFrom = $request->from;
