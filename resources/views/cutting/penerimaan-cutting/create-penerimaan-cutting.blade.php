@@ -382,6 +382,8 @@
         .pc-g h6 { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
         .pc-g-show { border: 1px solid var(--pc-sec); background: #fff; color: var(--pc-sec); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 2px 10px; }
         .pc-g-show:hover { background: var(--pc-sec); color: #fff; }
+        .pc-g-show.pri { background: var(--pc-sec); color: #fff; }
+        .pc-g-show.pri:hover { filter: brightness(.92); }
         .pc-g-note { font-size: 12.5px; color: var(--pc-muted); margin-bottom: 10px; }
         .pc-map { background: var(--pc-soft); border: 1px solid var(--pc-line); border-radius: .6rem; padding: 14px; max-width: 760px; }
         .pc-map-n { position: absolute; top: -9px; left: -9px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; background: var(--pc-acc); color: #fff !important; font-size: 12px; font-weight: 700; display: grid; place-items: center; text-decoration: none; box-shadow: 0 0 0 2px #fff; }
@@ -437,10 +439,21 @@
         .pc-map-card .rt i.nw { background: var(--pc-acc); }
         .pc-spot { position: fixed; z-index: 2000; border-radius: .6rem; box-shadow: 0 0 0 9999px rgba(8,33,73,.6); outline: 3px solid #ff971f; outline-offset: 3px; pointer-events: none; animation: pcSpot 1.2s ease-in-out infinite; }
         @keyframes pcSpot { 50% { outline-offset: 8px; outline-color: rgba(255,151,31,.6) } }
-        .pc-spot-l { position: fixed; z-index: 2001; background: #fff; color: #082149; font-size: 13px; padding: 9px 12px; border-radius: .5rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); max-width: 340px; pointer-events: none; }
+        .pc-spot-l { position: fixed; z-index: 2001; background: #fff; color: #082149; font-size: 13px; padding: 10px 12px; border-radius: .5rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); width: 340px; max-width: calc(100vw - 16px); }
+        .pc-spot-l .st { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: #238380; margin-bottom: 4px; }
+        .pc-spot-l .dots { display: flex; gap: 4px; }
+        .pc-spot-l .dots i { width: 7px; height: 7px; border-radius: 50%; background: #e2e6ec; }
+        .pc-spot-l .dots i.done { background: #9fd6d3; }
+        .pc-spot-l .dots i.on { background: #ff971f; width: 16px; border-radius: 4px; }
+        .pc-spot-l .nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
+        .pc-spot-l .nav button { border: 1px solid #c5ccd6; background: #fff; color: #082149; font-size: 12.5px; font-weight: 600; border-radius: .35rem; padding: 4px 12px; }
+        .pc-spot-l .nav button:disabled { opacity: .4; }
+        .pc-spot-l .nav button.pri { background: #238380; border-color: #238380; color: #fff; }
+        .pc-spot-l .nav button:not(:disabled):hover { filter: brightness(.95); }
+        .pc-spot-l kbd { font-size: 10px; padding: 0 4px; }
         .pc-spot-l > b { display: block; font-weight: 700; }
-        .pc-spot-l > span { display: block; color: #3d4450; font-size: 12.5px; line-height: 1.5; margin-top: 3px; }
-        .pc-spot-l > span b { color: #082149; }
+        .pc-spot-l > span.d { display: block; color: #3d4450; font-size: 12.5px; line-height: 1.5; margin-top: 3px; }
+        .pc-spot-l > span.d b { color: #082149; }
         .pc-spot-l small { display: block; font-weight: 400; color: #6c757d; font-size: 11.5px; margin-top: 6px; padding-top: 5px; border-top: 1px solid #e2e6ec; }
         .pc-spot-cv { position: fixed; inset: 0; z-index: 1999; cursor: pointer; }
         @media (max-width: 576px) { .pc-map-grid { grid-template-columns: 1fr; } }
@@ -456,7 +469,7 @@
                 <p>Scan barcode kain dari gudang. Langsung tersimpan.</p>
             </div>
             <div class="pc-head-r">
-                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#pcGuide"><i class="fa fa-book-open"></i> Panduan</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="pc-guide-btn"><i class="fa fa-book-open"></i> Panduan</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="pc-fx"></button>
                 <select class="form-select form-select-sm" id="pc-month" title="Bulan BPPB"></select>
                 <a href="{{ route('create-old-penerimaan-cutting') }}" class="btn btn-outline-secondary btn-sm" title="Buka tampilan lama (scan → daftar → simpan)"><i class="fas fa-history"></i> Tampilan lama</a>
@@ -541,7 +554,7 @@
                     </nav>
 
                     <section id="pcg-peta">
-                        <h6><span>Peta halaman</span></h6>
+                        <h6><span>Peta halaman</span> <button type="button" class="pc-g-show pri" data-tour="0"><i class="fa fa-play"></i> Mulai tur</button></h6>
                         <p class="pc-g-note">Klik <b>nomor</b> untuk membaca penjelasannya, atau klik <b>kotaknya</b> untuk melihat langsung di halaman.</p>
                         <div class="pc-map">
                             <div class="pc-map-head">
@@ -709,6 +722,7 @@
                 csrf: '{{ csrf_token() }}',
                 today: '{{ date('Y-m-d') }}',
                 minMonth: '2026-10',
+                tourKey: 'pc_tour_seen_{{ Auth::id() }}',
             };
 
             /* ===== helper ===== */
@@ -768,6 +782,7 @@
                         indexRows();
                         loaded = true;
                         render();
+                        autoTour();
                     })
                     .fail((x, s) => {
                         if (s === 'abort') return;
@@ -1281,35 +1296,58 @@
                 if (pref === '1' || (pref === null && touch)) camStart();
             }
 
-            /* ===== panduan: sorot elemen asli ===== */
+            /* ===== panduan: sorot elemen asli + tur langkah demi langkah ===== */
             const gEl = $id('pcGuide'), gBs = bootstrap.Modal.getOrCreateInstance(gEl);
-            let gBack = null;
             function gGo(id, smooth) { const t = gEl.querySelector(id); if (t) t.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }); }
-            function spotOff() {
+            const STEPS = [
+                { sel: '.pc-head-r', sec: 'pcg-atas', lbl: 'Tombol di kanan atas',
+                  d: '<b>Panduan</b> membuka halaman ini · <b>Animasi &amp; suara</b> menyalakan/mematikan efek dan bunyi scan · <b>BPPB [bulan]</b> memilih bulan yang dipantau · <b>Tampilan lama</b> membuka alur scan → daftar → simpan · <b>Kembali</b> ke daftar penerimaan.' },
+                { sel: '#pc-scan-card', sec: 'pcg-scan', lbl: 'Kartu Scan Barcode Fabric',
+                  d: 'Pakai scanner, ketik lalu Enter/Get, atau kamera. Setiap scan langsung tersimpan.' },
+                { sel: '#pc-res', sec: 'pcg-hasil', lbl: 'Hasil scan muncul di sini',
+                  d: 'Hijau = tersimpan, kuning = sudah diterima, merah = gagal/tidak dikenal, teal = pilih kiriman.' },
+                { sel: '#pc-sum', sec: 'pcg-prog', lbl: 'Kartu Progres penerimaan',
+                  d: 'Persen roll diterima dari total keluar pada bulan BPPB terpilih. Klik barisnya untuk melihat daftar roll.' },
+                { sel: '#pc-sisa', sec: 'pcg-sisa', lbl: 'Kartu Sisa roll belum diterima',
+                  d: 'Roll yang sudah keluar dari gudang tapi belum di-scan terima, beserta umur pendingnya per tanggal BPPB.' },
+                { sel: '#pc-sisa .pc-kp, #pc-sum .pc-kv', sec: 'pcg-detail', lbl: 'Klik angka di sini untuk membuka detail roll',
+                  d: 'Klik kotak angka untuk membuka daftar roll lengkap dengan pencarian.' },
+                { sel: '#pc-aktv', sec: 'pcg-hari', lbl: 'Kartu Penerimaan hari ini',
+                  d: 'Rak roll yang diterima hari ini, ritme scan per jam, dan 3 scan terakhir. Klik roll untuk detailnya.' },
+            ];
+            let spotTok = 0, spotIdx = -1, tourFirst = false;
+            $id('pc-guide-btn').onclick = () => gBs.show();
+            // tur otomatis saat halaman pertama kali dibuka oleh user ini (per user per browser),
+            // dijalankan setelah ringkasan selesai dimuat; setelah tur selesai modal panduan dibuka
+            let autoTried = false;
+            function autoTour() {
+                if (autoTried) return;
+                autoTried = true;
+                let seen = false; try { seen = localStorage.getItem(PC.tourKey) === '1'; } catch (e) {}
+                if (seen) return;
+                setTimeout(() => { if (spotIdx < 0 && !document.querySelector('.modal.show')) { tourFirst = true; spotGo(0); } }, 600);
+            }
+            function spotClear() {
                 spotTok++;
                 document.querySelectorAll('.pc-spot, .pc-spot-l, .pc-spot-cv').forEach(x => x.remove());
                 removeEventListener('scroll', spotOff, true); removeEventListener('resize', spotOff);
-                if (gBack) {
-                    const id = gBack; gBack = null;
-                    gEl.addEventListener('shown.bs.modal', () => gGo('#' + id), { once: true });
-                    gBs.show();
-                }
             }
-            let spotTok = 0;
-            const SPOT_DESC = {
-                '.pc-head-r': '<b>Panduan</b> membuka halaman ini · <b>Animasi &amp; suara</b> menyalakan/mematikan efek dan bunyi scan · <b>BPPB [bulan]</b> memilih bulan yang dipantau · <b>Tampilan lama</b> membuka alur scan → daftar → simpan · <b>Kembali</b> ke daftar penerimaan.',
-                '#pc-scan-card': 'Pakai scanner, ketik lalu Enter/Get, atau kamera. Setiap scan langsung tersimpan.',
-                '#pc-res': 'Hijau = tersimpan, kuning = sudah diterima, merah = gagal/tidak dikenal, teal = pilih kiriman.',
-                '#pc-sum': 'Persen roll diterima dari total keluar pada bulan BPPB terpilih. Klik barisnya untuk melihat daftar roll.',
-                '#pc-sisa': 'Roll yang sudah keluar dari gudang tapi belum di-scan terima, beserta umur pendingnya per tanggal BPPB.',
-                '#pc-sisa .pc-kp, #pc-sum .pc-kv': 'Klik kotak angka untuk membuka daftar roll lengkap dengan pencarian.',
-                '#pc-aktv': 'Rak roll yang diterima hari ini, ritme scan per jam, dan 3 scan terakhir. Klik roll untuk detailnya.',
-            };
-            function spotOn(sel, lbl, back) {
-                const el = [...document.querySelectorAll(sel)].find(x => x.offsetParent !== null);
-                gBack = back;
+            // tutup tur & kembali ke panduan di bagian langkah terakhir yang dilihat
+            function spotOff() {
+                const st = STEPS[spotIdx], first = tourFirst;
+                spotClear(); spotIdx = -1;
+                if (first) { tourFirst = false; try { localStorage.setItem(PC.tourKey, '1'); } catch (e) {} }
+                // tur pertama kali: panduan dibuka dari atas; selain itu ke bagian langkah terakhir
+                gEl.addEventListener('shown.bs.modal', () => { if (first) gGo('#pcg-peta'); else if (st) gGo('#' + st.sec); }, { once: true });
+                gBs.show();
+            }
+            function spotGo(i) {
+                if (i < 0 || i >= STEPS.length) return;
+                spotClear(); spotIdx = i;
+                const st = STEPS[i], n = STEPS.length;
+                const el = [...document.querySelectorAll(st.sel)].find(x => x.offsetParent !== null);
                 if (!el) { toast('Bagian ini belum tampil di halaman'); spotOff(); return; }
-                const tok = ++spotTok;
+                const tok = spotTok;
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 // tunggu scroll benar-benar berhenti (posisi elemen stabil beberapa frame), baru pasang sorotan
                 let last = null, still = 0;
@@ -1327,11 +1365,21 @@
                     const s = document.createElement('div'); s.className = 'pc-spot';
                     Object.assign(s.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px' });
                     const l = document.createElement('div'); l.className = 'pc-spot-l';
-                    l.innerHTML = `<b>${esc(lbl)}</b>${SPOT_DESC[sel] ? `<span>${SPOT_DESC[sel]}</span>` : ''}<small>Klik di mana saja untuk kembali ke panduan</small>`;
+                    l.innerHTML = `<div class="st"><span>Langkah ${i + 1} dari ${n}</span><span class="dots">${STEPS.map((_, k) => `<i class="${k === i ? 'on' : k < i ? 'done' : ''}"></i>`).join('')}</span></div>
+                        <b>${esc(st.lbl)}</b><span class="d">${st.d}</span>
+                        <div class="nav"><button type="button" data-nav="prev" ${i ? '' : 'disabled'}>‹ Sebelumnya</button>
+                            <button type="button" data-nav="next" class="pri">${i === n - 1 ? 'Selesai ✓' : 'Berikutnya ›'}</button></div>
+                        <small><kbd>←</kbd><kbd>→</kbd> pindah langkah · <kbd>Esc</kbd>, scroll, atau klik area gelap untuk kembali ke panduan</small>`;
+                    l.onclick = e => {
+                        const b = e.target.closest('[data-nav]');
+                        if (!b) return;
+                        if (b.dataset.nav === 'prev') spotGo(i - 1); else if (i === n - 1) spotOff(); else spotGo(i + 1);
+                    };
                     document.body.append(cv, s, l);
                     const lh = l.offsetHeight, below = r.bottom + 16 + lh < innerHeight;
                     l.style.left = Math.max(8, Math.min(innerWidth - l.offsetWidth - 8, r.left)) + 'px';
                     l.style.top = (below ? r.bottom + 16 : Math.max(8, r.top - lh - 16)) + 'px';
+                    const nx = l.querySelector('[data-nav="next"]'); if (nx) nx.focus({ preventScroll: true });
                     // mulai dengarkan scroll user setelah sorotan tampil
                     setTimeout(() => {
                         if (tok !== spotTok || !document.querySelector('.pc-spot')) return;
@@ -1342,13 +1390,19 @@
             gEl.addEventListener('click', e => {
                 const a = e.target.closest('.pc-map-n, .pc-g-nav a');
                 if (a) { e.preventDefault(); e.stopPropagation(); gGo(a.getAttribute('href'), true); return; }
-                const b = e.target.closest('[data-spot]');
+                const b = e.target.closest('[data-spot], [data-tour]');
                 if (!b) return;
-                const sec = b.closest('section'), sel = b.dataset.spot, lbl = b.dataset.lbl;
-                gEl.addEventListener('hidden.bs.modal', () => spotOn(sel, lbl, sec ? sec.id : null), { once: true });
+                const idx = b.dataset.tour !== undefined ? 0 : Math.max(0, STEPS.findIndex(x => x.sel === b.dataset.spot));
+                gEl.addEventListener('hidden.bs.modal', () => spotGo(idx), { once: true });
                 gBs.hide();
             });
-            document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.pc-spot')) spotOff(); });
+            document.addEventListener('keydown', e => {
+                if (spotIdx < 0) return;
+                if (e.key === 'Escape') { e.preventDefault(); spotOff(); return; }
+                if (!document.querySelector('.pc-spot')) return;
+                if (e.key === 'ArrowRight') { e.preventDefault(); spotIdx === STEPS.length - 1 ? spotOff() : spotGo(spotIdx + 1); }
+                else if (e.key === 'ArrowLeft') { e.preventDefault(); spotGo(spotIdx - 1); }
+            }, true);
 
             loadSummary();
             focus();
