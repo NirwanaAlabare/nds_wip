@@ -493,6 +493,7 @@ class PackingLineController extends Controller
                     COALESCE(id_ppic, po)
             )
             SELECT
+                x.id_ppic,
                 x.so_det_id,
                 x.po,
                 CASE WHEN x.po = 'TEMPORARY PACKING' THEN COALESCE($tglShipmentTemp, x.tgl_shipment) ELSE x.tgl_shipment END AS tgl_shipment,

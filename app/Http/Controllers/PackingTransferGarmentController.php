@@ -501,28 +501,42 @@ order by isi asc");
     {
         $items = app(PackingLineController::class)->wipPackingLineByLinePo($line, $po);
 
-        $soDetList = array_values(array_unique(array_column($items, 'so_det_id')));
-        if (empty($soDetList)) {
+        if (empty($items)) {
             return [];
         }
-
-        $placeholders = implode(',', array_fill(0, count($soDetList), '?'));
-        $data_ppic = DB::select("
-            SELECT MIN(id) AS id, id_so_det, tgl_shipment, po, MAX(dest) AS dest
-            FROM ppic_master_so
-            WHERE id_so_det IN ($placeholders)
-            GROUP BY id_so_det, tgl_shipment, po
-        ", $soDetList);
 
         // PO di WIP sudah dirapikan, sedangkan di ppic_master_so bisa ada spasi di depan
         $poKey = function ($value) {
             return strtoupper(trim(preg_replace('/\s+/', ' ', (string) $value)));
         };
 
+        // utamakan id_ppic dari baris WIP; cadangan cocokkan so_det + tgl_shipment + PO
+        $ppicById = [];
+        $idList = array_values(array_unique(array_filter(array_map(function ($item) {
+            return (int) ($item->id_ppic ?? 0);
+        }, $items))));
+        if (!empty($idList)) {
+            $placeholders = implode(',', array_fill(0, count($idList), '?'));
+            foreach (DB::select("SELECT id, dest FROM ppic_master_so WHERE id IN ($placeholders)", $idList) as $d) {
+                $ppicById[$d->id] = $d;
+            }
+        }
+
         $ppic = [];
-        foreach ($data_ppic as $d) {
-            if ($poKey($d->po) === $poKey($po)) {
-                $ppic[$d->id_so_det . '|' . $d->tgl_shipment] = $d;
+        $soDetList = array_values(array_unique(array_filter(array_column($items, 'so_det_id'))));
+        if (!empty($soDetList)) {
+            $placeholders = implode(',', array_fill(0, count($soDetList), '?'));
+            $data_ppic = DB::select("
+                SELECT MIN(id) AS id, id_so_det, tgl_shipment, po, MAX(dest) AS dest
+                FROM ppic_master_so
+                WHERE id_so_det IN ($placeholders)
+                GROUP BY id_so_det, tgl_shipment, po
+            ", $soDetList);
+
+            foreach ($data_ppic as $d) {
+                if ($poKey($d->po) === $poKey($po)) {
+                    $ppic[$d->id_so_det . '|' . $d->tgl_shipment] = $d;
+                }
             }
         }
 
@@ -541,19 +555,20 @@ order by isi asc");
 
         $data_garment = [];
         foreach ($items as $item) {
-            $key = $item->so_det_id . '|' . $item->tgl_shipment;
-            if (!isset($ppic[$key])) {
+            $idPpic = (int) ($item->id_ppic ?? 0);
+            $data   = $ppicById[$idPpic] ?? ($ppic[$item->so_det_id . '|' . $item->tgl_shipment] ?? null);
+            if (!$data) {
                 continue;
             }
 
-            $qty = (int) $item->saldo_akhir - ($terpakai[$ppic[$key]->id] ?? 0);
+            $qty = (int) $item->saldo_akhir - ($terpakai[$data->id] ?? 0);
 
             $data_garment[] = (object) [
-                'isi'      => $ppic[$key]->id,
+                'isi'      => $data->id,
                 'ws'       => $item->ws,
                 'color'    => $item->color,
                 'size'     => $item->size,
-                'dest'     => $ppic[$key]->dest,
+                'dest'     => $data->dest,
                 'qty_sisa' => $qty,
                 'selisih'  => $qty,
             ];
