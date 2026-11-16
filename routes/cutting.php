@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(PenerimaanCuttingController::class)->prefix("penerimaan-cutting")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('penerimaan-cutting');
         Route::get('/create', 'create')->name('create-penerimaan-cutting');
+        Route::get('/create-lama', 'createOld')->name('create-old-penerimaan-cutting');
         Route::post('/store', 'store')->name('store-penerimaan-cutting');
         Route::get('/edit/{id?}', 'edit')->name('edit-penerimaan-cutting');
         Route::put('/update', 'update')->name('update-penerimaan-cutting');

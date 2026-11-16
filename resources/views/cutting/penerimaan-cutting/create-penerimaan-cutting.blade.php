@@ -349,6 +349,7 @@
             <div class="pc-head-r">
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="pc-fx"></button>
                 <select class="form-select form-select-sm" id="pc-month" title="Bulan BPPB"></select>
+                <a href="{{ route('create-old-penerimaan-cutting') }}" class="btn btn-outline-secondary btn-sm" title="Buka tampilan lama (scan → daftar → simpan)"><i class="fas fa-history"></i> Tampilan lama</a>
                 <a href="{{ route('penerimaan-cutting') }}" class="btn btn-primary btn-sm"><i class="fas fa-reply"></i> Kembali</a>
             </div>
         </div>

@@ -13,7 +13,10 @@
 @section('content')
     <div class="d-flex justify-content-between mb-3">
         <h5 class="fw-bold text-sb"><i class="fa fa-plus fa-sm"></i> Tambah Data Penerimaan Fabric Cutting</h5>
-        <a href="{{ route('penerimaan-cutting') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Penerimaan Fabric Cutting</a>
+        <div class="d-flex gap-1 align-items-start">
+            <a href="{{ route('create-penerimaan-cutting') }}" class="btn btn-sb-secondary btn-sm px-1 py-1"><i class="fas fa-magic"></i> Tampilan baru</a>
+            <a href="{{ route('penerimaan-cutting') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Penerimaan Fabric Cutting</a>
+        </div>
     </div>
     <form action="{{ route('store-penerimaan-cutting') }}" method="post" id="store-penerimaan-cutting" onsubmit="submitForm(this, event)">
         @csrf

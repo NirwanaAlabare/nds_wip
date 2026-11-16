@@ -162,6 +162,16 @@ class PenerimaanCuttingController extends Controller
     }
 
     /**
+     * Tampilan lama (scan -> daftar -> simpan) sebagai cadangan.
+     */
+    public function createOld()
+    {
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+        return view('cutting.penerimaan-cutting.create-penerimaan-cutting-backup', ['orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting", "containerFluid" => true]);
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
