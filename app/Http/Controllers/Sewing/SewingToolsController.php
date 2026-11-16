@@ -5690,6 +5690,7 @@ class SewingToolsController extends Controller
         $data = UndoPackingPo::selectRaw("
                 output_undo_packing_po.id,
                 output_undo_packing_po.kode_numbering,
+                ppic_master_so.po,
                 CASE
                     WHEN output_undo_packing_po.output_rft_id    IS NOT NULL THEN 'RFT'
                     WHEN output_undo_packing_po.output_defect_id IS NOT NULL THEN 'Defect'
@@ -5713,6 +5714,7 @@ class SewingToolsController extends Controller
                 COALESCE(orft.created_at, orej.created_at) AS output_created_at,
                 COALESCE(orft.updated_at, orej.updated_at) AS output_updated_at
             ")
+            ->leftJoin('laravel_nds.ppic_master_so', 'ppic_master_so.id', '=', 'output_undo_packing_po.po_id')
             ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo_packing_po.master_plan_id')
             ->leftJoin('so_det', 'so_det.id', '=', 'output_undo_packing_po.so_det_id')
             ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
@@ -5735,6 +5737,7 @@ class SewingToolsController extends Controller
 
         $data = UndoPackingPo::selectRaw("
                 output_undo_packing_po.kode_numbering,
+                COALESCE(ppic_master_so.po, output_undo_packing_po.alokasi) po,
                 CASE
                     WHEN output_undo_packing_po.output_rft_id    IS NOT NULL THEN 'RFT'
                     WHEN output_undo_packing_po.output_defect_id IS NOT NULL THEN 'Defect'
@@ -5757,6 +5760,7 @@ class SewingToolsController extends Controller
                 COALESCE(orft.created_at, odef.created_at, orej.created_at, orw.created_at) AS output_created_at,
                 COALESCE(orft.updated_at, odef.updated_at, orej.updated_at, orw.updated_at) AS output_updated_at
             ")
+            ->leftJoin('laravel_nds.ppic_master_so', 'ppic_master_so.id', '=', 'output_undo_packing_po.po_id')
             ->leftJoin('master_plan', 'master_plan.id', '=', 'output_undo_packing_po.master_plan_id')
             ->leftJoin('so_det', 'so_det.id', '=', 'output_undo_packing_po.so_det_id')
             ->leftJoin('so', 'so.id', '=', 'so_det.id_so')
@@ -5788,6 +5792,7 @@ class SewingToolsController extends Controller
                     $row->updated_at            ?? $row->created_at ?? '',
                     $row->kode_numbering        ?? '',
                     $row->output_type           ?? '',
+                    $row->po                    ?? '',
                     $row->ws                    ?? '',
                     $row->style                 ?? '',
                     $row->color                 ?? '',
