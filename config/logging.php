@@ -275,6 +275,27 @@ return [
             'days' => 30,
         ],
 
+        'modifyDefectInOut' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/modifyDefectInOut/modifyDefectInOut.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
+        'modifySecondaryInOut' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/modifySecondaryInOut/modifySecondaryInOut.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
+        'modifyRejectInOut' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/modifyRejectInOut/modifyRejectInOut.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
         'updatePartSecondary' => [
             'driver' => 'daily',
             'path' => storage_path('logs/updatePartSecondary/updatePartSecondary.log'),

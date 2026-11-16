@@ -199,6 +199,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/modify-output', 'modifyOutput')->name("modify-output");
         Route::post('/modify-output/action', 'modifyOutputAction')->name("modify-output-action");
 
+        // Modify Defect In Out (Undo & Ubah SO Det)
+        Route::get('/modify-defect-in-out', 'modifyDefectInOut')->name("modify-defect-in-out");
+        Route::get('/modify-defect-in-out/size', 'getMasterPlanDefectInOutSize')->name("get-master-plan-defect-in-out-size");
+        Route::post('/modify-defect-in-out/action', 'modifyDefectInOutAction')->name("modify-defect-in-out-action");
+
+        // Modify Secondary In Out (Undo & Ubah SO Det)
+        Route::get('/modify-secondary-in-out', 'modifySecondaryInOut')->name("modify-secondary-in-out");
+        Route::get('/modify-secondary-in-out/size', 'getMasterPlanSecondaryInOutSize')->name("get-master-plan-secondary-in-out-size");
+        Route::post('/modify-secondary-in-out/action', 'modifySecondaryInOutAction')->name("modify-secondary-in-out-action");
+
+        // Modify Reject In Out (Undo & Ubah SO Det)
+        Route::get('/modify-reject-in-out', 'modifyRejectInOut')->name("modify-reject-in-out");
+        Route::get('/modify-reject-in-out/size', 'getMasterPlanRejectInOutSize')->name("get-master-plan-reject-in-out-size");
+        Route::post('/modify-reject-in-out/action', 'modifyRejectInOutAction')->name("modify-reject-in-out-action");
+
         // Undo & Restore
         Route::get('/undo-output', 'undoOutput')->name("undo-output");
         Route::post('/undo-output-submit', 'undoOutputSubmit')->name("undo-output-submit");

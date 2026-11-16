@@ -3212,6 +3212,1065 @@ class SewingToolsController extends Controller
         return view("sewing.tools.modify-output", ["lines" => $lines, "orders" => $orders, "page" => "dashboard-sewing-eff"]);
     }
 
+    // Modify Defect In Out (Undo & Ubah SO Det)
+    public function modifyDefectInOut(Request $request) {
+        $lines = UserLine::select('line_id', "username")->where('Groupp', 'SEWING')->whereRaw("(Locked != 1 || Locked IS NULL)")->orderBy('line_id', 'asc')->get();
+
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+        $allocations = DB::connection("mysql_sb")->table("output_defect_types")->select("allocation")->whereNotNull("allocation")->where("allocation", "!=", "")->groupBy("allocation")->orderBy("allocation", "asc")->pluck("allocation");
+
+        return view("sewing.tools.modify-defect-in-out", ["lines" => $lines, "orders" => $orders, "allocations" => $allocations, "page" => "dashboard-sewing-eff"]);
+    }
+
+    // Modify Secondary In Out (Undo & Ubah SO Det)
+    public function modifySecondaryInOut(Request $request) {
+        $lines = UserLine::select('line_id', "username")->where('Groupp', 'SEWING')->whereRaw("(Locked != 1 || Locked IS NULL)")->orderBy('line_id', 'asc')->get();
+
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+        $secondaries = SewingSecondaryMaster::select("id", "secondary", "hidden")->orderBy("secondary", "asc")->get();
+
+        return view("sewing.tools.modify-secondary-in-out", ["lines" => $lines, "orders" => $orders, "secondaries" => $secondaries, "page" => "dashboard-sewing-eff"]);
+    }
+
+    // Status secondary per garment (output_secondary_in) berdasarkan output_secondary_out
+    private function secondaryInOutStatusCondition($type) {
+        switch ($type) {
+            case "wip_":
+                return "output_secondary_out.id IS NULL";
+            case "rft_":
+                return "output_secondary_out.status = 'rft'";
+            case "defect_":
+                return "output_secondary_out.status = 'defect'";
+            case "rework_":
+                return "output_secondary_out.status = 'rework'";
+            case "reject_":
+                return "output_secondary_out.status = 'reject'";
+        }
+
+        return null;
+    }
+
+    // Base query output_secondary_in -> output_rfts (so_det ada di output_rfts) + output_secondary_out, filter master plan & secondary
+    private function secondaryInOutBaseQuery($masterPlanId, $secondaryId = null) {
+        $query = DB::connection("mysql_sb")->table("output_secondary_in")
+            ->join("output_rfts", "output_rfts.id", "=", "output_secondary_in.rft_id")
+            ->leftJoin("output_secondary_out", "output_secondary_out.secondary_in_id", "=", "output_secondary_in.id")
+            ->where("output_rfts.master_plan_id", $masterPlanId)
+            // Hanya data tanpa QR (kode_numbering null)
+            ->whereNull("output_secondary_in.kode_numbering")
+            ->whereNull("output_rfts.kode_numbering");
+
+        if ($secondaryId) {
+            $query->where("output_secondary_in.secondary_id", $secondaryId);
+        }
+
+        return $query;
+    }
+
+    // Response: [{ id_ws, ws, style, color, so_det_id, size, dest, wip, rft, defect, rework, reject }]
+    public function getMasterPlanSecondaryInOutSize(Request $request) {
+        if (!$request->id) {
+            return [];
+        }
+
+        return $this->secondaryInOutBaseQuery($request->id, $request->secondary_id)
+            ->leftJoin("so_det", "so_det.id", "=", "output_rfts.so_det_id")
+            ->leftJoin("so", "so.id", "=", "so_det.id_so")
+            ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+            ->selectRaw("
+                act_costing.id as id_ws,
+                act_costing.kpno as ws,
+                act_costing.styleno as style,
+                so_det.color,
+                so_det.size,
+                so_det.dest,
+                output_rfts.so_det_id,
+                COUNT(DISTINCT CASE WHEN output_secondary_out.id IS NULL THEN output_secondary_in.id END) as wip,
+                COUNT(DISTINCT CASE WHEN output_secondary_out.status = 'rft' THEN output_secondary_in.id END) as rft,
+                COUNT(DISTINCT CASE WHEN output_secondary_out.status = 'defect' THEN output_secondary_in.id END) as defect,
+                COUNT(DISTINCT CASE WHEN output_secondary_out.status = 'rework' THEN output_secondary_in.id END) as rework,
+                COUNT(DISTINCT CASE WHEN output_secondary_out.status = 'reject' THEN output_secondary_in.id END) as reject
+            ")
+            ->groupBy("output_rfts.so_det_id")
+            ->orderBy("so_det.id", "asc")
+            ->get();
+    }
+
+    public function modifySecondaryInOutAction(Request $request) {
+        $typeLabels = ["wip_" => "SECONDARY IN (WIP)", "rft_" => "SECONDARY RFT", "defect_" => "SECONDARY DEFECT", "rework_" => "SECONDARY REWORK", "reject_" => "SECONDARY REJECT"];
+        $isUndo = $request->action == "undo";
+        $qty = (int) $request->qty;
+
+        $logContext = [
+            "action" => $isUndo ? "undo" : "modify",
+            "request" => $request->only(["tanggal", "line", "master_plan_id", "secondary_id", "so_det_id", "mod_so_det_id", "qty", "type"]),
+            "user" => Auth::user() ? Auth::user()->username : null,
+        ];
+
+        $fail = function ($status, $message) use ($logContext) {
+            Log::channel("modifySecondaryInOut")->warning("Modify Secondary In Out gagal: ".$message, $logContext);
+
+            return ["status" => $status, "message" => $message];
+        };
+
+        if (!isset($typeLabels[$request->type])) {
+            return $fail(400, "Tipe tidak valid.");
+        }
+
+        if (!$request->tanggal || !$request->line || !$request->master_plan_id || !$request->so_det_id || $qty <= 0 || (!$isUndo && !$request->mod_so_det_id)) {
+            return $fail(400, "Harap isi form dengan lengkap.");
+        }
+
+        if (!$isUndo && $request->mod_so_det_id == $request->so_det_id) {
+            return $fail(400, "Size tujuan sama dengan size asal.");
+        }
+
+        if (checkClosingDate($request->tanggal)) {
+            return $fail(400, "Data tidak dapat disimpan karena periode sudah ditutup.") + ["additional" => "Closing"];
+        }
+
+        $type = $request->type;
+        $label = $typeLabels[$type];
+        $logType = "secondary_".rtrim($type, "_");
+        $dept = "secondary";
+
+        $connection = DB::connection("mysql_sb");
+        $connection->beginTransaction();
+
+        try {
+            $rows = $this->secondaryInOutBaseQuery($request->master_plan_id, $request->secondary_id)
+                ->selectRaw("
+                    output_secondary_in.id as secondary_in_id,
+                    output_secondary_in.kode_numbering,
+                    output_secondary_in.rft_id,
+                    output_secondary_in.created_at as in_created_at,
+                    output_secondary_out.id as secondary_out_id,
+                    output_secondary_out.created_at as out_created_at,
+                    output_rfts.created_at as rft_created_at
+                ")
+                ->whereRaw($this->secondaryInOutStatusCondition($type))
+                ->where("output_rfts.so_det_id", $request->so_det_id)
+                ->orderBy("output_secondary_in.id", "desc")
+                ->limit($qty)
+                ->lockForUpdate()
+                ->get();
+
+            if ($rows->isEmpty()) {
+                $connection->rollBack();
+
+                return $fail(400, "Data ".$label." tanpa kode numbering (QR) tidak ditemukan.");
+            }
+
+            // Validasi closing per data
+            foreach ($rows as $row) {
+                $dates = array_filter([$row->in_created_at, $row->out_created_at, $isUndo ? null : $row->rft_created_at]);
+
+                foreach ($dates as $date) {
+                    if (checkClosingDate(date("Y-m-d", strtotime($date)))) {
+                        $connection->rollBack();
+
+                        return $fail(400, "Data ".$label." dengan ID : '".$row->secondary_in_id."' termasuk ke periode yang sudah ditutup.") + ["additional" => "Closing"];
+                    }
+                }
+            }
+
+            $inIds = $rows->pluck("secondary_in_id")->toArray();
+            $outIds = $rows->pluck("secondary_out_id")->filter()->values()->toArray();
+
+            if ($isUndo) {
+                $affected = 0;
+
+                switch ($type) {
+                    // WIP -> hapus secondary in
+                    case "wip_":
+                        $this->logModifyRows($logType, "undo", "output_secondary_in", $dept, $connection->table("output_secondary_in")->whereIn("id", $inIds)->get());
+
+                        $affected = $connection->table("output_secondary_in")->whereIn("id", $inIds)->delete();
+
+                        break;
+
+                    // RFT -> hapus secondary out, kembali ke WIP
+                    case "rft_":
+                        $this->logModifyRows($logType, "undo", "output_secondary_out", $dept, $connection->table("output_secondary_out")->whereIn("id", $outIds)->get());
+
+                        $affected = $connection->table("output_secondary_out")->whereIn("id", $outIds)->delete();
+
+                        break;
+
+                    // DEFECT -> hapus defect & reject turunan + secondary out, kembali ke WIP
+                    case "defect_":
+                        $outDefects = $connection->table("output_secondary_out_defect")->whereIn("secondary_out_id", $outIds)->get();
+
+                        $usedDefectInOut = $outDefects->isNotEmpty() ? $connection->table("output_defect_in_out")->where("output_type", "finishing_proses")->whereIn("defect_id", $outDefects->pluck("id")->toArray())->count() : 0;
+                        if ($usedDefectInOut > 0) {
+                            $connection->rollBack();
+
+                            return $fail(400, $usedDefectInOut." data defect sudah masuk Defect In/Out Finishing Proses. Undo data tersebut terlebih dahulu.");
+                        }
+
+                        $outRejects = $connection->table("output_secondary_out_reject")->whereIn("secondary_out_id", $outIds)->get();
+                        if ($outRejects->isNotEmpty() && $this->secondaryRejectInQuery($outIds)->exists()) {
+                            $connection->rollBack();
+
+                            return $fail(400, "Sebagian data sudah masuk Reject In Finishing Proses. Undo data tersebut terlebih dahulu.");
+                        }
+
+                        $this->logModifyRows($logType, "undo", "output_secondary_out_defect", $dept, $outDefects);
+                        $this->logModifyRows($logType, "undo", "output_secondary_out_reject", $dept, $outRejects);
+                        $this->logModifyRows($logType, "undo", "output_secondary_out", $dept, $connection->table("output_secondary_out")->whereIn("id", $outIds)->get());
+
+                        $connection->table("output_secondary_out_defect")->whereIn("secondary_out_id", $outIds)->delete();
+                        $connection->table("output_secondary_out_reject")->whereIn("secondary_out_id", $outIds)->delete();
+                        $affected = $connection->table("output_secondary_out")->whereIn("id", $outIds)->delete();
+
+                        break;
+
+                    // REWORK -> defect reworked kembali ke defect
+                    case "rework_":
+                        $resetDefect = ["status" => "defect", "reworked_by" => null, "reworked_by_username" => null, "reworked_at" => null];
+
+                        $outDefects = $connection->table("output_secondary_out_defect")->whereIn("secondary_out_id", $outIds)->where("status", "reworked")->get();
+                        foreach ($outDefects as $outDefect) {
+                            $this->saveModifyLog($logType, "undo", "output_secondary_out_defect", $outDefect->id, $dept, $outDefect, array_merge((array) $outDefect, $resetDefect));
+                        }
+
+                        $outs = $connection->table("output_secondary_out")->whereIn("id", $outIds)->get();
+                        foreach ($outs as $out) {
+                            $this->saveModifyLog($logType, "undo", "output_secondary_out", $out->id, $dept, $out, array_merge((array) $out, ["status" => "defect"]));
+                        }
+
+                        $connection->table("output_secondary_out_defect")->whereIn("secondary_out_id", $outIds)->where("status", "reworked")->update($resetDefect);
+                        $affected = $connection->table("output_secondary_out")->whereIn("id", $outIds)->update(["status" => "defect"]);
+
+                        break;
+
+                    // REJECT -> hapus reject; jika berasal dari defect kembali ke defect, jika tidak kembali ke WIP
+                    case "reject_":
+                        if ($this->secondaryRejectInQuery($outIds)->exists()) {
+                            $connection->rollBack();
+
+                            return $fail(400, "Sebagian data sudah masuk Reject In Finishing Proses. Undo data tersebut terlebih dahulu.");
+                        }
+
+                        $this->logModifyRows($logType, "undo", "output_secondary_out_reject", $dept, $connection->table("output_secondary_out_reject")->whereIn("secondary_out_id", $outIds)->get());
+                        $connection->table("output_secondary_out_reject")->whereIn("secondary_out_id", $outIds)->delete();
+
+                        $rejectedDefects = $connection->table("output_secondary_out_defect")->whereIn("secondary_out_id", $outIds)->where("status", "rejected")->get();
+                        $fromDefectOutIds = $rejectedDefects->pluck("secondary_out_id")->unique()->values()->toArray();
+                        $directOutIds = array_values(array_diff($outIds, $fromDefectOutIds));
+
+                        if (count($fromDefectOutIds) > 0) {
+                            foreach ($rejectedDefects as $rejectedDefect) {
+                                $this->saveModifyLog($logType, "undo", "output_secondary_out_defect", $rejectedDefect->id, $dept, $rejectedDefect, array_merge((array) $rejectedDefect, ["status" => "defect"]));
+                            }
+
+                            foreach ($connection->table("output_secondary_out")->whereIn("id", $fromDefectOutIds)->get() as $out) {
+                                $this->saveModifyLog($logType, "undo", "output_secondary_out", $out->id, $dept, $out, array_merge((array) $out, ["status" => "defect"]));
+                            }
+
+                            $connection->table("output_secondary_out_defect")->whereIn("secondary_out_id", $fromDefectOutIds)->where("status", "rejected")->update(["status" => "defect"]);
+                            $affected += $connection->table("output_secondary_out")->whereIn("id", $fromDefectOutIds)->update(["status" => "defect"]);
+                        }
+
+                        if (count($directOutIds) > 0) {
+                            $this->logModifyRows($logType, "undo", "output_secondary_out", $dept, $connection->table("output_secondary_out")->whereIn("id", $directOutIds)->get());
+
+                            $affected += $connection->table("output_secondary_out")->whereIn("id", $directOutIds)->delete();
+                        }
+
+                        break;
+                }
+
+                $message = $affected." ".$label." berhasil di UNDO.";
+            } else {
+                // Size tujuan
+                $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+                    ->leftJoin("so", "so.id", "=", "so_det.id_so")
+                    ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+                    ->where("so_det.id", $request->mod_so_det_id)
+                    ->first();
+
+                if (!$modSoDet) {
+                    $connection->rollBack();
+
+                    return $fail(400, "Size tujuan tidak ditemukan.");
+                }
+
+                // Master plan tujuan (tanggal & line yang sama)
+                $modMasterPlan = MasterPlan::select("master_plan.id")
+                    ->where("tgl_plan", $request->tanggal)
+                    ->where("id_ws", $modSoDet->id_ws)
+                    ->where("color", $modSoDet->color)
+                    ->where("sewing_line", $request->line)
+                    ->whereRaw("(cancel IS NULL or cancel = 'N')")
+                    ->first();
+
+                if (!$modMasterPlan) {
+                    $connection->rollBack();
+
+                    return $fail(400, "Master Plan untuk size tujuan tidak ditemukan.");
+                }
+
+                $updateData = [
+                    "so_det_id" => $modSoDet->id,
+                    "master_plan_id" => $modMasterPlan->id,
+                ];
+
+                // so_det secondary berasal dari output_rfts (rft_id di output_secondary_in)
+                $rftIds = $rows->pluck("rft_id")->unique()->values()->toArray();
+
+                foreach ($connection->table("output_rfts")->whereIn("id", $rftIds)->get() as $beforeRft) {
+                    $this->saveModifyLog($logType, "modify", "output_rfts", $beforeRft->id, $dept, $beforeRft, array_merge((array) $beforeRft, $updateData));
+                }
+
+                $affected = $connection->table("output_rfts")->whereIn("id", $rftIds)->update($updateData);
+
+                // Reject In Finishing Proses ikut diubah
+                $affectedRejectIn = 0;
+                if (count($outIds) > 0) {
+                    $rejectIns = $this->secondaryRejectInQuery($outIds)->get();
+
+                    if ($rejectIns->isNotEmpty()) {
+                        foreach ($rejectIns as $rejectIn) {
+                            $this->saveModifyLog($logType, "modify", "output_reject_in", $rejectIn->id, $dept, $rejectIn, array_merge((array) $rejectIn, $updateData));
+                        }
+
+                        $affectedRejectIn = $connection->table("output_reject_in")->whereIn("id", $rejectIns->pluck("id")->toArray())->update($updateData);
+                    }
+                }
+
+                $message = $affected." ".$label." berhasil diubah ke ".$modSoDet->color." - ".$modSoDet->size.($affectedRejectIn > 0 ? " (".$affectedRejectIn." Reject In ikut diubah)" : "").".";
+            }
+
+            $connection->commit();
+
+            Log::channel("modifySecondaryInOut")->info("Modify Secondary In Out berhasil: ".$message, $logContext + ["output_secondary_in_ids" => $inIds]);
+
+            return [
+                "status" => 200,
+                "message" => $message,
+            ];
+        } catch (\Throwable $e) {
+            $connection->rollBack();
+
+            Log::channel("modifySecondaryInOut")->error("Modify Secondary In Out error: ".$e->getMessage(), $logContext + ["trace" => $e->getTraceAsString()]);
+
+            return [
+                "status" => 500,
+                "message" => "Terjadi kesalahan sistem: ".$e->getMessage(),
+            ];
+        }
+    }
+
+    // Modify Reject In Out (Undo & Ubah SO Det)
+    public function modifyRejectInOut(Request $request) {
+        $lines = UserLine::select('line_id', "username")->where('Groupp', 'SEWING')->whereRaw("(Locked != 1 || Locked IS NULL)")->orderBy('line_id', 'asc')->get();
+
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno', 'styleno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+        $grades = DB::connection('mysql_sb')->table('output_reject_in')->select('grade')->whereNotNull('grade')->where('grade', '!=', '')->groupBy('grade')->orderBy('grade', 'asc')->pluck('grade');
+
+        return view("sewing.tools.modify-reject-in-out", ["lines" => $lines, "orders" => $orders, "grades" => $grades, "page" => "dashboard-sewing-eff"]);
+    }
+
+    // Department (qc / packing / finishing_proses) -> [output_type di output_reject_in, suffix tabel output_rejects/defects/undo]
+    private function rejectInOutDepartment($dept) {
+        switch ($dept) {
+            case "packing":
+                return ["packing", "_packing"];
+            case "finishing_proses":
+                return ["finishing_proses", ""];
+        }
+
+        return ["qc", ""];
+    }
+
+    // Status reject in berdasarkan output_reject_out_detail & status
+    private function rejectInOutStatusCondition($type) {
+        switch ($type) {
+            case "in_":
+                return "output_reject_out_detail.id IS NULL AND output_reject_in.status = 'rejected'";
+            case "out_":
+                return "output_reject_out_detail.id IS NOT NULL";
+            case "reworked_":
+                return "output_reject_out_detail.id IS NULL AND output_reject_in.status = 'reworked'";
+        }
+
+        return null;
+    }
+
+    // Base query output_reject_in + output_reject_out_detail, filter department, master plan & grade ('-' = tanpa grade)
+    private function rejectInOutBaseQuery($dept, $masterPlanId, $grade = null) {
+        [$outputType, $suffix] = $this->rejectInOutDepartment($dept);
+
+        $query = DB::connection("mysql_sb")->table("output_reject_in")
+            ->leftJoin("output_reject_out_detail", "output_reject_out_detail.reject_in_id", "=", "output_reject_in.id")
+            ->where("output_reject_in.output_type", $outputType)
+            ->where("output_reject_in.master_plan_id", $masterPlanId)
+            // Hanya data tanpa QR (kode_numbering null)
+            ->whereNull("output_reject_in.kode_numbering");
+
+        if ($outputType == "finishing_proses") {
+            // Finishing Proses: reject_id = output_secondary_out_reject.id -> secondary out -> secondary in -> output_rfts (semua tanpa QR)
+            $query->join("output_secondary_out_reject", "output_secondary_out_reject.id", "=", "output_reject_in.reject_id")
+                ->join("output_secondary_out", "output_secondary_out.id", "=", "output_secondary_out_reject.secondary_out_id")
+                ->join("output_secondary_in", "output_secondary_in.id", "=", "output_secondary_out.secondary_in_id")
+                ->join("output_rfts", "output_rfts.id", "=", "output_secondary_in.rft_id")
+                ->whereNull("output_secondary_out_reject.kode_numbering")
+                ->whereNull("output_secondary_in.kode_numbering")
+                ->whereNull("output_rfts.kode_numbering");
+        }
+
+        if ($grade == "-") {
+            $query->whereRaw("(output_reject_in.grade IS NULL OR output_reject_in.grade = '')");
+        } else if ($grade) {
+            $query->where("output_reject_in.grade", $grade);
+        }
+
+        return $query;
+    }
+
+    // Response: [{ id_ws, ws, style, color, so_det_id, size, dest, reject_in, reject_out, reject_reworked }]
+    public function getMasterPlanRejectInOutSize(Request $request) {
+        if (!$request->id) {
+            return [];
+        }
+
+        return $this->rejectInOutBaseQuery($request->department, $request->id, $request->grade)
+            ->leftJoin("so_det", "so_det.id", "=", "output_reject_in.so_det_id")
+            ->leftJoin("so", "so.id", "=", "so_det.id_so")
+            ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+            ->selectRaw("
+                act_costing.id as id_ws,
+                act_costing.kpno as ws,
+                act_costing.styleno as style,
+                so_det.color,
+                so_det.size,
+                so_det.dest,
+                output_reject_in.so_det_id,
+                COUNT(DISTINCT CASE WHEN ".$this->rejectInOutStatusCondition("in_")." THEN output_reject_in.id END) as reject_in,
+                COUNT(DISTINCT CASE WHEN ".$this->rejectInOutStatusCondition("out_")." THEN output_reject_in.id END) as reject_out,
+                COUNT(DISTINCT CASE WHEN ".$this->rejectInOutStatusCondition("reworked_")." THEN output_reject_in.id END) as reject_reworked
+            ")
+            ->groupBy("output_reject_in.so_det_id")
+            ->orderBy("so_det.id", "asc")
+            ->get();
+    }
+
+    public function modifyRejectInOutAction(Request $request) {
+        $typeLabels = ["in_" => "REJECT IN", "out_" => "REJECT OUT", "reworked_" => "REJECT REWORKED"];
+        $isUndo = $request->action == "undo";
+        $qty = (int) $request->qty;
+
+        $logContext = [
+            "action" => $isUndo ? "undo" : "modify",
+            "request" => $request->only(["dept", "tanggal", "line", "master_plan_id", "grade", "so_det_id", "mod_so_det_id", "qty", "type"]),
+            "user" => Auth::user() ? Auth::user()->username : null,
+        ];
+
+        $fail = function ($status, $message) use ($logContext) {
+            Log::channel("modifyRejectInOut")->warning("Modify Reject In Out gagal: ".$message, $logContext);
+
+            return ["status" => $status, "message" => $message];
+        };
+
+        if (!isset($typeLabels[$request->type])) {
+            return $fail(400, "Tipe tidak valid.");
+        }
+
+        // Undo REJECT REWORKED dinonaktifkan: tanpa QR tidak bisa dipastikan RFT hasil rework belum ada (risiko double output)
+        if ($isUndo && $request->type == "reworked_") {
+            return $fail(400, "Undo REJECT REWORKED tidak tersedia.");
+        }
+
+        if (!$request->tanggal || !$request->line || !$request->master_plan_id || !$request->so_det_id || $qty <= 0 || (!$isUndo && !$request->mod_so_det_id)) {
+            return $fail(400, "Harap isi form dengan lengkap.");
+        }
+
+        if (!$isUndo && $request->mod_so_det_id == $request->so_det_id) {
+            return $fail(400, "Size tujuan sama dengan size asal.");
+        }
+
+        if (checkClosingDate($request->tanggal)) {
+            return $fail(400, "Data tidak dapat disimpan karena periode sudah ditutup.") + ["additional" => "Closing"];
+        }
+
+        [$outputType, $suffix] = $this->rejectInOutDepartment($request->dept);
+        $isFinishingProses = $outputType == "finishing_proses";
+        $type = $request->type;
+        $label = $typeLabels[$type];
+        $logType = "reject_".rtrim($type, "_");
+        $dept = $outputType;
+
+        $connection = DB::connection("mysql_sb");
+        $connection->beginTransaction();
+
+        try {
+            $rows = $this->rejectInOutBaseQuery($request->dept, $request->master_plan_id, $request->grade)
+                ->selectRaw("output_reject_in.*, output_reject_out_detail.id as reject_out_detail_id, output_reject_out_detail.created_at as out_created_at".
+                    ($isFinishingProses ? ", output_secondary_in.rft_id as fp_rft_id, output_rfts.created_at as fp_rft_created_at" : ""))
+                ->whereRaw($this->rejectInOutStatusCondition($type))
+                ->where("output_reject_in.so_det_id", $request->so_det_id)
+                ->orderBy("output_reject_in.id", "desc")
+                ->limit($qty)
+                ->lockForUpdate()
+                ->get();
+
+            if ($rows->isEmpty()) {
+                $connection->rollBack();
+
+                return $fail(400, "Data ".$label." tanpa kode numbering (QR) tidak ditemukan.");
+            }
+
+            // Validasi closing per data
+            foreach ($rows as $row) {
+                // Finishing Proses modify mengubah output_rfts, ikut cek closing RFT
+                foreach (array_filter([$row->created_at, $row->out_created_at, ($isFinishingProses && !$isUndo) ? $row->fp_rft_created_at : null]) as $date) {
+                    if (checkClosingDate(date("Y-m-d", strtotime($date)))) {
+                        $connection->rollBack();
+
+                        return $fail(400, "Data ".$label." dengan ID : '".$row->id."' termasuk ke periode yang sudah ditutup.") + ["additional" => "Closing"];
+                    }
+                }
+            }
+
+            $rejectInIds = $rows->pluck("id")->toArray();
+
+            if ($isUndo) {
+                if ($type == "out_") {
+                    // REJECT OUT -> hapus dari reject out, kembali ke REJECT IN
+                    $affected = $this->undoRejectOutDetail($rejectInIds, $logType, $dept);
+
+                    $message = $affected." ".$label." berhasil di UNDO (kembali ke Reject In).";
+                } else {
+                    // REJECT IN -> hapus detail position, detail & reject in
+                    $rejectInDetails = $connection->table("output_reject_in_detail")->whereIn("reject_in_id", $rejectInIds)->get();
+                    $rejectInDetailIds = $rejectInDetails->pluck("id")->toArray();
+
+                    if (count($rejectInDetailIds) > 0) {
+                        $this->logModifyRows($logType, "undo", "output_reject_in_detail_position", $dept, $connection->table("output_reject_in_detail_position")->whereIn("reject_in_detail_id", $rejectInDetailIds)->get());
+                        $connection->table("output_reject_in_detail_position")->whereIn("reject_in_detail_id", $rejectInDetailIds)->delete();
+                    }
+
+                    $this->logModifyRows($logType, "undo", "output_reject_in_detail", $dept, $rejectInDetails);
+                    $connection->table("output_reject_in_detail")->whereIn("reject_in_id", $rejectInIds)->delete();
+
+                    $this->logModifyRows($logType, "undo", "output_reject_in", $dept, $connection->table("output_reject_in")->whereIn("id", $rejectInIds)->get());
+                    $affected = $connection->table("output_reject_in")->whereIn("id", $rejectInIds)->delete();
+
+                    $message = $affected." ".$label." berhasil di UNDO.";
+                }
+            } else {
+                // Size tujuan
+                $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+                    ->leftJoin("so", "so.id", "=", "so_det.id_so")
+                    ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+                    ->where("so_det.id", $request->mod_so_det_id)
+                    ->first();
+
+                if (!$modSoDet) {
+                    $connection->rollBack();
+
+                    return $fail(400, "Size tujuan tidak ditemukan.");
+                }
+
+                // Master plan tujuan (tanggal & line yang sama)
+                $modMasterPlan = MasterPlan::select("master_plan.id")
+                    ->where("tgl_plan", $request->tanggal)
+                    ->where("id_ws", $modSoDet->id_ws)
+                    ->where("color", $modSoDet->color)
+                    ->where("sewing_line", $request->line)
+                    ->whereRaw("(cancel IS NULL or cancel = 'N')")
+                    ->first();
+
+                if (!$modMasterPlan) {
+                    $connection->rollBack();
+
+                    return $fail(400, "Master Plan untuk size tujuan tidak ditemukan.");
+                }
+
+                $updateData = [
+                    "so_det_id" => $modSoDet->id,
+                    "master_plan_id" => $modMasterPlan->id,
+                ];
+
+                // Reject In
+                foreach ($connection->table("output_reject_in")->whereIn("id", $rejectInIds)->get() as $beforeRejectIn) {
+                    $this->saveModifyLog($logType, "modify", "output_reject_in", $beforeRejectIn->id, $dept, $beforeRejectIn, array_merge((array) $beforeRejectIn, $updateData));
+                }
+
+                $affected = $connection->table("output_reject_in")->whereIn("id", $rejectInIds)->update($updateData);
+
+                // Reject asal (output_rejects) & defect asal ikut diubah
+                $rejectIds = $rows->pluck("reject_id")->filter()->unique()->values()->toArray();
+                $affectedReject = 0;
+                $affectedDefect = 0;
+
+                if ($isFinishingProses) {
+                    // Finishing Proses: so_det asal ada di output_rfts (QC RFT ikut berubah) + Reject In Finishing Proses lain dari RFT tersebut
+                    $rftIds = $rows->pluck("fp_rft_id")->filter()->unique()->values()->toArray();
+
+                    [$affectedRft, $affectedOtherRejectIn] = $this->updateFinishingProsesRft($rftIds, $updateData, $logType, $dept, $rejectInIds);
+
+                    $message = $affected." ".$label." berhasil diubah ke ".$modSoDet->color." - ".$modSoDet->size.
+                        ($affectedRft > 0 ? "<br>".$affectedRft." Garment (QC RFT & Secondary) ikut diubah" : "").
+                        ($affectedOtherRejectIn > 0 ? "<br>".$affectedOtherRejectIn." Reject In Finishing Proses lain dari garment yang sama ikut diubah" : "").".";
+                } else if (count($rejectIds) > 0) {
+                    $beforeRejects = $connection->table("output_rejects".$suffix)->whereIn("id", $rejectIds)->whereNull("kode_numbering")->get();
+
+                    foreach ($beforeRejects as $beforeReject) {
+                        $this->saveModifyLog($logType, "modify", "output_rejects".$suffix, $beforeReject->id, $dept, $beforeReject, array_merge((array) $beforeReject, $updateData));
+                    }
+
+                    $affectedReject = $connection->table("output_rejects".$suffix)->whereIn("id", $rejectIds)->whereNull("kode_numbering")->update($updateData);
+
+                    $defectIds = $beforeRejects->pluck("defect_id")->filter()->unique()->values()->toArray();
+
+                    if (count($defectIds) > 0) {
+                        foreach ($connection->table("output_defects".$suffix)->whereIn("id", $defectIds)->whereNull("kode_numbering")->get() as $beforeDefect) {
+                            $this->saveModifyLog($logType, "modify", "output_defects".$suffix, $beforeDefect->id, $dept, $beforeDefect, array_merge((array) $beforeDefect, $updateData));
+                        }
+
+                        $affectedDefect = $connection->table("output_defects".$suffix)->whereIn("id", $defectIds)->whereNull("kode_numbering")->update($updateData);
+                    }
+                }
+
+                if (!$isFinishingProses) {
+                    $message = $affected." ".$label." berhasil diubah ke ".$modSoDet->color." - ".$modSoDet->size.
+                        ($affectedReject > 0 ? "<br>".$affectedReject." Reject ikut diubah" : "").
+                        ($affectedDefect > 0 ? "<br>".$affectedDefect." Defect ikut diubah" : "").".";
+                }
+            }
+
+            $connection->commit();
+
+            Log::channel("modifyRejectInOut")->info("Modify Reject In Out berhasil: ".$message, $logContext + ["output_reject_in_ids" => $rejectInIds]);
+
+            return [
+                "status" => 200,
+                "message" => $message,
+            ];
+        } catch (\Throwable $e) {
+            $connection->rollBack();
+
+            Log::channel("modifyRejectInOut")->error("Modify Reject In Out error: ".$e->getMessage(), $logContext + ["trace" => $e->getTraceAsString()]);
+
+            return [
+                "status" => 500,
+                "message" => "Terjadi kesalahan sistem: ".$e->getMessage(),
+            ];
+        }
+    }
+
+    // Hapus reject out detail (+ gudang stok & header reject out yang kosong), dipakai di dalam transaksi
+    private function undoRejectOutDetail($rejectInIds, $logType, $dept) {
+        $connection = DB::connection("mysql_sb");
+
+        $rejectOutDetails = $connection->table("output_reject_out_detail")->whereIn("reject_in_id", $rejectInIds)->get();
+        if ($rejectOutDetails->isEmpty()) {
+            return 0;
+        }
+
+        $rejectOutDetailIds = $rejectOutDetails->pluck("id")->toArray();
+        $rejectOutIds = $rejectOutDetails->pluck("reject_out_id")->filter()->unique()->values()->toArray();
+
+        // Gudang stok (output_gudang_stok.reject_out_id = output_reject_out_detail.id, lihat model OutputGudangStok)
+        $gudangStoks = $connection->table("output_gudang_stok")->whereIn("reject_out_id", $rejectOutDetailIds)->get();
+
+        if ($gudangStoks->isNotEmpty()) {
+            $this->logModifyRows($logType, "undo", "output_gudang_stok", $dept, $gudangStoks);
+
+            // Catat ke output_undo_gudang_stok (sama seperti undo gudang stok di tools lain)
+            $connection->table("output_undo_gudang_stok")->insert($gudangStoks->map(function ($gudangStok) {
+                return [
+                    "kode_numbering" => $gudangStok->kode_numbering,
+                    "output_id" => $gudangStok->id,
+                    "so_det_id" => $gudangStok->so_det_id,
+                    "reject_out_id" => $gudangStok->reject_out_id,
+                    "packing_po_id" => $gudangStok->packing_po_id,
+                    "type" => $gudangStok->type,
+                    // created_by di tabel undo bigint, di gudang stok varchar
+                    "created_by" => is_numeric($gudangStok->created_by) ? $gudangStok->created_by : null,
+                    "created_by_username" => $gudangStok->created_by_username,
+                    "created_by_line" => $gudangStok->created_by_line,
+                    "created_at" => $gudangStok->created_at,
+                    "updated_at" => $gudangStok->updated_at,
+                    "undo_by_nds" => Auth::user()->id,
+                    "undo_at" => Carbon::now(),
+                ];
+            })->toArray());
+
+            $connection->table("output_gudang_stok")->whereIn("id", $gudangStoks->pluck("id")->toArray())->delete();
+        }
+
+        $this->logModifyRows($logType, "undo", "output_reject_out_detail", $dept, $rejectOutDetails);
+        $affected = $connection->table("output_reject_out_detail")->whereIn("id", $rejectOutDetailIds)->delete();
+
+        // Hapus header reject out yang sudah tidak punya detail
+        if (count($rejectOutIds) > 0) {
+            $emptyRejectOuts = $connection->table("output_reject_out")
+                ->whereIn("id", $rejectOutIds)
+                ->whereNotExists(function ($q) {
+                    $q->selectRaw("1")->from("output_reject_out_detail")->whereColumn("output_reject_out_detail.reject_out_id", "output_reject_out.id");
+                })
+                ->get();
+
+            if ($emptyRejectOuts->isNotEmpty()) {
+                $this->logModifyRows($logType, "undo", "output_reject_out", $dept, $emptyRejectOuts);
+                $connection->table("output_reject_out")->whereIn("id", $emptyRejectOuts->pluck("id")->toArray())->delete();
+            }
+        }
+
+        return $affected;
+    }
+
+    // Reject In Finishing Proses terhubung lewat output_reject_in.reject_id = output_secondary_out_reject.id
+    private function secondaryRejectInQuery($secondaryOutIds) {
+        return DB::connection("mysql_sb")->table("output_reject_in")
+            ->where("output_type", "finishing_proses")
+            ->whereIn("reject_id", function ($q) use ($secondaryOutIds) {
+                $q->select("id")->from("output_secondary_out_reject")->whereIn("secondary_out_id", count($secondaryOutIds) > 0 ? $secondaryOutIds : [0]);
+            });
+    }
+
+    // Log setiap baris yang akan dihapus ke output_modify_logs
+    private function logModifyRows($type, $actionType, $tableName, $dept, $rows) {
+        foreach ($rows as $row) {
+            $this->saveModifyLog($type, $actionType, $tableName, $row->id, $dept, $row, null);
+        }
+    }
+
+    // Department (qc / packing / finishing_proses) -> [output_type di output_defect_in_out, suffix tabel output_defects/reworks/rfts]
+    private function defectInOutDepartment($dept) {
+        switch ($dept) {
+            case "packing":
+                return ["packing", "_packing"];
+            case "finishing_proses":
+                return ["finishing_proses", ""];
+        }
+
+        return ["qc", ""];
+    }
+
+    // Kolom so_det asal: qc/packing di output_defects, finishing proses di output_rfts (lewat secondary out defect -> out -> in)
+    private function defectInOutSoDetColumn($dept) {
+        return $this->defectInOutDepartment($dept)[0] == "finishing_proses" ? "output_rfts.so_det_id" : "output_defects.so_det_id";
+    }
+
+    // Base query output_defect_in_out + defect asal, filter master plan & type (output_defect_types.allocation)
+    private function defectInOutBaseQuery($dept, $masterPlanId, $allocation = null) {
+        [$outputType, $suffix] = $this->defectInOutDepartment($dept);
+
+        $query = DB::connection("mysql_sb")->table("output_defect_in_out")
+            ->where("output_defect_in_out.output_type", $outputType)
+            // Hanya data tanpa QR (kode_numbering null)
+            ->whereNull("output_defect_in_out.kode_numbering");
+
+        if ($outputType == "finishing_proses") {
+            // Finishing Proses: defect_id = output_secondary_out_defect.id, so_det dari output_rfts
+            $query->join("output_secondary_out_defect", "output_secondary_out_defect.id", "=", "output_defect_in_out.defect_id")
+                ->join("output_secondary_out", "output_secondary_out.id", "=", "output_secondary_out_defect.secondary_out_id")
+                ->join("output_secondary_in", "output_secondary_in.id", "=", "output_secondary_out.secondary_in_id")
+                ->join("output_rfts", "output_rfts.id", "=", "output_secondary_in.rft_id")
+                ->where("output_rfts.master_plan_id", $masterPlanId)
+                ->whereNull("output_secondary_out_defect.kode_numbering")
+                ->whereNull("output_secondary_in.kode_numbering")
+                ->whereNull("output_rfts.kode_numbering");
+
+            $defectTypeColumn = "output_secondary_out_defect.defect_type_id";
+        } else {
+            $query->join("output_defects".$suffix." as output_defects", "output_defects.id", "=", "output_defect_in_out.defect_id")
+                ->where("output_defects.master_plan_id", $masterPlanId)
+                ->whereNull("output_defects.kode_numbering");
+
+            $defectTypeColumn = "output_defects.defect_type_id";
+        }
+
+        if ($allocation) {
+            $query->join("output_defect_types", "output_defect_types.id", "=", $defectTypeColumn)
+                ->where("output_defect_types.allocation", $allocation);
+        }
+
+        return $query;
+    }
+
+    // Finishing Proses: ubah so_det di output_rfts (tanpa QR) + semua Reject In Finishing Proses dari RFT tersebut. Dipakai di dalam transaksi
+    private function updateFinishingProsesRft($rftIds, $updateData, $logType, $dept, $excludeRejectInIds = []) {
+        $connection = DB::connection("mysql_sb");
+
+        if (count($rftIds) < 1) {
+            return [0, 0];
+        }
+
+        $beforeRfts = $connection->table("output_rfts")->whereIn("id", $rftIds)->whereNull("kode_numbering")->get();
+        foreach ($beforeRfts as $beforeRft) {
+            $this->saveModifyLog($logType, "modify", "output_rfts", $beforeRft->id, $dept, $beforeRft, array_merge((array) $beforeRft, $updateData));
+        }
+
+        $affectedRft = $connection->table("output_rfts")->whereIn("id", $rftIds)->whereNull("kode_numbering")->update($updateData);
+
+        $rejectIns = $connection->table("output_reject_in")
+            ->where("output_type", "finishing_proses")
+            ->whereNull("kode_numbering")
+            ->whereNotIn("id", count($excludeRejectInIds) > 0 ? $excludeRejectInIds : [0])
+            ->whereIn("reject_id", function ($q) use ($rftIds) {
+                $q->select("output_secondary_out_reject.id")
+                    ->from("output_secondary_out_reject")
+                    ->join("output_secondary_out", "output_secondary_out.id", "=", "output_secondary_out_reject.secondary_out_id")
+                    ->join("output_secondary_in", "output_secondary_in.id", "=", "output_secondary_out.secondary_in_id")
+                    ->whereIn("output_secondary_in.rft_id", $rftIds);
+            })
+            ->get();
+
+        $affectedRejectIn = 0;
+        if ($rejectIns->isNotEmpty()) {
+            foreach ($rejectIns as $rejectIn) {
+                $this->saveModifyLog($logType, "modify", "output_reject_in", $rejectIn->id, $dept, $rejectIn, array_merge((array) $rejectIn, $updateData));
+            }
+
+            $affectedRejectIn = $connection->table("output_reject_in")->whereIn("id", $rejectIns->pluck("id")->toArray())->update($updateData);
+        }
+
+        return [$affectedRft, $affectedRejectIn];
+    }
+
+    // Response: [{ id_ws, ws, style, color, so_det_id, size, dest, defect_in, defect_out }]
+    public function getMasterPlanDefectInOutSize(Request $request) {
+        if (!$request->id) {
+            return [];
+        }
+
+        $soDetColumn = $this->defectInOutSoDetColumn($request->department);
+
+        return $this->defectInOutBaseQuery($request->department, $request->id, $request->allocation)
+            ->leftJoin("so_det", "so_det.id", "=", $soDetColumn)
+            ->leftJoin("so", "so.id", "=", "so_det.id_so")
+            ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+            ->selectRaw("
+                act_costing.id as id_ws,
+                act_costing.kpno as ws,
+                act_costing.styleno as style,
+                so_det.color,
+                so_det.size,
+                so_det.dest,
+                ".$soDetColumn." as so_det_id,
+                SUM(CASE WHEN output_defect_in_out.status = 'defect' THEN 1 ELSE 0 END) as defect_in,
+                SUM(CASE WHEN output_defect_in_out.status = 'reworked' THEN 1 ELSE 0 END) as defect_out
+            ")
+            ->groupBy($soDetColumn)
+            ->orderBy("so_det.id", "asc")
+            ->get();
+    }
+
+    public function modifyDefectInOutAction(Request $request) {
+        $statusMap = ["in_" => "defect", "out_" => "reworked"];
+        $isUndo = $request->action == "undo";
+        $qty = (int) $request->qty;
+
+        $logContext = [
+            "action" => $isUndo ? "undo" : "modify",
+            "request" => $request->only(["dept", "tanggal", "line", "master_plan_id", "allocation", "so_det_id", "mod_so_det_id", "qty", "type"]),
+            "user" => Auth::user() ? Auth::user()->username : null,
+        ];
+
+        $fail = function ($status, $message) use ($logContext) {
+            Log::channel("modifyDefectInOut")->warning("Modify Defect In Out gagal: ".$message, $logContext);
+
+            return ["status" => $status, "message" => $message];
+        };
+
+        if (!isset($statusMap[$request->type])) {
+            return $fail(400, "Tipe tidak valid.");
+        }
+
+        if (!$request->tanggal || !$request->line || !$request->master_plan_id || !$request->so_det_id || $qty <= 0 || (!$isUndo && !$request->mod_so_det_id)) {
+            return $fail(400, "Harap isi form dengan lengkap.");
+        }
+
+        if (!$isUndo && $request->mod_so_det_id == $request->so_det_id) {
+            return $fail(400, "Size tujuan sama dengan size asal.");
+        }
+
+        if (checkClosingDate($request->tanggal)) {
+            return $fail(400, "Data tidak dapat disimpan karena periode sudah ditutup.") + ["additional" => "Closing"];
+        }
+
+        [$outputType, $suffix] = $this->defectInOutDepartment($request->dept);
+        $isFinishingProses = $outputType == "finishing_proses";
+        $dept = $outputType;
+        $status = $statusMap[$request->type];
+        $logType = $request->type == "in_" ? "defect_in" : "defect_out";
+
+        $connection = DB::connection("mysql_sb");
+        $connection->beginTransaction();
+
+        try {
+            $rows = $this->defectInOutBaseQuery($request->dept, $request->master_plan_id, $request->allocation)
+                ->selectRaw("output_defect_in_out.*".($isFinishingProses ? ", output_secondary_in.rft_id as fp_rft_id, output_rfts.created_at as fp_rft_created_at" : ""))
+                ->where("output_defect_in_out.status", $status)
+                ->where($this->defectInOutSoDetColumn($request->dept), $request->so_det_id)
+                ->orderBy("output_defect_in_out.id", "desc")
+                ->limit($qty)
+                ->lockForUpdate()
+                ->get();
+
+            if ($rows->isEmpty()) {
+                $connection->rollBack();
+
+                return $fail(400, "Data Defect In Out tanpa kode numbering (QR) tidak ditemukan.");
+            }
+
+            // Validasi closing per data
+            foreach ($rows as $row) {
+                // Finishing Proses modify mengubah output_rfts, ikut cek closing RFT
+                $dates = array_filter([$row->created_at, ($isFinishingProses && !$isUndo) ? $row->fp_rft_created_at : null]);
+
+                foreach ($dates as $date) {
+                    if (checkClosingDate(date("Y-m-d", strtotime($date)))) {
+                        $connection->rollBack();
+
+                        return $fail(400, "Data Defect In Out dengan ID : '".$row->id."' termasuk ke periode yang sudah ditutup.") + ["additional" => "Closing"];
+                    }
+                }
+            }
+
+            $inOutIds = $rows->pluck("id")->toArray();
+
+            if ($isUndo) {
+                // Data asli (tanpa kolom tambahan join) untuk log
+                $beforeInOuts = $connection->table("output_defect_in_out")->whereIn("id", $inOutIds)->get();
+
+                if ($status == "reworked") {
+                    // DEFECT OUT -> kembali ke DEFECT IN (sama seperti Undo Defect In Out)
+                    foreach ($beforeInOuts as $row) {
+                        $this->saveModifyLog($logType, "undo", "output_defect_in_out", $row->id, $dept, $row, array_merge((array) $row, ["status" => "defect"]));
+                    }
+
+                    $affected = $connection->table("output_defect_in_out")->whereIn("id", $inOutIds)->update(["status" => "defect"]);
+
+                    $message = $affected." DEFECT OUT berhasil di UNDO menjadi DEFECT IN.";
+                } else {
+                    // DEFECT IN -> hapus data in out
+                    foreach ($beforeInOuts as $row) {
+                        $this->saveModifyLog($logType, "undo", "output_defect_in_out", $row->id, $dept, $row, null);
+                    }
+
+                    $affected = $connection->table("output_defect_in_out")->whereIn("id", $inOutIds)->delete();
+
+                    $message = $affected." DEFECT IN berhasil di UNDO.";
+                }
+            } else {
+                // Size tujuan
+                $modSoDet = SoDet::selectRaw("so_det.id, act_costing.id id_ws, so_det.color, so_det.size")
+                    ->leftJoin("so", "so.id", "=", "so_det.id_so")
+                    ->leftJoin("act_costing", "act_costing.id", "=", "so.id_cost")
+                    ->where("so_det.id", $request->mod_so_det_id)
+                    ->first();
+
+                if (!$modSoDet) {
+                    $connection->rollBack();
+
+                    return $fail(400, "Size tujuan tidak ditemukan.");
+                }
+
+                // Master plan tujuan (tanggal & line yang sama)
+                $modMasterPlan = MasterPlan::select("master_plan.id")
+                    ->where("tgl_plan", $request->tanggal)
+                    ->where("id_ws", $modSoDet->id_ws)
+                    ->where("color", $modSoDet->color)
+                    ->where("sewing_line", $request->line)
+                    ->whereRaw("(cancel IS NULL or cancel = 'N')")
+                    ->first();
+
+                if (!$modMasterPlan) {
+                    $connection->rollBack();
+
+                    return $fail(400, "Master Plan untuk size tujuan tidak ditemukan.");
+                }
+
+                $updateData = [
+                    "so_det_id" => $modSoDet->id,
+                    "master_plan_id" => $modMasterPlan->id,
+                ];
+
+                $defectIds = $rows->pluck("defect_id")->unique()->values()->toArray();
+                $selectedLabel = count($inOutIds)." ".($status == "defect" ? "DEFECT IN" : "DEFECT OUT")." dipilih";
+
+                if ($isFinishingProses) {
+                    // Finishing Proses: so_det ada di output_rfts (QC RFT ikut berubah) + Reject In Finishing Proses dari RFT tersebut
+                    $rftIds = $rows->pluck("fp_rft_id")->unique()->values()->toArray();
+
+                    [$affected, $affectedRejectIn] = $this->updateFinishingProsesRft($rftIds, $updateData, $logType, $dept);
+
+                    // Semua defect in/out finishing proses dari RFT tersebut ikut berpindah
+                    $movedInOut = $connection->table("output_defect_in_out")
+                        ->where("output_type", "finishing_proses")
+                        ->whereIn("defect_id", function ($q) use ($rftIds) {
+                            $q->select("output_secondary_out_defect.id")
+                                ->from("output_secondary_out_defect")
+                                ->join("output_secondary_out", "output_secondary_out.id", "=", "output_secondary_out_defect.secondary_out_id")
+                                ->join("output_secondary_in", "output_secondary_in.id", "=", "output_secondary_out.secondary_in_id")
+                                ->whereIn("output_secondary_in.rft_id", $rftIds);
+                        })
+                        ->count();
+
+                    $message = $affected." Garment (".$selectedLabel.") berhasil diubah ke ".$modSoDet->color." - ".$modSoDet->size.
+                        "<br>Size QC RFT & Secondary garment tersebut ikut berubah".
+                        ($movedInOut > count($inOutIds) ? "<br>Total ".$movedInOut." data Defect In/Out ikut berpindah karena garment yang sama" : "").
+                        ($affectedRejectIn > 0 ? "<br>".$affectedRejectIn." Reject In Finishing Proses ikut diubah" : "").".";
+                } else {
+                    // Defect (so_det ada di output_defects)
+                    $beforeDefects = $connection->table("output_defects".$suffix)->whereIn("id", $defectIds)->whereNull("kode_numbering")->get();
+                    foreach ($beforeDefects as $beforeDefect) {
+                        $this->saveModifyLog($logType, "modify", "output_defects".$suffix, $beforeDefect->id, $dept, $beforeDefect, array_merge((array) $beforeDefect, $updateData));
+                    }
+
+                    $affected = $connection->table("output_defects".$suffix)->whereIn("id", $defectIds)->whereNull("kode_numbering")->update($updateData);
+
+                    // RFT hasil rework dari defect tersebut ikut diubah
+                    $reworkIds = $connection->table("output_reworks".$suffix)->whereIn("defect_id", $defectIds)->pluck("id")->toArray();
+
+                    $affectedRft = 0;
+                    if (count($reworkIds) > 0) {
+                        $beforeRfts = $connection->table("output_rfts".$suffix)->whereIn("rework_id", $reworkIds)->whereNull("kode_numbering")->get();
+                        foreach ($beforeRfts as $beforeRft) {
+                            $this->saveModifyLog($logType, "modify", "output_rfts".$suffix, $beforeRft->id, $dept, $beforeRft, array_merge((array) $beforeRft, $updateData));
+                        }
+
+                        $affectedRft = $connection->table("output_rfts".$suffix)->whereIn("rework_id", $reworkIds)->whereNull("kode_numbering")->update($updateData);
+                    }
+
+                    // Hitung semua in/out yang ikut berpindah (satu defect bisa punya beberapa in/out)
+                    $movedInOut = $connection->table("output_defect_in_out")->where("output_type", $outputType)->whereIn("defect_id", $defectIds)->count();
+
+                    $message = $affected." Defect (".$selectedLabel.") berhasil diubah ke ".$modSoDet->color." - ".$modSoDet->size.
+                        ($movedInOut > count($inOutIds) ? "<br>Total ".$movedInOut." data Defect In/Out ikut berpindah karena defect yang sama" : "").
+                        ($affectedRft > 0 ? "<br>".$affectedRft." RFT rework ikut diubah" : "").".";
+                }
+            }
+
+            $connection->commit();
+
+            Log::channel("modifyDefectInOut")->info("Modify Defect In Out berhasil: ".$message, $logContext + ["output_defect_in_out_ids" => $inOutIds]);
+
+            return [
+                "status" => 200,
+                "message" => $message,
+            ];
+        } catch (\Throwable $e) {
+            $connection->rollBack();
+
+            Log::channel("modifyDefectInOut")->error("Modify Defect In Out error: ".$e->getMessage(), $logContext + ["trace" => $e->getTraceAsString()]);
+
+            return [
+                "status" => 500,
+                "message" => "Terjadi kesalahan sistem: ".$e->getMessage(),
+            ];
+        }
+    }
+
     // Deprecated
         // public function modifyOutputAction(Request $request) {
         //     switch ($request->type) {
