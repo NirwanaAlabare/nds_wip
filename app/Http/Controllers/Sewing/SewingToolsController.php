@@ -4793,7 +4793,12 @@ class SewingToolsController extends Controller
                         ->where("output_rfts.so_det_id", $request->so_det_id);
 
                     if ($request->dept == "_packing_po") {
-                        $rfts->where("ppic_master_so.po", $request->po_id);
+                        // po_id berisi nama PO, jika PO null pakai alokasi (sama dengan getMasterPlanOutputSize); kosong = tanpa PO & tanpa alokasi
+                        if ($request->po_id) {
+                            $rfts->whereRaw("COALESCE(ppic_master_so.po, UPPER(NULLIF(output_rfts.alokasi, ''))) = ?", [$request->po_id]);
+                        } else {
+                            $rfts->whereNull("output_rfts.po_id")->whereRaw("(output_rfts.alokasi IS NULL OR output_rfts.alokasi = '')");
+                        }
                     }
 
                     $rfts->take($request->qty);
@@ -4920,9 +4925,9 @@ class SewingToolsController extends Controller
                                 if ($modMasterPlan) {
                                     if ($request->dept == "_packing_po") {
                                         // Check Po
-                                        $modPo = PPICMasterSo::selectRaw("ppic_master_so.id")
+                                        $modPo = $request->mod_po_id ? PPICMasterSo::selectRaw("ppic_master_so.id")
                                             ->where("ppic_master_so.id", $request->mod_po_id)
-                                            ->first();
+                                            ->first() : null;
 
                                         $currentRft = [
                                             "so_det_id"       => $modSoDet->id,
