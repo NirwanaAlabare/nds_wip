@@ -455,6 +455,10 @@
         .pc-spot-l > span.d { display: block; color: #3d4450; font-size: 12.5px; line-height: 1.5; margin-top: 3px; }
         .pc-spot-l > span.d b { color: #082149; }
         .pc-spot-l small { display: block; font-weight: 400; color: #6c757d; font-size: 11.5px; margin-top: 6px; padding-top: 5px; border-top: 1px solid #e2e6ec; }
+        .pc-tour-wait { position: fixed; inset: 0; z-index: 1998; background: rgba(8,33,73,.45); display: grid; place-items: center; cursor: wait; animation: pcTwIn .2s ease-out; }
+        .pc-tour-wait > div { display: flex; align-items: center; gap: 10px; background: #fff; color: #082149; font-size: 13.5px; font-weight: 600; padding: 10px 18px; border-radius: 2rem; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+        .pc-tour-wait .spinner-border { color: #238380; }
+        @keyframes pcTwIn { from { opacity: 0; } }
         .pc-spot-cv { position: fixed; inset: 0; z-index: 1999; cursor: pointer; }
         @media (max-width: 576px) { .pc-map-grid { grid-template-columns: 1fr; } }
         @media (prefers-reduced-motion: reduce) { .pc-wrap *, .pc-flyer, .pc-thr { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
@@ -745,6 +749,20 @@
             const ageCls = a => a >= 30 ? 'b' : a >= 21 ? 'w' : '';
             const errMsg = x => (x && x.responseJSON && x.responseJSON.message) || (x && x.status ? `Error ${x.status}` : 'Koneksi bermasalah');
 
+            /* ===== tur otomatis: kunci halaman sampai sorotan pertama muncul ===== */
+            const TOUR_PENDING = (() => { try { return localStorage.getItem(PC.tourKey) !== '1'; } catch (e) { return false; } })();
+            const tourWaiting = () => !!$id('pc-tour-wait');
+            function hideTourWait() { const w = $id('pc-tour-wait'); if (w) w.remove(); }
+            if (TOUR_PENDING) {
+                const w = document.createElement('div'); w.id = 'pc-tour-wait'; w.className = 'pc-tour-wait';
+                w.innerHTML = '<div><span class="spinner-border spinner-border-sm"></span> Menyiapkan panduan halaman…</div>';
+                document.body.appendChild(w);
+                if (document.activeElement) document.activeElement.blur();
+                // tahan semua ketikan/scan selama overlay tampil
+                window.addEventListener('keydown', e => { if (tourWaiting()) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+                setTimeout(hideTourWait, 15000); // pengaman bila ada yang macet
+            }
+
             /* ===== state ===== */
             let TODAY = PC.today, ROWS = [], TODAY_ROWS = [], CARRY_TOT = {}, carryFrom = '';
             let curMonth = TODAY.slice(0, 7), loaded = false, prevPct = 0, showAll = false;
@@ -787,7 +805,7 @@
                     .fail((x, s) => {
                         if (s === 'abort') return;
                         const fail = `<div class="pc-skel text-danger">Gagal memuat ringkasan (${esc(errMsg(x))}).<br><button type="button" class="btn btn-sm btn-outline-danger mt-2 pc-retry">Coba lagi</button></div>`;
-                        $id('pc-sum').innerHTML = fail; $id('pc-sisa').innerHTML = fail; $id('pc-aktv').innerHTML = '';
+                        $id('pc-sum').innerHTML = fail; $id('pc-sisa').innerHTML = fail; $id('pc-aktv').innerHTML = ''; hideTourWait();
                     });
             }
             document.addEventListener('click', e => { if (e.target.closest('.pc-retry')) loadSummary(); });
@@ -1061,7 +1079,7 @@
 
             /* ===== scan ===== */
             const inp = $id('pc-scan');
-            function focus() { setTimeout(() => { if (!document.querySelector('.modal.show')) inp.focus({ preventScroll: true }); }, 20); }
+            function focus() { setTimeout(() => { if (!document.querySelector('.modal.show') && !tourWaiting()) inp.focus({ preventScroll: true }); }, 20); }
             document.querySelector('.pc-wrap').addEventListener('click', e => {
                 if (!e.target.closest('input,select,button,a,.pc-opt,.pc-br,.pc-kpi,.pc-kr,.pc-carry,#pc-reader-wrap,.pc-pop')) focus();
             });
@@ -1087,6 +1105,7 @@
                 const bc = String(raw || '').trim().toUpperCase();
                 inp.value = '';
                 if (!bc) return;
+                if (tourWaiting()) return;
                 if (busy) { queue.push(bc); return; }
                 busy = true; pending = null; pendingList = null; setStatus(true); sew();
                 $.ajax({ url: PC.urlScan + '/' + encodeURIComponent(bc), dataType: 'json' })
@@ -1324,8 +1343,8 @@
                 if (autoTried) return;
                 autoTried = true;
                 let seen = false; try { seen = localStorage.getItem(PC.tourKey) === '1'; } catch (e) {}
-                if (seen) return;
-                setTimeout(() => { if (spotIdx < 0 && !document.querySelector('.modal.show')) { tourFirst = true; spotGo(0); } }, 600);
+                if (seen) { hideTourWait(); return; }
+                setTimeout(() => { if (spotIdx < 0 && !document.querySelector('.modal.show')) { tourFirst = true; spotGo(0); } else hideTourWait(); }, 600);
             }
             function spotClear() {
                 spotTok++;
@@ -1334,6 +1353,7 @@
             }
             // tutup tur & kembali ke panduan di bagian langkah terakhir yang dilihat
             function spotOff() {
+                hideTourWait();
                 const st = STEPS[spotIdx], first = tourFirst;
                 spotClear(); spotIdx = -1;
                 if (first) { tourFirst = false; try { localStorage.setItem(PC.tourKey, '1'); } catch (e) {} }
@@ -1376,6 +1396,7 @@
                         if (b.dataset.nav === 'prev') spotGo(i - 1); else if (i === n - 1) spotOff(); else spotGo(i + 1);
                     };
                     document.body.append(cv, s, l);
+                    hideTourWait();
                     const lh = l.offsetHeight, below = r.bottom + 16 + lh < innerHeight;
                     l.style.left = Math.max(8, Math.min(innerWidth - l.offsetWidth - 8, r.left)) + 'px';
                     l.style.top = (below ? r.bottom + 16 : Math.max(8, r.top - lh - 16)) + 'px';
