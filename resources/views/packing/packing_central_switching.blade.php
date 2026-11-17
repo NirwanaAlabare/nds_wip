@@ -499,9 +499,9 @@
                 processResults: function(data) {
                     return {
                         results: data.map(item => ({
-                            id: (item.id_ppic_master_so ?? 0) + '-' + item.so_det_id + '-' + (item.packing_packing_in_id ?? 0),
+                            id: (item.id_ppic_master_so ?? 0) + '-' + item.so_det_id + '-' + (item.packing_packing_in_id ?? 0) + '-' + item.po,
                             ppic_id: item.id_ppic_master_so ?? 0,
-                            text: item.po + ' | ' + item.ws + ' | ' + item.color + ' | ' + item.size,
+                            text: (item.po || 'TANPA PO') + ' | ' + item.ws + ' | ' + item.color + ' | ' + item.size,
                             packing_packing_in_id: item.packing_packing_in_id,
                             so_det_id: item.so_det_id,
                             po: item.po,
@@ -545,10 +545,11 @@
 
             $('#banner-from-info').text('Transaksi dipilih');
 
-            sourceSelected = !!data.packing_packing_in_id;
+            // stok TANPA PO tidak punya packing_packing_in_id, cukup so_det_id
+            sourceSelected = !!data.so_det_id;
 
             updateBanner();
-            loadPreview(data.ppic_id, data.packing_packing_in_id, data.so_det_id);
+            loadPreview(data.ppic_id, data.packing_packing_in_id, data.so_det_id, data.po);
             checkSubmitReady();
         });
 
@@ -699,9 +700,9 @@
         }
 
         /* ── Load preview (simulasi — ganti dengan AJAX saat route siap) ── */
-        function loadPreview(noTrans, packing_packing_in_id, so_det_id) {
+        function loadPreview(noTrans, packing_packing_in_id, so_det_id, po) {
             const $body = $('#tbl-preview-body');
-            if (!packing_packing_in_id) {
+            if (!so_det_id) {
                 $body.html(`
                     <tr>
                         <td colspan="10" class="text-center text-muted py-4">
@@ -726,7 +727,8 @@
                 data: {
                     id_ppic_master_so: noTrans,
                     packing_packing_in_id: packing_packing_in_id,
-                    so_det_id: so_det_id
+                    so_det_id: so_det_id,
+                    po: po
                 },
                 success: function(res) {
                     renderPreview(res);
@@ -758,8 +760,8 @@
                 html += `
                 <tr>
                     <td class="text-center">${i + 1}</td>
-                    <td>${r.line}</td>
-                    <td>${r.barcode}</td>
+                    <td>${r.line || 'TANPA LINE'}</td>
+                    <td>${r.barcode || 'TANPA BARCODE'}</td>
                     <td>${r.po}</td>
                     <td>${r.ws}</td>
                     <td>${r.color}</td>
@@ -881,8 +883,8 @@
                 { data: 'po' },
                 { data: 'ws' },
                 { data: 'buyer' },
-                { data: 'line' },
-                { data: 'barcode' },
+                { data: 'line', render: function(data) { return data || 'TANPA LINE'; } },
+                { data: 'barcode', render: function(data) { return data || 'TANPA BARCODE'; } },
                 { data: 'styleno' },
                 { data: 'color' },
                 { data: 'size' },

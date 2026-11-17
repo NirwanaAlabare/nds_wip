@@ -22,7 +22,7 @@ class ManageUserLineController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $users = UserLine::selectRaw("userpassword.line_id as id, userpassword.FullName as name, userpassword.username, userpassword.Password as password, userpassword.Groupp as type, userpassword.Locked as locked, user_sb_wip.is_sample")->
+            $users = UserLine::selectRaw("userpassword.line_id as id, userpassword.FullName as name, userpassword.username, userpassword.Password as password, userpassword.Groupp as type, userpassword.Locked as locked, user_sb_wip.is_sample, user_sb_wip.updated_at")->
                 leftJoin("user_sb_wip", "userpassword.line_id", "=", "user_sb_wip.line_id")->
                 whereIn("Groupp", ["SEWING", "ALLSEWING", "MENDING", "SPOTCLEANING", "SHADING", "QCREJECT", "SECONDARYSEWINGIN", "SECONDARYSEWINGOUT", "SECONDARYSEWINGINOUT"])->
                 groupBy("userpassword.line_id")->
@@ -75,10 +75,10 @@ class ManageUserLineController extends Controller
                 $subUserArr = [];
 
                 // Required User
-                array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["username"]), "username" => $validatedRequest["username"], "password" => Hash::make($validatedRequest["password"]), "password_text" => $validatedRequest["password"], "line_id" => $maxId, "is_sample" => ($request["is_sample"] ? $request["is_sample"] : 0)]);
+                array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["username"]), "username" => $validatedRequest["username"], "password" => Hash::make($validatedRequest["password"]), "password_text" => $validatedRequest["password"], "line_id" => $maxId, "is_sample" => ($request["is_sample"] ? $request["is_sample"] : 0), "created_at" => now(), "updated_at" => now()]);
                 // Sub User
                 for ($i = 0; $i < $request['sub_user']; $i++) {
-                    array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["username"])."_".($i+1), "username" => $validatedRequest["username"]."_".($i+1), "password" => Hash::make($validatedRequest["password"]), "password_text" => $validatedRequest["password"], "line_id" => $maxId, "is_sample" => ($request["is_sample"] ? $request["is_sample"] : 0)]);
+                    array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["username"])."_".($i+1), "username" => $validatedRequest["username"]."_".($i+1), "password" => Hash::make($validatedRequest["password"]), "password_text" => $validatedRequest["password"], "line_id" => $maxId, "is_sample" => ($request["is_sample"] ? $request["is_sample"] : 0), "created_at" => now(), "updated_at" => now()]);
                 }
 
                 UserSbWip::insert($subUserArr);
@@ -180,10 +180,10 @@ class ManageUserLineController extends Controller
 
                 $subUserArr = [];
                 if ($totalSubUser < 1) {
-                    array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["edit_username"]), "username" => $validatedRequest["edit_username"], "password" => Hash::make($validatedRequest["edit_password"]), "password_text" => $validatedRequest["edit_password"], "line_id" => $validatedRequest["edit_id"], "is_sample" => $request["is_sample"] ? $request["is_sample"] : 0]);
+                    array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["edit_username"]), "username" => $validatedRequest["edit_username"], "password" => Hash::make($validatedRequest["edit_password"]), "password_text" => $validatedRequest["edit_password"], "line_id" => $validatedRequest["edit_id"], "is_sample" => $request["is_sample"] ? $request["is_sample"] : 0, "created_at" => now(), "updated_at" => now()]);
                 }
                 for ($i = 0; $i < $request['edit_sub_user']; $i++) {
-                    array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["edit_username"])."_".($totalSubUser+$i+1), "username" => $validatedRequest["edit_username"]."_".($totalSubUser+$i+1), "password" => Hash::make($validatedRequest["edit_password"]), "password_text" => $validatedRequest["edit_password"], "line_id" => $validatedRequest["edit_id"], "is_sample" => $request["is_sample"] ? $request["is_sample"] : 0]);
+                    array_push($subUserArr, ["name" => str_replace("_", " ", $validatedRequest["edit_username"])."_".($totalSubUser+$i+1), "username" => $validatedRequest["edit_username"]."_".($totalSubUser+$i+1), "password" => Hash::make($validatedRequest["edit_password"]), "password_text" => $validatedRequest["edit_password"], "line_id" => $validatedRequest["edit_id"], "is_sample" => $request["is_sample"] ? $request["is_sample"] : 0, "created_at" => now(), "updated_at" => now()]);
                 }
 
                 UserSbWip::insert($subUserArr);

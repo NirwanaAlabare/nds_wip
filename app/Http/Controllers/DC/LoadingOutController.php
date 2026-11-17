@@ -314,8 +314,8 @@ order by po.ws asc
         $cek_tmp = DB::selectOne("
         SELECT id
         FROM wip_out_tmp
-        WHERE id_qr_stocker = ?
-    ", [$no_stocker]);
+        WHERE id_qr_stocker = ? AND id_po = ?
+    ", [$no_stocker, $id_po]);
 
         if ($cek_tmp) {
             return response()->json([
@@ -326,10 +326,11 @@ order by po.ws asc
 
         // 2️⃣ cek duplicate TMP
         $cek_input_stocker = DB::selectOne("
-        SELECT id_qr_stocker
-        FROM wip_out_det
-        WHERE id_qr_stocker = ?
-    ", [$no_stocker]);
+        SELECT d.id_qr_stocker
+        FROM wip_out_det d
+        INNER JOIN wip_out h ON d.id_wip_out = h.id
+        WHERE d.id_qr_stocker = ? AND h.id_po = ?
+    ", [$no_stocker, $id_po]);
 
         if ($cek_input_stocker) {
             return response()->json([
@@ -407,7 +408,14 @@ order by po.ws asc
         left join signalbit_erp.so on sd.id_so = so.id
         left join signalbit_erp.act_costing ac on so.id_cost = ac.id
         left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
-        where id_po = '$id_po'
+        where tmp.id_po = '$id_po'
+        and exists (
+            select 1 from signalbit_erp.po_item poi
+            where poi.id_po = tmp.id_po
+            and poi.id_gen = k.id_item
+            and poi.id_jo = k.id_jo
+            and poi.cancel = 'N'
+        )
         order by tmp.id desc");
 
         return DataTables::of($data_input)->toJson();
@@ -496,7 +504,14 @@ order by po.ws asc
 		left join part_detail_item pdi on p.id = pdi.part_detail_id
 		left join signalbit_erp.bom_jo_item k on pdi.bom_jo_item_id = k.id
         left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
-        WHERE id_po = ?
+        WHERE tmp.id_po = ?
+        and exists (
+            select 1 from signalbit_erp.po_item poi
+            where poi.id_po = tmp.id_po
+            and poi.id_gen = k.id_item
+            and poi.id_jo = k.id_jo
+            and poi.cancel = 'N'
+        )
 ", [$id_header, $id_po]);
 
         DB::table('wip_out_tmp')->where('id_po', $id_po)->delete();

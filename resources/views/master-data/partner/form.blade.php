@@ -62,17 +62,28 @@
   font-weight: 600;
 }
 .nag-skin .dn-kepala-sub .dn-pil { margin-left: 4px; vertical-align: 1px; }
-/* Priority supplier: tiga tombol berwarna - merah High, kuning Medium, hijau Low */
-.nag-skin .md-prioritas { display: flex; flex-wrap: wrap; gap: 5px; }
-.nag-skin .md-prio {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+/* Supplier dengan kolom baru: centang To Account Manual dibingkai setinggi isian supaya sejajar dengan Term of Payment */
+.nag-skin .md-cek.is-kotak {
   height: 31px;
-  margin: 0;
+  min-height: 0;
+  padding: 0 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+}
+/* Payment Flexibility Rating supplier: tiga segmen berwarna - Red, Yellow, Green - selebar kolomnya */
+.nag-skin .md-rating { display: grid; grid-template-columns: repeat(3, 1fr); }
+.nag-skin .md-prio {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 31px;
+  margin: 0 0 0 -1px;
   padding: 0 9px;
-  border: 1px solid #dbe3ee;
-  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 0;
   background: #fff;
   color: #475569;
   font-size: 12.5px;
@@ -81,15 +92,20 @@
   user-select: none;
   transition: background .15s, border-color .15s, color .15s;
 }
-.nag-skin .md-prio:hover { border-color: #94a3b8; }
+.nag-skin .md-prio:first-of-type { margin-left: 0; border-radius: 6px 0 0 6px; }
+.nag-skin .md-prio:last-of-type { border-radius: 0 6px 6px 0; }
+.nag-skin .md-prio:hover { z-index: 1; border-color: #94a3b8; }
+.nag-skin .btn-check:checked + .md-prio { z-index: 2; }
 .nag-skin .md-prio-titik { width: 9px; height: 9px; border-radius: 50%; }
-.nag-skin .md-prio-high .md-prio-titik   { background: #dc2626; }
-.nag-skin .md-prio-medium .md-prio-titik { background: #eab308; }
-.nag-skin .md-prio-low .md-prio-titik    { background: #16a34a; }
-.nag-skin .btn-check:checked + .md-prio-high   { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
-.nag-skin .btn-check:checked + .md-prio-medium { background: #fef9c3; border-color: #eab308; color: #a16207; }
-.nag-skin .btn-check:checked + .md-prio-low    { background: #dcfce7; border-color: #22c55e; color: #15803d; }
+.nag-skin .md-prio-red .md-prio-titik    { background: #dc2626; }
+.nag-skin .md-prio-yellow .md-prio-titik { background: #eab308; }
+.nag-skin .md-prio-green .md-prio-titik  { background: #16a34a; }
+.nag-skin .btn-check:checked + .md-prio-red    { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
+.nag-skin .btn-check:checked + .md-prio-yellow { background: #fef9c3; border-color: #eab308; color: #a16207; }
+.nag-skin .btn-check:checked + .md-prio-green  { background: #dcfce7; border-color: #22c55e; color: #15803d; }
 .nag-skin .btn-check:focus-visible + .md-prio  { box-shadow: 0 0 0 3px rgba(30, 58, 95, .18); }
+/* Status Blocked di bawah judul (Inactive memakai pil merah bawaan) */
+.nag-skin .dn-pil.md-pil-blokir { background: #1e293b; border-color: #1e293b; color: #f8fafc; }
 /* Code yang terkunci (sudah dipakai transaksi) */
 .nag-skin input[readonly].md-terkunci { background: #f1f5f9; color: #475569; cursor: not-allowed; }
 </style>
@@ -110,7 +126,9 @@
                     <p class="dn-kepala-sub">
                         Update master {{ strtolower($conf['kolom']) }} data
                         <span class="md-sub-kode">{{ $ubah->supplier_code ?: '-' }} &middot; {{ $ubah->Supplier }}</span>
-                        @if ($ubah->non_aktif === '1')
+                        @if ($status === 'BLOCKED')
+                            <span class="dn-pil md-pil-blokir" title="{{ $ubah->blocked_reason ?? '' }}">Blocked</span>
+                        @elseif ($status === 'INACTIVE')
                             <span class="dn-pil is-batal">Inactive</span>
                         @endif
                     </p>
@@ -155,6 +173,22 @@
                                     maxlength="{{ $panjang['Supplier'] }}" placeholder="{{ $conf['kolom'] }} name" autocomplete="off">
                             </div>
                         </div>
+                        @if ($baru)
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="md-nib">NIB</label>
+                                    <input type="text" class="form-control" id="md-nib" name="nib" value="{{ $ubah->nib ?? '' }}"
+                                        maxlength="13" inputmode="numeric" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="md-legal">Legal Name</label>
+                                    <input type="text" class="form-control md-besar" id="md-legal" name="legal_name" value="{{ $ubah->legal_name ?? '' }}"
+                                        maxlength="{{ $panjang['legal_name'] }}" placeholder="Official company name" autocomplete="off">
+                                </div>
+                            </div>
+                        @endif
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="md-alias">Short Name (Alias)</label>
@@ -176,8 +210,8 @@
                                 <label for="md-pkp">PKP Status</label>
                                 <select class="form-control select2bs4" id="md-pkp" name="pkp">
                                     <option value="">-- Select PKP status --</option>
-                                    @foreach ($pkp as $p)
-                                        <option value="{{ $p }}" {{ ($ubah->pkp ?? null) === $p ? 'selected' : '' }}>{{ $p }}</option>
+                                    @foreach ($pkp as $nilai => $label)
+                                        <option value="{{ $nilai }}" {{ ($ubah->pkp ?? null) === (string) $nilai ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -190,12 +224,14 @@
                             </div>
                         </div>
 
+                        {{-- Supplier: Type hanya Local / Overseas. Tersimpan huruf pertamanya saja (L / I / F). --}}
+                        @php($labelArea = $isCustomer ? 'Area' : 'Type')
+                        @php($labelFasilitas = $baru ? 'Customs Classification' : 'Facility')
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="md-area">Area <span class="dn-wajib" title="Required">*</span></label>
+                                <label for="md-area">{{ $labelArea }} <span class="dn-wajib" title="Required">*</span></label>
                                 <select class="form-control select2bs4" id="md-area" name="area">
-                                    <option value="">-- Select area --</option>
-                                    {{-- Area tersimpan huruf pertamanya saja (L / I / F) --}}
+                                    <option value="">-- Select {{ strtolower($labelArea) }} --</option>
                                     @foreach ($area as $nilai => $label)
                                         <option value="{{ $nilai }}" {{ $ubah && strtoupper(substr($nilai, 0, 1)) === strtoupper((string) $ubah->area) ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
@@ -214,57 +250,29 @@
                             </div>
                         </div>
 
-                        {{-- Kolom ketiga baris ini: Customer Type (customer) atau Priority (supplier).
-                             Options supplier (To Account Manual) pindah ke sebelah Term of Payment. --}}
-                        @php($opsiDiAtas = $isCustomer || !$prioritas)
-                        @if ($opsiDiAtas)
+                        {{-- Kolom ketiga baris ini: Customer Type / Options (customer & supplier sebelum kolom baru)
+                             atau Customs Classification (supplier dengan kolom baru - Options pindah ke sebelah Term of Payment). --}}
+                        @unless ($baru)
                             @include('master-data.partner._opsi')
-                        @else
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label>Priority</label>
-                                    <div class="md-prioritas" role="radiogroup" aria-label="Priority">
-                                        @foreach ($prioritas as $nilai => $label)
-                                            <input type="radio" class="btn-check" name="prioritas" id="md-prio-{{ strtolower($nilai) }}"
-                                                value="{{ $nilai }}" autocomplete="off" {{ ($ubah->prioritas ?? '') === $nilai ? 'checked' : '' }}>
-                                            <label class="md-prio md-prio-{{ strtolower($nilai) }}" for="md-prio-{{ strtolower($nilai) }}">
-                                                <span class="md-prio-titik"></span>{{ $label }}
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                    <small class="md-ket"><i class="fas fa-circle-info"></i>Optional, click again to clear.</small>
-                                </div>
-                            </div>
-                        @endif
+                        @endunless
 
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="md-fasilitas">Facility <span class="dn-wajib" id="md-fasilitas-wajib" title="Required for Local" hidden>*</span></label>
+                                <label for="md-fasilitas">{{ $labelFasilitas }} <span class="dn-wajib" id="md-fasilitas-wajib" title="Required for Local" hidden>*</span></label>
                                 <select class="form-control select2bs4" id="md-fasilitas" name="jenis_fasilitas">
-                                    <option value="">-- Select facility --</option>
-                                    @foreach ($fasilitas as $f)
-                                        <option value="{{ $f }}" {{ ($ubah->jenis_fasilitas ?? null) === $f ? 'selected' : '' }}>{{ $f }}</option>
+                                    <option value="">-- Select {{ strtolower($labelFasilitas) }} --</option>
+                                    @foreach ($fasilitas as $nilai => $label)
+                                        <option value="{{ $nilai }}" {{ ($ubah->jenis_fasilitas ?? null) === (string) $nilai ? 'selected' : '' }}>{{ $label }}</option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-{{ $opsiDiAtas ? 6 : 4 }}">
-                            <div class="form-group">
-                                <label for="md-terms">Term of Payment</label>
-                                <select class="form-control select2bs4" id="md-terms" name="id_terms">
-                                    <option value="">-- Select terms --</option>
-                                    @foreach ($terms as $t)
-                                        <option value="{{ $t->id }}" {{ $ubah && (int) $ubah->id_terms === (int) $t->id ? 'selected' : '' }}>{{ $t->kode_pterms }}{{ $t->nama_pterms ? ' | ' . $t->nama_pterms : '' }}</option>
-                                    @endforeach
-                                </select>
-                                @if ($termLama)
-                                    <small class="md-ket"><i class="fas fa-circle-info"></i>Current: {{ $termLama }}. Kept as is unless a term is selected.</small>
-                                @endif
-                            </div>
-                        </div>
-                        @unless ($opsiDiAtas)
-                            @include('master-data.partner._opsi')
-                        @endunless
+                        @if ($baru)
+                            @include('master-data.partner._terms', ['lebar' => 8])
+                            @include('master-data.partner._opsi', ['kotak' => true])
+                        @else
+                            @include('master-data.partner._terms', ['lebar' => 6])
+                        @endif
                         {{-- CoA hanya ditentukan saat create; edit tidak mengubahnya --}}
                         @if (!$autoCoa && !$ubah)
                             <div class="col-md-6">
@@ -316,7 +324,7 @@
         <div class="col-lg-6">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="card-title"><i class="fas fa-location-dot"></i> Address &amp; Contact</h5>
+                    <h5 class="card-title"><i class="fas fa-location-dot"></i> {{ $baru ? 'Address, Contact & Payment Flexibility' : 'Address & Contact' }}</h5>
                 </div>
                 <div class="card-body md-kartu-isi">
                     <div class="form-group">
@@ -387,6 +395,35 @@
                         </div>
                     </div>
 
+                    @if ($baru)
+                        {{-- Payment Flexibility supplier - di kartu kanan supaya tinggi kedua kartu seimbang --}}
+                        <div class="md-subjudul"><i class="fas fa-hand-holding-dollar"></i> Payment Flexibility</div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label>Rating</label>
+                                    <div class="md-rating" role="radiogroup" aria-label="Payment Flexibility Rating">
+                                        @foreach ($rating as $nilai => $label)
+                                            <input type="radio" class="btn-check" name="payment_rating" id="md-rating-{{ strtolower($nilai) }}"
+                                                value="{{ $nilai }}" autocomplete="off" {{ ($ubah->payment_rating ?? '') === $nilai ? 'checked' : '' }}>
+                                            <label class="md-prio md-prio-{{ strtolower($nilai) }}" for="md-rating-{{ strtolower($nilai) }}">
+                                                <span class="md-prio-titik"></span>{{ $label }}
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                    <small class="md-ket"><i class="fas fa-circle-info"></i>Optional, click again to clear. Sets an empty review date to today.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="md-review">Last Review Date</label>
+                                    <input type="date" class="form-control" id="md-review" name="payment_review_date"
+                                        value="{{ $ubah->payment_review_date ?? '' }}" max="{{ now()->format('Y-m-d') }}">
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="dn-kaki">
                         <button type="button" class="btn btn-dn-simpan" id="md-btn-simpan">
                             <i class="fa fa-save"></i> {{ $ubah ? 'Update' : 'Save' }}
@@ -425,15 +462,22 @@ $(function () {
 
     function nilai(id) { return $.trim($(id).val() || ''); }
 
-    // Facility wajib kalau area Local (nilai pilihannya 'Lokal')
+    // Teks pilihan yang dipilih; kosong kalau belum memilih
+    function teksPilihan(id) { return nilai(id) ? $(id).find(':selected').text() : ''; }
+
+    var LABEL_AREA = @json($isCustomer ? 'Area' : 'Type');
+    var LABEL_FASILITAS = @json($baru ? 'Customs Classification' : 'Facility');
+
+    // Facility wajib kalau Local (nilai pilihannya 'Lokal' di customer, 'L' di supplier)
+    function lokal() { return nilai('#md-area').charAt(0).toUpperCase() === 'L'; }
     function aturFasilitas() {
-        $('#md-fasilitas-wajib').prop('hidden', $('#md-area').val() !== 'Lokal');
+        $('#md-fasilitas-wajib').prop('hidden', !lokal());
     }
     $('#md-area').on('change', aturFasilitas);
     aturFasilitas();
 
-    // Priority boleh dikosongkan lagi: klik pilihan yang sedang aktif untuk melepasnya
-    $('.md-prioritas')
+    // Rating boleh dikosongkan lagi: klik pilihan yang sedang aktif untuk melepasnya
+    $('.md-rating')
         .on('mousedown', 'label', function () {
             var $r = $('#' + $(this).attr('for'));
             $r.data('tadi', $r.prop('checked'));
@@ -441,7 +485,15 @@ $(function () {
         .on('click', 'input[type="radio"]', function () {
             if ($(this).data('tadi')) { this.checked = false; }
             $(this).data('tadi', false);
+            // Memilih rating = baru direview: tanggal review terisi hari ini kalau masih kosong
+            if (this.checked && !nilai('#md-review')) { $('#md-review').val($('#md-review').attr('max')); }
         });
+
+    // NIB hanya angka
+    $('#md-nib').on('input', function () {
+        var bersih = this.value.replace(/\D+/g, '');
+        if (bersih !== this.value) { this.value = bersih; }
+    });
 
     function dataForm() {
         var d = UBAH ? { id: ID_UBAH } : {};
@@ -466,8 +518,10 @@ $(function () {
         if (!nilai('#md-nama'))      { kurang.push(JUDUL + ' Name'); }
         if (!nilai('#md-npwp'))      { kurang.push('NPWP (use - if none)'); }
         if (!nilai('#md-kategori'))  { kurang.push('Category'); }
-        if (!nilai('#md-area'))      { kurang.push('Area'); }
-        if ($('#md-area').val() === 'Lokal' && !nilai('#md-fasilitas')) { kurang.push('Facility (required for Local)'); }
+        if (!nilai('#md-area'))      { kurang.push(LABEL_AREA); }
+        if (lokal() && !nilai('#md-fasilitas')) { kurang.push(LABEL_FASILITAS + ' (required for Local)'); }
+        if (nilai('#md-nib') && !/^\d{13}$/.test(nilai('#md-nib'))) { kurang.push('NIB must be 13 digits'); }
+        if (nilai('#md-review') && nilai('#md-review') > $('#md-review').attr('max')) { kurang.push('Last Review Date cannot be in the future'); }
 
         if (kurang.length) {
             Swal.fire({
@@ -485,12 +539,12 @@ $(function () {
         var ringkas = '<div class="dn-swal-ringkas">'
             + '<div><span>Code</span><b>' + teks(nilai('#md-kode').toUpperCase()) + '</b></div>'
             + '<div><span>' + JUDUL + '</span><b>' + teks(nilai('#md-nama').toUpperCase()) + '</b></div>'
-            + '<div><span>Area</span><b>' + teks($('#md-area').find(':selected').text()) + '</b></div>'
-            + '<div><span>Category</span><b>' + teks($('#md-kategori').find(':selected').text()) + '</b></div>'
-            + '<div><span>Facility</span><b>' + teks($('#md-fasilitas').val()) + '</b></div>'
+            + '<div><span>' + LABEL_AREA + '</span><b>' + teks(teksPilihan('#md-area')) + '</b></div>'
+            + '<div><span>Category</span><b>' + teks(teksPilihan('#md-kategori')) + '</b></div>'
+            + '<div><span>' + LABEL_FASILITAS + '</span><b>' + teks(teksPilihan('#md-fasilitas')) + '</b></div>'
             + '<div><span>NPWP</span><b>' + teks(nilai('#md-npwp').toUpperCase()) + '</b></div>'
-            + ($('.md-prioritas').length
-                ? '<div><span>Priority</span><b>' + teks($('input[name="prioritas"]:checked').next('label').text()) + '</b></div>'
+            + ($('.md-rating').length
+                ? '<div><span>Payment Flexibility Rating</span><b>' + teks($('input[name="payment_rating"]:checked').next('label').text()) + '</b></div>'
                 : '')
             + '</div>';
 

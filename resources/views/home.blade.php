@@ -458,7 +458,7 @@
 
         @role('export_import')
         <a href="{{ route('dashboard-export-import') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/exim_img.png') }}" alt="export import"></div>
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/export_import.png') }}" alt="export import"></div>
             <span class="menu-label">Export Import</span>
         </a>
         @endrole
@@ -486,7 +486,7 @@
 
         @role('accounting')
         <a href="{{ route('accounting') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/accounting_img.png') }}" alt="accounting"></div>
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/accounting.png') }}" alt="accounting"></div>
             <span class="menu-label">Accounting</span>
         </a>
         @endrole
@@ -521,7 +521,7 @@
 
         @role('helpdesk')
         <a href="{{ route('dashboard-helpdesk') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/ticketing.png') }}" alt="asset"></div>
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/helpdesk.png') }}" alt="helpdesk"></div>
             <span class="menu-label">Helpdesk</span>
         </a>
         @endrole
@@ -560,14 +560,14 @@
 
         @role('superadmin')
         <a href="{{ route('general-tools') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/tools.png') }}" alt="tools"></div>
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/general_tools.png') }}" alt="tools"></div>
             <span class="menu-label">General Tools</span>
         </a>
         @endrole
 
         @role('superadmin')
         <a href="{{ route('manage-user') }}" class="menu-card">
-            <div class="menu-img-wrap"><img src="{{ asset('dist/img/manage-users.png') }}" alt="manage users"></div>
+            <div class="menu-img-wrap"><img src="{{ asset('dist/img/manage_user.png') }}" alt="manage users"></div>
             <span class="menu-label">Manage User</span>
         </a>
         @endrole

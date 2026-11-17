@@ -29,6 +29,7 @@ class MasterDataHistoryService
     const LABEL = [
         'supplier_code'     => 'Code',
         'Supplier'          => 'Name',
+        'legal_name'        => 'Legal Name',
         'short_name'        => 'Short Name',
         'group_name'        => 'Group Name',
         'area'              => 'Area',
@@ -36,7 +37,9 @@ class MasterDataHistoryService
         'jenis_fasilitas'   => 'Facility',
         'npwp'              => 'NPWP',
         'pkp'               => 'PKP Status',
-        'prioritas'         => 'Priority',
+        'nib'               => 'NIB',
+        'payment_rating'    => 'Payment Flexibility Rating',
+        'payment_review_date' => 'Payment Flexibility Last Review Date',
         'id_terms'          => 'Term of Payment',
         'tipe_buyer'        => 'Buyer',
         'tipe_agent'        => 'Agent',
@@ -63,7 +66,21 @@ class MasterDataHistoryService
 
     const AREA = ['L' => 'Local', 'I' => 'Import/Export', 'F' => 'Factory'];
 
+    // Supplier: Area disebut Type (Import/Export = Overseas), Facility disebut Customs Classification
+    const LABEL_SUPPLIER = ['area' => 'Type', 'jenis_fasilitas' => 'Customs Classification'];
+    const AREA_SUPPLIER = ['L' => 'Local', 'I' => 'Overseas', 'F' => 'Factory'];
+
+    // Label tampilan yang berbeda dari nilai tersimpannya (sama dengan MasterDataController)
+    const LABEL_NILAI = [
+        'pkp'             => ['NON PKP' => 'Non-PKP'],
+        'jenis_fasilitas' => ['KITE PEMBEBASAN' => 'KITE Pembebasan', 'KITE PENGEMBALIAN' => 'KITE Pengembalian', 'OVERSEAS' => 'Overseas'],
+        'payment_rating'  => ['RED' => 'Red', 'YELLOW' => 'Yellow', 'GREEN' => 'Green'],
+    ];
+
     private static $siap;
+
+    // Riwayat yang sedang disusun milik supplier (label Type / Customs Classification)
+    private $supplier = false;
 
     public function siap()
     {
@@ -100,9 +117,10 @@ class MasterDataHistoryService
         $this->tulis($idSupplier, 'UPDATE', $actHistId, null, $perubahan);
     }
 
-    public function catatStatus($idSupplier, $aktif, $actHistId)
+    // $status ACTIVE / INACTIVE / BLOCKED; alasan Blocked disimpan di isi
+    public function catatStatus($idSupplier, $status, $actHistId, $alasan = null)
     {
-        $this->tulis($idSupplier, $aktif ? 'ACTIVE' : 'INACTIVE', $actHistId, null, null);
+        $this->tulis($idSupplier, $status, $actHistId, $status === 'BLOCKED' ? ['blocked_reason' => $alasan] : null, null);
     }
 
     private function tulis($idSupplier, $aksi, $actHistId, $isi, $perubahan)
@@ -365,9 +383,10 @@ class MasterDataHistoryService
      */
     public function riwayat($idSupplier, $labelNama)
     {
+        $this->supplier = $labelNama === 'Supplier';
         $rows = $this->db()->table(self::TABEL)
             ->where('id_supplier', (int) $idSupplier)
-            ->whereIn('aksi', ['CREATE', 'UPDATE', 'ACTIVE', 'INACTIVE'])
+            ->whereIn('aksi', ['CREATE', 'UPDATE', 'ACTIVE', 'INACTIVE', 'BLOCKED'])
             ->orderBy('created_at')
             ->orderBy('id')
             ->get();
@@ -419,6 +438,9 @@ class MasterDataHistoryService
                 if (! $item['perubahan'] && ! $item['catatan']) {
                     $item['catatan'] = 'Saved without changes.';
                 }
+            } elseif ($r->aksi === 'BLOCKED') {
+                $item['judul'] = 'Set Blocked';
+                $item['catatan'] = 'Reason: ' . ($isi['blocked_reason'] ?? '-');
             } else {
                 $item['judul'] = $r->aksi === 'ACTIVE' ? 'Set Active' : 'Set Inactive';
             }
@@ -440,7 +462,10 @@ class MasterDataHistoryService
 
     private function label($kolom, $labelNama)
     {
-        return $kolom === 'Supplier' ? $labelNama . ' Name' : self::LABEL[$kolom];
+        if ($kolom === 'Supplier') {
+            return $labelNama . ' Name';
+        }
+        return ($this->supplier ? self::LABEL_SUPPLIER[$kolom] ?? null : null) ?? self::LABEL[$kolom];
     }
 
     private function normalSemua(array $isi)
@@ -470,7 +495,7 @@ class MasterDataHistoryService
                 return $nilai === '1' ? '1' : '0';
             case 'area':
                 return strtoupper(substr($nilai, 0, 1));
-            case 'prioritas':
+            case 'payment_rating':
                 return strtoupper($nilai);
             default:
                 return $nilai;
@@ -489,13 +514,13 @@ class MasterDataHistoryService
             case 'id_terms':
                 return $nilai === '0' ? null : ($this->terms()[$nilai] ?? $nilai);
             case 'area':
-                return $nilai === '' ? null : (self::AREA[$nilai] ?? $nilai);
+                return $nilai === '' ? null : (($this->supplier ? self::AREA_SUPPLIER : self::AREA)[$nilai] ?? $nilai);
             case 'vendor_cat':
                 return $nilai === '' ? null : ($this->kategori()[$nilai] ?? $nilai);
-            case 'prioritas':
-                return $nilai === '' ? null : ucfirst(strtolower($nilai));
+            case 'payment_review_date':
+                return $nilai === '' ? null : date('d M Y', strtotime($nilai));
             default:
-                return $nilai === '' ? null : $nilai;
+                return $nilai === '' ? null : (self::LABEL_NILAI[$kolom][$nilai] ?? $nilai);
         }
     }
 

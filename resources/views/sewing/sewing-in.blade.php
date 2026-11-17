@@ -152,6 +152,10 @@
             color: var(--si-navy);
         }
 
+        .btn-si-type {
+            border-radius: 0 !important;
+        }
+
         .btn-si-camera:disabled {
             background: rgba(255, 255, 255, .7);
             color: var(--si-faint);
@@ -361,6 +365,19 @@
 
         .btn-si-history:hover {
             background: rgba(255, 255, 255, .22);
+            color: #fff;
+        }
+
+        .btn-si-export {
+            border-radius: 8px !important;
+            background: #1d6f42;
+            color: #fff;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .btn-si-export:hover {
+            background: #185c37;
             color: #fff;
         }
 
@@ -1003,6 +1020,506 @@
             color: #cbd5e1;
         }
 
+        /* ===== Animasi ===== */
+        @keyframes si-gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes si-ring {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .65); }
+            100% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+        }
+
+        @keyframes si-fade-up {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @keyframes si-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes si-ripple {
+            0% { transform: scale(.6); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        @keyframes si-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        @keyframes si-laser {
+            from { transform: translateY(0); }
+            to { transform: translateY(65px); }
+        }
+
+        @keyframes si-nudge {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        @keyframes si-pop {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes si-slide-in {
+            from { opacity: 0; transform: translateX(-12px); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @keyframes si-bump {
+            0%, 100% { transform: scale(1); }
+            40% { transform: scale(1.18); }
+        }
+
+        @keyframes si-shimmer {
+            to { transform: translateX(100%); }
+        }
+
+        @keyframes si-ready {
+            0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, .55); }
+            100% { box-shadow: 0 0 0 12px rgba(5, 150, 105, 0); }
+        }
+
+        @keyframes si-shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-7px); }
+            40%, 80% { transform: translateX(7px); }
+        }
+
+        @keyframes si-confetti-fall {
+            to { transform: translate(var(--x), 105vh) rotate(var(--r)); }
+        }
+
+        /* Header: gradasi bergerak pelan */
+        .si-header {
+            background: linear-gradient(120deg, var(--si-navy), var(--si-navy-2), var(--si-navy));
+            background-size: 200% 100%;
+            animation: si-gradient 12s ease-in-out infinite;
+        }
+
+        /* Petunjuk: bagian yang harus diisi berdenyut */
+        .si-line-select.is-hint .select2-selection,
+        .si-scan-group.is-hint {
+            border-radius: 8px;
+            animation: si-ring 1.6s ease-out infinite;
+        }
+
+        /* Layar awal */
+        .si-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3.5rem 1rem 3rem;
+            text-align: center;
+            color: var(--si-muted);
+            animation: si-fade-up .5s ease both;
+        }
+
+        .si-scanner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 132px;
+            height: 132px;
+            margin-bottom: 1.5rem;
+        }
+
+        .si-scanner-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(18, 58, 120, .12);
+            animation: si-ripple 2.4s ease-out infinite;
+        }
+
+        .si-scanner-ring + .si-scanner-ring {
+            animation-delay: 1.2s;
+        }
+
+        .si-scanner-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 96px;
+            height: 96px;
+            border-radius: 20px;
+            background: linear-gradient(140deg, var(--si-navy), var(--si-navy-2));
+            color: #fff;
+            font-size: 2.6rem;
+            box-shadow: 0 12px 28px rgba(8, 33, 73, .28);
+            overflow: hidden;
+            animation: si-float 3s ease-in-out infinite;
+        }
+
+        .si-scanner-laser {
+            position: absolute;
+            top: 14px;
+            left: 10px;
+            right: 10px;
+            height: 3px;
+            border-radius: 3px;
+            background: #34d399;
+            box-shadow: 0 0 10px 2px rgba(52, 211, 153, .8);
+            opacity: 0;
+            transition: opacity .4s ease;
+            animation: si-laser 1.6s ease-in-out infinite alternate;
+        }
+
+        .si-hero.is-ready .si-scanner-laser {
+            opacity: 1;
+        }
+
+        .si-hero-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--si-text);
+        }
+
+        .si-hero-sub {
+            margin-top: .2rem;
+            font-size: .84rem;
+        }
+
+        .si-steps {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            margin-top: 1.4rem;
+        }
+
+        .si-step {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            padding: .4rem .9rem .4rem .45rem;
+            border: 1px solid var(--si-border);
+            border-radius: 99px;
+            background: #fff;
+            color: var(--si-faint);
+            font-size: .8rem;
+            font-weight: 600;
+            transition: all .3s ease;
+        }
+
+        .si-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--si-line);
+            font-size: .72rem;
+            transition: all .3s ease;
+        }
+
+        .si-step.is-active {
+            border-color: var(--si-navy-2);
+            color: var(--si-navy);
+            box-shadow: 0 4px 12px rgba(18, 58, 120, .15);
+            animation: si-nudge 1.6s ease-in-out infinite;
+        }
+
+        .si-step.is-active .si-step-num {
+            background: var(--si-navy-2);
+            color: #fff;
+        }
+
+        .si-step.is-done {
+            border-color: #a7f3d0;
+            background: var(--si-success-soft);
+            color: var(--si-success);
+        }
+
+        .si-step.is-done .si-step-num {
+            background: var(--si-success);
+            color: #fff;
+            animation: si-pop .4s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        .si-step-arrow {
+            color: #cbd5e1;
+            font-size: .7rem;
+        }
+
+        /* Ringkasan & tabel muncul naik pelan */
+        #info_bar:not(.d-none),
+        #list_panel:not(.d-none) {
+            animation: si-fade-up .4s ease both;
+        }
+
+        #list_panel:not(.d-none) {
+            animation-delay: .08s;
+        }
+
+        #list_panel {
+            transition: border-color .4s ease, box-shadow .4s ease;
+        }
+
+        #list_panel.is-complete {
+            border-color: #6ee7b7;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, .12);
+        }
+
+        /* Baris tampil berurutan saat tabel pertama muncul */
+        tr.si-intro td {
+            animation: si-fade-in .35s ease both;
+            animation-delay: var(--d);
+        }
+
+        tr.si-intro.is-new td {
+            animation: si-fade-in .35s ease both var(--d), si-flash 1.2s ease-out;
+        }
+
+        tr.is-new .si-dot {
+            animation: si-pop .5s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        tr.is-new .si-code {
+            display: inline-block;
+            animation: si-slide-in .4s ease-out both;
+        }
+
+        .si-bump {
+            animation: si-bump .4s ease;
+        }
+
+        #part_progress_text {
+            display: inline-block;
+            transform-origin: left center;
+        }
+
+        /* Progress bar berkilau */
+        .si-progress {
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .si-progress .progress-bar {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(90deg, #10b981, var(--si-success));
+            transition: width .6s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        .si-progress .progress-bar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent);
+            transform: translateX(-100%);
+            animation: si-shimmer 1.8s ease-in-out infinite;
+        }
+
+        /* Apply siap: tombol berdenyut */
+        .btn-si-apply.is-ready {
+            animation: si-ready 1.6s ease-out infinite;
+        }
+
+        /* Scan ditolak: kolom scan bergetar & merah */
+        .si-scan-group.is-reject {
+            animation: si-shake .45s ease;
+        }
+
+        .si-scan-group.is-reject .form-control,
+        .si-scan-group.is-reject .input-group-text {
+            background: #fef2f2 !important;
+            color: #dc2626;
+        }
+
+        /* Confetti setelah simpan berhasil */
+        .si-confetti {
+            position: fixed;
+            top: -16px;
+            z-index: 2000;
+            width: 8px;
+            height: 14px;
+            border-radius: 2px;
+            pointer-events: none;
+            animation: si-confetti-fall var(--t) cubic-bezier(.25, .6, .5, 1) forwards;
+        }
+
+        /* ===== Tur panduan ===== */
+        .si-hero-guide {
+            margin-top: 1.1rem;
+            padding: .35rem .8rem;
+            border: none;
+            border-radius: 99px;
+            background: transparent;
+            color: var(--si-navy-2);
+            font-size: .8rem;
+            font-weight: 600;
+        }
+
+        .si-hero-guide:hover {
+            background: #eef3fb;
+        }
+
+        .si-tour-block {
+            position: fixed;
+            inset: 0;
+            z-index: 1079;
+        }
+
+        .si-tour-spot {
+            position: fixed;
+            z-index: 1080;
+            border-radius: 12px;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, .95), 0 0 0 9999px rgba(8, 20, 45, .62);
+            pointer-events: none;
+            transition: top .35s ease, left .35s ease, width .35s ease, height .35s ease;
+        }
+
+        .si-tour-spot::after {
+            content: "";
+            position: absolute;
+            inset: -3px;
+            border-radius: 14px;
+            animation: si-tour-ring 1.6s ease-out infinite;
+        }
+
+        @keyframes si-tour-ring {
+            0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, .7); }
+            100% { box-shadow: 0 0 0 12px rgba(52, 211, 153, 0); }
+        }
+
+        .si-tour-pop {
+            position: fixed;
+            z-index: 1081;
+            width: min(360px, calc(100vw - 24px));
+            padding: 1rem 1rem .85rem;
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 20px 45px rgba(8, 20, 45, .35);
+            transition: top .35s ease, left .35s ease;
+        }
+
+        .si-tour-pop.is-anim .si-tour-body {
+            animation: si-fade-up .3s ease both;
+        }
+
+        .si-tour-head {
+            display: flex;
+            align-items: flex-start;
+            gap: .7rem;
+        }
+
+        .si-tour-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(140deg, var(--si-navy), var(--si-navy-2));
+            color: #fff;
+        }
+
+        .si-tour-head small {
+            font-size: .66rem;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--si-faint);
+        }
+
+        .si-tour-head h6 {
+            margin: 0;
+            font-weight: 700;
+            color: var(--si-navy);
+        }
+
+        .si-tour-close {
+            margin-left: auto;
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--si-faint);
+        }
+
+        .si-tour-close:hover {
+            background: var(--si-line);
+            color: var(--si-text);
+        }
+
+        .si-tour-text {
+            margin-top: .65rem;
+            font-size: .86rem;
+            line-height: 1.5;
+            color: var(--si-text);
+        }
+
+        .si-tour-text .si-dot {
+            width: 18px;
+            height: 18px;
+            font-size: .55rem;
+            vertical-align: -3px;
+        }
+
+        .si-tour-demo {
+            display: inline-block;
+            margin-top: .5rem;
+            padding: .1rem .5rem;
+            border-radius: 6px;
+            background: var(--si-first-soft);
+            color: var(--si-first);
+            font-size: .7rem;
+            font-weight: 600;
+        }
+
+        .si-tour-foot {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            margin-top: .9rem;
+        }
+
+        .si-tour-dots {
+            display: flex;
+            gap: 4px;
+            margin-right: auto;
+        }
+
+        .si-tour-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 99px;
+            background: var(--si-border);
+            transition: all .3s ease;
+        }
+
+        .si-tour-dots span.is-active {
+            width: 18px;
+            background: var(--si-success);
+        }
+
+        .si-tour-foot .btn {
+            height: 38px;
+            padding: 0 1rem;
+            font-weight: 600;
+        }
+
+        .btn-si-text {
+            color: var(--si-muted);
+        }
+
+        .btn-si-text:hover {
+            background: var(--si-line);
+            color: var(--si-text);
+        }
+
         @media (max-width: 991.98px) {
             .si-legend {
                 display: none;
@@ -1031,7 +1548,9 @@
             }
 
             #btn_camera span,
-            .btn-si-history span {
+            #btn_type span,
+            .btn-si-history span,
+            #btn_guide span {
                 display: none;
             }
 
@@ -1080,12 +1599,18 @@
                 <div class="input-group si-scan-group">
                     <span class="input-group-text is-disabled"><i class="fa-solid fa-barcode"></i></span>
                     <input type="text" class="form-control" id="kode_stocker" name="kode_stocker" placeholder="Pilih line dulu" autocomplete="off" disabled>
+                    <button class="btn btn-si-camera btn-si-type" type="button" id="btn_type" onclick="openCodePad()" title="Ketik kode stocker" disabled>
+                        <i class="fa-solid fa-keyboard"></i> <span>Ketik</span>
+                    </button>
                     <button class="btn btn-si-camera" type="button" id="btn_camera" onclick="toggleCamera()" disabled>
                         <i class="fa-solid fa-camera"></i> <span>Kamera</span>
                     </button>
                 </div>
                 <button class="btn btn-si-history" type="button" onclick="openHistory()" title="Riwayat">
                     <i class="fa-solid fa-clock-rotate-left"></i> <span>Riwayat</span>
+                </button>
+                <button class="btn btn-si-history" type="button" id="btn_guide" onclick="startTour()" title="Panduan">
+                    <i class="fa-solid fa-circle-question"></i> <span>Panduan</span>
                 </button>
             </div>
 
@@ -1132,10 +1657,27 @@
         </div>
 
         {{-- Sebelum scan --}}
-        <div class="si-empty" id="empty_state">
-            <i class="fa-solid fa-qrcode fa-3x mb-3"></i>
-            <div class="fw-semibold">Belum ada stocker</div>
-            <small>Pilih line, lalu scan stocker untuk memulai</small>
+        <div class="si-hero" id="empty_state">
+            <div class="si-scanner">
+                <span class="si-scanner-ring"></span>
+                <span class="si-scanner-ring"></span>
+                <div class="si-scanner-box">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span class="si-scanner-laser"></span>
+                </div>
+            </div>
+            <div class="si-hero-title" id="hero_title">Pilih line untuk memulai</div>
+            <div class="si-hero-sub" id="hero_sub">Pilih line di atas, lalu scan stocker pertama</div>
+            <div class="si-steps">
+                <span class="si-step" id="step_line"><span class="si-step-num">1</span> Pilih line</span>
+                <i class="fa-solid fa-chevron-right si-step-arrow"></i>
+                <span class="si-step" id="step_scan"><span class="si-step-num">2</span> Scan stocker</span>
+                <i class="fa-solid fa-chevron-right si-step-arrow"></i>
+                <span class="si-step"><span class="si-step-num">3</span> Lengkapi part &amp; Apply</span>
+            </div>
+            <button type="button" class="si-hero-guide" onclick="startTour()">
+                <i class="fa-solid fa-circle-play"></i> Lihat panduan
+            </button>
         </div>
 
         {{-- Part 1 Set: satu baris = satu part + stocker yang mengisinya --}}
@@ -1218,6 +1760,11 @@
                                 <label for="history_search">Cari</label>
                                 <input type="text" class="form-control" id="history_search" placeholder="Kode / WS / style / color / stocker" autocomplete="off">
                             </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-si-export" onclick="historyTab == 'riwayat' ? exportHistory() : exportOutstanding()" title="Export Excel (ikut filter)">
+                                    <i class="fa-solid fa-file-excel"></i> <span>Export</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -1289,15 +1836,41 @@
             </div>
         </div>
 
+        {{-- Tur panduan --}}
+        <div class="d-none" id="tour">
+            <div class="si-tour-block"></div>
+            <div class="si-tour-spot" id="tour_spot"></div>
+            <div class="si-tour-pop" id="tour_pop" role="dialog" aria-live="polite">
+                <div class="si-tour-body">
+                    <div class="si-tour-head">
+                        <span class="si-tour-icon" id="tour_icon"></span>
+                        <div>
+                            <small id="tour_count"></small>
+                            <h6 id="tour_title"></h6>
+                        </div>
+                        <button type="button" class="si-tour-close" onclick="endTour()" aria-label="Tutup panduan">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div class="si-tour-text" id="tour_text"></div>
+                </div>
+                <div class="si-tour-foot">
+                    <div class="si-tour-dots" id="tour_dots"></div>
+                    <button type="button" class="btn btn-si-text" id="tour_prev" onclick="tourGo(tourIndex - 1)">Kembali</button>
+                    <button type="button" class="btn btn-si-apply" id="tour_next" onclick="tourGo(tourIndex + 1)">Lanjut</button>
+                </div>
+            </div>
+        </div>
+
         {{-- Numpad qty act (tanpa keyboard tablet) --}}
         <div class="si-numpad-backdrop d-none" id="numpad" onclick="if (event.target === this) closeNumpad()">
             <div class="si-numpad">
                 <div class="si-numpad-head">
                     <div>
-                        <small>Qty Act</small>
+                        <small id="numpad_label">Qty Act</small>
                         <b id="numpad_title">-</b>
                     </div>
-                    <span>maks <b id="numpad_max">-</b></span>
+                    <span id="numpad_max_wrap">maks <b id="numpad_max">-</b></span>
                 </div>
                 <div class="si-numpad-display" id="numpad_display">0</div>
                 <div class="si-numpad-hint" id="numpad_hint"></div>
@@ -1305,7 +1878,7 @@
                     @foreach (['7', '8', '9', '4', '5', '6', '1', '2', '3'] as $key)
                         <button type="button" onclick="numpadPress('{{ $key }}')">{{ $key }}</button>
                     @endforeach
-                    <button type="button" class="is-muted" onclick="numpadPress('max')">Max</button>
+                    <button type="button" class="is-muted" id="numpad_alt" onclick="numpadPress(numpadMode == 'code' ? 'clear' : 'max')">Max</button>
                     <button type="button" onclick="numpadPress('0')">0</button>
                     <button type="button" class="is-muted" onclick="numpadPress('back')"><i class="fa-solid fa-delete-left"></i></button>
                 </div>
@@ -1342,11 +1915,289 @@
         updateClock();
         setInterval(updateClock, 30000);
 
+        // ===== Animasi =====
+        // Ulang animasi "membesar sebentar" pada elemen
+        function bump(selector) {
+            $(selector).each(function () {
+                this.classList.remove("si-bump");
+                void this.offsetWidth;
+                this.classList.add("si-bump");
+            });
+        }
+
+        // Scan ditolak: kolom scan bergetar & merah sebentar
+        function rejectScan() {
+            let group = $(".si-scan-group");
+
+            group.removeClass("is-reject");
+            void group[0].offsetWidth;
+            group.addClass("is-reject");
+
+            clearTimeout(rejectScan.timer);
+            rejectScan.timer = setTimeout(() => group.removeClass("is-reject"), 900);
+        }
+
+        // Confetti setelah simpan berhasil
+        function confetti() {
+            let colors = ["#059669", "#34d399", "#123a78", "#3b82f6", "#f59e0b", "#f43f5e"];
+
+            for (let i = 0; i < 70; i++) {
+                let piece = document.createElement("span");
+
+                piece.className = "si-confetti";
+                piece.style.left = (Math.random() * 100) + "vw";
+                piece.style.background = colors[i % colors.length];
+                piece.style.animationDelay = (Math.random() * .3) + "s";
+                piece.style.setProperty("--x", (Math.random() * 160 - 80) + "px");
+                piece.style.setProperty("--r", (Math.random() * 720 - 360) + "deg");
+                piece.style.setProperty("--t", (1.4 + Math.random() * 1.2) + "s");
+
+                document.body.appendChild(piece);
+                setTimeout(() => piece.remove(), 3200);
+            }
+        }
+
+        // Petunjuk langkah: line → scan → lengkapi part
+        function updateHints() {
+            let lineSelected = !!$("#line_id").val();
+            let started = scannedStockers.length > 0;
+
+            $(".si-line-select").toggleClass("is-hint", !lineSelected);
+            $(".si-scan-group").toggleClass("is-hint", lineSelected && !started);
+
+            $("#empty_state").toggleClass("is-ready", lineSelected);
+            $("#hero_title").text(lineSelected ? "Siap scan stocker" : "Pilih line untuk memulai");
+            $("#hero_sub").text(lineSelected ? "Scan QR stocker dengan scanner / kamera, atau ketik kodenya" : "Pilih line di atas, lalu scan stocker pertama");
+
+            $("#step_line").toggleClass("is-active", !lineSelected).toggleClass("is-done", lineSelected)
+                .find(".si-step-num").html(lineSelected ? '<i class="fa-solid fa-check"></i>' : '1');
+            $("#step_scan").toggleClass("is-active", lineSelected);
+        }
+
+        $(function () {
+            updateHints();
+        });
+
+        // ===== Tur panduan interaktif =====
+        var tourActive = false;
+        var tourIndex = 0;
+        var tourDemoActive = false;
+
+        var tourSteps = [
+            {
+                icon: "fa-shirt",
+                title: "Selamat datang di Sewing In",
+                text: "Halaman ini untuk mencatat stocker yang masuk ke line sewing, <b>per 1 set</b>. Ikuti panduan singkat ini (± 1 menit).",
+            },
+            {
+                target: ".si-line-select",
+                icon: "fa-location-dot",
+                title: "1. Pilih line",
+                text: "Pilih line tempat kamu bekerja. Kolom scan baru aktif setelah line dipilih.",
+            },
+            {
+                target: ".si-scan-group",
+                icon: "fa-barcode",
+                title: "2. Scan stocker",
+                text: "Arahkan scanner ke QR stocker, hasilnya langsung masuk. Barcode tidak terbaca? Tekan <b>Ketik</b> lalu masukkan nomor stocker (STK- sudah terisi), atau tekan <b>Kamera</b>. Bisa juga ketik kode langsung di kolom lalu tekan <b>Enter</b>.",
+            },
+            {
+                target: "#info_bar",
+                demo: true,
+                icon: "fa-circle-info",
+                title: "Stocker pertama jadi patokan",
+                text: "Stocker pertama menentukan <b>WS, color, dan size</b> set ini. Stocker berikutnya harus sama; kalau beda akan ditolak.",
+            },
+            {
+                target: "#list_panel",
+                demo: true,
+                icon: "fa-table-list",
+                title: "3. Lengkapi semua part",
+                text: `Satu baris = satu part. Scan stocker sampai semua part terisi (1 part = 1 stocker).<br>
+                    <span class="si-dot is-first"><i class="fa-solid fa-star"></i></span> stocker pertama &nbsp;
+                    <span class="si-dot is-filled"><i class="fa-solid fa-check"></i></span> terisi &nbsp;
+                    <span class="si-dot">3</span> menunggu scan`,
+            },
+            {
+                target: "#part_list .si-stepper",
+                demo: true,
+                icon: "fa-plus-minus",
+                title: "Qty act",
+                text: "Qty act otomatis sama dengan sisa stocker. Kalau jumlah aslinya beda, tekan <b>−</b> / <b>+</b>, atau tekan angkanya untuk membuka numpad.",
+            },
+            {
+                target: "#part_list .btn-si-remove",
+                demo: true,
+                icon: "fa-xmark",
+                title: "Salah scan?",
+                text: "Tekan <b>×</b> untuk menghapus stocker dari set, lalu scan stocker yang benar.",
+            },
+            {
+                target: ".si-qty",
+                demo: true,
+                icon: "fa-check",
+                title: "4. Apply",
+                text: "Qty 1 Set = qty act terkecil. Tombol <b>Apply</b> aktif (berdenyut hijau) setelah semua part terisi. Tekan <i class=\"fa-solid fa-rotate-left\"></i> untuk mengulang dari awal.",
+            },
+            {
+                target: ".btn-si-history:not(#btn_guide)",
+                icon: "fa-clock-rotate-left",
+                title: "Riwayat",
+                text: "Lihat set yang sudah disimpan. Tab <b>Outstanding</b> menampilkan stocker yang masih ada sisanya.",
+            },
+            {
+                target: "#btn_guide",
+                icon: "fa-circle-question",
+                title: "Selesai!",
+                text: "Panduan ini bisa dibuka lagi kapan saja lewat tombol <b>Panduan</b>. Selamat bekerja!",
+            },
+        ];
+
+        function startTour() {
+            if (tourActive) {
+                return;
+            }
+
+            tourActive = true;
+            closeNumpad();
+            document.activeElement?.blur();
+
+            $("#tour_dots").html(tourSteps.map(() => "<span></span>").join(""));
+            $("#tour").removeClass("d-none");
+
+            tourGo(0);
+        }
+
+        function endTour() {
+            if (!tourActive) {
+                return;
+            }
+
+            tourActive = false;
+            $("#tour").addClass("d-none");
+            tourDemo(false);
+        }
+
+        // Data contoh supaya tabel bisa ditunjukkan sebelum ada scan (tidak disimpan)
+        function tourDemo(on) {
+            if (on && !tourDemoActive && scannedStockers.length == 0) {
+                tourDemoActive = true;
+
+                currentWs = { ws: "CONTOH-WS", color: "NAVY", size: "M" };
+                parts = [
+                    { part_detail_id: "demo1", panel: "BODY", nama_part: "FRONT", tujuan: "non secondary" },
+                    { part_detail_id: "demo2", panel: "BODY", nama_part: "BACK", tujuan: "secondary" },
+                    { part_detail_id: "demo3", panel: "SLEEVE", nama_part: "SLEEVE", tujuan: "non secondary" },
+                ];
+                scannedStockers = [
+                    { id_qr_stocker: "STK-0002", part_detail_id: "demo2", nama_part: "BACK", size: "M", stocker_range: "1-24", qty: 24, qty_used: 0, qty_sisa: 24, qty_act: 20 },
+                    { id_qr_stocker: "STK-0001", part_detail_id: "demo1", nama_part: "FRONT", size: "M", stocker_range: "1-24", qty: 24, qty_used: 0, qty_sisa: 24, qty_act: 24 },
+                ];
+
+                $("#info_ws").text(currentWs.ws);
+                $("#info_style").text("CONTOH");
+                $("#info_color").text(currentWs.color);
+                $("#info_size").text(currentWs.size);
+
+                renderLists();
+            } else if (!on && tourDemoActive) {
+                tourDemoActive = false;
+                resetScan();
+            }
+        }
+
+        function tourGo(index) {
+            if (index < 0) {
+                return;
+            }
+
+            if (index >= tourSteps.length) {
+                endTour();
+
+                return;
+            }
+
+            tourIndex = index;
+
+            let step = tourSteps[index];
+            let last = index == tourSteps.length - 1;
+
+            tourDemo(!!step.demo);
+
+            $("#tour_icon").html(`<i class="fa-solid ${step.icon}"></i>`);
+            $("#tour_count").text(`Panduan ${index + 1} / ${tourSteps.length}`);
+            $("#tour_title").text(step.title);
+            $("#tour_text").html(step.text + (step.demo && tourDemoActive ? '<br><span class="si-tour-demo"><i class="fa-solid fa-flask"></i> Data contoh, tidak disimpan</span>' : ""));
+            $("#tour_dots span").removeClass("is-active").eq(index).addClass("is-active");
+            $("#tour_prev").toggleClass("invisible", index == 0);
+            $("#tour_next").html(last ? 'Mulai <i class="fa-solid fa-check"></i>' : index == 0 ? 'Mulai panduan <i class="fa-solid fa-arrow-right"></i>' : 'Lanjut <i class="fa-solid fa-arrow-right"></i>');
+
+            let pop = document.getElementById("tour_pop");
+
+            pop.classList.remove("is-anim");
+            void pop.offsetWidth;
+            pop.classList.add("is-anim");
+
+            let target = tourTarget();
+
+            if (target) {
+                target.scrollIntoView({ block: "center", behavior: "smooth" });
+            }
+
+            tourPlace();
+            setTimeout(tourPlace, 400);
+        }
+
+        function tourTarget() {
+            let step = tourSteps[tourIndex];
+
+            return step && step.target ? $(step.target).filter(":visible")[0] : null;
+        }
+
+        // Posisikan sorotan di target & kotak penjelasan di bawah / atasnya
+        function tourPlace() {
+            if (!tourActive) {
+                return;
+            }
+
+            let spot = $("#tour_spot");
+            let pop = $("#tour_pop");
+            let vw = window.innerWidth;
+            let vh = window.innerHeight;
+            let pw = pop.outerWidth();
+            let ph = pop.outerHeight();
+            let target = tourTarget();
+
+            if (!target) {
+                spot.css({ top: vh / 2, left: vw / 2, width: 0, height: 0 });
+                pop.css({ top: Math.max(12, (vh - ph) / 2), left: (vw - pw) / 2 });
+
+                return;
+            }
+
+            let rect = target.getBoundingClientRect();
+            let pad = 6;
+            let gap = 14;
+            let top = Math.max(4, rect.top - pad);
+            let bottom = Math.min(vh - 4, rect.bottom + pad);
+
+            spot.css({ top: top, left: rect.left - pad, width: rect.width + pad * 2, height: bottom - top });
+
+            let popTop = bottom + gap + ph <= vh - 12 ? bottom + gap :
+                top - gap - ph >= 12 ? top - gap - ph :
+                vh - ph - 12;
+            let popLeft = Math.min(Math.max(12, rect.left + rect.width / 2 - pw / 2), vw - pw - 12);
+
+            pop.css({ top: popTop, left: popLeft });
+        }
+
+        $(window).on("resize scroll", tourPlace);
+
         // Scan aktif setelah line dipilih
         $("#line_id").on("change", async function () {
             let lineSelected = !!$(this).val();
 
-            $("#kode_stocker, #btn_camera").prop("disabled", !lineSelected);
+            $("#kode_stocker, #btn_camera, #btn_type").prop("disabled", !lineSelected);
             $(".si-scan-group .input-group-text").toggleClass("is-disabled", !lineSelected);
             $("#kode_stocker").attr("placeholder", lineSelected ? "Scan atau ketik kode stocker" : "Pilih line dulu");
             resetScan();
@@ -1365,7 +2216,8 @@
         });
 
         function scanStocker(kodeStocker) {
-            if (!kodeStocker) {
+            // Selama tur panduan (ada data contoh) scan diabaikan
+            if (!kodeStocker || tourActive) {
                 return;
             }
 
@@ -1382,6 +2234,8 @@
                     document.getElementById("loading").classList.add("d-none");
 
                     if (res.status != 200) {
+                        rejectScan();
+
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
@@ -1395,6 +2249,7 @@
                 },
                 error: function (jqXHR) {
                     document.getElementById("loading").classList.add("d-none");
+                    rejectScan();
 
                     Swal.fire({
                         icon: 'error',
@@ -1413,6 +2268,8 @@
         var currentWs = null;
         var parts = [];
         var lastScannedId = null;
+        var lastChangedId = null;
+        var prevPartFilled = 0;
 
         function escapeHtml(text) {
             return $("<div>").text(text ?? "-").html();
@@ -1432,6 +2289,8 @@
                 $("#info_size").text(stocker.size);
             } else if (currentWs.ws != stocker.act_costing_ws || currentWs.color != stocker.color || currentWs.size != stocker.size) {
                 // WS, color & size harus sama dengan stocker pertama
+                rejectScan();
+
                 Swal.fire({
                     icon: 'warning',
                     title: 'WS / Color / Size berbeda',
@@ -1446,6 +2305,8 @@
 
             // Part stocker harus termasuk list part 1 set
             if (!parts.some(part => part.part_detail_id == stocker.part_detail_id)) {
+                rejectScan();
+
                 Swal.fire({
                     icon: 'warning',
                     title: 'Part tidak termasuk set',
@@ -1462,6 +2323,8 @@
             }
 
             if (scannedStockers.some(item => item.id_qr_stocker == stocker.id_qr_stocker)) {
+                rejectScan();
+
                 Swal.fire({
                     icon: 'warning',
                     title: 'Stocker sudah di-scan',
@@ -1476,6 +2339,8 @@
             let partStocker = scannedStockers.find(item => item.part_detail_id == stocker.part_detail_id);
 
             if (partStocker) {
+                rejectScan();
+
                 Swal.fire({
                     icon: 'warning',
                     title: 'Part sudah terisi',
@@ -1513,14 +2378,18 @@
             currentWs = null;
             parts = [];
             lastScannedId = null;
+            lastChangedId = null;
+            prevPartFilled = 0;
 
             $("#info_bar, #list_panel").addClass("d-none");
+            $("#list_panel").removeClass("is-complete");
             $("#empty_state").removeClass("d-none");
             $("#part_list").html("");
             $("#qty_set").val("");
-            $("#btn_apply").prop("disabled", true);
+            $("#btn_apply").prop("disabled", true).removeClass("is-ready");
             $("#kode_stocker").val("").trigger("focus");
             closeNumpad();
+            updateHints();
         }
 
         // Qty act valid: bilangan bulat 1 s/d sisa qty stocker
@@ -1536,9 +2405,15 @@
             let setComplete = parts.length > 0 && partFilled == parts.length;
             let invalid = scannedStockers.filter(stocker => !isValidQtyAct(stocker));
             let qtySet = scannedStockers.length > 0 ? Math.min(...scannedStockers.map(stocker => Number(stocker.qty_act) || 0)) : 0;
+            let ready = setComplete && invalid.length == 0 && qtySet > 0;
+            let prevQtySet = $("#qty_set").val();
 
             $("#qty_set").val(scannedStockers.length > 0 ? qtySet : "");
-            $("#btn_apply").prop("disabled", !(setComplete && invalid.length == 0 && qtySet > 0));
+            $("#btn_apply").prop("disabled", !ready).toggleClass("is-ready", ready);
+
+            if (prevQtySet !== "" && prevQtySet != $("#qty_set").val()) {
+                bump("#qty_set");
+            }
 
             if (invalid.length > 0) {
                 $("#qty_set_note").html(`<span class="text-danger fw-semibold"><i class="fa-solid fa-triangle-exclamation"></i> Qty act harus 1 s/d sisa stocker (${invalid.length} baris)</span>`);
@@ -1558,7 +2433,7 @@
             return `
                 <div class="si-stepper ${diff != 0 ? 'is-changed' : ''}">
                     <button class="si-step-btn" type="button" onclick="stepQtyAct('${id}', -1)" ${qtyAct <= 1 ? 'disabled' : ''}><i class="fa-solid fa-minus"></i></button>
-                    <button class="si-step-value" type="button" onclick="openNumpad('${id}')" title="Ketik qty">${qtyAct}</button>
+                    <button class="si-step-value ${stocker.id_qr_stocker == lastChangedId ? 'si-bump' : ''}" type="button" onclick="openNumpad('${id}')" title="Ketik qty">${qtyAct}</button>
                     <button class="si-step-btn" type="button" onclick="stepQtyAct('${id}', 1)" ${qtyAct >= Number(stocker.qty_sisa) ? 'disabled' : ''}><i class="fa-solid fa-plus"></i></button>
                 </div>
                 ${diff != 0 ? `<div class="si-step-diff">${diff} dari sisa ${escapeHtml(stocker.qty_sisa)}</div>` : ''}
@@ -1575,6 +2450,7 @@
             // Qty act 1 s/d sisa qty stocker
             stocker.qty_act = Math.min(Math.max(1, Number(qtyAct) || 1), Number(stocker.qty_sisa));
             lastScannedId = null;
+            lastChangedId = idQrStocker;
 
             renderLists();
 
@@ -1590,10 +2466,19 @@
             }
         }
 
-        // Numpad
+        // Numpad: mode "qty" (qty act) atau "code" (ketik kode stocker saat barcode tidak terbaca)
+        var numpadMode = null;
         var numpadStocker = null;
         var numpadValue = "";
         var numpadFresh = true;
+
+        // Kode stocker selalu STK-angka, operator cukup ketik angkanya
+        var STOCKER_PREFIX = "STK-";
+
+        function showNumpad() {
+            $("#numpad").removeClass("d-none");
+            document.activeElement?.blur();
+        }
 
         function openNumpad(idQrStocker) {
             numpadStocker = scannedStockers.find(item => item.id_qr_stocker == idQrStocker);
@@ -1602,23 +2487,55 @@
                 return;
             }
 
+            numpadMode = "qty";
             numpadValue = String(numpadStocker.qty_act);
             numpadFresh = true;
 
+            $("#numpad_label").text("Qty Act");
             $("#numpad_title").text(numpadStocker.id_qr_stocker + " · " + (numpadStocker.nama_part ?? "-"));
             $("#numpad_max").text(numpadStocker.qty_sisa);
+            $("#numpad_max_wrap").removeClass("d-none");
+            $("#numpad_alt").text("Max");
+            $("#numpad_ok").html("OK");
             renderNumpad();
+            showNumpad();
+        }
 
-            $("#numpad").removeClass("d-none");
-            document.activeElement?.blur();
+        function openCodePad() {
+            if ($("#btn_type").prop("disabled") || tourActive) {
+                return;
+            }
+
+            numpadMode = "code";
+            numpadStocker = null;
+            // Angka yang sudah terketik di kolom scan ikut dibawa
+            numpadValue = ($("#kode_stocker").val().match(/(\d+)\s*$/) || ["", ""])[1].replace(/^0+/, "").slice(0, 10);
+            numpadFresh = false;
+
+            $("#numpad_label").text("Ketik Kode Stocker");
+            $("#numpad_title").text("Barcode tidak terbaca");
+            $("#numpad_max_wrap").addClass("d-none");
+            $("#numpad_alt").text("Hapus");
+            $("#numpad_ok").html('<i class="fa-solid fa-magnifying-glass"></i> Cari');
+            renderNumpad();
+            showNumpad();
         }
 
         function closeNumpad() {
+            numpadMode = null;
             numpadStocker = null;
             $("#numpad").addClass("d-none");
         }
 
         function renderNumpad() {
+            if (numpadMode == "code") {
+                $("#numpad_display").text(STOCKER_PREFIX + numpadValue).removeClass("is-invalid");
+                $("#numpad_hint").text(numpadValue === "" ? "Ketik nomor stocker" : "Tekan Cari untuk memproses");
+                $("#numpad_ok").prop("disabled", numpadValue === "");
+
+                return;
+            }
+
             let value = Number(numpadValue);
             let valid = numpadValue !== "" && value >= 1 && value <= Number(numpadStocker.qty_sisa);
 
@@ -1628,7 +2545,7 @@
         }
 
         function numpadPress(key) {
-            if (!numpadStocker) {
+            if (!numpadMode) {
                 return;
             }
 
@@ -1638,6 +2555,11 @@
                 numpadValue = "";
             } else if (key == "max") {
                 numpadValue = String(numpadStocker.qty_sisa);
+            } else if (numpadMode == "code") {
+                // Nomor stocker tidak diawali 0
+                if (!(numpadValue === "" && key == "0")) {
+                    numpadValue = (numpadValue + key).slice(0, 10);
+                }
             } else {
                 // Tekan angka pertama langsung mengganti nilai lama
                 numpadValue = (numpadFresh ? "" : numpadValue) + key;
@@ -1649,7 +2571,17 @@
         }
 
         function numpadOk() {
-            if (!numpadStocker || $("#numpad_ok").prop("disabled")) {
+            if (!numpadMode || $("#numpad_ok").prop("disabled")) {
+                return;
+            }
+
+            if (numpadMode == "code") {
+                let kodeStocker = STOCKER_PREFIX + numpadValue;
+
+                closeNumpad();
+                $("#kode_stocker").val(kodeStocker);
+                scanStocker(kodeStocker);
+
                 return;
             }
 
@@ -1661,8 +2593,18 @@
 
         // ===== Tangkap hasil scanner ke kolom scan, di mana pun fokusnya =====
         $(document).on("keydown", function (e) {
+            // Tur panduan: panah / Enter untuk pindah langkah, Esc untuk tutup, scan diabaikan
+            if (tourActive) {
+                if (e.key == "ArrowRight" || e.key == "Enter") tourGo(tourIndex + 1);
+                else if (e.key == "ArrowLeft") tourGo(tourIndex - 1);
+                else if (e.key == "Escape") endTour();
+
+                e.preventDefault();
+                return;
+            }
+
             // Numpad terbuka: keyboard fisik dipakai untuk numpad
-            if (numpadStocker) {
+            if (numpadMode) {
                 if (/^[0-9]$/.test(e.key)) numpadPress(e.key);
                 else if (e.key == "Backspace") numpadPress("back");
                 else if (e.key == "Enter") numpadOk();
@@ -1763,6 +2705,8 @@
                         return;
                     }
 
+                    confetti();
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil',
@@ -1800,6 +2744,9 @@
             let partRows = "";
             let partFilled = 0;
 
+            // Tabel baru muncul: baris tampil berurutan
+            let intro = $("#list_panel").hasClass("d-none");
+
             parts.forEach((part, i) => {
                 let partStocker = scannedStockers.find(stocker => stocker.part_detail_id == part.part_detail_id);
                 let isFirst = partStocker && partStocker == firstStocker;
@@ -1833,7 +2780,7 @@
                 `;
 
                 partRows += `
-                    <tr class="${isFirst ? 'is-first' : partStocker ? 'is-filled' : ''} ${isNew ? 'is-new' : ''}">
+                    <tr class="${isFirst ? 'is-first' : partStocker ? 'is-filled' : ''} ${isNew ? 'is-new' : ''} ${intro ? 'si-intro' : ''}" style="--d: ${i * 45}ms">
                         <td class="text-center">${statusDot}</td>
                         <td class="si-panel">${escapeHtml(part.panel)}</td>
                         <td class="si-part">${escapeHtml(part.nama_part)}</td>
@@ -1852,8 +2799,18 @@
             $("#part_count, #part_progress_text").text(partFilled + " / " + parts.length);
             $("#part_count").toggleClass("is-complete", setComplete);
             $("#part_progress_bar").css("width", percent + "%");
+            $("#list_panel").toggleClass("is-complete", setComplete);
+
+            // Part bertambah: angka kelengkapan membesar sebentar
+            if (partFilled > prevPartFilled) {
+                bump("#part_count, #part_progress_text");
+            }
+
+            prevPartFilled = partFilled;
+            lastChangedId = null;
 
             updateQtySet();
+            updateHints();
 
             $("#empty_state").addClass("d-none");
             $("#info_bar, #list_panel").removeClass("d-none");
@@ -1990,6 +2947,37 @@
             $("#history_total_set").text(active.length);
             $("#history_total_qty").text(active.reduce((total, item) => total + Number(item.qty_set), 0));
             $("#history_total_cancel").text(rows.length - active.length);
+        }
+
+        // Export Excel: ikut semua filter yang sedang aktif di modal
+        function exportHistory() {
+            let dari = $("#history_dari").val();
+            let sampai = $("#history_sampai").val();
+
+            if (!dari || !sampai || sampai < dari) {
+                Swal.fire({ icon: "warning", title: "Tanggal tidak valid", text: "Isi tanggal dari & sampai, dan tanggal sampai tidak boleh sebelum tanggal dari." });
+                return;
+            }
+
+            let params = $.param({
+                tanggal_awal: $("#history_dari").val(),
+                tanggal_akhir: $("#history_sampai").val(),
+                line_id: $("#history_line").val() ?? "",
+                status: $("#history_status").val() ?? "",
+                search: $("#history_search").val().trim(),
+            });
+
+            window.location.href = "{{ route('sewing-in-history-export') }}?" + params;
+        }
+
+        // Export Excel outstanding: ikut filter line & cari
+        function exportOutstanding() {
+            let params = $.param({
+                line_id: $("#history_line").val() ?? "",
+                search: $("#history_search").val().trim(),
+            });
+
+            window.location.href = "{{ route('sewing-in-outstanding-export') }}?" + params;
         }
 
         function toggleHistoryRow(row) {

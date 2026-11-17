@@ -156,6 +156,7 @@ class SecondaryInController extends Controller
                 a.user,
                 (CASE WHEN a.urutan > 0 THEN a.urutan ELSE '-' END) urutan,
                 s.notes,
+                reject_source.id_qr_stocker stocker_reject,
                 a.qty_awal exp_qty_awal,
                 a.qty_reject exp_qty_reject,
                 a.qty_replace exp_qty_replace,
@@ -180,6 +181,11 @@ class SecondaryInController extends Controller
             left join master_part mp on mp.id = pd.master_part_id
             left join dc_in_input dc on a.id_qr_stocker = dc.id_qr_stocker
             left join secondary_inhouse_input sii on a.id_qr_stocker = sii.id_qr_stocker
+            left join stocker_reject srej on srej.id = s.stocker_reject
+            left join dc_in_input dc_rej on dc_rej.id = srej.dc_in_id
+            left join secondary_inhouse_input sii_rej on sii_rej.id = srej.secondary_inhouse_id
+            left join secondary_in_input si_rej on si_rej.id = srej.secondary_in_id
+            left join stocker_input reject_source on reject_source.id_qr_stocker = COALESCE(dc_rej.id_qr_stocker, sii_rej.id_qr_stocker, si_rej.id_qr_stocker)
             where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                 $whereInput
@@ -215,6 +221,7 @@ class SecondaryInController extends Controller
                 COALESCE(a.created_by_username, b.user) user,
                 (CASE WHEN b.urutan > 0 THEN b.urutan ELSE '-' END) urutan,
                 s.notes,
+                reject_source.id_qr_stocker stocker_reject,
                 0 exp_qty_awal,
                 a.reject exp_qty_reject,
                 a.replace exp_qty_replace,
@@ -240,6 +247,11 @@ class SecondaryInController extends Controller
             left join master_part mp on mp.id = pd.master_part_id
             left join dc_in_input dc on b.id_qr_stocker = dc.id_qr_stocker
             left join secondary_inhouse_input sii on b.id_qr_stocker = sii.id_qr_stocker
+            left join stocker_reject srej on srej.id = s.stocker_reject
+            left join dc_in_input dc_rej on dc_rej.id = srej.dc_in_id
+            left join secondary_inhouse_input sii_rej on sii_rej.id = srej.secondary_inhouse_id
+            left join secondary_in_input si_rej on si_rej.id = srej.secondary_in_id
+            left join stocker_input reject_source on reject_source.id_qr_stocker = COALESCE(dc_rej.id_qr_stocker, sii_rej.id_qr_stocker, si_rej.id_qr_stocker)
             where
                 b.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                 $whereUpdate
@@ -406,7 +418,7 @@ class SecondaryInController extends Controller
         $columns = [
             'tgl_trans_fix', 'id_qr_stocker', 'tipe', 'act_costing_ws', 'style', 'color', 'panel', 'nama_part',
             'size', 'no_cut', 'tujuan', 'lokasi', 'urutan', 'stocker_range', 'qty_awal', 'qty_reject', 'qty_replace',
-            'qty_in', 'buyer', 'user', 'created_at',
+            'qty_in', 'buyer', 'stocker_reject', 'user', 'created_at',
         ];
 
         foreach ($columns as $column) {
@@ -557,7 +569,8 @@ class SecondaryInController extends Controller
                                 (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND 1 >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
                                 max_urutan.max_urutan,
                                 md.sec_in_stocker,
-                                md.sec_in_created_at
+                                md.sec_in_created_at,
+                                s.stocker_reject
                             from
                                 (
                                     select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2, sii.id_qr_stocker sec_in_stocker, sii.created_at sec_in_created_at from dc_in_input dc
@@ -676,9 +689,10 @@ class SecondaryInController extends Controller
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
                                                     ".$multiSecondaryCurrentSecondary->urutan." as urutan,
-                                                    (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryCurrentSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
+                                                    (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryCurrentSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
+                                                    s.stocker_reject
                                                 from
-                                                    stocker_input
+                                                    stocker_input s
                                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
                                                     left join form_cut_input a on s.form_cut_id = a.id
                                                     left join form_cut_reject b on s.form_reject_id = b.id
@@ -739,7 +753,8 @@ class SecondaryInController extends Controller
                                                 s.lokasi lokasi_tujuan,
                                                 s.tempat tempat_tujuan,
                                                 ".$multiSecondaryCurrentSecondary->urutan." as urutan,
-                                                (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryCurrentSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
+                                                (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryCurrentSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
+                                                s.stocker_reject
                                             from
                                                 stocker_input s
                                                 left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -837,7 +852,8 @@ class SecondaryInController extends Controller
                                                         s.lokasi lokasi_tujuan,
                                                         s.tempat tempat_tujuan,
                                                         ".$currentPartDetailSecondary->urutan." as urutan,
-                                                        (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$currentPartDetailSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
+                                                        (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$currentPartDetailSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
+                                                        s.stocker_reject
                                                     from
                                                         stocker_input s
                                                         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -897,7 +913,8 @@ class SecondaryInController extends Controller
                                                         s.lokasi lokasi_tujuan,
                                                         s.tempat tempat_tujuan,
                                                         ".$multiSecondaryBefore->urutan." as urutan,
-                                                        (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryBefore->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
+                                                        (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryBefore->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
+                                                        s.stocker_reject
                                                     from
                                                         stocker_input s
                                                         left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -968,7 +985,8 @@ class SecondaryInController extends Controller
                                                     s.lokasi lokasi_tujuan,
                                                     s.tempat tempat_tujuan,
                                                     ".$currentPartDetailSecondary->urutan." as urutan
-                                                    (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$currentPartDetailSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status
+                                                    (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$currentPartDetailSecondary->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
+                                                    s.stocker_reject
                                                 from
                                                     stocker_input s
                                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -1032,7 +1050,8 @@ class SecondaryInController extends Controller
                                             (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND 1 >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
                                             max_urutan.max_urutan,
                                             md.sec_in_stocker,
-                                            md.sec_in_created_at
+                                            md.sec_in_created_at,
+                                            s.stocker_reject
                                         from
                                             (
                                                 select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2, sii.id_qr_stocker sec_in_stocker, sii.created_at sec_in_created_at from dc_in_input dc
@@ -1125,7 +1144,8 @@ class SecondaryInController extends Controller
                                                     s.tempat tempat_tujuan,
                                                     ".$multiSecondaryBefore->urutan." as urutan,
                                                     (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND ".$multiSecondaryBefore->urutan." >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
-                                                    max_urutan.max_urutan
+                                                    max_urutan.max_urutan,
+                                                    s.stocker_reject
                                                 from
                                                     stocker_input s
                                                     left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -1200,7 +1220,8 @@ class SecondaryInController extends Controller
                                         (CASE WHEN max_urutan.max_urutan IS NULL OR (max_urutan.max_urutan IS NOT NULL AND 1 >= max_urutan.max_urutan) THEN 'finish' ELSE 'process' END) status,
                                         max_urutan.max_urutan,
                                         md.sec_in_stocker,
-                                        md.sec_in_created_at
+                                        md.sec_in_created_at,
+                                        s.stocker_reject
                                     from
                                         (
                                             select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2, sii.id_qr_stocker sec_in_stocker, sii.created_at sec_in_created_at from dc_in_input dc
@@ -1267,7 +1288,8 @@ class SecondaryInController extends Controller
                             s.lokasi lokasi_tujuan,
                             s.tempat tempat_tujuan,
                             md.sec_in_stocker,
-                            md.sec_in_created_at
+                            md.sec_in_created_at,
+                            s.stocker_reject
                         from
                             (
                                 select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2, sii.id_qr_stocker sec_in_stocker, sii.created_at sec_in_created_at from dc_in_input dc
@@ -1332,7 +1354,8 @@ class SecondaryInController extends Controller
                 COALESCE(siu.qty_replace, 0) total_replace,
                 (sii.qty_in - COALESCE(siu.qty_reject, 0) + COALESCE(siu.qty_replace, 0)) qty_in_akhir,
                 s.lokasi lokasi_tujuan,
-                s.tempat tempat_tujuan
+                s.tempat tempat_tujuan,
+                s.stocker_reject
             from
             (
                 select dc.id_qr_stocker,ifnull(si.id_qr_stocker,'x') cek_1, ifnull(sii.id_qr_stocker,'x') cek_2  from dc_in_input dc
@@ -1911,7 +1934,7 @@ class SecondaryInController extends Controller
 
         // Title
         $sheet->writeTo('A1', 'Secondary In Report', ['font-size' => 16]);
-        $sheet->mergeCells('A1:W1');
+        $sheet->mergeCells('A1:Y1');
 
         // Headers
         $sheet->writeTo('A2', 'Tgl Transaksi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -1935,9 +1958,10 @@ class SecondaryInController extends Controller
         $sheet->writeTo('S2', 'Qty In')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('T2', 'Urutan')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('U2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('V2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('W2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('X2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V2', 'Stocker Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('W2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('X2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('Y2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             $sheet->writeAreas();
@@ -1965,6 +1989,7 @@ class SecondaryInController extends Controller
                     intval($row->exp_qty_in) ?? 0,
                     $row->urutan ?? "-",
                     $row->buyer ?? "-",
+                    $row->stocker_reject ?? "-",
                     $row->user ?? "-",
                     $row->created_at ?? "-",
                     $row->notes ?? "-",

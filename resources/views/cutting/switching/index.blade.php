@@ -121,7 +121,7 @@
             columnDefs: [
                 {
                     targets: [11],
-                    render: (data) => Number(data) === 1
+                    render: (data) => (data === null || Number(data) === 1)
                         ? '<span class="badge bg-success">Active</span>'
                         : '<span class="badge bg-secondary">Cancel</span>',
                 },

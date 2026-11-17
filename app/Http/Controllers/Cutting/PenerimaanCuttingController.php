@@ -76,6 +76,14 @@ class PenerimaanCuttingController extends Controller
                 $data->where('penerimaan_cutting.tanggal_terima', '<=', $tglAkhir);
             }
 
+            if ($request->bppbFrom) {
+                $data->where('whs_bppb_h.tgl_bppb', '>=', $request->bppbFrom);
+            }
+
+            if ($request->bppbTo) {
+                $data->where('whs_bppb_h.tgl_bppb', '<=', $request->bppbTo);
+            }
+
             return DataTables::query($data)
                 ->filterColumn('tanggal_terima', function ($query, $keyword) {
                     $query->whereRaw("
@@ -138,7 +146,7 @@ class PenerimaanCuttingController extends Controller
                 ->toJson();
         }
 
-        return view('cutting.penerimaan-cutting.penerimaan-cutting', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting"]);
+        return view('cutting.penerimaan-cutting.penerimaan-cutting', ["page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting", "containerFluid" => true]);
     }
 
     /**
@@ -150,7 +158,17 @@ class PenerimaanCuttingController extends Controller
     {
         $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
 
-        return view('cutting.penerimaan-cutting.create-penerimaan-cutting', ['orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting"]);
+        return view('cutting.penerimaan-cutting.create-penerimaan-cutting', ['orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting", "containerFluid" => true]);
+    }
+
+    /**
+     * Tampilan lama (scan -> daftar -> simpan) sebagai cadangan.
+     */
+    public function createOld()
+    {
+        $orders = DB::connection('mysql_sb')->table('act_costing')->select('id', 'kpno')->where('status', '!=', 'CANCEL')->where('cost_date', '>=', '2023-01-01')->where('type_ws', 'STD')->orderBy('cost_date', 'desc')->orderBy('kpno', 'asc')->groupBy('kpno')->get();
+
+        return view('cutting.penerimaan-cutting.create-penerimaan-cutting-backup', ['orders' => $orders, 'page' => 'dashboard-cutting', "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting", "containerFluid" => true]);
     }
 
     /**
@@ -265,7 +283,7 @@ class PenerimaanCuttingController extends Controller
             ->orderBy('penerimaan_cutting.id', 'DESC')
             ->first();
 
-        return view("cutting.penerimaan-cutting.edit-penerimaan-cutting", ["data" => $data]);
+        return view("cutting.penerimaan-cutting.edit-penerimaan-cutting", ["data" => $data, "page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting", "containerFluid" => true]);
     }
 
     /**
@@ -483,6 +501,305 @@ class PenerimaanCuttingController extends Controller
         return $data;
     }
 
+    /**
+     * Berapa bulan ke belakang roll pending ikut ditampilkan sebagai "bulan sebelumnya".
+     */
+    private const CARRY_MONTHS = 3;
+
+    /**
+     * Pengeluaran gudang ke Cutting hanya diambil mulai tanggal BPPB ini.
+     */
+    private const MIN_TGL_BPPB = '2026-10-01';
+
+    /**
+     * Konversi qty ke satuan konversi (YRD/YARD -> METER).
+     */
+    private function konversiQty($qty, $unit)
+    {
+        $unit = strtoupper(trim((string) $unit));
+
+        if ($unit == 'YRD' || $unit == 'YARD') {
+            return [round(((float) $qty) * 0.9144, 2), 'METER'];
+        }
+
+        return [(float) $qty, $unit];
+    }
+
+    /**
+     * Query dasar pengeluaran gudang ke Cutting (whs_bppb_det + status penerimaan).
+     */
+    private function pengeluaranCuttingQuery()
+    {
+        return DB::connection("mysql_sb")
+            ->table('whs_bppb_det')
+            ->selectRaw("
+                whs_bppb_det.id,
+                whs_bppb_det.id_roll AS barcode,
+                whs_bppb_det.no_bppb,
+                whs_bppb_det.id_jo,
+                whs_bppb_h.tgl_bppb,
+                whs_bppb_h.no_req,
+                whs_bppb_h.tujuan,
+                whs_bppb_h.no_ws,
+                whs_bppb_h.no_ws_aktual AS no_ws_act,
+                whs_bppb_det.qty_out,
+                whs_bppb_det.satuan AS unit,
+                whs_bppb_det.no_lot,
+                whs_bppb_det.no_roll,
+                whs_bppb_det.no_roll_buyer,
+                whs_bppb_det.id_item,
+                masteritem.color AS warna,
+                pc.id AS terima_id,
+                pc.tanggal_terima,
+                pc.created_at AS terima_at,
+                pc.created_by_username AS terima_by,
+                pc.qty_konv AS terima_qty_konv,
+                pc.unit_konv AS terima_unit_konv
+            ")
+            ->leftJoin('whs_bppb_h', 'whs_bppb_h.no_bppb', '=', 'whs_bppb_det.no_bppb')
+            ->leftJoin('masteritem', 'masteritem.id_item', '=', 'whs_bppb_det.id_item')
+            ->leftJoin('laravel_nds.penerimaan_cutting as pc', 'pc.whs_bppb_det_id', '=', 'whs_bppb_det.id')
+            ->where('whs_bppb_det.no_bppb', 'NOT LIKE', 'MT/%')
+            ->where('whs_bppb_h.tujuan', 'Production - Cutting')
+            ->where('whs_bppb_h.tgl_bppb', '>=', self::MIN_TGL_BPPB)
+            ->whereRaw("COALESCE(whs_bppb_det.status, 'Y') <> 'N'");
+    }
+
+    /**
+     * Format ringkas satu baris pengeluaran untuk tampilan scan.
+     */
+    private function formatPengeluaran($row)
+    {
+        [$qtyKonv, $unitKonv] = $this->konversiQty($row->qty_out, $row->unit);
+
+        return [
+            'id'            => $row->id,
+            'bc'            => $row->barcode,
+            'bppb'          => $row->no_bppb,
+            'tgl'           => $row->tgl_bppb ? substr($row->tgl_bppb, 0, 10) : null,
+            'req'           => $row->no_req,
+            'ws'            => $row->no_ws,
+            'wsAct'         => $row->no_ws_act,
+            'roll'          => $row->no_roll,
+            'rollBuyer'     => $row->no_roll_buyer,
+            'lot'           => $row->no_lot,
+            'item'          => $row->id_item,
+            'warna'         => $row->warna,
+            'qty'           => (float) $row->qty_out,
+            'unit'          => $row->unit,
+            'qtyK'          => $row->terima_id ? (float) $row->terima_qty_konv : $qtyKonv,
+            'unitK'         => $row->terima_id ? $row->terima_unit_konv : $unitKonv,
+            'rcv'           => $row->terima_id ? [
+                'tgl' => substr((string) $row->tanggal_terima, 0, 10),
+                'jam' => $row->terima_at ? Carbon::parse($row->terima_at)->format('H:i') : null,
+                'by'  => $row->terima_by ?? '-',
+            ] : null,
+        ];
+    }
+
+    /**
+     * Semua pengeluaran ke Cutting untuk satu barcode, beserta status penerimaannya.
+     */
+    public function scanBarcode($id = null)
+    {
+        $id = strtoupper(trim((string) $id));
+
+        if (!$id) {
+            return response()->json(['status' => false, 'message' => 'Barcode kosong.', 'rows' => []]);
+        }
+
+        $rows = $this->pengeluaranCuttingQuery()
+            ->addSelect('whs_bppb_det.item_desc AS nama_barang')
+            ->where('whs_bppb_det.id_roll', $id)
+            ->orderBy('whs_bppb_h.tgl_bppb')
+            ->orderBy('whs_bppb_det.id')
+            ->get();
+
+        // Style per id_jo (query kecil, hanya untuk jo milik barcode ini)
+        $styles = collect();
+        $idJos = $rows->pluck('id_jo')->filter()->unique()->values();
+        if ($idJos->count() > 0) {
+            $styles = DB::connection("mysql_sb")
+                ->table('act_costing as ac')
+                ->selectRaw('jod.id_jo, MAX(ac.styleno) AS styleno')
+                ->join('so', 'ac.id', '=', 'so.id_cost')
+                ->join('jo_det as jod', 'so.id', '=', 'jod.id_so')
+                ->whereIn('jod.id_jo', $idJos)
+                ->groupBy('jod.id_jo')
+                ->pluck('styleno', 'id_jo');
+        }
+
+        $today = date('Y-m-d');
+        $result = $rows->map(function ($row) use ($styles, $today) {
+            $data = $this->formatPengeluaran($row);
+            $data['style'] = $styles[$row->id_jo] ?? null;
+            $data['nama'] = $row->nama_barang;
+            $data['future'] = $row->tgl_bppb > $today;
+
+            return $data;
+        })->values();
+
+        // Data lama: penerimaan tercatat dengan id_roll tapi tanpa relasi pengeluaran
+        $legacyReceived = $result->count() < 1 && DB::table('penerimaan_cutting')->where('id_roll', $id)->exists();
+
+        return response()->json([
+            'status' => true,
+            'barcode' => $id,
+            'legacy_received' => $legacyReceived,
+            'rows' => $result,
+        ]);
+    }
+
+    /**
+     * Simpan penerimaan satu roll langsung saat di-scan.
+     */
+    public function storeScan(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'whs_bppb_det_id' => 'required|integer',
+        ], [
+            'whs_bppb_det_id.required' => 'Data pengeluaran tidak ditemukan.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 400, 'message' => $validator->errors()->first()], 400);
+        }
+
+        $row = $this->pengeluaranCuttingQuery()
+            ->addSelect('whs_bppb_det.item_desc AS nama_barang')
+            ->where('whs_bppb_det.id', $request->whs_bppb_det_id)
+            ->first();
+
+        if (!$row) {
+            return response()->json(['status' => 404, 'message' => 'Data pengeluaran ke Cutting tidak ditemukan.'], 404);
+        }
+
+        if ($row->tgl_bppb > date('Y-m-d')) {
+            return response()->json(['status' => 400, 'message' => 'Tanggal BPPB melebihi tanggal hari ini.'], 400);
+        }
+
+        $user = Auth::user();
+        $now = Carbon::now();
+        [$qtyKonv, $unitKonv] = $this->konversiQty($row->qty_out, $row->unit);
+
+        $saved = DB::transaction(function () use ($row, $user, $now, $qtyKonv, $unitKonv) {
+            $exists = PenerimaanCutting::where('whs_bppb_det_id', $row->id)->lockForUpdate()->exists();
+
+            if ($exists) {
+                return null;
+            }
+
+            return PenerimaanCutting::create([
+                'tanggal_terima'        => $now->format('Y-m-d'),
+                'whs_bppb_det_id'       => $row->id,
+                'id_roll'               => $row->barcode,
+                'qty_konv'              => $qtyKonv,
+                'unit_konv'             => $unitKonv,
+                'created_by'            => $user ? $user->id : null,
+                'created_by_username'   => $user ? $user->username : null,
+                'created_at'            => $now,
+            ]);
+        });
+
+        if (!$saved) {
+            return response()->json(['status' => 409, 'message' => 'Kiriman ini sudah diterima sebelumnya.'], 409);
+        }
+
+        $row->terima_id = $saved->id;
+        $row->tanggal_terima = $saved->tanggal_terima;
+        $row->terima_at = $now;
+        $row->terima_by = $saved->created_by_username;
+        $row->terima_qty_konv = $qtyKonv;
+        $row->terima_unit_konv = $unitKonv;
+
+        $data = $this->formatPengeluaran($row);
+        $data['nama'] = $row->nama_barang;
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Penerimaan tersimpan.',
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Ringkasan penerimaan per bulan BPPB: semua pengeluaran bulan terpilih
+     * + roll pending dari beberapa bulan sebelumnya + penerimaan hari ini.
+     */
+    public function summary(Request $request)
+    {
+        $month = preg_match('/^\d{4}-\d{2}$/', (string) $request->month) ? $request->month : date('Y-m');
+
+        $start = Carbon::createFromFormat('Y-m-d', $month . '-01')->startOfDay();
+        $end = $start->copy()->endOfMonth();
+        $carryStart = $start->copy()->subMonthsNoOverflow(self::CARRY_MONTHS);
+
+        $rows = $this->pengeluaranCuttingQuery()
+            ->whereBetween('whs_bppb_h.tgl_bppb', [$carryStart->format('Y-m-d'), $end->format('Y-m-d')])
+            ->where(function ($query) use ($start) {
+                $query->where('whs_bppb_h.tgl_bppb', '>=', $start->format('Y-m-d'))
+                    ->orWhereNull('pc.id');
+            })
+            ->orderBy('whs_bppb_h.tgl_bppb')
+            ->orderBy('whs_bppb_det.id')
+            ->get()
+            ->map(fn ($row) => $this->formatPengeluaran($row))
+            ->values();
+
+        // Total roll keluar per tanggal untuk bulan-bulan sebelumnya (baris yang sudah diterima tidak ikut di $rows)
+        $carryDateTotals = DB::connection("mysql_sb")
+            ->table('whs_bppb_det')
+            ->selectRaw('whs_bppb_h.tgl_bppb AS tgl, COUNT(*) AS total')
+            ->leftJoin('whs_bppb_h', 'whs_bppb_h.no_bppb', '=', 'whs_bppb_det.no_bppb')
+            ->where('whs_bppb_det.no_bppb', 'NOT LIKE', 'MT/%')
+            ->where('whs_bppb_h.tujuan', 'Production - Cutting')
+            ->where('whs_bppb_h.tgl_bppb', '>=', self::MIN_TGL_BPPB)
+            ->whereRaw("COALESCE(whs_bppb_det.status, 'Y') <> 'N'")
+            ->where('whs_bppb_h.tgl_bppb', '>=', $carryStart->format('Y-m-d'))
+            ->where('whs_bppb_h.tgl_bppb', '<', $start->format('Y-m-d'))
+            ->groupBy('whs_bppb_h.tgl_bppb')
+            ->pluck('total', 'tgl');
+
+        $today = date('Y-m-d');
+        $todayRows = DB::connection("mysql_sb")
+            ->table('laravel_nds.penerimaan_cutting as pc')
+            ->selectRaw("
+                pc.id,
+                pc.id_roll AS barcode,
+                pc.qty_konv,
+                pc.unit_konv,
+                pc.created_at,
+                pc.created_by_username,
+                masteritem.color AS warna
+            ")
+            ->leftJoin('whs_bppb_det', 'whs_bppb_det.id', '=', 'pc.whs_bppb_det_id')
+            ->leftJoin('masteritem', 'masteritem.id_item', '=', 'whs_bppb_det.id_item')
+            ->whereBetween('pc.tanggal_terima', [$today . ' 00:00:00', $today . ' 23:59:59'])
+            ->orderBy('pc.created_at')
+            ->orderBy('pc.id')
+            ->get()
+            ->map(fn ($r) => [
+                'id'    => $r->id,
+                'bc'    => $r->barcode,
+                'warna' => $r->warna,
+                'qtyK'  => (float) $r->qty_konv,
+                'unitK' => $r->unit_konv,
+                'jam'   => $r->created_at ? Carbon::parse($r->created_at)->format('H:i') : null,
+                'by'    => $r->created_by_username ?? '-',
+            ])
+            ->values();
+
+        return response()->json([
+            'status' => true,
+            'month' => $month,
+            'carry_from' => $carryStart->format('Y-m'),
+            'today' => $today,
+            'rows' => $rows,
+            'carry_date_totals' => $carryDateTotals,
+            'today_rows' => $todayRows,
+        ]);
+    }
+
     public function exportPenerimaanCutting(Request $request) {
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', '3600');
@@ -528,7 +845,13 @@ class PenerimaanCuttingController extends Controller
                     $join->on('buyer_ws.id_jo', '=', 'signalbit_erp.whs_bppb_det.id_jo');
                 }
             )
-            ->whereBetween('penerimaan_cutting.created_at', [
+            ->when($request->bppbFrom, function ($query, $bppbFrom) {
+                $query->where('whs_bppb_h.tgl_bppb', '>=', $bppbFrom);
+            })
+            ->when($request->bppbTo, function ($query, $bppbTo) {
+                $query->where('whs_bppb_h.tgl_bppb', '<=', $bppbTo);
+            })
+            ->whereBetween('penerimaan_cutting.tanggal_terima', [
                 $from . ' 00:00:00',
                 $to . ' 23:59:59'
             ])->get();
@@ -546,7 +869,7 @@ class PenerimaanCuttingController extends Controller
         // Headers
         $headers = [
             'Tanggal Terima', 'Barcode', 'Qty Out', 'Unit', 'Qty Konv', 'Unit Konv', 'No. Req', 'No. BPPB', 'Tgl. BPPB', 'Tujuan',
-            'No. WS', 'No. WS Act', 'ID Item', 'Style', 'Warna', 'No. Lot', 'No. Roll', 'No. Roll Buyer', 'Created By', 'Created At',
+            'No. WS', 'No. WS Act', 'ID Item', 'Style', 'Warna', 'No. Lot', 'No. Roll', 'No. Roll Buyer', 'User', 'Detail Tgl Terima',
         ];
 
         $sheet->writeRow(['']);

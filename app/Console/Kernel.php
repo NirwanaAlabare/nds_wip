@@ -47,6 +47,7 @@ class Kernel extends ConsoleKernel
             });
         $schedule->command('general:updatemgtreptmpearn')->dailyAt("01:00")->sendOutputTo(public_path().'/tasks/log.txt');
         $schedule->command('dc:rekap')->lastDayOfMonth('23:30')->sendOutputTo(public_path().'/tasks/log.txt');
+        $schedule->command('cutting:rekap-fabric')->lastDayOfMonth('23:45')->sendOutputTo(public_path().'/tasks/log.txt');
     }
 
     /**

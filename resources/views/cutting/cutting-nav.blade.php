@@ -177,7 +177,7 @@
                 <li>
                     <a href="{{ route('roll_fabric_cutting_in') }}"
                         class="dropdown-item {{ $subPage == 'roll_fabric_cutting_in' ? 'active' : '' }}">
-                        Penerimaan Fabric <i class="fa-solid fa-box-open fa-sm"></i>
+                        Pengeluaran Fabric ke Cutting <i class="fa-solid fa-box-open fa-sm"></i>
                     </a>
                 </li>
                 <li>

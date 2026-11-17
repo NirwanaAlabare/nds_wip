@@ -135,6 +135,13 @@ return [
             'days' => 30,
         ],
 
+        'undoStockerAdditional' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/undoStockerAdditional/undoStockerAdditional.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
         'transferOutput' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/transferOutput/transferOutput.log'),
@@ -243,6 +250,12 @@ return [
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
             'days' => 360,
         ],
+        'rekapFabric' => [
+            'driver' => 'daily', // or 'daily' if you want rotation
+            'path' => storage_path('logs/rekapFabric/rekapFabric.log'),
+            'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 360,
+        ],
         'formCutPieceChainedQty' => [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/formCutPiece/formCutPieceChainedQty.log'),
@@ -259,6 +272,27 @@ return [
             'driver' => 'daily', // or 'daily' if you want rotation
             'path' => storage_path('logs/storePartDetailSecondary/storePartDetailSecondary.log'),
             'level' => 'debug', // or 'info', 'warning', 'error' etc.
+            'days' => 30,
+        ],
+
+        'modifyDefectInOut' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/modifyDefectInOut/modifyDefectInOut.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
+        'modifySecondaryInOut' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/modifySecondaryInOut/modifySecondaryInOut.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
+        'modifyRejectInOut' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/modifyRejectInOut/modifyRejectInOut.log'),
+            'level' => 'debug',
             'days' => 30,
         ],
 

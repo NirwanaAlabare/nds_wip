@@ -919,120 +919,17 @@ SELECT id, tgl_trans, barcode, po, no_carton,created_at, updated_at, created_by 
             // hasil tot_out akan ikut ter-update.
             // =========================================================
 
-            $cek_stok = DB::select("
-                SELECT
-                    SUM(
-                        COALESCE(pack_in.tot_in, 0)
-                        + COALESCE(pack_switch_in.qty_switch_masuk, 0)
-                        - COALESCE(pack_out.tot_out, 0)
-                        - COALESCE(pack_switch.qty_switch, 0)
-                        - COALESCE(pack_out_gudang_stok.qty, 0)
-                    ) AS tot_s
+            // Stok = Saldo Akhir Detail Transaksi WIP PO (snapshot saldo_wip_packing_central + transaksi)
+            // untuk PO ini dan item (ws/style/color/size) dari barcode + dest yang di-scan
+            $so_det_scan = DB::table('ppic_master_so')
+                ->where('barcode', $barcode)
+                ->where('po', $cek_dest_po)
+                ->where('dest', $dest)
+                ->pluck('id_so_det')
+                ->all();
 
-                FROM ppic_master_so p
-
-                LEFT JOIN
-                (
-                    SELECT
-                        SUM(packing_packing_in.qty) AS tot_in,
-                        packing_packing_in.id_ppic_master_so,
-                        packing_packing_in.id_so_det
-
-                    FROM packing_packing_in
-
-                    INNER JOIN ppic_master_so
-                        ON ppic_master_so.id = packing_packing_in.id_ppic_master_so
-
-                    WHERE packing_packing_in.barcode IN ('$barcode', '0')
-                    AND ppic_master_so.po = '$cek_dest_po'
-                    AND ppic_master_so.dest = '$dest'
-                    AND packing_packing_in.sumber = 'Sewing'
-
-                    GROUP BY
-                        packing_packing_in.id_ppic_master_so,
-                        packing_packing_in.id_so_det
-                ) pack_in
-                    ON p.id = pack_in.id_ppic_master_so
-                     AND p.id_so_det = pack_in.id_so_det
-
-                LEFT JOIN
-                (
-                    SELECT
-                        COUNT(*) AS tot_out,
-                        a.id_ppic,
-                        a.id_so_det
-
-                    FROM packing_packing_out_scan a
-
-                    INNER JOIN ppic_master_so p
-                        ON a.barcode = p.barcode
-                        AND a.po = p.po
-                        AND a.dest = p.dest
-                        AND a.id_so_det = p.id_so_det
-
-                    WHERE p.barcode = '$barcode'
-                    AND p.po = '$cek_dest_po'
-                    AND p.dest = '$dest'
-
-                    GROUP BY
-                        a.id_ppic,
-                        a.id_so_det
-                ) pack_out
-                    ON p.id = pack_out.id_ppic
-                    AND p.id_so_det = pack_out.id_so_det
-
-                LEFT JOIN
-                (
-                    SELECT
-                        asal_ppic_master_so_id,
-                        asal_so_det_id,
-                        SUM(qty_switch) AS qty_switch
-
-                    FROM packing_central_switching
-
-                    GROUP BY
-                        asal_ppic_master_so_id,
-                        asal_so_det_id
-                ) pack_switch
-                    ON p.id = pack_switch.asal_ppic_master_so_id
-                    AND p.id_so_det = pack_switch.asal_so_det_id
-
-                LEFT JOIN
-                (
-                    SELECT
-                        tujuan_ppic_master_so_id,
-                        tujuan_so_det_id,
-                        SUM(qty_switch) AS qty_switch_masuk
-
-                    FROM packing_central_switching
-
-                    GROUP BY
-                        tujuan_ppic_master_so_id,
-                        tujuan_so_det_id
-                ) pack_switch_in
-                    ON p.id = pack_switch_in.tujuan_ppic_master_so_id
-                    AND p.id_so_det = pack_switch_in.tujuan_so_det_id
-
-                LEFT JOIN
-                (
-                    SELECT
-                        ppic_master_so_id,
-                        so_det_id,
-                        SUM(qty) AS qty
-                    FROM packing_out_gudang_stok
-                    WHERE lokasi_asal = 'PACKING CENTRAL'
-                    GROUP BY
-                        ppic_master_so_id,
-                        so_det_id
-                ) pack_out_gudang_stok
-                    ON p.id = pack_out_gudang_stok.ppic_master_so_id
-                    AND p.id_so_det = pack_out_gudang_stok.so_det_id
-                WHERE p.barcode = '$barcode'
-                AND p.po = '$cek_dest_po'
-                AND p.dest = '$dest'
-            ");
-
-            $cek_stok_fix = $cek_stok[0]->tot_s ?? 0;
+            $cek_stok_fix = app(PackingCentralSwitchingController::class)
+                ->saldoAkhirDetailTransaksi($cek_dest_po, $so_det_scan);
 
             // =========================================================
             // CEK STOK
@@ -2065,17 +1962,55 @@ group by po, no_carton, notes
 
     private function sqlStokTemporaryPacking(bool $perPo = true): string
     {
-        $filterPo = $perPo ? 'AND stok.po = ?' : '';
+        $filterPo = $perPo ? 'WHERE stok.po = ?' : '';
 
+        // Stok masuk = transfer garment + WIP Adjustment PACKING_TEMPORARY (sama dengan halaman
+        // Stok Temporary). Adjustment tidak punya PO, jadi masuk ke PO 'TEMPORARY PACKING'.
         return "
             SELECT
                 stok.po,
-                stok.id_ppic_master_so,
+                MAX(stok.id_ppic_master_so) AS id_ppic_master_so,
                 stok.id_so_det,
-                stok.qty
-                    - COALESCE(out_gudang_stok.qty, 0)
-                    - COALESCE(out_temporary.qty, 0) AS qty_sisa
-            FROM packing_trf_garment stok
+                SUM(stok.qty)
+                    - COALESCE(MAX(out_gudang_stok.qty), 0)
+                    - COALESCE(MAX(out_temporary.qty), 0) AS qty_sisa
+            FROM (
+                SELECT
+                    po,
+                    id_ppic_master_so,
+                    id_so_det,
+                    qty
+                FROM packing_trf_garment
+                WHERE tujuan = 'TEMPORARY PACKING'
+
+                UNION ALL
+
+                SELECT
+                    'TEMPORARY PACKING' AS po,
+                    NULL AS id_ppic_master_so,
+                    MIN(m.id_so_det) AS id_so_det,
+                    adj.qty_adj AS qty
+                FROM (
+                    SELECT
+                        no_ws,
+                        buyer,
+                        style,
+                        color,
+                        size,
+                        SUM(qty) AS qty_adj
+                    FROM wip_adjustment
+                    WHERE type_report = 'PACKING_TEMPORARY'
+                        AND status = 'Y'
+                    GROUP BY no_ws, buyer, style, color, size
+                ) adj
+                INNER JOIN master_sb_ws m
+                    ON m.ws = adj.no_ws
+                    AND m.buyer = adj.buyer
+                    AND m.styleno = adj.style
+                    AND m.color = adj.color
+                    AND m.size = adj.size
+                GROUP BY adj.no_ws, adj.buyer, adj.style, adj.color, adj.size, adj.qty_adj
+            ) stok
             LEFT JOIN (
                 SELECT
                     po,
@@ -2097,7 +2032,6 @@ group by po, no_carton, notes
             ) out_temporary
                 ON out_temporary.id_so_det = stok.id_so_det
                 AND out_temporary.po = stok.po
-            WHERE stok.tujuan = 'TEMPORARY PACKING'
             {$filterPo}
             GROUP BY
                 stok.po,

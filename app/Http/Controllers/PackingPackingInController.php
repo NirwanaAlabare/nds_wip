@@ -28,9 +28,9 @@ class PackingPackingInController extends Controller
             ) tgl_penerimaan_fix,
             b.no_trans no_trf_garment,
             b.line,
-            p.barcode,
-            p.po,
-            p.dest,
+            coalesce(p.barcode, a.barcode) barcode,
+            coalesce(p.po, a.po) po,
+            coalesce(p.dest, a.dest) dest,
             a.qty,
             m.ws,
             m.styleno,
@@ -43,7 +43,7 @@ class PackingPackingInController extends Controller
             from packing_packing_in a
             left join packing_trf_garment b on a.id_trf_garment = b.id
             left join ppic_master_so p on a.id_ppic_master_so = p.id
-            left join master_sb_ws m on p.id_so_det = m.id_so_det
+            left join master_sb_ws m on coalesce(p.id_so_det, a.id_so_det) = m.id_so_det
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
                 where a.tgl_penerimaan >= '$tgl_awal' and a.tgl_penerimaan <= '$tgl_akhir' AND sumber IN ('Sewing')
             union all
@@ -200,6 +200,31 @@ class PackingPackingInController extends Controller
             inner join master_sb_ws m on p.id_so_det = m.id_so_det
             left join signalbit_erp.act_costing act on m.id_act_cost = act.id
             where a.no_trans = '" . $request->cbono . "' and (act.close_order != 'Y' OR act.close_order IS NULL)
+            having a.qty - coalesce(b.qty_in,0) != '0'
+			union all
+            -- Transfer TANPA PO tidak punya id_ppic_master_so, ambil dari id_so_det transfer
+            SELECT
+            a.id,
+            a.line,
+			a.qty,
+            b.qty_in,
+			m.ws,
+			m.color,
+			m.size,
+			a.barcode,
+			a.dest,
+		    a.po,
+            'PCS' unit
+            from packing_trf_garment a
+            left join
+                (
+                select id_trf_garment,sum(qty) qty_in from packing_packing_in where sumber != 'Temporary'
+                group by id_trf_garment
+                ) b on a.id = b.id_trf_garment
+            inner join master_sb_ws m on a.id_so_det = m.id_so_det
+            left join signalbit_erp.act_costing act on m.id_act_cost = act.id
+            where a.no_trans = '" . $request->cbono . "' and a.id_ppic_master_so is null and a.tujuan = 'Packing'
+            and (act.close_order != 'Y' OR act.close_order IS NULL)
             having a.qty - coalesce(b.qty_in,0) != '0'
 			union all
             SELECT
@@ -549,7 +574,8 @@ class PackingPackingInController extends Controller
                             );
                         }
     
-                        $id_ppic_master_so = $cek->id_ppic_master_so;
+                        // Transfer TANPA PO tidak punya id_ppic_master_so, simpan sebagai NULL (bukan '')
+                        $id_ppic_master_so = $cek->id_ppic_master_so === null ? 'NULL' : "'" . $cek->id_ppic_master_so . "'";
                         $id_so_det = $cek->id_so_det;
                         $line = $isTemporary ? 'Temporary' : $cek->line;
                         $po = $cek->po;
@@ -559,7 +585,7 @@ class PackingPackingInController extends Controller
                         DB::insert("
                         insert into packing_packing_in
                         (id_trf_garment,no_trans,tgl_penerimaan,id_ppic_master_so,id_so_det,qty,line,po,barcode,dest,sumber,created_by,created_at,updated_at)
-                        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan','$id_ppic_master_so','$id_so_det','$txtqty','$line','$po','$barcode','$dest','$sumber','$user','$timestamp','$timestamp')");
+                        values('$txtid_trf_garment','$kode_trans','$tgl_penerimaan',$id_ppic_master_so,'$id_so_det','$txtqty','$line','$po','$barcode','$dest','$sumber','$user','$timestamp','$timestamp')");
                     }
 
                     $insertedAny = true;

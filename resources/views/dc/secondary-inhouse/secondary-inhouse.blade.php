@@ -268,6 +268,7 @@
                             <th>Qty Replace</th>
                             <th>Qty In</th>
                             <th>Buyer</th>
+                            <th>Stocker Reject</th>
                             <th>Created By</th>
                             <th>Created At</th>
                         </tr>
@@ -279,7 +280,7 @@
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_reject'></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_replace'></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'></th>
-                            <th colspan="3"></th>
+                            <th colspan="4"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -522,6 +523,7 @@
             'qty_replace',
             'qty_in',
             'buyer',
+            'stocker_reject',
             'user',
             'created_at'
         ];
@@ -603,6 +605,7 @@
                         qty_replace: $('#qty_replace').val(),
                         qty_in: $('#qty_in').val(),
                         buyer: $('#buyer').val(),
+                        stocker_reject: $('#stocker_reject').val(),
                         user: $('#user').val(),
                         created_at: $('#created_at').val(),
                         filter: $('#datatable-input_filter input').val(),
@@ -723,6 +726,9 @@
                 },
                 {
                     data: 'buyer',
+                },
+                {
+                    data: 'stocker_reject',
                 },
                 {
                     data: 'user',
@@ -1050,6 +1056,14 @@
                 dataType: 'json',
                 success: function(response) {
                     console.log("response", response);
+
+                    if (response.stocker_reject > 0) {
+                        iziToast.warning({
+                            title: 'Stocker Reject',
+                            message: 'Stocker ini merupakan stocker reject',
+                            position: 'bottomCenter'
+                        });
+                    }
 
                     document.getElementById('txtno_stocker').value = response.id_qr_stocker;
                     document.getElementById('txtno_form').value = response.no_form;

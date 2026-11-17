@@ -166,6 +166,26 @@ return [
             ]) : [],
         ],
 
+        'mysql_erd' => [
+            'driver' => env('DB_CONNECTION_erd', 'mysql'),
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST_erd', '127.0.0.1'),
+            'port' => env('DB_PORT_erd', '3306'),
+            'database' => env('DB_DATABASE_erd', 'forge'),
+            'username' => env('DB_USERNAME_erd', 'forge'),
+            'password' => env('DB_PASSWORD_erd', ''),
+            'unix_socket' => env('DB_SOCKET_erd', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         // Database knitting (PostgreSQL)
         'pgsql_nak' => [
             'driver' => 'pgsql',

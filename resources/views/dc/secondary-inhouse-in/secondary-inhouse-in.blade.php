@@ -61,6 +61,7 @@
                                     <th>Urutan</th>
                                     <th>Range</th>
                                     <th>Qty</th>
+                                    <th>Stocker Reject</th>
                                 </thead>
                                 <tbody></tbody>
                             </table>
@@ -132,6 +133,7 @@
                             <th>Range</th>
                             <th>Qty In</th>
                             <th>Buyer</th>
+                            <th>Stocker Reject</th>
                             <th>Created By</th>
                             <th>Created At</th>
                         </tr>
@@ -140,7 +142,7 @@
                         <tr>
                             <th colspan="13"></th>
                             <th><input type = 'text' class="form-control form-control-sm" style="width:75px" readonly id = 'total_qty_in'></th>
-                            <th colspan="3"></th>
+                            <th colspan="4"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -377,6 +379,7 @@
             'stocker_range',
             'qty_in',
             'buyer',
+            'stocker_reject',
             'user',
             'created_at'
         ];
@@ -447,6 +450,7 @@
                         'user': $('#user').val(),
                         'created_at': $('#created_at').val(),
                         'filter': $('#datatable-input_filter input').val(),
+                        'stocker_reject' : $('#stocker_reject').val(),
                     },
                     success: function(response) {
                         console.log(response);
@@ -544,6 +548,9 @@
                 },
                 {
                     data: 'buyer',
+                },
+                {
+                    data: 'stocker_reject',
                 },
                 {
                     data: 'user',
@@ -762,6 +769,9 @@
                 },
                 {
                     data: 'qty_awal',
+                },
+                {
+                    data: 'stocker_reject',
                 },
             ],
             columnDefs: [
@@ -1022,9 +1032,11 @@
                 title: "Exporting",
                 html: "Please Wait...",
                 timerProgressBar: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
                 didOpen: () => {
                     Swal.showLoading();
-                },
+                }
             });
 
             if (type == 'list') {

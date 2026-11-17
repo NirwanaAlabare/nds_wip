@@ -4,6 +4,19 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        #scannedItemTable .roll-drag-handle {
+            cursor: move;
+            color: #6c757d;
+            padding: 4px;
+        }
+
+        #scannedItemTable .roll-sort-placeholder td {
+            background: #e9f2ff;
+            border: 2px dashed #3c8dbc !important;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -473,6 +486,7 @@
                                 <table class="table table-bordered table" id="scannedItemTable">
                                     <thead>
                                         <tr>
+                                            <th title="Drag untuk atur urutan roll"><i class="fa-solid fa-up-down"></i></th>
                                             <th>No.</th>
                                             <th>Group</th>
                                             <th>Group Number</th>
@@ -505,7 +519,7 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="8" class="text-center">Total</th>
+                                            <th colspan="9" class="text-center">Total</th>
                                             <th id="total-qty"></th>
                                             <th id="total-unit"></th>
                                             <th id="total-sisa-gelaran"></th>
@@ -1307,6 +1321,113 @@
         var latestUnit = "";
         var latestBerat = 0;
         var latestEst = 0;
+        var currentRollHeadId = null;
+        var latestRollId = null;
+
+        // -Reorder Roll (drag & drop)-
+        $(summaryItemTableTbody).sortable({
+            items: '> tr.roll-head',
+            handle: '.roll-drag-handle',
+            axis: 'y',
+            cursor: 'move',
+            placeholder: 'roll-sort-placeholder',
+            helper: function(e, tr) {
+                // jaga lebar kolom saat di-drag
+                let originals = tr.children();
+                let helper = tr.clone();
+                helper.children().each(function(index) {
+                    $(this).width(originals.eq(index).outerWidth());
+                });
+                return helper;
+            },
+            start: function(e, ui) {
+                ui.placeholder.html('<td colspan="' + ui.item.children().length + '">&nbsp;</td>');
+                // sembunyikan baris lanjutan sambungan selama drag
+                $(summaryItemTableTbody).children('tr.roll-continuation[data-head="' + ui.item.data('id') + '"]').hide();
+            },
+            stop: function(e, ui) {
+                normalizeRollRows();
+                $(summaryItemTableTbody).children('tr.roll-continuation').show();
+            },
+            update: function(e, ui) {
+                saveRollOrder();
+            }
+        });
+
+        // Pastikan baris lanjutan sambungan selalu tepat di bawah baris kepalanya
+        function normalizeRollRows() {
+            let tbody = $(summaryItemTableTbody);
+            let heads = tbody.children('tr.roll-head').toArray();
+            let continuations = tbody.children('tr.roll-continuation').toArray();
+
+            heads.forEach((head) => {
+                tbody.append(head);
+                continuations.filter((row) => row.dataset.head == head.dataset.id).forEach((row) => tbody.append(row));
+            });
+        }
+
+        async function saveRollOrder() {
+            let order = $(summaryItemTableTbody).children('tr.roll-head').toArray().map((row) => row.dataset.id);
+
+            // Konfirmasi bypass stocker (sama seperti simpan / hapus roll)
+            let proceed = await checkStockerForm();
+            if (!proceed) {
+                location.reload();
+                return;
+            }
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Simpan urutan roll?',
+                text: 'Urutan roll (created_at) akan diubah dan form akan di-recalculate.',
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    location.reload();
+                    return;
+                }
+
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    url: '{{ route('reorder-spreading-roll') }}',
+                    type: 'post',
+                    dataType: 'json',
+                    data: {
+                        id: document.getElementById("id").value,
+                        order: order,
+                    },
+                    success: function(res) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        Swal.fire({
+                            icon: res && res.status == 200 ? 'success' : 'info',
+                            title: res && res.status == 200 ? 'Berhasil' : 'Info',
+                            text: res ? res.message : 'Terjadi Kesalahan.',
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        }).then(() => {
+                            location.reload();
+                        });
+                    },
+                    error: function(jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: ajaxErrorMessage(jqXHR, 'Gagal menyimpan urutan roll.'),
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        }).then(() => {
+                            location.reload();
+                        });
+                    }
+                });
+            });
+        }
 
         function appendSummaryItem(data) {
             totalLembar += Number(data.lembar_gelaran);
@@ -1340,6 +1461,22 @@
             let td23 = document.createElement('td');
             let td24 = document.createElement('td');
             let td25 = document.createElement('td');
+
+            // Drag handle (baris lanjutan sambungan ikut baris kepalanya)
+            let tdHandle = document.createElement('td');
+            tdHandle.classList.add('text-center', 'align-middle');
+            tr.dataset.id = data.id;
+            let isRollContinuation = latestStatus == 'need extension' || (latestStatus == 'extension complete' && data.id_roll && data.id_roll == latestRollId);
+            if (!isRollContinuation) {
+                currentRollHeadId = data.id;
+                tr.classList.add('roll-head');
+                tdHandle.innerHTML = '<i class="fa-solid fa-grip-vertical roll-drag-handle" title="Drag untuk atur urutan roll"></i>';
+            } else {
+                tr.classList.add('roll-continuation');
+            }
+            tr.dataset.head = currentRollHeadId;
+            tdHandle.onclick = (e) => e.stopPropagation();
+            tr.appendChild(tdHandle);
 
             if (latestStatus != 'need extension') {
                 td1.innerHTML = (latestStatus != 'need extension' ? totalScannedItem + 1 : '');
@@ -1489,6 +1626,7 @@
 
             let currentLatestStatus = latestStatus;
             latestStatus = data.status;
+            latestRollId = data.id_roll;
             latestQty = Number(data.qty);
             latestUnit = data.unit;
             latestEst = data.est_amparan ? data.est_amparan : 0;
@@ -2297,6 +2435,8 @@
                                         icon: 'info',
                                         title: 'Info',
                                         text: response.message
+                                    }).then(() => {
+                                        resolve(false);
                                     });
                                 }else{
                                     Swal.fire({

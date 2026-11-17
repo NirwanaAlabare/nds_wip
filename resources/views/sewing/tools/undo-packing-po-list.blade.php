@@ -47,6 +47,7 @@
                             <th class="text-nowrap">Tanggal</th>
                             <th class="text-nowrap">Kode Numbering</th>
                             <th class="text-nowrap">Type</th>
+                            <th class="text-nowrap">PO</th>
                             <th class="text-nowrap">WS</th>
                             <th class="text-nowrap">Style</th>
                             <th class="text-nowrap">Color</th>
@@ -118,6 +119,7 @@
                     { data: 'updated_at' },
                     { data: 'kode_numbering' },
                     { data: 'output_type' },
+                    { data: 'po' },
                     { data: 'ws' },
                     { data: 'style' },
                     { data: 'color' },
@@ -136,7 +138,7 @@
                 columnDefs: [
                     { targets: '_all', className: 'text-nowrap', defaultContent: '-' },
                     {
-                        targets: [1, 14, 15, 16, 17],
+                        targets: [1, 15, 16, 17, 18],
                         render: function(data, type, row) {
                             return data ? formatDateTime(data) : '-';
                         }

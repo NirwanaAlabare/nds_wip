@@ -889,6 +889,200 @@ class CompletedFormController extends Controller
         );
     }
 
+    /**
+     * Atur ulang urutan roll pada form dengan menukar created_at.
+     *
+     * "order" berisi id baris kepala (baris yang tampil sebagai roll di summary) sesuai urutan baru.
+     * Baris lanjutan sambungan (setelah 'need extension') dan baris tersembunyi ('extension' / 'not complete')
+     * selalu ikut pindah bersama baris kepala sebelumnya.
+     */
+    public function reorderRoll(Request $request, CuttingService $cuttingService) {
+        $validatedRequest = $request->validate([
+            "id" => "required",
+            "order" => "required|array|min:1",
+            "order.*" => "required|string",
+        ]);
+
+        $formCut = FormCutInput::where("id", $validatedRequest["id"])->first();
+        if (!$formCut) {
+            return array(
+                "status" => 400,
+                "message" => "Form tidak ditemukan.",
+            );
+        }
+
+        // Check Closing
+        if (checkClosingDate($formCut->waktu_selesai)) {
+            return array(
+                "status" => 400,
+                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
+                "additional" => "Closing"
+            );
+        }
+
+        // Check Stocker
+        $stockerForm = Stocker::where('form_cut_id', $formCut->id)->first();
+        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) && $stockerForm) {
+            return array(
+                "status" => 400,
+                "message" => "Form sudah memiliki stocker",
+            );
+        }
+
+        // Check Form Cut Input Detail Output
+        $formCutOutputs = FormCutInputDetailOutput::where("form_cut_input_id", $formCut->id)->get();
+        foreach ($formCutOutputs as $formCutOutput) {
+            if ($formCutOutput->qty_output_original != $formCutOutput->qty_output_aktual) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada transfer switching."
+                );
+            }
+        }
+
+        $details = FormCutInputDetail::where("form_cut_id", $formCut->id)->
+            orderBy("created_at")->
+            orderBy("updated_at")->
+            orderBy("id")->
+            get();
+
+        // Susun blok: baris kepala + baris lanjutan sambungan + baris tersembunyi
+        $blocks = [];
+        $currentHeadId = null;
+        $latestVisibleStatus = "";
+        $latestVisibleIdRoll = null;
+        foreach ($details as $detail) {
+            $isVisible = !in_array($detail->status, ["not complete", "extension"]);
+
+            // Lanjutan: setelah 'need extension', atau roll yang sama setelah 'extension complete'
+            $isContinuation = $latestVisibleStatus == "need extension" ||
+                ($latestVisibleStatus == "extension complete" && $detail->id_roll && $detail->id_roll == $latestVisibleIdRoll);
+
+            if ($isVisible && !$isContinuation) {
+                $currentHeadId = (string) $detail->id;
+                $blocks[$currentHeadId] = [];
+            }
+
+            if ($currentHeadId === null) {
+                // baris tersembunyi sebelum roll pertama, biarkan di depan
+                $currentHeadId = "_leading";
+                $blocks[$currentHeadId] = [];
+            }
+
+            $blocks[$currentHeadId][] = $detail;
+
+            if ($isVisible) {
+                $latestVisibleStatus = $detail->status;
+                $latestVisibleIdRoll = $detail->id_roll;
+            }
+        }
+
+        $order = array_map("strval", $validatedRequest["order"]);
+        $headIds = array_map("strval", array_values(array_filter(array_keys($blocks), fn ($key) => $key !== "_leading")));
+
+        $sortedOrder = $order;
+        $sortedHeadIds = $headIds;
+        sort($sortedOrder);
+        sort($sortedHeadIds);
+        if ($sortedOrder !== $sortedHeadIds) {
+            return array(
+                "status" => 400,
+                "message" => "Data roll sudah berubah. Silahkan refresh halaman lalu coba lagi.",
+            );
+        }
+
+        // Susun urutan baru
+        $newRows = isset($blocks["_leading"]) ? $blocks["_leading"] : [];
+        foreach ($order as $headId) {
+            foreach ($blocks[$headId] as $row) {
+                $newRows[] = $row;
+            }
+        }
+
+        // Roll yang sama tidak boleh berubah urutan relatifnya (sisa kain roll mengalir ke pemakaian berikutnya)
+        $oldSequence = [];
+        foreach ($details as $detail) {
+            $oldSequence[$detail->id_roll][] = $detail->id;
+        }
+        $newSequence = [];
+        foreach ($newRows as $row) {
+            $newSequence[$row->id_roll][] = $row->id;
+        }
+        foreach ($oldSequence as $idRoll => $ids) {
+            if ($idRoll && $newSequence[$idRoll] !== $ids) {
+                return array(
+                    "status" => 400,
+                    "message" => "Roll ".$idRoll." dipakai lebih dari sekali di form ini, urutan pemakaiannya tidak boleh dibalik.",
+                );
+            }
+        }
+
+        // Pool created_at lama, dibuat naik tegas agar urutan tidak ambigu
+        $pool = [];
+        foreach ($details as $detail) {
+            $time = Carbon::parse($detail->created_at);
+            if (count($pool) > 0 && $time->lte(end($pool))) {
+                $time = end($pool)->copy()->addSecond();
+            }
+            $pool[] = $time;
+        }
+
+        // Tolak jika roll yang created_at-nya berubah sudah punya penerimaan cutting setelah detail tsb
+        foreach ($newRows as $index => $row) {
+            if (!$row->id_roll) {
+                continue;
+            }
+
+            $oldCreatedAt = Carbon::parse($row->created_at);
+            $newCreatedAt = $pool[$index];
+
+            if ($oldCreatedAt->format("Y-m-d H:i:s") == $newCreatedAt->format("Y-m-d H:i:s")) {
+                continue;
+            }
+
+            $penerimaan = DB::table("penerimaan_cutting")->
+                where("id_roll", $row->id_roll)->
+                where("created_at", ">", $oldCreatedAt->min($newCreatedAt)->format("Y-m-d H:i:s"))->
+                first();
+
+            if ($penerimaan) {
+                return array(
+                    "status" => 400,
+                    "message" => "Roll ".$row->id_roll." sudah memiliki penerimaan cutting setelah waktu gelar, urutan tidak dapat diubah.",
+                );
+            }
+        }
+
+        DB::beginTransaction();
+        try {
+            foreach ($newRows as $index => $row) {
+                $newCreatedAt = $pool[$index]->format("Y-m-d H:i:s");
+
+                if (Carbon::parse($row->created_at)->format("Y-m-d H:i:s") != $newCreatedAt) {
+                    DB::table("form_cut_input_detail")->where("id", $row->id)->update(["created_at" => $newCreatedAt]);
+                }
+            }
+
+            Log::info("User : '".Auth::user()->id."' Username : '".Auth::user()->username."' Reorder Roll Form ID : '".$formCut->id."' No. Form : '".$formCut->no_form."' Order : ".json_encode(array_map(fn ($row) => $row->id, $newRows)));
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return array(
+                "status" => 400,
+                "message" => "Gagal menyimpan urutan roll. ".$e->getMessage(),
+            );
+        }
+
+        $cuttingService->recalculateForm($formCut->id);
+
+        return array(
+            "status" => 200,
+            "message" => "Urutan roll berhasil disimpan.",
+        );
+    }
+
     public function recalculateForm($id, CuttingService $cuttingService)
     {
         if ($id) {

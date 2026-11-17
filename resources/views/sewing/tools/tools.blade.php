@@ -21,7 +21,94 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-12">
-                    <h5 class="text-sb-secondary fw-bold mt-3">Transfer/Modify Data</h5>
+                    <h5 class="text-sb-secondary fw-bold mt-3">Modify Data</h5>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('modify-output') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shirt"></i> Modify Output</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('modify-defect-in-out') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Modify Defect In Out</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('modify-reject-in-out') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-ban"></i> Modify Reject In Out</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" onclick="chooseModifySecondary()" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-diagram-project"></i> Modify Secondary</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('modify-packing-po') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-box"></i> Modify Packing PO</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('inject-mutasi-sewing') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-edit"></i> Inject Mutasi Sewing</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Undo Data</h5>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('undo-output') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-arrows-rotate"></i> Undo Output</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('undo-defect-in-out') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Undo Defect In Out</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('undo-reject') }}" class="home-item">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Undo QC Reject</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Transfer Data</h5>
                 </div>
                 <div class="col-md-4">
                     <a href="{{ route('sewing-transfer-output') }}" type="button" class="home-item">
@@ -38,42 +125,6 @@
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="text-sb mb-0"><i class="fa-solid fa-shuffle"></i> Line Migration</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('modify-output') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-shirt"></i> Modify Output</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('modify-packing-po') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-box"></i> Modify Packing PO</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('modify-secondary-type') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-diagram-project"></i> Modify Secondary Process</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('inject-mutasi-sewing') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-edit"></i> Inject Mutasi Sewing</h5>
                             </div>
                         </div>
                     </a>
@@ -166,36 +217,6 @@
                     </a>
                 </div>
                 <div class="col-md-12">
-                    <h5 class="text-sb-secondary fw-bold mt-3">Undo Data</h5>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('undo-output') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-arrows-rotate"></i> Undo Output</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('undo-defect-in-out') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Undo Defect In Out</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-4">
-                    <a href="{{ route('undo-reject') }}" class="home-item">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Undo QC Reject</h5>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-md-12">
                     <h5 class="text-sb-secondary fw-bold mt-3">History</h5>
                 </div>
                 <div class="col-md-4">
@@ -254,6 +275,27 @@
             theme: 'bootstrap4',
             dropdownParent: $('#mergeDefectTypeModal')
         });
+
+        function chooseModifySecondary() {
+            Swal.fire({
+                title: 'Modify Secondary',
+                html: 'Pilih jenis modify secondary :<br><small><b>Manual</b> : data tanpa QR (kode numbering)<br><b>QR</b> : data berdasarkan kode numbering</small>',
+                icon: 'question',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-keyboard"></i> Manual',
+                confirmButtonColor: "#082149",
+                denyButtonText: '<i class="fa-solid fa-qrcode"></i> QR',
+                denyButtonColor: "#238380",
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "{{ route('modify-secondary-in-out') }}";
+                } else if (result.isDenied) {
+                    window.location.href = "{{ route('modify-secondary-type') }}";
+                }
+            });
+        }
 
         function missUser() {
             Swal.fire({

@@ -110,14 +110,14 @@
                     <label class="form-label">
                         <small><b>Start Date</b></small>
                     </label>
-                    <input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="">
+                    <input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="{{ date('Y-m-d') }}" min="2026-03-01">
                 </div>
                 <!-- End Date -->
                 <div class="col-md-2">
                     <label class="form-label">
                         <small><b>End Date</b></small>
                     </label>
-                    <input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="">
+                    <input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ date('Y-m-d') }}" min="2026-03-01">
                 </div>
 
                 <div class="col-md-3">
@@ -126,6 +126,7 @@
                     </label>
 
                     <select class="form-select form-select-sm select2bs4base select2-buyer" id="po" name="po[]" multiple>
+                        <option value="TANPA PO">TANPA PO</option>
                         @foreach ($dataPo as $po)
                             <option value="{{ $po->po }}">
                                 {{ $po->po }}
@@ -163,6 +164,7 @@
                 <table id="datatable" class="table table-bordered table-striped table-hover w-100">
                     <thead class="bg-sb">
                         <tr>
+                            <th class="text-center align-middle">Status Order</th>
                             <th class="text-center align-middle">Tgl Shipment</th>
                             <th class="text-center align-middle">PO</th>
                             <th class="text-center align-middle">WS</th>
@@ -170,14 +172,17 @@
                             <th class="text-center align-middle">Color</th>
                             <th class="text-center align-middle">Size</th>
                             <th class="text-center align-middle">Dest</th>
-                            <th class="text-center align-middle">Qty PO</th>
-                            <th class="text-center align-middle">Terima Packing Central</th>
-                            <th class="text-center align-middle">Retur</th>
-                            <th class="text-center align-middle">Switching Out</th>
-                            <th class="text-center align-middle">Switching In</th>
-                            <th class="text-center align-middle">Scan</th>
+                            <th class="text-center align-middle">Saldo Awal</th>
+                            <th class="text-center align-middle">Terima Packing Line</th>
+                            <th class="text-center align-middle">Terima Temporary Packing</th>
+                            <th class="text-center align-middle">Terima Return</th>
+                            <th class="text-center align-middle">Terima Gudang Stok</th>
+                            <th class="text-center align-middle">Packing Scan FG In</th>
                             <th class="text-center align-middle">Keluar Gudang Stok</th>
-                            <th class="text-center align-middle">Qty Sisa WIP</th>
+                            <th class="text-center align-middle">Switching OUT</th>
+                            <th class="text-center align-middle">Switching IN</th>
+                            <th class="text-center align-middle">Adjustment</th>
+                            <th class="text-center align-middle">Saldo Akhir</th>
                             <th class="text-center align-middle">Status</th>
                         </tr>
                     </thead>
@@ -257,8 +262,6 @@
 
     <script>
         $(document).ready(function() {
-            $('#start_date').val('').trigger('change');
-            $('#end_date').val('').trigger('change');
             dataTableReload()
         });
 
@@ -314,6 +317,18 @@
                 },
                 columns: [
                     {
+                        data: 'status_order',
+                        render: function(data, type, row) {
+                            const badge = data === 'Close Order' ? 'status-kosong' : 'status-tersedia';
+
+                            return `
+                                <span class="status-badge ${badge}">
+                                    ${data}
+                                </span>
+                            `;
+                        }
+                    },
+                    {
                         data: 'tgl_shipment'
                     },
                     {
@@ -335,28 +350,37 @@
                         data: 'dest'
                     },
                     {
-                        data: 'qty_po'
+                        data: 'saldo_awal'
                     },
                     {
-                        data: 'qty_pck_in'
+                        data: 'terima_packing_line'
                     },
                     {
-                        data: 'qty_retur'
+                        data: 'terima_temporary'
                     },
                     {
-                        data: 'qty_switch_out'
+                        data: 'terima_return'
                     },
                     {
-                        data: 'qty_switch_in'
+                        data: 'terima_gudang_stok'
                     },
                     {
-                        data: 'qty_scan'
+                        data: 'packing_scan_fg_in'
                     },
                     {
-                        data: 'qty_out_gudang_stok'
+                        data: 'keluar_gudang_stok'
                     },
                     {
-                        data: 'qty_sisa'
+                        data: 'switching_out'
+                    },
+                    {
+                        data: 'switching_in'
+                    },
+                    {
+                        data: 'adjustment'
+                    },
+                    {
+                        data: 'saldo_akhir'
                     },
                     {
                         data: 'status',

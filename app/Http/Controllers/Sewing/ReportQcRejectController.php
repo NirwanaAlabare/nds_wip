@@ -126,6 +126,7 @@ class ReportQcRejectController extends Controller
                             AND a.created_at <= '{$tglAkhir} 23:59:59'
                             AND mp.cancel = 'N'
                             AND b.status = 'reworked'
+                            AND b.output_type != 'qc_fns_pck_return'
                         GROUP BY so_det_id, DATE(a.created_at)
 
                         UNION ALL

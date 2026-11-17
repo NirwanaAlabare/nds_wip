@@ -20,10 +20,12 @@ use App\Models\Part\Part;
 use App\Models\Part\PartDetail;
 use App\Models\Part\PartForm;
 use App\Models\Stocker\Stocker;
+use App\Models\Stocker\StockerAdditional;
 use App\Models\SignalBit\ActCosting;
 use App\Services\StockerService;
 use App\Services\CuttingService;
 use App\Services\CuttingPieceService;
+use App\Services\CuttingFabricRekapService;
 use App\Imports\ImportCuttingManual;
 use App\Imports\ImportSaldoAwalCutting;
 use App\Imports\ImportSaldoAwalCuttingDetail;
@@ -234,6 +236,15 @@ class CuttingToolsController extends Controller
                 }
             }
 
+            // Check Stocker WS Additional
+            $checkStockerWsAdditional = StockerAdditional::where("form_cut_id", $validatedRequest['modify_ratio_form_id'])->first();
+            if ($checkStockerWsAdditional) {
+                return array(
+                    "status" => 400,
+                    "message" => "Form sudah ada Stocker Additional."
+                );
+            }
+
             $oldMarker = Marker::where("kode", $validatedRequest['modify_ratio_kode_marker'])->first();
 
             $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
@@ -245,7 +256,7 @@ class CuttingToolsController extends Controller
                 $totalQty += $qty;
             }
 
-            if ($totalQty > 0) {
+            if ($totalQty != 0) {
                 $markerStore = Marker::create([
                     'tgl_cutting' => $oldMarker->tgl_cutting,
                     'kode' => $markerCode,
@@ -1168,6 +1179,28 @@ class CuttingToolsController extends Controller
         ]);
     }
 
+    private function validateRekapCustom(Request $request)
+    {
+        $request->validate([
+            'date_from' => 'required|date',
+            'date_to' => 'required|date|after_or_equal:date_from|before:today',
+        ], [
+            'date_from.required' => 'Tanggal awal harus diisi.',
+            'date_to.required' => 'Tanggal akhir harus diisi.',
+            'date_to.after_or_equal' => 'Tanggal akhir tidak boleh sebelum tanggal awal.',
+            'date_to.before' => 'Tanggal akhir harus sebelum hari ini.',
+        ]);
+    }
+
+    public function rekapFabricCustom(Request $request, CuttingFabricRekapService $cuttingFabricRekapService)
+    {
+        $this->validateRekapCustom($request);
+
+        set_time_limit(0);
+
+        return $cuttingFabricRekapService->runRekapCustom($request->date_from, $request->date_to);
+    }
+
     public function importCuttingManual(Request $request)
     {
         // validasi
@@ -1181,7 +1214,15 @@ class CuttingToolsController extends Controller
 
         $file->move('file_upload',$nama_file);
 
-        $import = Excel::import(new importCuttingManual, public_path('/file_upload/'.$nama_file));
+        try {
+            $import = Excel::import(new importCuttingManual, public_path('/file_upload/'.$nama_file));
+        } catch (\Exception $e) {
+            return array(
+                "status" => 400,
+                "message" => $e->getMessage(),
+                "additional" => [],
+            );
+        }
 
         if ($import) {
             return array(

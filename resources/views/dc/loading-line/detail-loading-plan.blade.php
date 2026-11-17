@@ -72,8 +72,9 @@
                     </div>
                 </div>
             </div>
-            <div class="d-flex justify-content-end mb-3">
+            <div class="d-flex justify-content-end gap-1 mb-3">
                 <button type="button" class="btn btn-primary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#filterDetailLoadingModal"><i class="fa fa-filter"></i> Filter</button>
+                <button type="button" class="btn btn-success btn-sm mb-3" onclick="exportExcel()"><i class="fa fa-file-excel"></i> Export Excel</button>
             </div>
             <div class="table-responsive">
                 <table class="table table-bordered table w-100" id="datatable-stocker">
@@ -288,6 +289,36 @@
                 ]
             });
 
+            var filterRow = $('<tr class="column-filter-row"></tr>');
+            stockerDatatable.columns().every(function() {
+                var columnIndex = this.index();
+                var columnHeader = $(this.header());
+                var filterCell = $('<th></th>');
+
+                if (!this.visible()) {
+                    filterCell.addClass('d-none');
+                } else {
+                    var title = columnHeader.text().trim();
+                    filterCell.outerWidth(columnHeader.outerWidth());
+                    filterCell.html('<input type="text" class="form-control form-control-sm column-filter" data-column="' + columnIndex + '" placeholder="Search ' + title + '"/>');
+                }
+
+                filterRow.append(filterCell);
+            });
+            $('#datatable-stocker thead').append(filterRow);
+
+            $('#datatable-stocker thead').on('input change', '.column-filter', function() {
+                var columnIndex = Number(this.getAttribute('data-column'));
+                var value = this.value.trim();
+
+                if (stockerDatatable.column(columnIndex).search() !== value) {
+                    stockerDatatable
+                        .column(columnIndex)
+                        .search(value, false, false)
+                        .draw();
+                }
+            });
+
             stockerDatatable.on('search.dt', async function () {
                 var total = 0;
 
@@ -342,7 +373,7 @@
                 const size = data[5];
                 const group = data[7];
                 const tipe = data[12];
-                const no_bon = data[11];
+                const no_bon = data[13];
 
                 const match_no_form = !filter_no_form || filter_no_form.length === 0 || filter_no_form.includes(no_form);
                 const match_size = !filter_size || filter_size.length === 0 || filter_size.includes(size);
@@ -357,5 +388,43 @@
                 stockerDatatable.draw();
             });
         });
+
+        async function exportExcel() {
+            Swal.fire({
+                title: "Exporting",
+                html: "Please Wait...",
+                didOpen: () => Swal.showLoading(),
+            });
+
+            await $.ajax({
+                url: "{{ route('detail-loading-plan', ['id' => $loadingLinePlan->id, 'dateFrom' => $dateFrom, 'dateTo' => $dateTo]) }}",
+                type: "get",
+                data: { export: true },
+                xhrFields: { responseType: "blob" },
+                success: function(response) {
+                    Swal.close();
+
+                    var blob = new Blob([response], {
+                        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    });
+                    var link = document.createElement("a");
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = "Loading Line Detail {{ $dateFrom }} - {{ $dateTo }}.xlsx";
+                    link.click();
+                    setTimeout(function() {
+                        window.URL.revokeObjectURL(link.href);
+                    }, 1000);
+                },
+                error: function(error) {
+                    Swal.close();
+                    console.error(error);
+                    iziToast.error({
+                        title: "Error",
+                        message: "Export gagal.",
+                        position: "topCenter"
+                    });
+                }
+            });
+        }
     </script>
 @endsection

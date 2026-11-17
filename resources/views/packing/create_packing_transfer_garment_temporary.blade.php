@@ -219,15 +219,30 @@
 
         $('#qty_transfer').on('input', function() {
 
+            // biarkan kosong saat mengetik (agar angka bisa dihapus lalu diganti)
+            if ($(this).val() === '') {
+                return;
+            }
+
             let max = parseInt($(this).attr('max')) || 0;
+            let value = parseInt($(this).val()) || 0;
+
+            if (max > 0 && value > max) {
+                $(this).val(max);
+            }
+        });
+
+        $('#qty_transfer').on('blur', function() {
+
+            // minimal 1 dicek saat keluar dari field
+            if ($(this).val() === '') {
+                return;
+            }
+
             let value = parseInt($(this).val()) || 0;
 
             if (value < 1) {
                 $(this).val(1);
-            }
-
-            if (value > max) {
-                $(this).val(max);
             }
         });
 

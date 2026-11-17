@@ -92,7 +92,8 @@ class SecondaryInhouseInController extends Controller
                 mp.nama_part,
                 UPPER(COALESCE(pcust.set_part_status, pd.part_status, '-')) part_status,
                 CONCAT(s.range_awal, ' - ', s.range_akhir, (CASE WHEN dc.qty_reject IS NOT NULL AND dc.qty_replace IS NOT NULL THEN CONCAT(' (', (COALESCE(dc.qty_replace, 0) - COALESCE(dc.qty_reject, 0)), ') ') ELSE ' (0)' END)) stocker_range,
-                s.notes
+                s.notes,
+                reject_source.id_qr_stocker stocker_reject
             from secondary_inhouse_in_input a
             left join stocker_input s on a.id_qr_stocker = s.id_qr_stocker
             left join master_sb_ws msb on msb.id_so_det = s.so_det_id
@@ -109,6 +110,11 @@ class SecondaryInhouseInController extends Controller
             left join master_secondary ms on ms.id = pd.master_secondary_id
             left join (select id_qr_stocker, qty_reject, qty_replace, tujuan, lokasi, tempat from dc_in_input) dc on a.id_qr_stocker = dc.id_qr_stocker
             left join part_custom pcust on pcust.part_id = p.id and pcust.part_detail_id = pd.id and pcust.color = msb.color
+            LEFT JOIN stocker_reject srej ON srej.id = s.stocker_reject
+            LEFT JOIN dc_in_input dc_rej ON dc_rej.id = srej.dc_in_id
+            LEFT JOIN secondary_inhouse_input sii_rej ON sii_rej.id = srej.secondary_inhouse_id
+            LEFT JOIN secondary_in_input si_rej ON si_rej.id = srej.secondary_in_id
+            LEFT JOIN stocker_input reject_source ON reject_source.id_qr_stocker = COALESCE(dc_rej.id_qr_stocker, sii_rej.id_qr_stocker, si_rej.id_qr_stocker)
             where
                 a.tgl_trans is not null and (s.cancel IS NULL OR s.cancel != 'y')
                 " . $additionalQuery . "
@@ -575,9 +581,11 @@ class SecondaryInhouseInController extends Controller
                     "created_by_username" => Auth::user()->username,
                 ]);
             if ($storeSecondaryInhouseInTemp) {
+                $currentStocker = Stocker::where("id_qr_stocker", $request->txtqrstocker)->first();
+
                 return array(
                     "status" => 200,
-                    "message" => "Stocker Berhasil disimpan ke temporary"
+                    "message" => "Stocker Berhasil disimpan ke temporary".($currentStocker->stocker_reject > 0 ? "<br><b>Merupakan stocker reject<b>" : "")
                 );
             }
         }
@@ -607,7 +615,8 @@ class SecondaryInhouseInController extends Controller
             dc.lokasi,
             CONCAT(s.range_awal, ' - ', s.range_akhir) stocker_range,
             coalesce(s.qty_ply_mod, s.qty_ply) - dc.qty_reject + dc.qty_replace qty_awal,
-            si.urutan
+            si.urutan,
+            reject_source.id_qr_stocker stocker_reject
             from
             secondary_inhouse_in_temp si
             left join dc_in_input dc on dc.id_qr_stocker = si.id_qr_stocker
@@ -622,6 +631,11 @@ class SecondaryInhouseInController extends Controller
             left join part p_com on p_com.id = pd_com.part_id
             left join master_part mp on pd.master_part_id = mp.id
             left join marker_input mi on a.id_marker = mi.kode
+            LEFT JOIN stocker_reject srej ON srej.id = s.stocker_reject
+            LEFT JOIN dc_in_input dc_rej ON dc_rej.id = srej.dc_in_id
+            LEFT JOIN secondary_inhouse_input sii_rej ON sii_rej.id = srej.secondary_inhouse_id
+            LEFT JOIN secondary_in_input si_rej ON si_rej.id = srej.secondary_in_id
+            LEFT JOIN stocker_input reject_source ON reject_source.id_qr_stocker = COALESCE(dc_rej.id_qr_stocker, sii_rej.id_qr_stocker, si_rej.id_qr_stocker)
             where si.created_by = ".Auth::user()->id."
             order by si.updated_at desc
         ");
@@ -892,7 +906,7 @@ class SecondaryInhouseInController extends Controller
 
         // Title
         $sheet->writeTo('A1', 'Secondary InHouse In Report', ['font-size' => 16]);
-        $sheet->mergeCells('A1:V1');
+        $sheet->mergeCells('A1:W1');
 
         // Headers
         $sheet->writeTo('A2', 'Tgl Transaksi')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
@@ -912,11 +926,12 @@ class SecondaryInhouseInController extends Controller
         $sheet->writeTo('O2', 'Range')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('P2', 'Qty In')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->writeTo('Q2', 'Buyer')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('R2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('S2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('T2', 'Tujuan DC')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('U2', 'Lokasi DC')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->writeTo('V2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('R2', 'Stocker Reject')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('S2', 'User')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('T2', 'Created At')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('U2', 'Tujuan DC')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('V2', 'Lokasi DC')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->writeTo('W2', 'Notes')->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             $sheet->writeAreas();
@@ -940,6 +955,7 @@ class SecondaryInhouseInController extends Controller
                     $row->stocker_range ?? "-",
                     intval($row->qty_in) ?? 0,
                     $row->buyer ?? "-",
+                    $row->stocker_reject ?? "-",
                     $row->user ?? "-",
                     $row->created_at ?? "-",
                     $row->tujuan ?? "-",

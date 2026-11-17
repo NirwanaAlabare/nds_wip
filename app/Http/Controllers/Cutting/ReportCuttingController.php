@@ -5170,7 +5170,7 @@ class ReportCuttingController extends Controller
                     ROUND(SUM(gr_panel), 2) gr_panel,
                     ROUND(SUM(gr_set), 2) gr_set,
                     ROUND(SUM(retur), 2) retur,
-                    0 adjustment,
+                    ROUND(SUM(adjustment), 2) adjustment,
                     ROUND(SUM(saldo_akhir), 2) saldo_akhir,
                     satuan
                 FROM
@@ -5187,6 +5187,7 @@ class ReportCuttingController extends Controller
                     ROUND(SUM(gr_panel), 2) != 0 OR
                     ROUND(SUM(gr_set), 2) != 0 OR
                     ROUND(SUM(retur), 2) != 0 OR
+                    ROUND(SUM(adjustment), 2) != 0 OR
                     ROUND(SUM(saldo_akhir), 2) != 0
                 ORDER BY
                     barcode ASC,
@@ -5205,7 +5206,7 @@ class ReportCuttingController extends Controller
                     ROUND(SUM(gr_panel), 2) gr_panel,
                     ROUND(SUM(gr_set), 2) gr_set,
                     ROUND(SUM(retur), 2) retur,
-                    0 adjustment,
+                    ROUND(SUM(adjustment), 2) adjustment,
                     ROUND(SUM(saldo_akhir), 2) saldo_akhir,
                     satuan
                 FROM
@@ -5222,6 +5223,7 @@ class ReportCuttingController extends Controller
                     ROUND(SUM(gr_panel), 2) != 0 OR
                     ROUND(SUM(gr_set), 2) != 0 OR
                     ROUND(SUM(retur), 2) != 0 OR
+                    ROUND(SUM(adjustment), 2) != 0 OR
                     ROUND(SUM(saldo_akhir), 2) != 0
                 ORDER BY
                     id_item ASC
@@ -5542,6 +5544,26 @@ class ReportCuttingController extends Controller
                             AND DATE(whs_inmaterial_fabric.tgl_dok) BETWEEN '$start_date' AND '$end_date'
                     group by whs_lokasi_inmaterial.no_barcode, whs_lokasi_inmaterial.id_item, whs_lokasi_inmaterial.satuan
             ),
+            wip_adjustment as (
+                SELECT
+                    id_roll,
+                    id_item,
+                    (CASE
+                            WHEN satuan = 'YRD' THEN 'METER'
+                            ELSE satuan
+                    END) as satuan,
+                    SUM(CASE WHEN tgl_saldo < '$start_date' THEN (CASE WHEN satuan = 'YRD' THEN COALESCE(qty, 0) * 0.9144 ELSE COALESCE(qty, 0) END) ELSE 0 END) qty_adjustment_before,
+                    SUM(CASE WHEN tgl_saldo >= '$start_date' THEN (CASE WHEN satuan = 'YRD' THEN COALESCE(qty, 0) * 0.9144 ELSE COALESCE(qty, 0) END) ELSE 0 END) qty_adjustment
+                FROM
+                    wip_adjustment_fabric_barcode
+                WHERE
+                    tgl_saldo > COALESCE((select MAX(tanggal) from fabric_rekap), '$balance_date')
+                    AND tgl_saldo <= '$end_date'
+                    AND status = 'Y'
+                    -- AND (type = 'REKAP' OR type IS NULL)
+                GROUP BY
+                    id_roll, id_item, satuan
+            ),
             mutasi_roll_before as (
                 select
                     mutasi_roll.id_roll AS barcode,
@@ -5554,20 +5576,23 @@ class ReportCuttingController extends Controller
                     SUM(gr_panel) gr_panel,
                     SUM(gr_set) gr_set,
                     SUM(retur) retur,
-                    SUM(saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur)) saldo_akhir,
+                    SUM(adjustment) adjustment,
+                    SUM(saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur) + adjustment) saldo_akhir,
                     unit as satuan
                 FROM (
-                    select id_roll, id_item, unit, (saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur) + adjustment) as saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM fabric_rekap
+                    select id_roll, id_item, unit, (saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur) + adjustment) as saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM fabric_rekap
                     UNION ALL
-                    select id_roll, id_item, unit_roll, 0 saldo_awal, qty_in penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM penerimaan_before
+                    select id_roll, id_item, unit_roll, 0 saldo_awal, qty_in penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM penerimaan_before
                     UNION ALL
-                    select id_roll, id_item, unit_roll, 0 saldo_awal, 0 penerimaan, total_pemakaian_roll pemakaian, short_roll short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM manajemen_roll_before
+                    select id_roll, id_item, unit_roll, 0 saldo_awal, 0 penerimaan, total_pemakaian_roll pemakaian, short_roll short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM manajemen_roll_before
                     UNION ALL
-                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, gr_p gr_panel, 0 gr_set, 0 retur FROM gr_p_before
+                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, gr_p gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM gr_p_before
                     UNION ALL
-                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, gr_g gr_set, 0 retur FROM gr_g_before
+                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, gr_g gr_set, 0 retur, 0 adjustment FROM gr_g_before
                     UNION ALL
-                    select no_barcode, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, qty_aktual retur FROM retur_before
+                    select no_barcode, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, qty_aktual retur, 0 adjustment FROM retur_before
+                    UNION ALL
+                    select id_roll, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, qty_adjustment_before adjustment FROM wip_adjustment
                 ) mutasi_roll
                 LEFT JOIN signalbit_erp.masteritem mi ON mutasi_roll.id_item = mi.id_item
                 group by mutasi_roll.id_roll, mutasi_roll.id_item, mutasi_roll.unit
@@ -5584,20 +5609,23 @@ class ReportCuttingController extends Controller
                     SUM(gr_panel) gr_panel,
                     SUM(gr_set) gr_set,
                     SUM(retur) retur,
-                    SUM(saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur)) saldo_akhir,
+                    SUM(adjustment) adjustment,
+                    SUM(saldo_awal + (penerimaan - (pemakaian - short_roll + gr_panel + gr_set) - retur) + adjustment) saldo_akhir,
                     satuan
                 FROM (
-                    select barcode as id_roll, id_item, satuan, saldo_akhir as saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM mutasi_roll_before
+                    select barcode as id_roll, id_item, satuan, saldo_akhir as saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM mutasi_roll_before
                     UNION ALL
-                    select id_roll, id_item, unit_roll, 0 saldo_awal, qty_in penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM penerimaan
+                    select id_roll, id_item, unit_roll, 0 saldo_awal, qty_in penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM penerimaan
                     UNION ALL
-                    select id_roll, id_item, unit_roll, 0 saldo_awal, 0 penerimaan, total_pemakaian_roll pemakaian, short_roll short_roll, 0 gr_panel, 0 gr_set, 0 retur FROM manajemen_roll
+                    select id_roll, id_item, unit_roll, 0 saldo_awal, 0 penerimaan, total_pemakaian_roll pemakaian, short_roll short_roll, 0 gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM manajemen_roll
                     UNION ALL
-                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, gr_p gr_panel, 0 gr_set, 0 retur FROM gr_p
+                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, gr_p gr_panel, 0 gr_set, 0 retur, 0 adjustment FROM gr_p
                     UNION ALL
-                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, gr_g gr_set, 0 retur FROM gr_g
+                    select id_roll, id_item, unit, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, gr_g gr_set, 0 retur, 0 adjustment FROM gr_g
                     UNION ALL
-                    select no_barcode, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, qty_aktual retur FROM retur
+                    select no_barcode, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, qty_aktual retur, 0 adjustment FROM retur
+                    UNION ALL
+                    select id_roll, id_item, satuan, 0 saldo_awal, 0 penerimaan, 0 pemakaian, 0 short_roll, 0 gr_panel, 0 gr_set, 0 retur, qty_adjustment adjustment FROM wip_adjustment
                 ) mutasi_roll
                 LEFT JOIN signalbit_erp.masteritem mi ON mutasi_roll.id_item = mi.id_item
                 group by mutasi_roll.id_roll, mutasi_roll.id_item, mutasi_roll.satuan
@@ -5761,6 +5789,74 @@ class ReportCuttingController extends Controller
     }
 
     /// Penerimaan Fabric Cutting
+    private function buildQueryRollFabricCuttingIn($start_date, $end_date, $terima_from = null, $terima_to = null)
+    {
+        $bppb_filter = ($start_date ? " and tgl_bppb >= '$start_date'" : "")
+            . ($end_date ? " and tgl_bppb <= '$end_date'" : "");
+
+        $terima_filter = ($terima_from ? " and penerimaan_cutting.tanggal_terima >= :terima_from" : "")
+            . ($terima_to ? " and penerimaan_cutting.tanggal_terima <= :terima_to" : "");
+
+        return "
+            SELECT
+                a.no_bppb,
+                DATE_FORMAT(tgl_bppb, '%d-%M-%Y') AS tgl_bppb_fix,
+                tgl_bppb,
+                no_req,
+                b.id_roll,
+                no_roll,
+                no_roll_buyer,
+                no_lot,
+                mi.id_item,
+                no_ws,
+                no_ws_aktual,
+                k.styleno,
+                mi.itemdesc,
+                mi.color,
+                b.qty_out,
+                satuan,
+                CASE
+                    WHEN satuan = 'YRD' THEN ROUND(b.qty_out * 0.9144,2)
+                    ELSE b.qty_out
+                END as qty_out_konversi,
+                CASE
+                    WHEN satuan = 'YRD' THEN 'METER'
+                    WHEN satuan = 'KGM' THEN 'KGM'
+                    ELSE satuan
+                END as satuan_konversi,
+                DATE_FORMAT(penerimaan_cutting.tanggal_terima, '%d-%M-%Y') AS tgl_terima_cutting,
+                penerimaan_cutting.created_by_username AS user_cutting,
+                DATE_FORMAT(bppb_req.bppbdate, '%d-%M-%Y') AS tgl_request,
+                CASE
+                    WHEN penerimaan_cutting.tanggal_terima IS NOT NULL THEN 'TERIMA'
+                    ELSE 'PENDING'
+                END as status_terima
+            FROM signalbit_erp.whs_bppb_h a
+            inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
+            inner join signalbit_erp.masteritem mi on b.id_item = mi.id_item
+            LEFT JOIN (
+                SELECT
+                    jd.id_jo,
+                    ac.kpno,
+                    supplier as buyer,
+                    styleno
+                FROM signalbit_erp.jo_det jd
+                INNER JOIN signalbit_erp.so ON jd.id_so = so.id
+                INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+                INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
+                WHERE jd.cancel = 'N'
+                GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
+            LEFT JOIN penerimaan_cutting ON penerimaan_cutting.whs_bppb_det_id = b.id AND penerimaan_cutting.id_roll = b.id_roll
+            LEFT JOIN signalbit_erp.bppb_req ON bppb_req.bppbno = a.no_req AND bppb_req.id_jo = b.id_jo AND bppb_req.id_item = b.id_item
+            where a.tujuan = 'Production - Cutting' and b.status = 'Y'$bppb_filter$terima_filter
+        ";
+    }
+
+    private function hasFilterRollFabricCuttingIn(Request $request)
+    {
+        return ($request->start_date && $request->end_date) || $request->terima_from || $request->terima_to;
+    }
+
     public function roll_fabric_cutting_in(Request $request)
     {
         $start_date = $request->input('start_date'); // example: 9 (September)
@@ -5769,52 +5865,14 @@ class ReportCuttingController extends Controller
         $user = Auth::user()->name;
 
         if ($request->ajax()) {
-            // ✅ If bulan or tahun is missing, return no data
-            if ($start_date === null || $end_date === null) {
+            // ✅ If tgl bppb and tgl terima are missing, return no data
+            if (!$this->hasFilterRollFabricCuttingIn($request)) {
                 return response()->json(['data' => []]);
             } else {
-                $rawData = DB::select("SELECT
-                    a.no_bppb,
-                    DATE_FORMAT(tgl_bppb, '%d-%M-%Y') AS tgl_bppb_fix,
-                    tgl_bppb,
-                    no_req,
-                    id_roll,
-                    no_roll,
-                    no_roll_buyer,
-                    no_lot,
-                    mi.id_item,
-                    no_ws,
-                    no_ws_aktual,
-                    styleno,
-                    mi.itemdesc,
-                    mi.color,
-                    qty_out,
-                    satuan,
-                            CASE
-                                WHEN satuan = 'YRD' THEN ROUND(qty_out * 0.9144,2)
-                                ELSE qty_out
-                            END as qty_out_konversi,
-                    CASE
-                            WHEN satuan = 'YRD' THEN 'METER'
-                            WHEN satuan = 'KGM' THEN 'KGM'
-                            ELSE satuan
-                            END as satuan_konversi
-                    FROM signalbit_erp.whs_bppb_h a
-                    inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
-                    inner join signalbit_erp.masteritem mi on b.id_item = mi.id_item
-                    LEFT JOIN (SELECT
-                                            jd.id_jo,
-                                            ac.kpno,
-                                supplier as buyer,
-                                styleno
-                                    FROM signalbit_erp.jo_det jd
-                                    INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-                                    INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                                    INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                                    WHERE jd.cancel = 'N'
-                                    GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
-                    where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-                ");
+                $rawData = DB::select(
+                    $this->buildQueryRollFabricCuttingIn($start_date, $end_date, $request->terima_from, $request->terima_to),
+                    array_filter(['terima_from' => $request->terima_from, 'terima_to' => $request->terima_to])
+                );
 
                 return response()->json([
                     'data' => $rawData // ✅ simplified response
@@ -5842,52 +5900,15 @@ class ReportCuttingController extends Controller
 
     public function export_roll_fabric_cutting_in(Request $request)
     {
+        abort_unless($this->hasFilterRollFabricCuttingIn($request), 422);
+
         $start_date = $request->start_date;
         $end_date = $request->end_date;
 
-        $data = DB::select("SELECT
-            a.no_bppb,
-            DATE_FORMAT(tgl_bppb, '%d-%M-%Y') AS tgl_bppb_fix,
-            tgl_bppb,
-            no_req,
-            id_roll,
-            no_roll,
-            no_roll_buyer,
-            no_lot,
-            mi.id_item,
-            no_ws,
-            no_ws_aktual,
-            styleno,
-            mi.itemdesc,
-            mi.color,
-            qty_out,
-            satuan,
-                    CASE
-                        WHEN satuan = 'YRD' THEN ROUND(qty_out * 0.9144,2)
-                        ELSE qty_out
-                    END as qty_out_konversi,
-            CASE
-                    WHEN satuan = 'YRD' THEN 'METER'
-                    WHEN satuan = 'KGM' THEN 'KGM'
-                    ELSE satuan
-                    END as satuan_konversi
-            FROM signalbit_erp.whs_bppb_h a
-            inner join signalbit_erp.whs_bppb_det b on a.no_bppb = b.no_bppb
-            inner join signalbit_erp.masteritem mi on b.id_item = mi.id_item
-            LEFT JOIN (SELECT
-                                    jd.id_jo,
-                                    ac.kpno,
-                        supplier as buyer,
-                        styleno
-                            FROM signalbit_erp.jo_det jd
-                            INNER JOIN signalbit_erp.so ON jd.id_so = so.id
-                            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
-                            INNER JOIN signalbit_erp.mastersupplier ms ON ac.id_buyer = ms.id_supplier
-                            WHERE jd.cancel = 'N'
-                            GROUP BY jd.id_jo) k on a.no_ws_aktual = k.kpno
-            where tgl_bppb >= '$start_date' and tgl_bppb <= '$end_date' and tujuan = 'Production - Cutting' and b.status = 'Y'
-
-                ");
+        $data = DB::select(
+            $this->buildQueryRollFabricCuttingIn($start_date, $end_date, $request->terima_from, $request->terima_to),
+            array_filter(['terima_from' => $request->terima_from, 'terima_to' => $request->terima_to])
+        );
 
         $fileName = 'report-penerimaan-fabric-cutting';
 
@@ -5896,7 +5917,7 @@ class ReportCuttingController extends Controller
         $sheet = $excel->sheet();
 
         $sheet->writeRow(
-            ['Report Penerimaan Fabric Cutting'],
+            ['Report Pengeluaran Fabric ke Cutting'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 14,
@@ -5904,7 +5925,7 @@ class ReportCuttingController extends Controller
         );
 
         $sheet->writeRow(
-            ['Periode ' . $start_date . ' s/d ' . $end_date],
+            ['Periode ' . ($start_date || $end_date ? $start_date . ' s/d ' . $end_date : 'Terima ' . $request->terima_from . ' s/d ' . $request->terima_to)],
             [
                 'font-size' => 12,
             ]
@@ -5913,8 +5934,12 @@ class ReportCuttingController extends Controller
         $sheet->writeRow(['']);
 
         $header = [
+            'Status',
             'No BPPB',
             'Tgl BPPB',
+            'Tgl Terima',
+            'User',
+            'Tgl Request',
             'No Req',
             'Barcode',
             'No Roll',
@@ -5943,8 +5968,12 @@ class ReportCuttingController extends Controller
         foreach ($data as $row) {
 
             $rows = [
+                $row->status_terima ?: '',
                 $row->no_bppb ?: '',
                 $row->tgl_bppb_fix ?: '',
+                $row->tgl_terima_cutting ?: '',
+                $row->user_cutting ?: '',
+                $row->tgl_request ?: '',
                 $row->no_req ?: '',
                 $row->id_roll ?: '',
                 $row->no_roll ?: '',
@@ -5966,6 +5995,11 @@ class ReportCuttingController extends Controller
                 $rows,
                 [
                     'border' => 'thin',
+                ],
+                [
+                    2 => ['format' => '@date'], // Tgl BPPB
+                    3 => ['format' => '@date'], // Tgl Terima
+                    5 => ['format' => '@date'], // Tgl Request
                 ]
             );
         }
@@ -7799,6 +7833,14 @@ class ReportCuttingController extends Controller
         // Build the SQL query string here
         if ($start_date < '2026-05-01') {
             $query = "WITH
+                pd_manual as (
+                        -- part detail yang hanya dipakai stocker manual SM-10112026 9:15 tidak dihitung qty IN-nya
+                        SELECT part_detail_id
+                        FROM stocker_input
+                        WHERE part_detail_id IN (SELECT part_detail_id FROM stocker_input WHERE notes = 'STOCKER MANUAL SM-10112026 9:15')
+                        GROUP BY part_detail_id
+                        HAVING SUM(COALESCE(notes, '') = 'STOCKER MANUAL SM-10112026 9:15') = COUNT(*)
+                ),
                 cutt_awal as (
                                 SELECT
                                         COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
@@ -7856,7 +7898,7 @@ class ReportCuttingController extends Controller
                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                         LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -7909,7 +7951,7 @@ class ReportCuttingController extends Controller
                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                         LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
                                         LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -7982,7 +8024,7 @@ class ReportCuttingController extends Controller
                                         AND modify_size_qty.form_cut_id = form_cut_input.id
                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -8033,7 +8075,7 @@ class ReportCuttingController extends Controller
                                     LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
                                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
                                     LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-                                    LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                    LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                     LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                     LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                     LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -8115,7 +8157,7 @@ class ReportCuttingController extends Controller
                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                         LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                         LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -8125,6 +8167,7 @@ class ReportCuttingController extends Controller
                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
                                         AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                        AND (CASE WHEN COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                                 GROUP BY
                                         form_cut_input.id,
                                         form_cut_input_detail.group_stocker,
@@ -8168,7 +8211,7 @@ class ReportCuttingController extends Controller
                                         LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                         LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
                                         LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail
                                         AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
@@ -8179,6 +8222,7 @@ class ReportCuttingController extends Controller
                                         AND form_cut_piece_detail.STATUS = 'complete'
                                         AND form_cut_piece_detail.id not in (7207)
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                        AND (CASE WHEN COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                                 GROUP BY
                                         form_cut_piece.id,
                                         form_cut_piece_detail.group_stocker,
@@ -8242,7 +8286,7 @@ class ReportCuttingController extends Controller
                                         AND modify_size_qty.form_cut_id = form_cut_input.id
                                         LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                         LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-                                        LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                        LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                         LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail
                                         AND part_detail.part_status = 'complement'
                                         LEFT JOIN part p_com ON p_com.id = pd_com.part_id
@@ -8253,6 +8297,7 @@ class ReportCuttingController extends Controller
                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$start_date."'
                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
                                         AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                        AND (CASE WHEN COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                                 GROUP BY
                                         form_cut_input.id,
                                         form_cut_input_detail.group_stocker,
@@ -8294,7 +8339,7 @@ class ReportCuttingController extends Controller
                                     LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
                                     LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
                                     LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-                                    LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                    LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                     LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                     LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                     LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -8304,6 +8349,7 @@ class ReportCuttingController extends Controller
                                     AND form_cut_reject.tanggal > '2026-04-30'
                                     AND form_cut_reject_detail.qty > 0
                                     AND (part_detail.part_status != 'complement' OR part_detail.part_status IS NULL)
+                                    AND (CASE WHEN form_cut_reject.tanggal > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                                 GROUP BY
                                     form_cut_reject.id,
                                     form_cut_reject_detail.id,
@@ -9045,6 +9091,14 @@ class ReportCuttingController extends Controller
                 WITH
                 query_cutting as (
                     WITH
+                        pd_manual as (
+                            -- part detail yang hanya dipakai stocker manual SM-10112026 9:15 tidak dihitung qty IN-nya
+                            SELECT part_detail_id
+                            FROM stocker_input
+                            WHERE part_detail_id IN (SELECT part_detail_id FROM stocker_input WHERE notes = 'STOCKER MANUAL SM-10112026 9:15')
+                            GROUP BY part_detail_id
+                            HAVING SUM(COALESCE(notes, '') = 'STOCKER MANUAL SM-10112026 9:15') = COUNT(*)
+                        ),
                         cutt_awal as (
                             SELECT
                                 COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) tanggal,
@@ -9065,16 +9119,8 @@ class ReportCuttingController extends Controller
                                 form_cut_input_detail.group_stocker,
                                 COALESCE ( modify_size_qty.difference_qty, 0 ) difference_qty,
                                 COALESCE ( modify_size_qty.modified_qty, 0 ) modified_qty,
-                                CASE
-                                    WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
-                                    THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                                    ELSE 0
-                                END AS switching_out,
-                                CASE
-                                    WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) > 0
-                                    THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                                    ELSE 0
-                                END AS switching_in,
+                                0 AS switching_out,
+                                0 AS switching_in,
                                 ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty,
                                 ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                 ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
@@ -9085,7 +9131,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_input
                                 LEFT JOIN (
@@ -9133,21 +9179,18 @@ class ReportCuttingController extends Controller
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
                                 LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                 LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                                 LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = marker_input.color and (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <=  COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) ELSE 1=1 END)
-                                LEFT JOIN form_cut_input_detail_output
-                                    ON form_cut_input_detail_output.form_cut_input_id = form_cut_input.id
-                                    AND form_cut_input_detail_output.marker_input_detail_id = marker_input_detail.id
-                                    AND form_cut_input_detail_output.group_roll = form_cut_input_detail.group_roll
                             WHERE
                                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$tgl_saldo."'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
-                                AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ) OR form_cut_input_detail_output.qty_output_aktual > 0)
+                                AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ))
                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
+                                AND (CASE WHEN COALESCE( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_roll,
@@ -9187,7 +9230,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_piece
                                 LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -9195,7 +9238,7 @@ class ReportCuttingController extends Controller
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                 LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
                                 LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9206,6 +9249,7 @@ class ReportCuttingController extends Controller
                                 AND form_cut_piece_detail.STATUS = 'complete'
                                 AND form_cut_piece_detail.id not in (7207)
                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
+                                AND (CASE WHEN COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                             GROUP BY
                                 form_cut_piece.id,
                                 form_cut_piece_detail.group_stocker,
@@ -9233,16 +9277,8 @@ class ReportCuttingController extends Controller
                                 form_cut_input_detail.group_stocker,
                                 COALESCE ( modify_size_qty.difference_qty, 0 ) difference_qty,
                                 COALESCE ( modify_size_qty.modified_qty, 0 ) modified_qty,
-                                CASE
-                                    WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) )) < 0
-                                    THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ))
-                                    ELSE 0
-                                END AS switching_out,
-                                CASE
-                                    WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) )) > 0
-                                    THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ))
-                                    ELSE 0
-                                END AS switching_in,
+                                0 AS switching_out,
+                                0 AS switching_in,
                                 ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty,
                                 ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                 ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
@@ -9253,7 +9289,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 laravel_nds.form_cut_input
                                 LEFT JOIN (
@@ -9303,21 +9339,18 @@ class ReportCuttingController extends Controller
                                     AND (form_cut_input_detail.group_roll = modify_size_qty.group_roll)
                                 LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                 LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                                 LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = stocker_ws_additional.color and (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) ELSE 1=1 END)
-                                LEFT JOIN form_cut_input_detail_output
-                                    ON form_cut_input_detail_output.form_cut_input_id = form_cut_input.id
-                                    AND form_cut_input_detail_output.marker_input_detail_id = marker_input_detail.id
-                                    AND form_cut_input_detail_output.group_roll = form_cut_input_detail.group_roll
                             WHERE
                                 form_cut_input.STATUS = 'SELESAI PENGERJAAN'
-                                AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 OR form_cut_input_detail_output.qty_output_aktual > 0)
+                                AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0)
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$tgl_saldo."'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) < '".$start_date."'
                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
+                                AND (CASE WHEN COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_roll,
@@ -9357,13 +9390,13 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_reject
                                 LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
                                 LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9374,10 +9407,313 @@ class ReportCuttingController extends Controller
                                 AND form_cut_reject.tanggal > '2026-04-30'
                                 AND form_cut_reject_detail.qty > 0
                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
+                                AND (CASE WHEN form_cut_reject.tanggal > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                             GROUP BY
                                 form_cut_reject.id,
                                 form_cut_reject_detail.id,
                                 part_detail.id
+
+                            UNION ALL
+
+                            SELECT
+                                tanggal_form AS tanggal,
+                                '-' AS meja,
+                                ws AS worksheet,
+                                NULL AS buyer,
+                                styleno AS style,
+                                color,
+                                msb_id_so_det AS id_so_det,
+                                size,
+                                group_roll,
+                                NULL AS lot,
+                                NULL AS no_cut,
+                                no_form,
+                                '-' AS no_marker,
+                                panel,
+                                '-' AS max_group,
+                                NULL AS group_stocker,
+                                NULL AS difference_qty,
+                                NULL AS modified_qty,
+                                SUM(total_out) AS switching_out,
+                                SUM(total_in) AS switching_in,
+                                0 AS qty,
+                                part_id AS part_id1,
+                                panel_status AS panel_status1,
+                                panel AS part_panel1,
+                                part_id,
+                                panel_status,
+                                panel AS part_panel,
+                                part_detail_id,
+                                part_status,
+                                master_part_id,
+                                nama_part
+                            FROM (
+                                /* LOGS ASAL (OUT) - Standard Form */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_asal.no_form AS no_form,
+                                    DATE(form_asal.waktu_selesai) AS tanggal_form,
+                                    msb_asal.ws AS ws,
+                                    msb_asal.buyer AS buyer,
+                                    msb_asal.styleno AS styleno,
+                                    msb_asal.color AS color,
+                                    msb_asal.size AS size,
+                                    msb_asal.id_so_det AS msb_id_so_det,
+                                    part_asal.id AS part_id,
+                                    part_asal.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_asal.part_status) = 'complement' THEN COALESCE(p_com.panel, part_asal.panel) ELSE part_asal.panel END) AS panel,
+                                    pd_asal.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
+                                    mp_asal.id AS master_part_id,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                                    0 AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                                    LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                                    LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
+                                    LEFT JOIN part part_asal ON part_asal.act_costing_id = marker_asal.act_costing_id AND part_asal.panel = marker_asal.panel
+                                    LEFT JOIN part_detail pd_asal ON pd_asal.part_id = part_asal.id AND (pd_asal.status IS NULL OR pd_asal.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_asal.from_part_detail AND pd_asal.part_status = 'complement'
+                                    LEFT JOIN master_part mp_asal ON mp_asal.id = pd_asal.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_asal.id AND pcust.part_detail_id = pd_asal.id AND pcust.color = msb_asal.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_asal.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_asal.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at >= '".$tgl_saldo." 00:00:00' AND form_cut_input_detail_output_logs.created_at < '".$start_date." 00:00:00'
+                                    AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                                UNION ALL
+
+                                /* LOGS TUJUAN (IN) - Standard Form */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_tujuan.no_form AS no_form,
+                                    DATE(form_tujuan.waktu_selesai) AS tanggal_form,
+                                    msb_tujuan.ws AS ws,
+                                    msb_tujuan.buyer AS buyer,
+                                    msb_tujuan.styleno AS styleno,
+                                    msb_tujuan.color AS color,
+                                    msb_tujuan.size AS size,
+                                    msb_tujuan.id_so_det AS msb_id_so_det,
+                                    part_tujuan.id AS part_id,
+                                    part_tujuan.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_tujuan.part_status) = 'complement' THEN COALESCE(p_com.panel, part_tujuan.panel) ELSE part_tujuan.panel END) AS panel,
+                                    pd_tujuan.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
+                                    mp_tujuan.id AS master_part_id,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
+                                    0 AS total_out,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                                    LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                                    LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
+                                    LEFT JOIN part part_tujuan ON part_tujuan.act_costing_id = marker_tujuan.act_costing_id AND part_tujuan.panel = marker_tujuan.panel
+                                    LEFT JOIN part_detail pd_tujuan ON pd_tujuan.part_id = part_tujuan.id AND (pd_tujuan.status IS NULL OR pd_tujuan.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_tujuan.from_part_detail AND pd_tujuan.part_status = 'complement'
+                                    LEFT JOIN master_part mp_tujuan ON mp_tujuan.id = pd_tujuan.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_tujuan.id AND pcust.part_detail_id = pd_tujuan.id AND pcust.color = msb_tujuan.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_tujuan.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_tujuan.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at >= '".$tgl_saldo." 00:00:00' AND form_cut_input_detail_output_logs.created_at < '".$start_date." 00:00:00'
+                                    AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                                UNION ALL
+
+                                /* LOGS ASAL (OUT) - Additional Stocker */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_asal.no_form AS no_form,
+                                    DATE(form_asal.waktu_selesai) AS tanggal_form,
+                                    stocker_ws_additional_asal.act_costing_ws AS ws,
+                                    stocker_ws_additional_asal.buyer AS buyer,
+                                    stocker_ws_additional_asal.style AS styleno,
+                                    stocker_ws_additional_asal.color AS color,
+                                    msb_asal.size AS size,
+                                    msb_asal.id_so_det AS msb_id_so_det,
+                                    part_asal.id AS part_id,
+                                    part_asal.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_asal.part_status) = 'complement' THEN COALESCE(p_com.panel, part_asal.panel) ELSE part_asal.panel END) AS panel,
+                                    pd_asal.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
+                                    mp_asal.id AS master_part_id,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                                    0 AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                                    LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                                    INNER JOIN stocker_ws_additional stocker_ws_additional_asal ON stocker_ws_additional_asal.form_cut_id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                                    INNER JOIN stocker_ws_additional_detail stocker_ws_additional_detail_asal ON stocker_ws_additional_detail_asal.stocker_additional_id = stocker_ws_additional_asal.id
+                                        AND stocker_ws_additional_detail_asal.size = marker_detail_asal.size
+                                    LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = stocker_ws_additional_detail_asal.so_det_id
+                                    LEFT JOIN part part_asal ON part_asal.act_costing_ws = stocker_ws_additional_asal.act_costing_ws AND part_asal.panel = stocker_ws_additional_asal.panel
+                                    LEFT JOIN part_detail pd_asal ON pd_asal.part_id = part_asal.id AND (pd_asal.status IS NULL OR pd_asal.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_asal.from_part_detail AND pd_asal.part_status = 'complement'
+                                    LEFT JOIN master_part mp_asal ON mp_asal.id = pd_asal.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_asal.id AND pcust.part_detail_id = pd_asal.id AND pcust.color = stocker_ws_additional_asal.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_asal.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_asal.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at >= '".$tgl_saldo." 00:00:00' AND form_cut_input_detail_output_logs.created_at < '".$start_date." 00:00:00'
+                                    AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                                UNION ALL
+
+                                /* LOGS TUJUAN (IN) - Additional Stocker */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_tujuan.no_form AS no_form,
+                                    DATE(form_tujuan.waktu_selesai) AS tanggal_form,
+                                    stocker_ws_additional_tujuan.act_costing_ws AS ws,
+                                    stocker_ws_additional_tujuan.buyer AS buyer,
+                                    stocker_ws_additional_tujuan.style AS styleno,
+                                    stocker_ws_additional_tujuan.color AS color,
+                                    msb_tujuan.size AS size,
+                                    msb_tujuan.id_so_det AS msb_id_so_det,
+                                    part_tujuan.id AS part_id,
+                                    part_tujuan.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_tujuan.part_status) = 'complement' THEN COALESCE(p_com.panel, part_tujuan.panel) ELSE part_tujuan.panel END) AS panel,
+                                    pd_tujuan.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
+                                    mp_tujuan.id AS master_part_id,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
+                                    0 AS total_out,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                                    LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                                    INNER JOIN stocker_ws_additional stocker_ws_additional_tujuan ON stocker_ws_additional_tujuan.form_cut_id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                                    INNER JOIN stocker_ws_additional_detail stocker_ws_additional_detail_tujuan ON stocker_ws_additional_detail_tujuan.stocker_additional_id = stocker_ws_additional_tujuan.id
+                                        AND stocker_ws_additional_detail_tujuan.size = marker_detail_tujuan.size
+                                    LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = stocker_ws_additional_detail_tujuan.so_det_id
+                                    LEFT JOIN part part_tujuan ON part_tujuan.act_costing_ws = stocker_ws_additional_tujuan.act_costing_ws AND part_tujuan.panel = stocker_ws_additional_tujuan.panel
+                                    LEFT JOIN part_detail pd_tujuan ON pd_tujuan.part_id = part_tujuan.id AND (pd_tujuan.status IS NULL OR pd_tujuan.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_tujuan.from_part_detail AND pd_tujuan.part_status = 'complement'
+                                    LEFT JOIN master_part mp_tujuan ON mp_tujuan.id = pd_tujuan.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_tujuan.id AND pcust.part_detail_id = pd_tujuan.id AND pcust.color = stocker_ws_additional_tujuan.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_tujuan.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_tujuan.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at >= '".$tgl_saldo." 00:00:00' AND form_cut_input_detail_output_logs.created_at < '".$start_date." 00:00:00'
+                                    AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                                UNION ALL
+
+                                /* LOGS ASAL (OUT) - Custom Case */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_asal.no_form AS no_form,
+                                    DATE(form_asal.waktu_selesai) AS tanggal_form,
+                                    msb_asal.ws AS ws,
+                                    msb_asal.buyer AS buyer,
+                                    msb_asal.styleno AS styleno,
+                                    msb_asal.color AS color,
+                                    msb_asal.size AS size,
+                                    msb_asal.id_so_det AS msb_id_so_det,
+                                    part_asal.id AS part_id,
+                                    part_asal.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_asal.part_status) = 'complement' THEN COALESCE(p_com.panel, part_asal.panel) ELSE part_asal.panel END) AS panel,
+                                    pd_asal.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
+                                    mp_asal.id AS master_part_id,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                                    0 AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                                    LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                                    LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = form_cut_input_detail_output_logs.so_det_id_asal
+                                    LEFT JOIN part part_asal ON part_asal.act_costing_id = marker_asal.act_costing_id AND part_asal.panel = marker_asal.panel
+                                    LEFT JOIN part_detail pd_asal ON pd_asal.part_id = part_asal.id AND (pd_asal.status IS NULL OR pd_asal.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_asal.from_part_detail AND pd_asal.part_status = 'complement'
+                                    LEFT JOIN master_part mp_asal ON mp_asal.id = pd_asal.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_asal.id AND pcust.part_detail_id = pd_asal.id AND pcust.color = msb_asal.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_asal.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_asal.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at >= '".$tgl_saldo." 00:00:00' AND form_cut_input_detail_output_logs.created_at < '".$start_date." 00:00:00'
+                                    AND (form_cut_input_detail_output_logs.so_det_id_asal > 0 OR form_cut_input_detail_output_logs.so_det_id_tujuan > 0)
+
+                                UNION ALL
+
+                                /* LOGS TUJUAN (IN) - Custom Case */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_tujuan.no_form AS no_form,
+                                    DATE(form_tujuan.waktu_selesai) AS tanggal_form,
+                                    msb_tujuan.ws AS ws,
+                                    msb_tujuan.buyer AS buyer,
+                                    msb_tujuan.styleno AS styleno,
+                                    msb_tujuan.color AS color,
+                                    msb_tujuan.size AS size,
+                                    msb_tujuan.id_so_det AS msb_id_so_det,
+                                    part_tujuan.id AS part_id,
+                                    part_tujuan.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_tujuan.part_status) = 'complement' THEN COALESCE(p_com.panel, part_tujuan.panel) ELSE part_tujuan.panel END) AS panel,
+                                    pd_tujuan.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
+                                    mp_tujuan.id AS master_part_id,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
+                                    0 AS total_out,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                                    LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                                    LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = form_cut_input_detail_output_logs.so_det_id_tujuan
+                                    LEFT JOIN part part_tujuan ON part_tujuan.act_costing_id = marker_tujuan.act_costing_id AND part_tujuan.panel = marker_tujuan.panel
+                                    LEFT JOIN part_detail pd_tujuan ON pd_tujuan.part_id = part_tujuan.id AND (pd_tujuan.status IS NULL OR pd_tujuan.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_tujuan.from_part_detail AND pd_tujuan.part_status = 'complement'
+                                    LEFT JOIN master_part mp_tujuan ON mp_tujuan.id = pd_tujuan.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_tujuan.id AND pcust.part_detail_id = pd_tujuan.id AND pcust.color = msb_tujuan.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_tujuan.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_tujuan.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at >= '".$tgl_saldo." 00:00:00' AND form_cut_input_detail_output_logs.created_at < '".$start_date." 00:00:00'
+                                    AND (form_cut_input_detail_output_logs.so_det_id_asal > 0 OR form_cut_input_detail_output_logs.so_det_id_tujuan > 0)
+                            ) log_data
+                            GROUP BY
+                                tanggal_form,
+                                ws,
+                                styleno,
+                                color,
+                                msb_id_so_det,
+                                size,
+                                group_roll,
+                                no_form,
+                                panel,
+                                part_id,
+                                panel_status,
+                                part_detail_id,
+                                part_status,
+                                master_part_id,
+                                nama_part
                             ORDER BY
                                 tanggal DESC,
                                 meja,
@@ -9409,16 +9745,8 @@ class ReportCuttingController extends Controller
                                 form_cut_input_detail.group_stocker,
                                 COALESCE ( modify_size_qty.difference_qty, 0 ) difference_qty,
                                 COALESCE ( modify_size_qty.modified_qty, 0 ) modified_qty,
-                                CASE
-                                    WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
-                                    THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                                    ELSE 0
-                                END AS switching_out,
-                                CASE
-                                    WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) > 0
-                                    THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                                    ELSE 0
-                                END AS switching_in,
+                                0 AS switching_out,
+                                0 AS switching_in,
                                 ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty,
                                 ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                 ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
@@ -9429,7 +9757,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_input
                                 LEFT JOIN (
@@ -9467,7 +9795,7 @@ class ReportCuttingController extends Controller
                                     WHERE
                                         COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$start_date."'
                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
-                                    group by
+                                    GROUP BY
                                         modify_size_qty.form_cut_id,
                                         modify_size_qty.so_det_id,
                                         form_cut_input_detail.group_roll
@@ -9477,21 +9805,18 @@ class ReportCuttingController extends Controller
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = marker_input_detail.so_det_id
                                 LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                 LEFT JOIN part ON part.act_costing_ws = marker_input.act_costing_ws and part.panel = marker_input.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                                 LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = marker_input.color and (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) ELSE 1=1 END)
-                                LEFT JOIN form_cut_input_detail_output
-                                    ON form_cut_input_detail_output.form_cut_input_id = form_cut_input.id
-                                    AND form_cut_input_detail_output.marker_input_detail_id = marker_input_detail.id
-                                    AND form_cut_input_detail_output.group_roll = form_cut_input_detail.group_roll
                             WHERE
                                 form_cut_input.`status` = 'SELESAI PENGERJAAN'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$start_date."'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
-                                AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ) OR form_cut_input_detail_output.qty_output_aktual > 0)
+                                AND ( marker_input_detail.ratio > 0 OR ( similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0 ) )
                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
+                                AND (CASE WHEN COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_roll,
@@ -9531,7 +9856,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_piece
                                 LEFT JOIN form_cut_piece_detail ON form_cut_piece_detail.form_id = form_cut_piece.id
@@ -9539,7 +9864,7 @@ class ReportCuttingController extends Controller
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_piece_detail_size.so_det_id
                                 LEFT JOIN part_form ON part_form.form_pcs_id = form_cut_piece.id
                                 LEFT JOIN part ON part.act_costing_ws = form_cut_piece.act_costing_ws and part.panel = form_cut_piece.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9550,6 +9875,7 @@ class ReportCuttingController extends Controller
                                 AND form_cut_piece_detail.STATUS = 'complete'
                                 AND form_cut_piece_detail.id not in (7207)
                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
+                                AND (CASE WHEN COALESCE(DATE(form_cut_piece.waktu_selesai), DATE(form_cut_piece.created_at), DATE(form_cut_piece.updated_at)) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                             GROUP BY
                                 form_cut_piece.id,
                                 form_cut_piece_detail.group_stocker,
@@ -9577,16 +9903,8 @@ class ReportCuttingController extends Controller
                                 form_cut_input_detail.group_stocker,
                                 COALESCE ( modify_size_qty.difference_qty, 0 ) difference_qty,
                                 COALESCE ( modify_size_qty.modified_qty, 0 ) modified_qty,
-                                CASE
-                                    WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) )) < 0
-                                    THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ))
-                                    ELSE 0
-                                END AS switching_out,
-                                CASE
-                                    WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) )) > 0
-                                    THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ))
-                                    ELSE 0
-                                END AS switching_in,
+                                0 AS switching_out,
+                                0 AS switching_in,
                                 ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty,
                                 ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.id, part.id ) ELSE part.id END ) part_id1,
                                 ( CASE WHEN COALESCE(pcust.set_part_status, part_detail.part_status) = 'complement' THEN COALESCE ( p_com.panel_status, part.panel_status ) ELSE part.panel_status END ) panel_status1,
@@ -9597,7 +9915,7 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 laravel_nds.form_cut_input
                                 LEFT JOIN (
@@ -9638,7 +9956,7 @@ class ReportCuttingController extends Controller
                                     WHERE
                                         COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$start_date."'
                                         AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
-                                    group by
+                                    GROUP BY
                                         modify_size_qty.form_cut_id,
                                         modify_size_qty.so_det_id,
                                         form_cut_input_detail.group_roll
@@ -9647,21 +9965,18 @@ class ReportCuttingController extends Controller
                                     AND (form_cut_input_detail.group_roll = modify_size_qty.group_roll)
                                 LEFT JOIN part_form ON part_form.form_id = form_cut_input.id
                                 LEFT JOIN part ON part.act_costing_ws = stocker_ws_additional.act_costing_ws and part.panel = stocker_ws_additional.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
                                 LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = stocker_ws_additional.color and (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) ELSE 1=1 END)
-                                LEFT JOIN form_cut_input_detail_output
-                                    ON form_cut_input_detail_output.form_cut_input_id = form_cut_input.id
-                                    AND form_cut_input_detail_output.marker_input_detail_id = marker_input_detail.id
-                                    AND form_cut_input_detail_output.group_roll = form_cut_input_detail.group_roll
                             WHERE
                                 form_cut_input.STATUS = 'SELESAI PENGERJAAN'
-                                AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 OR form_cut_input_detail_output.qty_output_aktual > 0)
+                                AND ( stocker_ws_additional_detail.ratio > 0 OR modify_size_qty.difference_qty != 0 )
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) >= '".$start_date."'
                                 AND COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) <= '".$end_date."'
                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
+                                AND (CASE WHEN COALESCE ( DATE( form_cut_input.waktu_selesai ), DATE( form_cut_input.waktu_mulai ), DATE( form_cut_input.tgl_input )) > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                             GROUP BY
                                 form_cut_input.id,
                                 form_cut_input_detail.group_roll,
@@ -9701,13 +10016,13 @@ class ReportCuttingController extends Controller
                                 part_detail.id part_detail_id,
                                 COALESCE(pcust.set_part_status, part_detail.part_status) part_status,
                                 master_part.id master_part_id,
-                                master_part.nama_part
+                                (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part
                             FROM
                                 form_cut_reject
                                 LEFT JOIN form_cut_reject_detail ON form_cut_reject_detail.form_id = form_cut_reject.id
                                 LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = form_cut_reject_detail.so_det_id
                                 LEFT JOIN part ON part.act_costing_ws = form_cut_reject.act_costing_ws and part.panel = form_cut_reject.panel
-                                LEFT JOIN part_detail ON part_detail.part_id = part.id
+                                LEFT JOIN part_detail ON part_detail.part_id = part.id AND part_detail.id NOT IN (SELECT part_detail_id FROM pd_manual)
                                 LEFT JOIN part_detail pd_com ON pd_com.id = part_detail.from_part_detail AND part_detail.part_status = 'complement'
                                 LEFT JOIN part p_com ON p_com.id = pd_com.part_id
                                 LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
@@ -9718,10 +10033,313 @@ class ReportCuttingController extends Controller
                                 AND form_cut_reject.tanggal > '2026-04-30'
                                 AND form_cut_reject_detail.qty > 0
                                 AND (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
+                                AND (CASE WHEN form_cut_reject.tanggal > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
                             GROUP BY
                                 form_cut_reject.id,
                                 form_cut_reject_detail.id,
                                 part_detail.id
+
+                            UNION ALL
+
+                            SELECT
+                                tanggal_form AS tanggal,
+                                '-' AS meja,
+                                ws AS worksheet,
+                                NULL AS buyer,
+                                styleno AS style,
+                                color,
+                                msb_id_so_det AS id_so_det,
+                                size,
+                                group_roll,
+                                NULL AS lot,
+                                NULL AS no_cut,
+                                no_form,
+                                '-' AS no_marker,
+                                panel,
+                                '-' AS max_group,
+                                NULL AS group_stocker,
+                                NULL AS difference_qty,
+                                NULL AS modified_qty,
+                                SUM(total_out) AS switching_out,
+                                SUM(total_in) AS switching_in,
+                                0 AS qty,
+                                part_id AS part_id1,
+                                panel_status AS panel_status1,
+                                panel AS part_panel1,
+                                part_id,
+                                panel_status,
+                                panel AS part_panel,
+                                part_detail_id,
+                                part_status,
+                                master_part_id,
+                                nama_part
+                            FROM (
+                                /* LOGS ASAL (OUT) - Standard Form */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_asal.no_form AS no_form,
+                                    DATE(form_asal.waktu_selesai) AS tanggal_form,
+                                    msb_asal.ws AS ws,
+                                    msb_asal.buyer AS buyer,
+                                    msb_asal.styleno AS styleno,
+                                    msb_asal.color AS color,
+                                    msb_asal.size AS size,
+                                    msb_asal.id_so_det AS msb_id_so_det,
+                                    part_asal.id AS part_id,
+                                    part_asal.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_asal.part_status) = 'complement' THEN COALESCE(p_com.panel, part_asal.panel) ELSE part_asal.panel END) AS panel,
+                                    pd_asal.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
+                                    mp_asal.id AS master_part_id,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                                    0 AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                                    LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                                    LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
+                                    LEFT JOIN part part_asal ON part_asal.act_costing_id = marker_asal.act_costing_id AND part_asal.panel = marker_asal.panel
+                                    LEFT JOIN part_detail pd_asal ON pd_asal.part_id = part_asal.id AND (pd_asal.status IS NULL OR pd_asal.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_asal.from_part_detail AND pd_asal.part_status = 'complement'
+                                    LEFT JOIN master_part mp_asal ON mp_asal.id = pd_asal.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_asal.id AND pcust.part_detail_id = pd_asal.id AND pcust.color = msb_asal.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_asal.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_asal.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at BETWEEN '".$start_date." 00:00:00' AND '".$end_date." 23:59:59'
+                                    AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                                UNION ALL
+
+                                /* LOGS TUJUAN (IN) - Standard Form */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_tujuan.no_form AS no_form,
+                                    DATE(form_tujuan.waktu_selesai) AS tanggal_form,
+                                    msb_tujuan.ws AS ws,
+                                    msb_tujuan.buyer AS buyer,
+                                    msb_tujuan.styleno AS styleno,
+                                    msb_tujuan.color AS color,
+                                    msb_tujuan.size AS size,
+                                    msb_tujuan.id_so_det AS msb_id_so_det,
+                                    part_tujuan.id AS part_id,
+                                    part_tujuan.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_tujuan.part_status) = 'complement' THEN COALESCE(p_com.panel, part_tujuan.panel) ELSE part_tujuan.panel END) AS panel,
+                                    pd_tujuan.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
+                                    mp_tujuan.id AS master_part_id,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
+                                    0 AS total_out,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                                    LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                                    LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
+                                    LEFT JOIN part part_tujuan ON part_tujuan.act_costing_id = marker_tujuan.act_costing_id AND part_tujuan.panel = marker_tujuan.panel
+                                    LEFT JOIN part_detail pd_tujuan ON pd_tujuan.part_id = part_tujuan.id AND (pd_tujuan.status IS NULL OR pd_tujuan.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_tujuan.from_part_detail AND pd_tujuan.part_status = 'complement'
+                                    LEFT JOIN master_part mp_tujuan ON mp_tujuan.id = pd_tujuan.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_tujuan.id AND pcust.part_detail_id = pd_tujuan.id AND pcust.color = msb_tujuan.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_tujuan.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_tujuan.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at BETWEEN '".$start_date." 00:00:00' AND '".$end_date." 23:59:59'
+                                    AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                                UNION ALL
+
+                                /* LOGS ASAL (OUT) - Additional Stocker */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_asal.no_form AS no_form,
+                                    DATE(form_asal.waktu_selesai) AS tanggal_form,
+                                    stocker_ws_additional_asal.act_costing_ws AS ws,
+                                    stocker_ws_additional_asal.buyer AS buyer,
+                                    stocker_ws_additional_asal.style AS styleno,
+                                    stocker_ws_additional_asal.color AS color,
+                                    msb_asal.size AS size,
+                                    msb_asal.id_so_det AS msb_id_so_det,
+                                    part_asal.id AS part_id,
+                                    part_asal.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_asal.part_status) = 'complement' THEN COALESCE(p_com.panel, part_asal.panel) ELSE part_asal.panel END) AS panel,
+                                    pd_asal.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
+                                    mp_asal.id AS master_part_id,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                                    0 AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                                    LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                                    INNER JOIN stocker_ws_additional stocker_ws_additional_asal ON stocker_ws_additional_asal.form_cut_id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                                    INNER JOIN stocker_ws_additional_detail stocker_ws_additional_detail_asal ON stocker_ws_additional_detail_asal.stocker_additional_id = stocker_ws_additional_asal.id
+                                        AND stocker_ws_additional_detail_asal.size = marker_detail_asal.size
+                                    LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = stocker_ws_additional_detail_asal.so_det_id
+                                    LEFT JOIN part part_asal ON part_asal.act_costing_ws = stocker_ws_additional_asal.act_costing_ws AND part_asal.panel = stocker_ws_additional_asal.panel
+                                    LEFT JOIN part_detail pd_asal ON pd_asal.part_id = part_asal.id AND (pd_asal.status IS NULL OR pd_asal.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_asal.from_part_detail AND pd_asal.part_status = 'complement'
+                                    LEFT JOIN master_part mp_asal ON mp_asal.id = pd_asal.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_asal.id AND pcust.part_detail_id = pd_asal.id AND pcust.color = stocker_ws_additional_asal.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_asal.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_asal.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at BETWEEN '".$start_date." 00:00:00' AND '".$end_date." 23:59:59'
+                                    AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                                UNION ALL
+
+                                /* LOGS TUJUAN (IN) - Additional Stocker */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_tujuan.no_form AS no_form,
+                                    DATE(form_tujuan.waktu_selesai) AS tanggal_form,
+                                    stocker_ws_additional_tujuan.act_costing_ws AS ws,
+                                    stocker_ws_additional_tujuan.buyer AS buyer,
+                                    stocker_ws_additional_tujuan.style AS styleno,
+                                    stocker_ws_additional_tujuan.color AS color,
+                                    msb_tujuan.size AS size,
+                                    msb_tujuan.id_so_det AS msb_id_so_det,
+                                    part_tujuan.id AS part_id,
+                                    part_tujuan.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_tujuan.part_status) = 'complement' THEN COALESCE(p_com.panel, part_tujuan.panel) ELSE part_tujuan.panel END) AS panel,
+                                    pd_tujuan.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
+                                    mp_tujuan.id AS master_part_id,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
+                                    0 AS total_out,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                                    LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                                    INNER JOIN stocker_ws_additional stocker_ws_additional_tujuan ON stocker_ws_additional_tujuan.form_cut_id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                                    INNER JOIN stocker_ws_additional_detail stocker_ws_additional_detail_tujuan ON stocker_ws_additional_detail_tujuan.stocker_additional_id = stocker_ws_additional_tujuan.id
+                                        AND stocker_ws_additional_detail_tujuan.size = marker_detail_tujuan.size
+                                    LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = stocker_ws_additional_detail_tujuan.so_det_id
+                                    LEFT JOIN part part_tujuan ON part_tujuan.act_costing_ws = stocker_ws_additional_tujuan.act_costing_ws AND part_tujuan.panel = stocker_ws_additional_tujuan.panel
+                                    LEFT JOIN part_detail pd_tujuan ON pd_tujuan.part_id = part_tujuan.id AND (pd_tujuan.status IS NULL OR pd_tujuan.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_tujuan.from_part_detail AND pd_tujuan.part_status = 'complement'
+                                    LEFT JOIN master_part mp_tujuan ON mp_tujuan.id = pd_tujuan.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_tujuan.id AND pcust.part_detail_id = pd_tujuan.id AND pcust.color = stocker_ws_additional_tujuan.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_tujuan.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_tujuan.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at BETWEEN '".$start_date." 00:00:00' AND '".$end_date." 23:59:59'
+                                    AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                                UNION ALL
+
+                                /* LOGS ASAL (OUT) - Custom Case */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_asal.no_form AS no_form,
+                                    DATE(form_asal.waktu_selesai) AS tanggal_form,
+                                    msb_asal.ws AS ws,
+                                    msb_asal.buyer AS buyer,
+                                    msb_asal.styleno AS styleno,
+                                    msb_asal.color AS color,
+                                    msb_asal.size AS size,
+                                    msb_asal.id_so_det AS msb_id_so_det,
+                                    part_asal.id AS part_id,
+                                    part_asal.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_asal.part_status) = 'complement' THEN COALESCE(p_com.panel, part_asal.panel) ELSE part_asal.panel END) AS panel,
+                                    pd_asal.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_asal.part_status) AS part_status,
+                                    mp_asal.id AS master_part_id,
+                                    (CASE WHEN mp_asal.nama_part = 'STK' THEN CONCAT(mp_asal.nama_part, '-', mp_asal.bag) ELSE mp_asal.nama_part END) AS nama_part,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                                    0 AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                                    LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                                    LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = form_cut_input_detail_output_logs.so_det_id_asal
+                                    LEFT JOIN part part_asal ON part_asal.act_costing_id = marker_asal.act_costing_id AND part_asal.panel = marker_asal.panel
+                                    LEFT JOIN part_detail pd_asal ON pd_asal.part_id = part_asal.id AND (pd_asal.status IS NULL OR pd_asal.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_asal.from_part_detail AND pd_asal.part_status = 'complement'
+                                    LEFT JOIN master_part mp_asal ON mp_asal.id = pd_asal.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_asal.id AND pcust.part_detail_id = pd_asal.id AND pcust.color = msb_asal.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_asal.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_asal.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at BETWEEN '".$start_date." 00:00:00' AND '".$end_date." 23:59:59'
+                                    AND (form_cut_input_detail_output_logs.so_det_id_asal > 0 OR form_cut_input_detail_output_logs.so_det_id_tujuan > 0)
+
+                                UNION ALL
+
+                                /* LOGS TUJUAN (IN) - Custom Case */
+                                SELECT
+                                    form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                                    form_tujuan.no_form AS no_form,
+                                    DATE(form_tujuan.waktu_selesai) AS tanggal_form,
+                                    msb_tujuan.ws AS ws,
+                                    msb_tujuan.buyer AS buyer,
+                                    msb_tujuan.styleno AS styleno,
+                                    msb_tujuan.color AS color,
+                                    msb_tujuan.size AS size,
+                                    msb_tujuan.id_so_det AS msb_id_so_det,
+                                    part_tujuan.id AS part_id,
+                                    part_tujuan.panel_status AS panel_status,
+                                    (CASE WHEN COALESCE(pcust.set_part_status, pd_tujuan.part_status) = 'complement' THEN COALESCE(p_com.panel, part_tujuan.panel) ELSE part_tujuan.panel END) AS panel,
+                                    pd_tujuan.id AS part_detail_id,
+                                    COALESCE(pcust.set_part_status, pd_tujuan.part_status) AS part_status,
+                                    mp_tujuan.id AS master_part_id,
+                                    (CASE WHEN mp_tujuan.nama_part = 'STK' THEN CONCAT(mp_tujuan.nama_part, '-', mp_tujuan.bag) ELSE mp_tujuan.nama_part END) AS nama_part,
+                                    0 AS total_out,
+                                    form_cut_input_detail_output_logs.qty_transfer AS total_in
+                                FROM
+                                    form_cut_input_detail_output_logs
+                                    LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                                    LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                                    LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                                    LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = form_cut_input_detail_output_logs.so_det_id_tujuan
+                                    LEFT JOIN part part_tujuan ON part_tujuan.act_costing_id = marker_tujuan.act_costing_id AND part_tujuan.panel = marker_tujuan.panel
+                                    LEFT JOIN part_detail pd_tujuan ON pd_tujuan.part_id = part_tujuan.id AND (pd_tujuan.status IS NULL OR pd_tujuan.status = 'active')
+                                    LEFT JOIN part_detail pd_com ON pd_com.id = pd_tujuan.from_part_detail AND pd_tujuan.part_status = 'complement'
+                                    LEFT JOIN master_part mp_tujuan ON mp_tujuan.id = pd_tujuan.master_part_id
+                                    LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                                    LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                                    LEFT JOIN part_custom pcust ON pcust.part_id = part_tujuan.id AND pcust.part_detail_id = pd_tujuan.id AND pcust.color = msb_tujuan.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) ELSE 1=1 END)
+                                WHERE
+                                    (COALESCE(pcust.set_part_status, pd_tujuan.part_status) != 'complement' OR COALESCE(pcust.set_part_status, pd_tujuan.part_status) IS NULL)
+                                    AND (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                                    AND form_cut_input_detail_output_logs.created_at BETWEEN '".$start_date." 00:00:00' AND '".$end_date." 23:59:59'
+                                    AND (form_cut_input_detail_output_logs.so_det_id_asal > 0 OR form_cut_input_detail_output_logs.so_det_id_tujuan > 0)
+                            ) log_data
+                            GROUP BY
+                                tanggal_form,
+                                ws,
+                                styleno,
+                                color,
+                                msb_id_so_det,
+                                size,
+                                group_roll,
+                                no_form,
+                                panel,
+                                part_id,
+                                panel_status,
+                                part_detail_id,
+                                part_status,
+                                master_part_id,
+                                nama_part
                             ORDER BY
                                 tanggal DESC,
                                 meja,
@@ -9783,7 +10401,7 @@ class ReportCuttingController extends Controller
                                             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                             COALESCE(msb.size, s.size) size,
                                             mp.id master_part_id,
-                                            mp.nama_part,
+                                            (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                             pd.id as part_detail_id,
                                             pd.part_status,
                                             coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -9801,7 +10419,7 @@ class ReportCuttingController extends Controller
                                             a.tgl_trans >= '".$tgl_saldo."' AND a.tgl_trans < '".$start_date."'
                                             AND s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                             pd.part_status = 'main'
                                     UNION ALL
                                     SELECT
@@ -9831,7 +10449,7 @@ class ReportCuttingController extends Controller
                                             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                             COALESCE(msb.size, s.size) size,
                                             mp.id master_part_id,
-                                            mp.nama_part,
+                                            (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                             pd.id as part_detail_id,
                                             COALESCE(pcust.set_part_status, pd.part_status) part_status,
                                             coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -9852,7 +10470,7 @@ class ReportCuttingController extends Controller
                                             a.tgl_trans >= '".$tgl_saldo."' AND a.tgl_trans < '".$start_date."'
                                             AND s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL)
                                 ) dc
                                 left join master_sb_ws m on dc.so_det_id = m.id_so_det
@@ -9912,7 +10530,7 @@ class ReportCuttingController extends Controller
                                             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                             COALESCE(msb.size, s.size) size,
                                             mp.id master_part_id,
-                                            mp.nama_part,
+                                            (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                             pd.id as part_detail_id,
                                             pd.part_status,
                                             coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -9930,7 +10548,7 @@ class ReportCuttingController extends Controller
                                             a.tgl_trans >= '".$start_date."' AND a.tgl_trans <= '".$end_date."'
                                             AND s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                             pd.part_status = 'main'
                                     UNION ALL
                                     SELECT
@@ -9960,7 +10578,7 @@ class ReportCuttingController extends Controller
                                             COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                             COALESCE(msb.size, s.size) size,
                                             mp.id master_part_id,
-                                            mp.nama_part,
+                                            (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                             pd.id as part_detail_id,
                                             COALESCE(pcust.set_part_status, pd.part_status) part_status,
                                             coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -9981,7 +10599,7 @@ class ReportCuttingController extends Controller
                                             a.tgl_trans >= '".$start_date."' AND a.tgl_trans <= '".$end_date."'
                                             AND s.id is not null AND
                                             (s.cancel IS NULL OR s.cancel != 'y') and
-                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                            (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                             (pd.part_status != 'main' OR pd.part_status IS NULL)
                                 ) dc
                                 left join master_sb_ws m on dc.so_det_id = m.id_so_det
@@ -9999,7 +10617,7 @@ class ReportCuttingController extends Controller
                                         part.panel_status,
                                         part_detail.id part_detail_id,
                                         master_part.id master_part_id,
-                                        master_part.nama_part,
+                                        (CASE WHEN master_part.nama_part = 'STK' THEN CONCAT(master_part.nama_part, '-', master_part.bag) ELSE master_part.nama_part END) nama_part,
                                         part_detail.part_status,
                                         sum(mut_cut_pcs_tmp_detail.saldo) qty_cut_awal,
                                         0 as qty_dc_awal,
@@ -10157,7 +10775,7 @@ class ReportCuttingController extends Controller
                                 pd.id as part_detail_id,
                                 (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
                                 (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
-                                mp.nama_part AS nama_part,
+                                (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) AS nama_part,
                                 pd.part_status AS part_status,
                                 fss.qty,
                                 fcs.status
@@ -10189,7 +10807,7 @@ class ReportCuttingController extends Controller
                                 pd.id as part_detail_id,
                                 (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel, p.panel) ELSE p.panel END) panel,
                                 (CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(p_com.panel_status, p.panel_status) ELSE p.panel_status END) panel_status,
-                                mp.nama_part AS nama_part,
+                                (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) AS nama_part,
                                 pd.part_status AS part_status,
                                 fss.qty,
                                 fcs.status
@@ -10619,6 +11237,7 @@ class ReportCuttingController extends Controller
                         left join part_custom pcust on pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = query_cutting.color and (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= '".$end_date." 00:00:00' ELSE 1=1 END)
                     where
                         part.panel_status != 'COMPLEMENT' and COALESCE(pcust.set_part_status, part_detail.part_status) != 'COMPLEMENT'
+                        AND part_detail.status = 'active'
                     group by
                         part.id,
                         part_detail.id
@@ -11963,7 +12582,7 @@ class ReportCuttingController extends Controller
                                         COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                         COALESCE(msb.size, s.size) size,
                                         mp.id master_part_id,
-                                        mp.nama_part,
+                                        (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                         pd.id as part_detail_id,
                                         pd.part_status,
                                         coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -11981,7 +12600,7 @@ class ReportCuttingController extends Controller
                                         a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                         AND s.id is not null AND
                                         (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                         pd.part_status = 'main'
                                 UNION ALL
                                 SELECT
@@ -11990,11 +12609,11 @@ class ReportCuttingController extends Controller
                                         a.tgl_trans,
                                         s.act_costing_ws,
                                         s.color,
-                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
-                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.style ELSE p.style END as style,
-                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel ELSE p.panel END as panel,
-                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.id ELSE p.id  END as part_id,
-                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.buyer, p.buyer) ELSE p.buyer END as buyer,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.style, p.style) ELSE p.style END as style,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel, p.panel) ELSE p.panel END as panel,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.id, p.id) ELSE p.id  END as part_id,
+                                        CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel_status, p.panel_status) ELSE p.panel_status END as panel_status,
                                         s.so_det_id,
                                         s.ratio,
                                         a.qty_awal,
@@ -12011,7 +12630,7 @@ class ReportCuttingController extends Controller
                                         COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                         COALESCE(msb.size, s.size) size,
                                         mp.id master_part_id,
-                                        mp.nama_part,
+                                        (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                         pd.id as part_detail_id,
                                         pd.part_status,
                                         coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -12032,7 +12651,7 @@ class ReportCuttingController extends Controller
                                         a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                         AND s.id is not null AND
                                         (s.cancel IS NULL OR s.cancel != 'y') and
-                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                        (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                         (pd.part_status != 'main' OR pd.part_status IS NULL)
                             ) dc
                             left join master_sb_ws m on dc.so_det_id = m.id_so_det
@@ -12463,7 +13082,7 @@ class ReportCuttingController extends Controller
                                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                 COALESCE(msb.size, s.size) size,
                                 mp.id master_part_id,
-                                mp.nama_part,
+                                (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                 pd.id as part_detail_id,
                                 pd.part_status,
                                 coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -12481,7 +13100,7 @@ class ReportCuttingController extends Controller
                                 a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                 AND s.id is not null AND
                                 (s.cancel IS NULL OR s.cancel != 'y') and
-                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                 pd.part_status = 'main'
                         UNION ALL
                         SELECT
@@ -12490,11 +13109,11 @@ class ReportCuttingController extends Controller
                                 a.tgl_trans,
                                 s.act_costing_ws,
                                 s.color,
-                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
-                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.style ELSE p.style END as style,
-                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel ELSE p.panel END as panel,
-                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.id ELSE p.id  END as part_id,
-                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.buyer, p.buyer) ELSE p.buyer END as buyer,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.style, p.style) ELSE p.style END as style,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel, p.panel) ELSE p.panel END as panel,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.id, p.id) ELSE p.id  END as part_id,
+                                CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel_status, p.panel_status) ELSE p.panel_status END as panel_status,
                                 s.so_det_id,
                                 s.ratio,
                                 a.qty_awal,
@@ -12511,7 +13130,7 @@ class ReportCuttingController extends Controller
                                 COALESCE(f.no_cut, fp.no_cut, '-') no_cut,
                                 COALESCE(msb.size, s.size) size,
                                 mp.id master_part_id,
-                                mp.nama_part,
+                                (CASE WHEN mp.nama_part = 'STK' THEN CONCAT(mp.nama_part, '-', mp.bag) ELSE mp.nama_part END) nama_part,
                                 pd.id as part_detail_id,
                                 pd.part_status,
                                 coalesce(f.no_form, fp.no_form, fr.no_form) no_form
@@ -12532,7 +13151,7 @@ class ReportCuttingController extends Controller
                                 a.tgl_trans >= '$start_date' AND a.tgl_trans <= '$end_date'
                                 AND s.id is not null AND
                                 (s.cancel IS NULL OR s.cancel != 'y') and
-                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and
+                                (s.notes IS NULL OR s.notes NOT LIKE '%STOCKER MANUAL%') and NOT (COALESCE(s.notes, '') = 'INJECT 10-11-2026 10:00' AND COALESCE(mp.nama_part, '') IN ('STK', '')) and
                                 (pd.part_status != 'main' OR pd.part_status IS NULL)
                     ) dc
                     left join master_sb_ws m on dc.so_det_id = m.id_so_det

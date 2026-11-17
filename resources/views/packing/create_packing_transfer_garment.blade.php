@@ -162,6 +162,153 @@
             background: #f8f9fa;
             font-weight: 700;
         }
+
+        /* ══ Tambahan: tampilan lebih ramah pengguna (tanpa ubah fungsi) ══ */
+
+        /* Panduan alur di atas form */
+        .flow-guide {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 4px;
+            align-items: center;
+            font-size: .78rem;
+            color: #6c757d;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+        }
+
+        .flow-guide .fg-step {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-weight: 600;
+            color: #495057;
+            white-space: nowrap;
+        }
+
+        .flow-guide .fg-arrow {
+            color: #adb5bd;
+            font-size: .7rem;
+        }
+
+        /* Setiap step jadi kartu kecil */
+        .step-body {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 14px;
+            transition: opacity .2s, border-color .25s, box-shadow .25s;
+        }
+
+        /* Step yang sedang aktif disorot */
+        .step-row:has(.step-badge.st-active) .step-body:not(.locked) {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, .08);
+        }
+
+        .step-row:has(.step-badge.st-done) .step-body {
+            border-color: #c3e6cb;
+        }
+
+        .step-title {
+            font-size: .95rem;
+            margin-bottom: 2px;
+        }
+
+        .step-desc {
+            font-size: .78rem;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+
+        .step-badge {
+            margin-top: 8px;
+        }
+
+        .field-label {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            color: #6c757d;
+            margin-bottom: 3px;
+        }
+
+        /* Hint filter tampil seperti info box ketika ada isinya */
+        #filter-hint:not(:empty) {
+            display: inline-block;
+            background: #fff;
+            border: 1px solid #b8daff;
+            border-radius: 6px;
+            padding: 4px 10px;
+            color: #004085 !important;
+            font-size: .8rem;
+        }
+
+        /* Select2 sedikit lebih tinggi agar mudah disentuh (tablet/HP) */
+        #form_h .select2-container--bootstrap4 .select2-selection--single {
+            min-height: 40px;
+        }
+
+        #form_h .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+            line-height: 38px;
+        }
+
+        .qty-input,
+        #btn-tambah {
+            height: 44px !important;
+        }
+
+        .qty-hint {
+            font-size: .75rem;
+            color: #6c757d;
+            margin-top: 6px;
+        }
+
+        /* Tabel list */
+        #datatable_tmp tbody td {
+            vertical-align: middle;
+        }
+
+        #datatable_tmp tbody td:nth-child(6),
+        #datatable_tmp tfoot th:nth-child(2) {
+            text-align: right;
+            font-weight: 700;
+        }
+
+        .list-actions {
+            border-top: 1px dashed #dee2e6;
+            padding-top: 12px;
+        }
+
+        .list-actions .btn {
+            min-width: 120px;
+            font-weight: 600;
+        }
+
+        /* Mobile: Line & PO ditumpuk, pill "DAN" di tengah */
+        @media (max-width: 767.98px) {
+            .or-pill {
+                padding: 8px 0;
+            }
+
+            .step-row {
+                gap: 10px;
+            }
+
+            .step-body {
+                padding: 10px;
+            }
+
+            .list-actions .btn {
+                min-width: 0;
+                flex: 1;
+            }
+        }
     </style>
 @endsection
 
@@ -182,6 +329,16 @@
             <input type="hidden" name="user" id="user" value="{{ $user }}">
             <div class="card-body pt-3 pb-2">
 
+                {{-- Panduan alur singkat --}}
+                <div class="flow-guide">
+                    <i class="fas fa-info-circle text-primary mr-1"></i>
+                    <span class="fg-step">1. Tujuan</span><i class="fas fa-chevron-right fg-arrow"></i>
+                    <span class="fg-step">2. Line &amp; PO</span><i class="fas fa-chevron-right fg-arrow"></i>
+                    <span class="fg-step">3. Garment</span><i class="fas fa-chevron-right fg-arrow"></i>
+                    <span class="fg-step">4. Qty &amp; Tambah</span><i class="fas fa-chevron-right fg-arrow"></i>
+                    <span class="fg-step">Simpan</span>
+                </div>
+
                 {{-- Step 1: Tujuan --}}
                 <div class="step-row">
                     <div class="step-aside">
@@ -190,6 +347,7 @@
                     </div>
                     <div class="step-body" id="body1">
                         <div class="step-title"><i class="fas fa-map-marker-alt text-primary"></i> Tujuan</div>
+                        <div class="step-desc">Pilih tujuan pengiriman.</div>
                         <select class="form-control select2bs4" id="cbotuj" name="cbotuj" style="width:100%">
                             <option value="" disabled selected>-- Pilih Tujuan --</option>
                             @foreach ($data_tujuan as $d)
@@ -209,14 +367,12 @@
                     </div>
                     <div class="step-body locked" id="body2">
                         <div class="step-title">
-                            <i class="fas fa-filter text-primary"></i> Filter Barang
-                            <small class="text-muted font-weight-normal" style="font-size:.78rem">
-                                &mdash; mulai dari LINE atau PO, bebas
-                            </small>
+                            <i class="fas fa-filter text-primary"></i> Line &amp; PO
                         </div>
+                        <div class="step-desc">Pilih Line dan PO.</div>
                         <div class="filter-box" id="filter-box">
                             <div class="row align-items-end">
-                                <div class="col-5">
+                                <div class="col-12 col-md-5">
                                     <label class="small font-weight-bold text-primary mb-1">
                                         <i class="fas fa-layer-group mr-1"></i>LINE
                                     </label>
@@ -228,8 +384,8 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-2 or-pill"><span>DAN</span></div>
-                                <div class="col-5">
+                                <div class="col-12 col-md-2 or-pill"><span>DAN</span></div>
+                                <div class="col-12 col-md-5">
                                     <label class="small font-weight-bold text-success mb-1">
                                         <i class="fas fa-file-invoice mr-1"></i>NO. PO
                                     </label>
@@ -239,10 +395,11 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div class="d-flex justify-content-between align-items-center mt-2" style="gap:8px">
                                 <small id="filter-hint" class="text-muted"></small>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetFilter()">
-                                    <i class="fas fa-times"></i> Reset
+                                <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0"
+                                    onclick="resetFilter()" title="Kosongkan pilihan Line & PO">
+                                    <i class="fas fa-undo-alt"></i> Reset Filter
                                 </button>
                             </div>
                         </div>
@@ -258,24 +415,25 @@
                     <div class="step-body locked garment-wrap" id="body3">
                         <div class="step-title">
                             <i class="fas fa-tshirt text-primary"></i> Garment
-                            <small class="text-muted font-weight-normal ml-1" style="font-size:.75rem">
-                                — filter opsional
-                            </small>
                         </div>
+                        <div class="step-desc">Pilih garment yang akan ditransfer.</div>
                         <div class="row mb-2">
                             <div class="col-6">
+                                <div class="field-label"><i class="fas fa-palette mr-1"></i>Color</div>
                                 <select class="form-control form-control-sm select2bs4" id="cbo_filter_color"
                                     style="width:100%" disabled>
                                     <option value="">Semua Color</option>
                                 </select>
                             </div>
                             <div class="col-6">
+                                <div class="field-label"><i class="fas fa-ruler mr-1"></i>Size</div>
                                 <select class="form-control form-control-sm select2bs4" id="cbo_filter_size"
                                     style="width:100%" disabled>
                                     <option value="">Semua Size</option>
                                 </select>
                             </div>
                         </div>
+                        <div class="field-label"><i class="fas fa-tshirt mr-1"></i>Garment</div>
                         <select class="form-control select2bs4" id="cbogarment" name="cbogarment" style="width:100%"
                             disabled>
                             <option value="">-- Pilih Line &amp; PO dulu --</option>
@@ -290,6 +448,7 @@
                     </div>
                     <div class="step-body locked" id="body4">
                         <div class="step-title"><i class="fas fa-sort-numeric-up text-primary"></i> Qty</div>
+                        <div class="step-desc">Isi jumlah, lalu klik Tambah.</div>
                         <div class="row align-items-center">
                             <div class="col-7 col-md-8">
                                 <div class="input-group">
@@ -302,27 +461,32 @@
                             </div>
                             <div class="col-5 col-md-4">
                                 <button type="button" id="btn-tambah" class="btn btn-success btn-block font-weight-bold"
-                                    style="height:38px" onclick="tambah_data()" disabled>
+                                    onclick="tambah_data()" disabled>
                                     <i class="fas fa-plus mr-1"></i>Tambah
                                 </button>
                             </div>
                         </div>
+                        <div class="qty-hint"><i class="fas fa-exclamation-circle mr-1"></i>Qty tidak boleh melebihi
+                            sisa garment yang dipilih.</div>
                     </div>
                 </div>
 
             </div>
         </form>
+    </div>
 
-        {{-- List Garment --}}
-        <div class="row mx-0">
-            <div class="col-12">
-                <div class="card card-primary card-outline mb-0">
+    {{-- List Garment (card terpisah) --}}
+    <div class="row">
+        <div class="col-12">
+                <div class="card card-primary card-outline">
                     <div class="card-header">
                         <h5 class="card-title"><i class="fas fa-list"></i> List Garment</h5>
+                        <small class="text-muted ml-2 d-none d-md-inline">&mdash; cek sebelum Simpan</small>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table id="datatable_tmp" class="table table-bordered text-nowrap" style="width:100%">
+                            <table id="datatable_tmp" class="table table-bordered table-hover text-nowrap"
+                                style="width:100%">
                                 <thead>
                                     <tr>
                                         <th>Line</th>
@@ -343,17 +507,16 @@
                                 </tfoot>
                             </table>
                         </div>
-                        <div class="d-flex justify-content-between mt-2">
-                            <a class="btn btn-outline-warning" onclick="undo()">
-                                <i class="fas fa-sync-alt"></i> Undo
-                            </a>
-                            <a class="btn btn-outline-success" onclick="simpan()">
-                                <i class="fas fa-check"></i> Simpan
-                            </a>
+                        <div class="d-flex justify-content-between mt-2 list-actions" style="gap:10px">
+                            <button type="button" class="btn btn-outline-warning" onclick="undo()">
+                                <i class="fas fa-sync-alt mr-1"></i> Undo
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="simpan()">
+                                <i class="fas fa-save mr-1"></i> Simpan
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
         </div>
     </div>
 @endsection
@@ -455,6 +618,11 @@
         // Snapshot of all lines from server (used to restore dropdown)
         const allLines = @json($data_line);
 
+        // Pilihan TANPA LINE / TANPA PO khusus tujuan Packing Central
+        const TANPA_LINE = 'TANPA LINE';
+        const TANPA_PO = 'TANPA PO';
+        const TUJUAN_PACKING_CENTRAL = 'Packing';
+
         // Guard to prevent change-event loops when updating selects programmatically
         let updating = false;
 
@@ -475,11 +643,13 @@
                 $sel.val('');
                 return false;
             }
-            const exists = $sel.find('option').filter(function() {
-                return this.value === val;
-            }).length > 0;
-            $sel.val(exists ? val : '');
-            return exists;
+            // Nilai PO bisa beda spasi antara list penuh dan list hasil filter Line
+            const rapikan = v => String(v).replace(/\s+/g, ' ').trim();
+            const $opt = $sel.find('option').filter(function() {
+                return rapikan(this.value) === rapikan(val);
+            }).first();
+            $sel.val($opt.length ? $opt.val() : '');
+            return $opt.length > 0;
         }
 
         // Cache semua garment dari server untuk filter clientside
@@ -494,8 +664,10 @@
 
             // ---- TUJUAN changed ----
             $('#cbotuj').on('change', function() {
+                const pakaiTanpaLine = $('#cboline').val() === TANPA_LINE || $('#cbopo').val() === TANPA_PO;
                 updateStep2();
                 loadAllPo();
+                syncOpsiTanpaLine(pakaiTanpaLine);
                 dataTableTmpReload();
             });
             
@@ -902,6 +1074,9 @@
         function restoreAllLines(keepLine) {
             updating = true;
             let html = '<option value="">-- Pilih Line --</option>';
+            if ($('#cbotuj').val() === TUJUAN_PACKING_CENTRAL) {
+                html += `<option value="${TANPA_LINE}">${TANPA_LINE}</option>`;
+            }
             allLines.forEach(l => {
                 html += `<option value="${l.isi}">${l.tampil}</option>`;
             });
@@ -910,6 +1085,21 @@
             $('#cboline').trigger('change.select2');
             updating = false;
             syncPrev();
+        }
+
+        function syncOpsiTanpaLine(pakaiTanpaLine) {
+            if (pakaiTanpaLine) {
+                restoreAllLines();
+                setFilterHint('');
+                updateStep3();
+                return;
+            }
+            $('#cboline option').filter(function() {
+                return this.value === TANPA_LINE;
+            }).remove();
+            if ($('#cbotuj').val() === TUJUAN_PACKING_CENTRAL) {
+                $('#cboline option').first().after(`<option value="${TANPA_LINE}">${TANPA_LINE}</option>`);
+            }
         }
 
         function resetFilter() {

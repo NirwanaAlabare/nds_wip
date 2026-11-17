@@ -569,31 +569,31 @@ return array(
 public function stokopname(Request $request)
 {
     if ($request->ajax()) {
-        $additionalQuery = "";
-        $where = "";
-
-        if ($request->status != 'ALL') {
-            $where = " where a.status = '" . $request->status . "' ";
-        }else{
-            $where = "";
-        }
-
-        // if ($request->status != 'ALL') {
-        //     $where2 = " and a.status = '" . $request->status . "' ";
-        // }else{
-        //     $where2 = "";
-        // }
-
+        $no_transaksi = (string) $request->no_transaksi;
 
         $data_inmaterial = DB::connection('mysql_sb')->select("select * from (select a.*,CASE
             WHEN COALESCE(qty_roll_scan,0) = 0 THEN 'Pending'
             WHEN COALESCE(qty_roll_scan,0) > 0 AND qty_roll_scan < qty_roll THEN 'Partial'
             WHEN COALESCE(qty_roll_scan,0) = qty_roll THEN 'Completed'
-            END AS status,COALESCE(qty_scan,0) qty_scan, COALESCE(qty_roll_scan,0) qty_roll_scan from (select * from (select a.* from (select no_transaksi,a.tipe_item,kode_lok,GROUP_CONCAT(distinct b.itemdesc) itemdesc,round(sum(qty),2) qty, COUNT(no_barcode) qty_roll  from whs_saldo_stockopname a inner join masteritem b on b.id_item = a.id_item where a.tipe_item = 'Fabric' GROUP BY kode_lok,no_transaksi) a) a left join (select id,no_transaksi no_trans from whs_log_copysaldo where status = 'Copy saldo' GROUP BY no_transaksi) b on b.no_trans = a.no_transaksi where no_transaksi = '" . $request->no_transaksi . "' order by kode_lok asc) a LEFT JOIN
-            (select no_transaksi notr,lokasi_aktual,sum(qty) qty_scan,COUNT(no_barcode) qty_roll_scan from whs_so_h a INNER JOIN whs_so_detail b on b.no_dokumen = a.no_dokumen where no_transaksi = '" . $request->no_transaksi . "' GROUP BY no_transaksi,lokasi_aktual) b on b.notr = a.no_transaksi and b.lokasi_aktual = a.kode_lok) a " . $where . " ");
+            END AS status,COALESCE(qty_scan,0) qty_scan, COALESCE(qty_roll_scan,0) qty_roll_scan from (select * from (select a.* from (select no_transaksi,a.tipe_item,kode_lok,GROUP_CONCAT(distinct b.itemdesc) itemdesc,round(sum(qty),2) qty, COUNT(no_barcode) qty_roll  from whs_saldo_stockopname a inner join masteritem b on b.id_item = a.id_item where a.tipe_item = 'Fabric' GROUP BY kode_lok,no_transaksi) a) a left join (select id,no_transaksi no_trans from whs_log_copysaldo where status = 'Copy saldo' GROUP BY no_transaksi) b on b.no_trans = a.no_transaksi where no_transaksi = ? order by kode_lok asc) a LEFT JOIN
+            (select no_transaksi notr,lokasi_aktual,sum(qty) qty_scan,COUNT(no_barcode) qty_roll_scan from whs_so_h a INNER JOIN whs_so_detail b on b.no_dokumen = a.no_dokumen where no_transaksi = ? GROUP BY no_transaksi,lokasi_aktual) b on b.notr = a.no_transaksi and b.lokasi_aktual = a.kode_lok) a", [$no_transaksi, $no_transaksi]);
 
+        // Ringkasan seluruh rak di SO ini (untuk kotak status di atas daftar) - dihitung
+        // sebelum filter status & pencarian, jadi angkanya tidak ikut berubah waktu difilter
+        $ringkas = ['rak' => count($data_inmaterial), 'Pending' => 0, 'Partial' => 0, 'Completed' => 0, 'roll' => 0, 'roll_scan' => 0];
+        foreach ($data_inmaterial as $r) {
+            if (isset($ringkas[$r->status])) {
+                $ringkas[$r->status]++;
+            }
+            $ringkas['roll'] += (int) $r->qty_roll;
+            $ringkas['roll_scan'] += (int) $r->qty_roll_scan;
+        }
 
-        return DataTables::of($data_inmaterial)->toJson();
+        if ($request->status && $request->status != 'ALL') {
+            $data_inmaterial = array_values(array_filter($data_inmaterial, fn ($r) => strcasecmp((string) $r->status, (string) $request->status) === 0));
+        }
+
+        return DataTables::of($data_inmaterial)->with('ringkas', $ringkas)->toJson();
     }
 
     $mrak = DB::connection('mysql_sb')->table('whs_master_lokasi')->select('kode_lok')->where('status', '=', 'Active')->get();
@@ -662,15 +662,64 @@ public function undosotempall(Request $request)
 }
 
 
+// ---------------------------------------------------------------------------
+// Temp scan (whs_so_detail_temp) tidak menyimpan no_transaksi. Baris temp yang dibuat
+// sebelum SO ini dimulai (copy saldo pertama) adalah sisa scan SO lama yang tidak pernah
+// disimpan: diabaikan - tidak menghalangi scan, tidak tampil, tidak ikut disimpan.
+// Dulu baris seperti ini membuat scan baru "berhasil" padahal tidak tersimpan.
+// Barisnya tidak dihapus, supaya scan untuk SO lain yang masih terbuka tetap aman.
+// ---------------------------------------------------------------------------
+private function mulaiSo($noTransaksi)
+{
+    $noTransaksi = trim((string) $noTransaksi);
+    if ($noTransaksi === '') {
+        return null;
+    }
+
+    return DB::connection('mysql_sb')->table('whs_log_copysaldo')->where('no_transaksi', $noTransaksi)->min('created_at');
+}
+
+private function tempBerlaku($q, $mulai, $kolom = 'created_at')
+{
+    return $mulai ? $q->where($kolom, '>=', $mulai) : $q;
+}
+
+// Keadaan barcode di temp untuk scan di rak $lokasiScan oleh user yang login:
+// ['kosong', null] | ['sudah', baris] (sudah ada di daftar scan user & rak ini) | ['dipakai', baris] (di-scan user/rak lain, belum disimpan)
+private function cekTempBarcode($noBarcode, $lokasiScan, $noTransaksi)
+{
+    $ada = $this->tempBerlaku(DB::connection('mysql_sb')->table('whs_so_detail_temp')->where('no_barcode', $noBarcode), $this->mulaiSo($noTransaksi))
+        ->orderBy('id')->get();
+    $user = Auth::user()->name;
+    $sendiri = $ada->first(fn ($r) => $r->created_by === $user && strcasecmp((string) $r->lokasi_scan, (string) $lokasiScan) === 0);
+    if ($sendiri) {
+        return ['sudah', $sendiri];
+    }
+
+    return $ada->isNotEmpty() ? ['dipakai', $ada->first()] : ['kosong', null];
+}
+
+private function pesanDipakai($noBarcode, $baris)
+{
+    $siapa = $baris->created_by === Auth::user()->name ? 'Anda' : $baris->created_by;
+
+    return 'Barcode ' . $noBarcode . ' sudah di-scan oleh ' . $siapa . ' di rak ' . $baris->lokasi_scan
+        . ' dan belum disimpan. Simpan atau hapus dulu dari daftar scan rak itu.';
+}
+
 public function getbarcodeso(Request $request)
 {
-    $barcode = DB::connection('mysql_sb')->select("select SUBSTRING_INDEX(d.no_dokumen, '-', 1) no_dokumen, d.no_barcode as barcode_so, s.no_barcode, s.kode_lok, s.id_item, s.id_jo, s.no_lot, s.no_roll, s.qty, s.unit, m.itemdesc from   whs_saldo_stockopname s LEFT JOIN masteritem m on m.id_item = s.id_item LEFT JOIN whs_so_detail d on d.no_barcode = s.no_barcode and SUBSTRING_INDEX(d.no_dokumen, '-', 1) = s.no_transaksi WHERE s.no_barcode = '$request->no_barcode' and s.no_transaksi = '$request->no_transaksi' and s.qty != 0 limit 1");
+    $barcode = DB::connection('mysql_sb')->select("select SUBSTRING_INDEX(d.no_dokumen, '-', 1) no_dokumen, d.no_barcode as barcode_so, s.no_barcode, s.kode_lok, s.id_item, s.id_jo, s.no_lot, s.no_roll, s.qty, s.unit, m.itemdesc from   whs_saldo_stockopname s LEFT JOIN masteritem m on m.id_item = s.id_item LEFT JOIN whs_so_detail d on d.no_barcode = s.no_barcode and SUBSTRING_INDEX(d.no_dokumen, '-', 1) = s.no_transaksi WHERE s.no_barcode = ? and s.no_transaksi = ? and s.qty != 0 limit 1",
+        [trim((string) $request->no_barcode), (string) $request->no_transaksi]);
 
 
     return response()->json($barcode);
 }
 
 
+// Simpan satu barcode ke daftar scan (temp). Hasilnya selalu jelas: 'baru' / 'sudah' (status 200),
+// atau ditolak dengan pesan (409 dipakai user/rak lain, 422 qty tidak valid) - tidak ada lagi
+// jawaban 200 yang diam-diam tidak menyimpan apa pun.
 public function simpanbarcodeso(Request $request)
 {
     $validatedRequest = $request->validate([
@@ -679,45 +728,49 @@ public function simpanbarcodeso(Request $request)
         "id_item" => "required",
         "id_jo" => "required",
     ]);
+    $noBarcode = trim((string) $validatedRequest['no_barcode']);
 
-    $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_so_detail_temp_cancel where no_barcode = '" . $validatedRequest['no_barcode'] . "'");
+    if (! is_numeric($validatedRequest['qty']) || (float) $validatedRequest['qty'] <= 0) {
+        return response()->json(['status' => 422, 'message' => 'Qty barcode ' . $noBarcode . ' 0 atau minus, tidak bisa disimpan.'], 422);
+    }
 
-    $cek_barcode = DB::connection('mysql_sb')->select("select * from whs_so_detail_temp where no_barcode = '" . $validatedRequest['no_barcode'] . "'");
-    $no_barcode = $cek_barcode ? $cek_barcode[0]->no_barcode : 0;
-
-    if ($no_barcode == '0') {
-
-        if ($validatedRequest["qty"] > 0) {
-            $SoDetailTempStore = SoDetailTemp::create([
-                'no_barcode' => $validatedRequest['no_barcode'],
-                'lokasi_scan' => $request['lokasi_scan'],
-                'lokasi_aktual' => $request['lokasi_so'],
-                'id_item' => $validatedRequest['id_item'],
-                'id_jo' => $validatedRequest['id_jo'],
-                'no_lot' => $request['no_lot'],
-                'no_roll' => $request['no_roll'],
-                'qty' => $validatedRequest['qty'],
-                'qty_old' => 0,
-                'unit' => $request['unit'],
-                'created_by' => Auth::user()->name,
-            ]);
-
-            if ($SoDetailTempStore) {
-                return array(
-                    "status" => 200,
-                    "message" => "",
-                    "additional" => [],
-                );
-            }
-        }
-    }else{
+    [$keadaan, $baris] = $this->cekTempBarcode($noBarcode, $request['lokasi_scan'], $request['no_transaksi']);
+    if ($keadaan === 'sudah') {
         return array(
             "status" => 200,
-            "message" => "",
+            "hasil" => "sudah",
+            "message" => "Barcode " . $noBarcode . " sudah ada di daftar scan rak ini.",
             "additional" => [],
         );
     }
+    if ($keadaan === 'dipakai') {
+        return response()->json(['status' => 409, 'hasil' => 'dipakai', 'message' => $this->pesanDipakai($noBarcode, $baris)], 409);
+    }
 
+    DB::connection('mysql_sb')->transaction(function () use ($validatedRequest, $request, $noBarcode) {
+        DB::connection('mysql_sb')->table('whs_so_detail_temp_cancel')->where('no_barcode', $noBarcode)->delete();
+
+        SoDetailTemp::create([
+            'no_barcode' => $noBarcode,
+            'lokasi_scan' => $request['lokasi_scan'],
+            'lokasi_aktual' => $request['lokasi_so'],
+            'id_item' => $validatedRequest['id_item'],
+            'id_jo' => $validatedRequest['id_jo'],
+            'no_lot' => $request['no_lot'],
+            'no_roll' => $request['no_roll'],
+            'qty' => $validatedRequest['qty'],
+            'qty_old' => 0,
+            'unit' => $request['unit'],
+            'created_by' => Auth::user()->name,
+        ]);
+    });
+
+    return array(
+        "status" => 200,
+        "hasil" => "baru",
+        "message" => "",
+        "additional" => [],
+    );
 }
 
 
@@ -730,17 +783,24 @@ public function SimpanBarcodeForce(Request $request)
         'no_transaksi' => 'nullable|string',
     ]);
 
-    $barcode = $request->input('no_barcode');
+    $barcode = trim((string) $request->input('no_barcode'));
     $lokasi_scan = $request->input('lokasi_scan');
     $no_transaksi = $request->input('no_transaksi');
 
     try {
 
-        $del_barcode_cancel = DB::connection('mysql_sb')->select("delete from whs_so_detail_temp_cancel where no_barcode = '" . $barcode . "'");
+        // Sudah ada di daftar scan (milik sendiri / user lain) - jangan dibuat dobel
+        [$keadaan, $baris] = $this->cekTempBarcode($barcode, $lokasi_scan, $no_transaksi);
+        if ($keadaan === 'sudah') {
+            return response()->json(['status' => 200, 'hasil' => 'sudah', 'message' => 'Barcode ' . $barcode . ' sudah ada di daftar scan rak ini.']);
+        }
+        if ($keadaan === 'dipakai') {
+            return response()->json(['status' => 409, 'hasil' => 'dipakai', 'message' => $this->pesanDipakai($barcode, $baris)], 409);
+        }
 
-        $cek_barcode = DB::connection('mysql_sb')->select("select a.*, if(b.kode_lok_new is null, a.kode_lok, b.kode_lok_new) kode_lok_new from (select no_barcode, kode_lok, id_item, id_jo, no_lot, no_roll, qty, unit from whs_sa_fabric where no_barcode = '" . $barcode . "'
+        $cek_barcode = DB::connection('mysql_sb')->select("select a.*, if(b.kode_lok_new is null, a.kode_lok, b.kode_lok_new) kode_lok_new from (select no_barcode, kode_lok, id_item, id_jo, no_lot, no_roll, qty, unit from whs_sa_fabric where no_barcode = ?
             UNION
-            select no_barcode, kode_lok, id_item, id_jo, no_lot, no_roll, qty_aktual, satuan from whs_lokasi_inmaterial where status = 'Y' AND no_barcode = '" . $barcode . "') a LEFT JOIN (select no_barcode, kode_lok kode_lok_new, id_item, id_jo, no_lot, no_roll, qty_aktual, satuan, no_barcode_old from whs_lokasi_inmaterial where status = 'Y' AND no_barcode_old = '" . $barcode . "'    ) b on b.no_barcode_old = a.no_barcode limit 1");
+            select no_barcode, kode_lok, id_item, id_jo, no_lot, no_roll, qty_aktual, satuan from whs_lokasi_inmaterial where status = 'Y' AND no_barcode = ?) a LEFT JOIN (select no_barcode, kode_lok kode_lok_new, id_item, id_jo, no_lot, no_roll, qty_aktual, satuan, no_barcode_old from whs_lokasi_inmaterial where status = 'Y' AND no_barcode_old = ?    ) b on b.no_barcode_old = a.no_barcode limit 1", [$barcode, $barcode, $barcode]);
 
         $no_barcode = $cek_barcode ? $cek_barcode[0]->no_barcode : 0;
         $kode_lok = $cek_barcode ? $cek_barcode[0]->kode_lok_new : 0;
@@ -751,11 +811,21 @@ public function SimpanBarcodeForce(Request $request)
         $qty = $cek_barcode ? $cek_barcode[0]->qty : 0;
         $unit = $cek_barcode ? $cek_barcode[0]->unit : 0;
 
-        $cek_trans = DB::connection('mysql_sb')->select("select tgl_filter, status from whs_saldo_stockopname where no_transaksi = '".$no_transaksi."' limit 1");
+        $cek_trans = DB::connection('mysql_sb')->select("select tgl_filter, status from whs_saldo_stockopname where no_transaksi = ? limit 1", [(string) $no_transaksi]);
         $tgl_filter = $cek_trans ? $cek_trans[0]->tgl_filter : 0;
         $status_so = $cek_trans ? $cek_trans[0]->status : 0;
 
+        if (! $cek_barcode) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Barcode ' . $barcode . ' tidak ditemukan di saldo awal maupun penerimaan, tidak bisa diproses.'
+            ], 404);
+        }
+
         if ($qty > 0) {
+            DB::connection('mysql_sb')->beginTransaction();
+            DB::connection('mysql_sb')->table('whs_so_detail_temp_cancel')->where('no_barcode', $barcode)->delete();
+
             $SoDetailTempStore = SoDetailTemp::create([
                 'no_barcode' => $no_barcode,
                 'lokasi_scan' => $lokasi_scan,
@@ -789,22 +859,27 @@ public function SimpanBarcodeForce(Request $request)
                 'updated_at' => now(),
                 'status_data' => 'Tambahan',
             ]);
+            DB::connection('mysql_sb')->commit();
 
             return response()->json([
                 'status' => 200,
+                'hasil' => 'baru',
                 'message' => 'Barcode berhasil disimpan sebagai force'
             ]);
 
         }else{
 
             return response()->json([
-                'status' => 500,
-                'message' => 'Gagal menyimpan barcode'
-            ]);
+                'status' => 422,
+                'message' => 'Qty barcode ' . $barcode . ' 0 atau minus, tidak bisa diproses.'
+            ], 422);
 
         }
 
     } catch (\Exception $e) {
+        if (DB::connection('mysql_sb')->transactionLevel() > 0) {
+            DB::connection('mysql_sb')->rollBack();
+        }
         return response()->json([
             'status' => 500,
             'message' => 'Gagal menyimpan barcode: ' . $e->getMessage()
@@ -820,20 +895,23 @@ public function editbarcodeso(Request $request)
         "qty" => "required|min:0.1",
         "qty_old" => "required",
     ]);
+    // Di tablet/HP desimal sering diketik dengan koma (12,5)
+    $qty = str_replace(',', '.', trim((string) $validatedRequest['qty']));
 
-    if ($validatedRequest["qty"] > 0) {
-        $updateLokasi = SoDetailTemp::where('no_barcode', $validatedRequest['barcode'])->update([
-            'qty' => $validatedRequest['qty'],
-            'qty_old' => $validatedRequest['qty_old']
-        ]);
-
-        return array(
-            "status" => 200,
-            "message" => "",
-            "additional" => [],
-        );
+    if (! is_numeric($qty) || (float) $qty <= 0) {
+        return response()->json(['status' => 422, 'message' => 'Qty harus angka lebih dari 0.'], 422);
     }
 
+    SoDetailTemp::where('no_barcode', $validatedRequest['barcode'])->update([
+        'qty' => (float) $qty,
+        'qty_old' => $validatedRequest['qty_old']
+    ]);
+
+    return array(
+        "status" => 200,
+        "message" => "",
+        "additional" => [],
+    );
 }
 
 public function listscanbarcode(Request $request)
@@ -842,7 +920,7 @@ public function listscanbarcode(Request $request)
         $additionalQuery = "";
         $keywordQuery = "";
 
-        $data_scan = DB::connection('mysql_sb')->select("select a.id,a.no_barcode,a.id_item,a.id_jo,c.itemdesc,b.qty,a.qty qty_scan,a.unit,a.lokasi_aktual,a.lokasi_scan,a.qty_old from whs_so_detail_temp a INNER JOIN whs_saldo_stockopname b on b.no_barcode = a.no_barcode INNER JOIN masteritem c on c.id_item = a.id_item where a.created_by  = '".Auth::user()->name."' and a.lokasi_scan = '".$request->kode_lok."' GROUP BY a.no_barcode");
+        $data_scan = $this->daftarTemp('whs_so_detail_temp', $request);
 
         return DataTables::of($data_scan)->toJson();
     }
@@ -852,14 +930,35 @@ public function listscanbarcode(Request $request)
 public function listscanbarcodecancel(Request $request)
 {
     if ($request->ajax()) {
-        $additionalQuery = "";
-        $keywordQuery = "";
-
-        $data_scan = DB::connection('mysql_sb')->select("select a.id,a.no_barcode,a.id_item,a.id_jo,c.itemdesc,b.qty,a.qty qty_scan,a.unit,a.lokasi_aktual,a.lokasi_scan,a.qty_old from whs_so_detail_temp_cancel a INNER JOIN whs_saldo_stockopname b on b.no_barcode = a.no_barcode INNER JOIN masteritem c on c.id_item = a.id_item where a.created_by  = '".Auth::user()->name."' and a.lokasi_scan = '".$request->kode_lok."' GROUP BY a.no_barcode");
+        $data_scan = $this->daftarTemp('whs_so_detail_temp_cancel', $request);
 
         return DataTables::of($data_scan)->toJson();
     }
 
+}
+
+// Daftar scan / batal milik user di rak ini. Qty SO diambil dari saldo SO yang sedang berjalan
+// (dulu dari saldo SO mana saja yang memuat barcode itu). LEFT JOIN: baris yang tidak ada di
+// saldo tetap tampil - dia tetap ikut disimpan, jadi tidak boleh tersembunyi.
+private function daftarTemp($tabel, Request $request)
+{
+    $noTransaksi = trim((string) $request->no_transaksi);
+    $mulai = $this->mulaiSo($noTransaksi);
+    $ikat = [];
+    $saldo = 'b.no_barcode = a.no_barcode';
+    if ($noTransaksi !== '') {
+        $saldo .= ' and b.no_transaksi = ?';
+        $ikat[] = $noTransaksi;
+    }
+    $ikat[] = Auth::user()->name;
+    $ikat[] = (string) $request->kode_lok;
+    $berlaku = '';
+    if ($mulai) {
+        $berlaku = ' and a.created_at >= ?';
+        $ikat[] = $mulai;
+    }
+
+    return DB::connection('mysql_sb')->select("select a.id,a.no_barcode,a.id_item,a.id_jo,c.itemdesc,b.qty,a.qty qty_scan,a.unit,a.lokasi_aktual,a.lokasi_scan,a.qty_old,a.created_at from " . $tabel . " a LEFT JOIN whs_saldo_stockopname b on " . $saldo . " LEFT JOIN masteritem c on c.id_item = a.id_item where a.created_by = ? and a.lokasi_scan = ?" . $berlaku . " GROUP BY a.no_barcode order by a.id desc", $ikat);
 }
 
 public function listscanbarcode2(Request $request)
@@ -869,7 +968,7 @@ public function listscanbarcode2(Request $request)
         $keywordQuery = "";
         $no_transaksi = substr($request->txt_no_dokumen,0,16);
 
-        $data_scan = DB::connection('mysql_sb')->select("select no_barcode,a.id_item,c.itemdesc,a.qty,lokasi_aktual from whs_so_detail a INNER JOIN whs_so_h b on b.no_dokumen = a.no_dokumen INNER JOIN masteritem c on c.id_item = a.id_item where a.lokasi_aktual = '".$request->kode_lok."' and no_transaksi = '".$no_transaksi."'");
+        $data_scan = DB::connection('mysql_sb')->select("select no_barcode,a.id_item,c.itemdesc,a.qty,lokasi_aktual from whs_so_detail a INNER JOIN whs_so_h b on b.no_dokumen = a.no_dokumen INNER JOIN masteritem c on c.id_item = a.id_item where a.lokasi_aktual = ? and no_transaksi = ?", [(string) $request->kode_lok, $no_transaksi]);
 
         return DataTables::of($data_scan)->toJson();
     }
@@ -883,7 +982,17 @@ public function listscanbarcode3(Request $request)
         $keywordQuery = "";
         $no_transaksi = substr($request->txt_no_dokumen,0,16);
 
-        $data_scan = DB::connection('mysql_sb')->select("select * from (select no_barcode,a.id_item,b.itemdesc,qty from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item where kode_lok = '".$request->kode_lok."' and no_transaksi = '".$no_transaksi."' order by no_barcode asc) a LEFT JOIN (select no_barcode barcode_so from whs_so_detail where lokasi_aktual = '".$request->kode_lok."' and no_dokumen like '%".$no_transaksi."%') b on b.barcode_so = a.no_barcode LEFT JOIN (select no_barcode barcode_temp, created_at from whs_so_detail_temp where lokasi_scan = '".$request->kode_lok."') c on c.barcode_temp = a.no_barcode where barcode_so is null order by created_at desc,no_barcode asc");
+        // Penanda "sudah di-scan" hanya dari scan SO ini (bukan sisa temp SO lama), satu baris per
+        // barcode - dulu barcode dengan dua baris temp muncul dobel di daftar outstanding
+        $mulai = $this->mulaiSo($no_transaksi);
+        $ikat = [(string) $request->kode_lok, $no_transaksi, (string) $request->kode_lok, '%' . $no_transaksi . '%', (string) $request->kode_lok];
+        $berlaku = '';
+        if ($mulai) {
+            $berlaku = ' and created_at >= ?';
+            $ikat[] = $mulai;
+        }
+
+        $data_scan = DB::connection('mysql_sb')->select("select * from (select no_barcode,a.id_item,b.itemdesc,qty from whs_saldo_stockopname a INNER JOIN masteritem b on b.id_item = a.id_item where kode_lok = ? and no_transaksi = ? order by no_barcode asc) a LEFT JOIN (select no_barcode barcode_so from whs_so_detail where lokasi_aktual = ? and no_dokumen like ? group by no_barcode) b on b.barcode_so = a.no_barcode LEFT JOIN (select no_barcode barcode_temp, max(created_at) created_at from whs_so_detail_temp where lokasi_scan = ?" . $berlaku . " group by no_barcode) c on c.barcode_temp = a.no_barcode where barcode_so is null order by created_at desc,no_barcode asc", $ikat);
 
         return DataTables::of($data_scan)->toJson();
     }
@@ -894,7 +1003,7 @@ public function getsumbarcodeso(Request $request)
 {
         // $barcode = DB::connection('mysql_sb')->select("select no_barcode,kode_lok,id_item,id_jo,no_lot,no_roll,qty,unit from whs_saldo_stockopname where no_barcode = '".$request->no_barcode."'");
 
-    $sumbarcode = DB::connection('mysql_sb')->table('whs_so_detail_temp')->selectRaw('COALESCE(round(SUM(qty),2),0) qty')->where('created_by', Auth::user()->name)->where('lokasi_scan', $request->kode_lok)->first();
+    $sumbarcode = $this->tempBerlaku(DB::connection('mysql_sb')->table('whs_so_detail_temp')->selectRaw('COALESCE(round(SUM(qty),2),0) qty, COUNT(*) roll')->where('created_by', Auth::user()->name)->where('lokasi_scan', $request->kode_lok), $this->mulaiSo($request->no_transaksi))->first();
         // dd($barcode);
 
     return json_encode($sumbarcode);
@@ -988,41 +1097,53 @@ public function export_excel_detailso(Request $request)
     public function store(Request $request)
     {
 
-        $validatedRequest = $request->validate([
-            "txt_qty_scan" => "required|min:0.1",
-        ]);
+        $no_transaksi = substr((string) $request['txt_no_dokumen'],0,16);
+        $lokasi = (string) $request['txt_lokasi_h'];
+        $user = Auth::user()->name;
+        $mulai = $this->mulaiSo($no_transaksi);
+        $sb = DB::connection('mysql_sb');
 
-        $no_transaksi = substr($request['txt_no_dokumen'],0,16);
+        // Nomor dokumen = MAX + 1: dua user yang menyimpan bersamaan di SO yang sama jangan
+        // sampai dapat nomor yang sama
+        $kunci = 'so_dok_' . $no_transaksi;
+        $sb->select('select get_lock(?, 15) l', [$kunci]);
 
-        $notrans = DB::connection('mysql_sb')->select("select CONCAT('$no_transaksi','-',nomor) no_transaksi, '$no_transaksi' no_transaksi_awal from (select IF(MAX(SUBSTR(no_dokumen,18,6)) is null,'000001',LPAD(MAX(SUBSTR(no_dokumen,18,6))+1,6,0)) nomor from whs_so_h where no_transaksi = '$no_transaksi') a");
-        $no_dokumen = $notrans[0]->no_transaksi;
+        try {
+            $hasil = $sb->transaction(function () use ($sb, $no_transaksi, $lokasi, $user, $mulai, $request) {
+                // Hanya scan SO ini (bukan sisa SO lama) milik user di rak ini. Dikunci supaya tombol
+                // Save yang tertekan dua kali tidak menyimpan dobel / membuat header kosong.
+                $ids = $this->tempBerlaku($sb->table('whs_so_detail_temp')->where('created_by', $user)->where('lokasi_scan', $lokasi), $mulai)
+                    ->lockForUpdate()->pluck('id')->map(fn ($id) => (int) $id)->all();
 
-        if (intval($validatedRequest['txt_qty_scan']) > 0) {
+                if (! $ids) {
+                    return [400, 'Belum ada barcode yang di-scan di rak ini (atau sudah tersimpan).'];
+                }
 
-            $soheaderstore = SoHeader::create([
-                'no_transaksi' => $no_transaksi,
-                'no_dokumen' => $no_dokumen,
-                'tgl_dokumen' => $request['txt_tgl_so'],
-                'status' => 'Post',
-                'created_by' => Auth::user()->name,
-            ]);
+                $notrans = $sb->select("select CONCAT(?,'-',nomor) no_transaksi from (select IF(MAX(SUBSTR(no_dokumen,18,6)) is null,'000001',LPAD(MAX(SUBSTR(no_dokumen,18,6))+1,6,0)) nomor from whs_so_h where no_transaksi = ?) a", [$no_transaksi, $no_transaksi]);
+                $no_dokumen = $notrans[0]->no_transaksi;
 
-            $so_detail = DB::connection('mysql_sb')->insert("insert into whs_so_detail select '','".$no_dokumen."',no_barcode,lokasi_scan,lokasi_aktual,id_item,id_jo,no_lot,no_roll,qty,qty_old,unit,created_by,created_at,updated_at from whs_so_detail_temp where lokasi_scan = '".$request['txt_lokasi_h']."' and created_by = '".Auth::user()->name."'");
-            $so_detail_temp = SoDetailTemp::where('created_by',Auth::user()->name)->where('lokasi_scan',$request['txt_lokasi_h'])->delete();
+                SoHeader::create([
+                    'no_transaksi' => $no_transaksi,
+                    'no_dokumen' => $no_dokumen,
+                    'tgl_dokumen' => $request['txt_tgl_so'],
+                    'status' => 'Post',
+                    'created_by' => $user,
+                ]);
 
-            $so_detail_temp_cancel = SoDetailTempCancel::where('created_by',Auth::user()->name)->where('lokasi_scan',$request['txt_lokasi_h'])->delete();
+                $sb->insert("insert into whs_so_detail select '',?,no_barcode,lokasi_scan,lokasi_aktual,id_item,id_jo,no_lot,no_roll,qty,qty_old,unit,created_by,created_at,updated_at from whs_so_detail_temp where id in (" . implode(',', $ids) . ")", [$no_dokumen]);
+                $sb->table('whs_so_detail_temp')->whereIn('id', $ids)->delete();
 
-            $massage = $no_dokumen . ' Saved Succesfully';
-            $stat = 200;
+                SoDetailTempCancel::where('created_by', $user)->where('lokasi_scan', $lokasi)->delete();
 
-        }else{
-            $massage = ' Please Input Data';
-            $stat = 400;
+                return [200, $no_dokumen . ' Saved Succesfully (' . count($ids) . ' barcode)'];
+            });
+        } finally {
+            $sb->select('select release_lock(?) l', [$kunci]);
         }
 
         return array(
-            "status" =>  $stat,
-            "message" => $massage,
+            "status" =>  $hasil[0],
+            "message" => $hasil[1],
             "additional" => [],
             "redirect" => url('/so/list-stok-opname')
         );

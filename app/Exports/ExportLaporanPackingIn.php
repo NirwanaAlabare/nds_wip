@@ -10,6 +10,10 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use DB;
 
@@ -28,12 +32,29 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
 //     }
 // }
 
-class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, WithColumnFormatting
+class ExportLaporanPackingIn extends DefaultValueBinder implements FromView, WithEvents, ShouldAutoSize, WithColumnFormatting, WithCustomValueBinder
 {
     use Exportable;
 
+    // Semua kolom kecuali No (A) & Qty (M), data rows start after heading row 4
+    const TEXT_COLUMNS = [
+        'B' => 'no_trans',
+        'C' => 'tgl_penerimaan_fix',
+        'D' => 'no_trf_garment',
+        'E' => 'line',
+        'F' => 'barcode',
+        'G' => 'po',
+        'H' => 'ws',
+        'I' => 'styleno',
+        'J' => 'color',
+        'K' => 'size',
+        'L' => 'dest',
+        'N' => 'source',
+        'O' => 'created_by',
+        'P' => 'created_at',
+    ];
 
-    protected $from, $to;
+    protected $from, $to, $data;
 
     public function __construct($from, $to)
     {
@@ -150,6 +171,7 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
 
 
         $this->rowCount = count($data) + 4;
+        $this->data = $data;
 
 
         return view('packing.export_excel_packing_in', [
@@ -157,6 +179,16 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
             'from' => $this->from,
             'to' => $this->to
         ]);
+    }
+
+    public function bindValue(Cell $cell, $value)
+    {
+        if (isset(self::TEXT_COLUMNS[$cell->getColumn()]) && $cell->getRow() > 4 && $value !== null) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
     }
 
     public function registerEvents(): array
@@ -170,6 +202,18 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
 
     public static function afterSheet(AfterSheet $event)
     {
+        $sheet = $event->sheet->getDelegate();
+
+        // HTML reader collapses multiple spaces, rewrite text columns from original data
+        $row = 5;
+        foreach ($event->getConcernable()->data ?? [] as $item) {
+            foreach (self::TEXT_COLUMNS as $col => $field) {
+                if ($item->$field !== null) {
+                    $sheet->setCellValueExplicit($col . $row, (string) $item->$field, DataType::TYPE_STRING);
+                }
+            }
+            $row++;
+        }
 
         $event->sheet->styleCells(
             'A4:P' . $event->getConcernable()->rowCount,
@@ -186,8 +230,6 @@ class ExportLaporanPackingIn implements FromView, WithEvents, ShouldAutoSize, Wi
 
     public function columnFormats(): array
     {
-        return [
-            'F' => NumberFormat::FORMAT_NUMBER,
-        ];
+        return array_fill_keys(array_keys(self::TEXT_COLUMNS), NumberFormat::FORMAT_TEXT);
     }
 }

@@ -206,7 +206,8 @@ class MarkerController extends Controller
                 COALESCE(marker_input_detail.cut_qty, 0) cut_qty
             ")->
             where("master_sb_ws.id_act_cost", $request->act_costing_id)->
-            where("master_sb_ws.color", $request->color);
+            where("master_sb_ws.color", $request->color)->
+            whereRaw("(master_sb_ws.cancel IS NULL OR master_sb_ws.cancel != 'Y')");
 
         $thisMarkerDetail = MarkerDetail::where("marker_id", $request->marker_id)->count();
         if ($thisMarkerDetail > 0) {

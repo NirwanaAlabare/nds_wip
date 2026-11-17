@@ -695,6 +695,14 @@
 // });
 // }
 
+// === pesan gagal dari server (sesi habis / ditolak / koneksi)
+function pesanXhr(xhr) {
+    if (xhr && (xhr.status == 401 || xhr.status == 419)) {
+        return 'Sesi login habis, silakan refresh halaman / login ulang.';
+    }
+    return (xhr && xhr.responseJSON && xhr.responseJSON.message) || 'Gagal koneksi ke server!';
+}
+
 // === fungsi kirim barcode tetap proses ke controller
 // === fungsi kirim barcode tetap proses ke controller
 function sendForceBarcode(barcode) {
@@ -712,7 +720,11 @@ function sendForceBarcode(barcode) {
             no_transaksi: no_transaksi
         },
         success: function(res) {
-            if (res?.status === 200) {
+            if (res?.status === 200 && res.hasil === 'sudah') {
+                Swal.fire({ icon: 'info', title: 'Info', text: res.message });
+                dataTableReload();
+                resetBarcodeInputs();
+            } else if (res?.status === 200) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil',
@@ -727,10 +739,14 @@ function sendForceBarcode(barcode) {
 
             } else {
                 console.warn('Gagal kirim barcode force:', barcode, res);
+                Swal.fire({ icon: 'error', title: 'Gagal', text: res?.message || ('Barcode ' + barcode + ' gagal diproses.') });
+                resetBarcodeInputs();
             }
         },
         error: function(xhr, status, error) {
             console.error('Error kirim barcode force:', barcode, status, error);
+            Swal.fire({ icon: 'error', title: 'Gagal', text: pesanXhr(xhr) });
+            resetBarcodeInputs();
         }
     });
 }
@@ -768,6 +784,10 @@ function getdatabarcode(no_barcode = null) {
                         // kirim ke controller
                         sendForceBarcode(barcode);
                         resolve({ status: 'force', barcode });
+                    } else {
+                        // ditutup lewat Esc / klik di luar: anggap tidak diproses (jangan menggantung)
+                        resetBarcodeInputs();
+                        resolve({ status: 'notfound', barcode });
                     }
                 });
             });
@@ -789,27 +809,43 @@ function getdatabarcode(no_barcode = null) {
         }
     }).catch(function (xhr, status, error) {
         console.error("AJAX Error:", status, error);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal koneksi ke server!' });
+        Swal.fire({ icon: 'error', title: 'Error', text: pesanXhr(xhr) });
         resetBarcodeInputs();
         return { status: 'error', barcode, msg: error };
     });
 }
 
 // === simpan data barcode
-function savedatabarcode(data) {
+// hasil: { ok, hasil ('baru' / 'sudah'), pesan } - tidak pernah reject, gagal selalu ada pesannya.
+// diam = true (proses multi barcode): pesan tidak di-popup satu per satu, dirangkum di akhir.
+function savedatabarcode(data, diam = false) {
+    data.no_transaksi = $('#txt_no_dokumen_hide').val();
     return $.ajax({
         url: '{{ route("simpan-scan-barcode-so") }}',
         type: 'GET',
         dataType: 'json',
-        data: data,
-        success: function(res) {
-            if (res?.status == 200) {
-                dataTableReload();
-                datatable3.ajax.reload();
-                datatable4.ajax.reload();
+        data: data
+    }).then(function(res) {
+        if (res?.status == 200) {
+            dataTableReload();
+            datatable3.ajax.reload();
+            datatable4.ajax.reload();
+            resetBarcodeInputs();
+            return { ok: true, hasil: res.hasil, pesan: res.message };
+        }
+        return { ok: false, pesan: res?.message || ('Barcode ' + data.no_barcode + ' gagal disimpan.') };
+    }, function(xhr) {
+        return { ok: false, pesan: pesanXhr(xhr) };
+    }).then(function(h) {
+        if (!diam) {
+            if (!h.ok) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: h.pesan });
                 resetBarcodeInputs();
+            } else if (h.hasil === 'sudah') {
+                Swal.fire({ icon: 'info', title: 'Info', text: h.pesan });
             }
         }
+        return h;
     });
 }
 
@@ -839,11 +875,11 @@ $('#txt_barcode').on('keydown', function(e) {
                     no_lot: d.no_lot,
                     no_roll: d.no_roll,
                     unit: d.unit
+                }).then(h => {
+                    if (h.ok && h.hasil !== 'sudah' && res.rak_lain) {
+                        Swal.fire({ icon: 'warning', title: 'Info', text: 'Barcode ' + code + ' berada di rak ' + d.kode_lok });
+                    }
                 });
-
-                if (res.rak_lain) {
-                    Swal.fire({ icon: 'warning', title: 'Info', text: 'Barcode ' + code + ' berada di rak ' + d.kode_lok });
-                }
             } else if(res.status === 'force') {
                 console.log('Barcode tetap proses single dikirim ke controller:', code);
             } else if(res.status === 'duplicate') {
@@ -879,7 +915,7 @@ $('#btnSendBarcode').on('click', function () {
 
             if (res.status === 'ok' && res.rawData) {
                 let d = res.rawData;
-                await savedatabarcode({
+                let h = await savedatabarcode({
                     lokasi_scan: $('#txt_lokasi_h').val(),
                     no_barcode: d.no_barcode,
                     qty: d.qty,
@@ -889,8 +925,14 @@ $('#btnSendBarcode').on('click', function () {
                     no_lot: d.no_lot,
                     no_roll: d.no_roll,
                     unit: d.unit
-                });
-                results.push({ status: 'success', barcode: bc, rak_lain: res.rak_lain, lokasi_rak: res.lokasi_rak });
+                }, true);
+                if (!h.ok) {
+                    results.push({ status: 'error', barcode: bc, msg: h.pesan });
+                } else if (h.hasil === 'sudah') {
+                    results.push({ status: 'duplicate', barcode: bc });
+                } else {
+                    results.push({ status: 'success', barcode: bc, rak_lain: res.rak_lain, lokasi_rak: res.lokasi_rak });
+                }
             } else if(res.status === 'force') {
                 console.log('Barcode tetap proses batch dikirim ke controller:', bc);
                 results.push({ status: 'force', barcode: bc });
@@ -906,7 +948,7 @@ $('#btnSendBarcode').on('click', function () {
         let duplicate = results.filter(r => r.status === 'duplicate').map(r => r.barcode);
         let notfound = results.filter(r => r.status === 'notfound').map(r => r.barcode);
         let force = results.filter(r => r.status === 'force').map(r => r.barcode);
-        let errors = results.filter(r => r.status === 'error').map(r => r.barcode);
+        let errors = results.filter(r => r.status === 'error').map(r => r.barcode + (r.msg ? " (" + r.msg + ")" : ""));
 
         let msg = "";
         if (success.length) msg += "✅ Berhasil: " + success.join(", ") + "<br>";
@@ -962,6 +1004,15 @@ $('#btnSendBarcode').on('click', function () {
 
                                 });
 
+                            } else {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Gagal!',
+                                    text: res.message || 'Data gagal disimpan.',
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'Oke'
+                                });
+                                dataTableReload();
                             }
                         }
                     }, error: function(jqXHR){
@@ -998,7 +1049,7 @@ $('#btnSendBarcode').on('click', function () {
                     dataSrc: 'data',
                     data: function(d) {
                         d.kode_lok = $('#txt_lokasi_h').val();
-
+                        d.no_transaksi = $('#txt_no_dokumen_hide').val();
                     },
                 },
                 columns: [{
@@ -1066,7 +1117,7 @@ $('#btnSendBarcode').on('click', function () {
                     dataSrc: 'data',
                     data: function(d) {
                         d.kode_lok = $('#txt_lokasi_h').val();
-
+                        d.no_transaksi = $('#txt_no_dokumen_hide').val();
                     },
                 },
                 columns: [{
@@ -1211,6 +1262,7 @@ $('#btnSendBarcode').on('click', function () {
                     type: 'get',
                     data: {
                         kode_lok: $('#txt_lokasi_h').val(),
+                        no_transaksi: $('#txt_no_dokumen_hide').val(),
                     },
                     dataType: 'json',
                     success: function(res) {
@@ -1353,6 +1405,9 @@ $('#btnSendBarcode').on('click', function () {
                         $('#modal-edit-so').modal('hide');
                         dataTableReload();
                     }
+                },
+                error: function(xhr) {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: pesanXhr(xhr) });
                 }
             });
         }

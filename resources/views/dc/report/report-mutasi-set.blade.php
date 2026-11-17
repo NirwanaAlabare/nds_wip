@@ -249,8 +249,20 @@
                     saldoAkhirFilter : $("#saldoAkhirFilter").val()
                 },
                 xhrFields: { responseType : 'blob' },
-                success: function (res) {
+                success: function (res, status, jqXHR) {
                     Swal.close();
+
+                    // Respon bukan file excel (mis. halaman error / timeout) jangan didownload
+                    var contentType = jqXHR.getResponseHeader('Content-Type') || '';
+
+                    if (contentType.indexOf('text/html') !== -1 || contentType.indexOf('application/json') !== -1) {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Export gagal, file tidak terbentuk',
+                            position: 'topCenter'
+                        });
+                        return;
+                    }
 
                     iziToast.success({
                         title: 'Success',
@@ -258,14 +270,26 @@
                         position: 'topCenter'
                     });
 
-                    var blob = new Blob([res]);
+                    var blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    var url = window.URL.createObjectURL(blob);
                     var link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
+                    link.href = url;
                     link.download = "REPORT DC SET "+$("#tgl-awal").val()+" - "+$("#tgl-akhir").val()+".xlsx";
+                    // Link harus ada di halaman supaya klik diproses semua browser
+                    document.body.appendChild(link);
                     link.click();
+                    document.body.removeChild(link);
+                    setTimeout(function () { window.URL.revokeObjectURL(url); }, 1000);
                 },
                 error: function (jqXHR) {
+                    Swal.close();
                     console.error(jqXHR);
+
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Export gagal (' + jqXHR.status + ')',
+                        position: 'topCenter'
+                    });
                 }
             });
 

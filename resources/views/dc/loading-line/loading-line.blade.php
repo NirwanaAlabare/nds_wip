@@ -59,6 +59,7 @@
                             <th>Trolley</th>
                             <th>Stok Trolley</th>
                             <th>Color</th>
+                            <th class="d-none">Stockers</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -71,6 +72,7 @@
                             <th></th>
                             <th></th>
                             <th></th>
+                            <th class="d-none"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -110,6 +112,10 @@
             processing: true,
             serverSide: true,
             pageLength: 25,
+            language: {
+                search: "",
+                searchPlaceholder: "STK-1112233..."
+            },
             ajax: {
                 url: '{{ route('loading-line') }}',
                 data: function (d) {
@@ -154,11 +160,14 @@
                 {
                     data: 'trolley_color'
                 },
+                {
+                    data: 'stockers',
+                    searchable: true
+                },
             ],
             columnDefs: [
                 {
                     targets: "_all",
-                    className: 'align-middle text-nowrap'
                 },
                 {
                     targets: [1],
@@ -187,6 +196,10 @@
                     render: (data, type, row, meta) => {
                         return "<span class='"+(Number(data) >= 0 ? "text-success" : "text-danger")+" fw-bold'>"+Number(data).toLocaleString('id-ID')+"</span";
                     }
+                },
+                {
+                    targets: [12],
+                    className: "d-none"
                 }
             ],
             rowsGroup: [
@@ -222,6 +235,7 @@
                         'colorFilter': $('#colorFilter').val(),
                         'trolleyFilter': $('#trolleyFilter').val(),
                         'trolleyColorFilter': $('#trolleyColorFilter').val(),
+                        'stocker': $('#datatable-loading-line_filter input').val()
                     },
                     success: function(response) {
                         console.log(response);

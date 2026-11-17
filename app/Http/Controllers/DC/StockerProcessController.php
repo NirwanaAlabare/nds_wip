@@ -5,6 +5,7 @@ namespace App\Http\Controllers\DC;
 use App\Models\Stocker\Stocker;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use \avadim\FastExcelLaravel\Excel as FastExcel;
 use DB;
 
 class StockerProcessController extends Controller
@@ -321,6 +322,125 @@ class StockerProcessController extends Controller
             'status' => 'success',
             'data'   => $data
         ]);
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $validatedRequest = $request->validate([
+            'id_qr_stocker' => 'required|string|max:255',
+        ]);
+
+        $dataResponse = $this->getData($request)->getData(true);
+        $data = $dataResponse['data'] ?? [];
+
+        if (empty($data)) {
+            return response()->json([
+                'message' => 'Data transaksi stocker tidak ditemukan.',
+            ], 404);
+        }
+
+        $excel = FastExcel::create('Stocker Process');
+        $sheet = $excel->getSheet();
+        $headers = [
+            'ID QR Stocker',
+            'Stocker Reject',
+            'Sumber Stocker Reject',
+            'WS',
+            'Color',
+            'Size',
+            'Panel',
+            'Part',
+            'Status Part',
+            'Tujuan',
+            'Proses',
+            'Qty Stocker',
+            'DC Qty Awal',
+            'DC Qty Reject',
+            'DC Qty Replace',
+            'DC Qty Hasil',
+            'Secondary Inhouse IN Qty',
+            'Secondary Inhouse OUT Qty Awal',
+            'Secondary Inhouse OUT Qty Reject',
+            'Secondary Inhouse OUT Qty Replace',
+            'Secondary Inhouse OUT Qty Hasil',
+            'Secondary IN Qty Awal',
+            'Secondary IN Qty Reject',
+            'Secondary IN Qty Replace',
+            'Secondary IN Qty Hasil',
+            'Secondary Update Qty Reject',
+            'Secondary Update Qty Replace',
+            'Secondary Update Qty Hasil',
+            'Tanggal Trolley',
+            'Nama Trolley',
+            'Tanggal Loading',
+            'Nama Line',
+            'Loading Qty',
+        ];
+
+        $headerCellStyles = [];
+        $headerGroups = [
+            [11, 11, '#C6E0B4'],
+            [12, 15, '#CFE2F3'],
+            [16, 20, '#D9D2E9'],
+            [21, 27, '#FFE699'],
+            [28, 29, '#F4B183'],
+            [30, 32, '#F4CCCC'],
+        ];
+
+        foreach ($headerGroups as [$startColumn, $endColumn, $fillColor]) {
+            for ($column = $startColumn; $column <= $endColumn; $column++) {
+                $headerCellStyles[$column] = ['fill-color' => $fillColor];
+            }
+        }
+
+        $sheet->writeRow($headers, [
+            'font-style' => 'bold',
+            'border' => 'thin',
+            'text-align' => 'center',
+            'vertical-align' => 'center',
+        ], $headerCellStyles);
+
+        foreach ($data as $row) {
+            $sheet->writeRow([
+                $row['id_qr_stocker'] ?? '-',
+                !empty($row['stocker_reject']) ? 'Ya' : 'Tidak',
+                $row['stocker_source_qr'] ?? '-',
+                $row['ws'] ?? '-',
+                $row['color'] ?? '-',
+                $row['size'] ?? '-',
+                $row['panel'] ?? '-',
+                $row['nama_part'] ?? '-',
+                $row['part_status'] ?? '-',
+                $row['tujuan'] ?? '-',
+                $row['proses'] ?? '-',
+                $row['qty_stocker'] ?? 0,
+                $row['dc_qty_awal'] ?? 0,
+                $row['dc_qty_reject'] ?? 0,
+                $row['dc_qty_replace'] ?? 0,
+                $row['dc_qty_hasil'] ?? 0,
+                $row['qty_sec_inhouse_in'] ?? 0,
+                $row['sec_inhouse_qty_awal'] ?? 0,
+                $row['sec_inhouse_qty_reject'] ?? 0,
+                $row['sec_inhouse_qty_replace'] ?? 0,
+                $row['sec_inhouse_qty_hasil'] ?? 0,
+                $row['sec_in_qty_awal'] ?? 0,
+                $row['sec_in_qty_reject'] ?? 0,
+                $row['sec_in_qty_replace'] ?? 0,
+                $row['sec_in_qty_hasil'] ?? 0,
+                $row['update_reject'] ?? 0,
+                $row['update_replace'] ?? 0,
+                $row['update_qty_hasil'] ?? 0,
+                $row['tanggal_trolley'] ?? '-',
+                $row['nama_trolley'] ?? '-',
+                $row['tanggal_loading'] ?? '-',
+                $row['nama_line'] ?? '-',
+                $row['loading_qty'] ?? 0,
+            ])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $stockerId = preg_replace('/[^A-Za-z0-9_-]/', '_', $validatedRequest['id_qr_stocker']);
+
+        return $excel->download('stocker-process-' . $stockerId . '.xlsx');
     }
 
     /**

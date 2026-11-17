@@ -41,6 +41,7 @@
                             <th>Group</th>
                             <th>Locked</th>
                             <th>Sample</th>
+                            <th>Updated At</th>
                         </thead>
                         <tbody>
                         </tbody>
@@ -255,6 +256,9 @@
                 },
                 {
                     data: 'is_sample'
+                },
+                {
+                    data: 'updated_at'
                 }
             ],
             columnDefs: [
@@ -266,6 +270,12 @@
                     targets: [6], // Index for form_check
                     render: (data, type, row, meta) => {
                         return data ? "SAMPLE" : "-";
+                    }
+                },
+                {
+                    targets: [7], // Updated At
+                    render: (data, type, row, meta) => {
+                        return data ? data : "-";
                     }
                 },
                 // Act Column

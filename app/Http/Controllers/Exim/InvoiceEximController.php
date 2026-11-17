@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Exim;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -2319,6 +2320,9 @@ class InvoiceEximController extends Controller
                     $db->select("SELECT RELEASE_LOCK('gen_no_inv_exim')");
                 }
             });
+        } catch (QueryException $e) {
+            return $this->jawabErrorDb($e, 'simpan', 'The system is busy, please try again.',
+                'Save failed, please try again.');
         } catch (\RuntimeException $e) {
             $pesan = $e->getMessage() === 'nomor_dipakai'
                 ? 'Invoice number was just taken by someone else. Please try again.'
@@ -2433,6 +2437,9 @@ class InvoiceEximController extends Controller
                     $db->select("SELECT RELEASE_LOCK('gen_no_inv_exim')");
                 }
             });
+        } catch (QueryException $e) {
+            return $this->jawabErrorDb($e, 'Export simpan', 'The system is busy, please try again.',
+                'Save failed, please try again.');
         } catch (\RuntimeException $e) {
             $pesan = $e->getMessage() === 'nomor_dipakai'
                 ? 'Invoice number was just taken by someone else. Please try again.'
@@ -3330,6 +3337,9 @@ class InvoiceEximController extends Controller
                 $this->selaraskanInvno($db, $idBook, $noInvoice);
                 $this->catatRiwayat($db, $idBook, $noInvoice, self::SHIPP_EXPORT, 'UPDATE', $user, $now);
             });
+        } catch (QueryException $e) {
+            return $this->jawabErrorDb($e, 'Export perbarui', self::PESAN_UPDATE_SIBUK,
+                'Update failed, please try again.');
         } catch (\RuntimeException $e) {
             return response()->json(array('status' => false,
                 'pesan' => 'This invoice is no longer a draft, so it cannot be changed.'), 409);
@@ -4267,6 +4277,9 @@ class InvoiceEximController extends Controller
                 $this->selaraskanInvno($db, $idBook, $noInvoice);
                 $this->catatRiwayat($db, $idBook, $noInvoice, self::SHIPP_LOCAL, 'UPDATE', $user, $now);
             });
+        } catch (QueryException $e) {
+            return $this->jawabErrorDb($e, 'perbarui', self::PESAN_UPDATE_SIBUK,
+                'Update failed, please try again.');
         } catch (\RuntimeException $e) {
             return response()->json(array('status' => false,
                 'pesan' => 'This invoice is no longer a draft, so it cannot be changed.'), 409);
@@ -4328,6 +4341,10 @@ class InvoiceEximController extends Controller
                 $this->lepasInvno($db, $noInvoice);
                 $this->catatRiwayat($db, $idBook, $noInvoice, $shipp, 'CANCEL', $user, $now);
             });
+        } catch (QueryException $e) {
+            return $this->jawabErrorDb($e, 'batal',
+                'This invoice is still being saved by another request. Please wait a moment and try again.',
+                'Cancel failed, please try again.');
         } catch (\RuntimeException $e) {
             return response()->json(array('status' => false,
                 'pesan' => 'This invoice is no longer a draft, so it cannot be cancelled.'), 409);
@@ -4344,6 +4361,30 @@ class InvoiceEximController extends Controller
             'no_invoice' => (string) $inv['no_invoice'],
             'pesan'      => 'Invoice cancelled. Its SJ rows are available again.',
         ));
+    }
+
+    /** Pesan Update yang kena lock: simpanan sebelumnya mungkin sudah masuk, jadi dicek dulu. */
+    const PESAN_UPDATE_SIBUK = 'This invoice is still being saved by another request. '
+        . 'Please wait a moment, then reload the page to check it before trying again.';
+
+    /**
+     * Jawaban untuk error database waktu simpan, update & batal.
+     *
+     * QueryException itu turunan RuntimeException, jadi harus ditangkap lebih
+     * dulu - kalau tidak, ia terbaca "bukan draft" / "sibuk" dan error aslinya
+     * hilang tanpa jejak di log. Lock wait timeout (1205) & deadlock (1213)
+     * berarti barisnya sedang dipegang transaksi lain, biasanya simpanan
+     * sebelumnya yang masih berjalan; selain itu dianggap gagal biasa.
+     */
+    private function jawabErrorDb(QueryException $e, $label, $pesanSibuk, $pesanGagal)
+    {
+        Log::error('Invoice EXIM ' . $label . ' gagal - ' . $e->getMessage());
+
+        $kode = (int) ($e->errorInfo[1] ?? 0);
+        if ($kode === 1205 || $kode === 1213) {
+            return response()->json(array('status' => false, 'pesan' => $pesanSibuk), 409);
+        }
+        return response()->json(array('status' => false, 'pesan' => $pesanGagal), 500);
     }
 
     // ======================================================================
@@ -4472,22 +4513,34 @@ class InvoiceEximController extends Controller
             return;
         }
         $this->lepasInvno($db, $noInvoice);
+
+        // Sengaja JOIN, bukan "WHERE id IN (SELECT ...)": UPDATE ber-subquery
+        // dijalankan MariaDB dengan memeriksa SELURUH bppb dan mengulang
+        // subquery-nya di tiap baris. Invoice 227 baris SJ jadi butuh ±3 menit
+        // dan menahan kuncinya selama itu, sampai simpanan lain kena lock wait
+        // timeout. Lewat JOIN, bppb dicari langsung lewat index-nya.
         $db->update(
-            "UPDATE bppb SET invno = ?
-              WHERE id IN (SELECT id_bppb FROM " . self::TABEL_DET . "
-                            WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAG')",
-            array((string) $noInvoice, (int) $idBook)
+            "UPDATE bppb b
+               JOIN (SELECT DISTINCT id_bppb FROM " . self::TABEL_DET . "
+                      WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAG') d
+                 ON d.id_bppb = b.id
+                SET b.invno = ?",
+            array((int) $idBook, (string) $noInvoice)
         );
-        $db->update(
-            "UPDATE bppb SET invno = ?
-              WHERE bppbno IN (SELECT bppb_number FROM " . self::TABEL_DET . "
-                                WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAK'
-                                  AND IFNULL(bppb_number, '') <> '')
-                 OR bppbno_int IN (SELECT bppb_number FROM " . self::TABEL_DET . "
-                                    WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAK'
-                                      AND IFNULL(bppb_number, '') <> '')",
-            array((string) $noInvoice, (int) $idBook, (int) $idBook)
-        );
+        // Nomor SJ knitting bisa ada di bppbno atau bppbno_int. Dua UPDATE
+        // terpisah supaya masing-masing tetap memakai index-nya - digabung
+        // dengan OR, MariaDB kembali memeriksa seluruh tabel.
+        foreach (array('bppbno', 'bppbno_int') as $kolom) {
+            $db->update(
+                "UPDATE bppb b
+                   JOIN (SELECT DISTINCT bppb_number FROM " . self::TABEL_DET . "
+                          WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAK'
+                            AND IFNULL(bppb_number, '') <> '') d
+                     ON d.bppb_number = b.$kolom
+                    SET b.invno = ?",
+                array((int) $idBook, (string) $noInvoice)
+            );
+        }
     }
 
     /** Lepaskan tanda invoice ini dari SJ-nya - dipakai waktu update & batal. */

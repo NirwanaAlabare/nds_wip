@@ -7,6 +7,7 @@ use App\Models\Cutting\CutPlan;
 use App\Models\Cutting\FormCutInput;
 use App\Models\Cutting\FormCutInputDetail;
 use App\Models\Cutting\FormCutInputDetailLap;
+use App\Models\Cutting\FormCutInputDetailOutput;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Marker\Marker;
 use App\Models\Stocker\Stocker;
@@ -19,6 +20,7 @@ use App\Services\CuttingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
@@ -28,6 +30,15 @@ use PDF;
 
 class SpreadingController extends Controller
 {
+    // Status yang bisa dipilih di form ubah status
+    private $editableFormStatuses = [
+        'SPREADING',
+        'PENGERJAAN FORM CUTTING',
+        'PENGERJAAN FORM CUTTING DETAIL',
+        'PENGERJAAN FORM CUTTING SPREAD',
+        'SELESAI PENGERJAAN',
+    ];
+
     /**
      * Display a listing of the resource.
      *
@@ -413,102 +424,28 @@ class SpreadingController extends Controller
         );
     }
 
-    public function updateStatus(Request $request, StockerService $stockerService) {
-
-        // Check Closing
-        $dataForm = FormCutInput::where("id", $request->edit_id_status)->first();
-        if (!$dataForm->waktu_selesai) {
-            // When not superadmin
-            if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0) {
-                return array(
-                    "status" => 400,
-                    "message" => "Form belum memiliki waktu selesai.",
-                    "additional" => ""
-                );
-            }
-
-            // Bypass for superadmin
-            $dataForm->waktu_selesai = Carbon::now()->toDateTimeString();
-            $dataForm->save();
-        }
-
-        if (checkClosingDate($dataForm->waktu_selesai)) {
-            return array(
-                "status" => 400,
-                "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
-                "additional" => "Closing"
-            );
-        }
-
-        $validatedRequest = $request->validate([
-            "edit_id_status" => "required",
-            "edit_status" => "required",
-        ]);
-
-        // If the form already has stockers (return error)
-        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
-            $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
-            if ($stockerForm) {
-                return array(
-                    'status' => 400,
-                    'message' => 'Form sudah memiliki stocker',
-                    'redirect' => '',
-                    'table' => 'datatable',
-                    'additional' => [],
-                );
-            }
-        }
-
-        // If the form only has part form (delete part form & reorder)
-        $partForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->first();
-        if ($partForm) {
-            // Delete part form
-            $deletePartForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->delete();
-
-            if ($deletePartForm) {
-                // Reorder part form group
-                $stockerService->reorderStockerNumbering($partForm->part_id);
-            }
-        }
-
-        $updateStatusForm = FormCutInput::where('id', $validatedRequest['edit_id_status'])->update([
-            'status' => $validatedRequest['edit_status'],
-            'edited' => 1,
-            'edited_by' => Auth::user()->id,
-            'edited_by_username' => Auth::user()->username,
-            'edited_at' => Carbon::now(),
-            'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
-        ]);
-
-        if ($updateStatusForm) {
-            $updatedData = FormCutInput::where('id', $validatedRequest['edit_id_status'])->first();
-            return array(
-                'status' => 201,
-                'message' => 'Form  "' . $updatedData->no_form. '" berhasil diubah ke status '.$validatedRequest['edit_status'].'. ',
-                'redirect' => '',
-                'table' => 'datatable',
-                'additional' => [],
-            );
-        }
-
-        return array(
-            'status' => 400,
-            'message' => 'Data produksi gagal diubah',
-            'redirect' => '',
-            'table' => 'datatable',
-            'additional' => [],
-        );
+    public function updateStatus(Request $request, StockerService $stockerService, CuttingService $cuttingService) {
+        return $this->changeFormStatus($request, $stockerService, $cuttingService);
     }
 
-    public function updateStatusRedirect(Request $request, StockerService $stockerService) {
+    public function updateStatusRedirect(Request $request, StockerService $stockerService, CuttingService $cuttingService) {
+        return $this->changeFormStatus($request, $stockerService, $cuttingService, true);
+    }
+
+    private function changeFormStatus(Request $request, StockerService $stockerService, CuttingService $cuttingService, $withRedirect = false) {
         $validatedRequest = $request->validate([
-            "edit_id_status" => "required",
-            "edit_status" => "required",
+            "edit_id_status" => "required|exists:form_cut_input,id",
+            "edit_status" => "required|in:".implode(",", $this->editableFormStatuses),
         ]);
 
+        $formCutId = $validatedRequest['edit_id_status'];
+        $status = $validatedRequest['edit_status'];
+
+        $dataForm = FormCutInput::where("id", $formCutId)->first();
+        $isSuperadmin = Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0;
+
         // Check Closing
-        $dataForm = DB::table("form_cut_input")->where("id", $request->edit_id_status)->first();
-        if (!$dataForm->waktu_selesai) {
+        if (!$dataForm->waktu_selesai && !$isSuperadmin) {
             return array(
                 "status" => 400,
                 "message" => "Form belum memiliki waktu selesai.",
@@ -524,9 +461,21 @@ class SpreadingController extends Controller
             );
         }
 
+        // Output hasil switching akan hangus kalau dihapus / digenerate ulang
+        $hasSwitching = FormCutInputDetailOutput::where("form_cut_input_id", $formCutId)->
+            whereColumn("qty_output_original", "!=", "qty_output_aktual")->
+            exists();
+
+        if ($hasSwitching) {
+            return array(
+                "status" => 400,
+                "message" => "Form sudah ada transfer switching."
+            );
+        }
+
         // If the form already has stockers (return error)
-        if (!(Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)) {
-            $stockerForm = Stocker::where('form_cut_id', $validatedRequest['edit_id_status'])->first();
+        if (!$isSuperadmin) {
+            $stockerForm = Stocker::where('form_cut_id', $formCutId)->first();
             if ($stockerForm) {
                 return array(
                     'status' => 400,
@@ -538,63 +487,101 @@ class SpreadingController extends Controller
             }
         }
 
-        // If the form only has part form (delete part form & reorder)
-        $partForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->first();
-        if ($partForm) {
-            // Delete part form
-            $deletePartForm = PartForm::where('form_id', $validatedRequest['edit_id_status'])->delete();
-
-            if ($deletePartForm) {
-                // Reorder part form group
-                $stockerService->reorderStockerNumbering($partForm->part_id);
+        DB::beginTransaction();
+        try {
+            // Bypass for superadmin
+            if (!$dataForm->waktu_selesai) {
+                $dataForm->waktu_selesai = Carbon::now()->toDateTimeString();
+                $dataForm->save();
             }
-        }
 
-        $updateStatusForm = FormCutInput::where('id', $validatedRequest['edit_id_status'])->update([
-            'status' => $validatedRequest['edit_status'],
-            'edited' => 1,
-            'edited_by' => Auth::user()->id,
-            'edited_by_username' => Auth::user()->username,
-            'edited_at' => Carbon::now(),
-            'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ".$validatedRequest['edit_status']." AT ', CURRENT_TIMESTAMP )")
-        ]);
+            // If the form only has part form (delete part form & reorder)
+            $partForm = PartForm::where('form_id', $formCutId)->first();
+            if ($partForm) {
+                // Delete part form
+                $deletePartForm = PartForm::where('form_id', $formCutId)->delete();
 
-        if ($updateStatusForm) {
-            $updatedData = FormCutInput::where('id', $validatedRequest['edit_id_status'])->first();
-
-            // Redirect Route
-            $redirect = '';
-            switch ($updatedData->tipe_form_cut) {
-                case 'NORMAL' :
-                    $redirect = route('process-form-cut-input', $updatedData->id);
-                    break;
-                case 'MANUAL' :
-                    $redirect = route('process-manual-form-cut', $updatedData->id);
-                    break;
-                case 'PILOT' :
-                    $redirect = route('process-pilot-form-cut', $updatedData->id);
-                    break;
-                default :
-                    $redirect = null;
-                    break;
+                if ($deletePartForm) {
+                    // Reorder part form group
+                    $stockerService->reorderStockerNumbering($partForm->part_id);
+                }
             }
+
+            $updateStatusForm = FormCutInput::where('id', $formCutId)->update([
+                'status' => $status,
+                'edited' => 1,
+                'edited_by' => Auth::user()->id,
+                'edited_by_username' => Auth::user()->username,
+                'edited_at' => Carbon::now(),
+                'edit_notes' => DB::raw("CONCAT(COALESCE(edit_notes,''), CHAR(10), ' EDIT STATUS TO ', ".DB::getPdo()->quote($status).", ' AT ', CURRENT_TIMESTAMP )")
+            ]);
+
+            if (!$updateStatusForm) {
+                DB::rollBack();
+
+                return array(
+                    'status' => 400,
+                    'message' => 'Data produksi gagal diubah',
+                    'redirect' => '',
+                    'table' => 'datatable',
+                    'additional' => [],
+                );
+            }
+
+            // Update or delete form cut input detail output
+            if ($status == 'SELESAI PENGERJAAN') {
+                $generateOutput = $cuttingService->generateFormCutInputDetailOutput($formCutId, true);
+
+                if ($generateOutput['status'] != 200) {
+                    DB::rollBack();
+
+                    return array(
+                        'status' => 400,
+                        'message' => $generateOutput['message'],
+                        'redirect' => '',
+                        'table' => 'datatable',
+                        'additional' => [],
+                    );
+                }
+            } else {
+                FormCutInputDetailOutput::where("form_cut_input_id", $formCutId)->delete();
+            }
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            Log::error("Gagal mengubah status form ".$dataForm->no_form." : ".$th->getMessage());
 
             return array(
-                'status' => 201,
-                'message' => 'Form  "' . $updatedData->no_form. '" berhasil diubah ke status '.$validatedRequest['edit_status'].'. ',
-                'redirect' => $redirect,
+                'status' => 400,
+                'message' => 'Data produksi gagal diubah',
+                'redirect' => '',
                 'table' => 'datatable',
                 'additional' => [],
             );
         }
 
         return array(
-            'status' => 400,
-            'message' => 'Data produksi gagal diubah',
-            'redirect' => null,
+            'status' => 201,
+            'message' => 'Form  "' . $dataForm->no_form. '" berhasil diubah ke status '.$status.'. ',
+            'redirect' => $withRedirect ? $this->formProcessRoute($dataForm) : '',
             'table' => 'datatable',
             'additional' => [],
         );
+    }
+
+    private function formProcessRoute($form) {
+        switch ($form->tipe_form_cut) {
+            case 'NORMAL' :
+                return route('process-form-cut-input', $form->id);
+            case 'MANUAL' :
+                return route('process-manual-form-cut', $form->id);
+            case 'PILOT' :
+                return route('process-pilot-form-cut', $form->id);
+            default :
+                return null;
+        }
     }
 
     /**
@@ -605,9 +592,18 @@ class SpreadingController extends Controller
      */
     public function destroy(FormCutInput $formCutInput, $id, CuttingService $cuttingService, StockerService $stockerService)
     {
+        $spreadingForm = FormCutInput::where('id', $id)->first();
+
+        if (!$spreadingForm) {
+            return array(
+                "status" => 400,
+                "message" => "Form tidak ditemukan",
+                "table" => "datatable"
+            );
+        }
+
         // Check Closing
-        $dataCheckClosing = DB::table("form_cut_input")->where("id", $id)->first();
-        if (checkClosingDate($dataCheckClosing->waktu_selesai)) {
+        if (checkClosingDate($spreadingForm->waktu_selesai)) {
             return array(
                 "status" => 400,
                 "message" => "Data tidak dapat disimpan karena periode sudah ditutup.",
@@ -615,7 +611,17 @@ class SpreadingController extends Controller
             );
         }
 
-        $spreadingForm = FormCutInput::where('id', $id)->first();
+        // Output hasil switching akan hangus kalau dihapus
+        $hasSwitching = FormCutInputDetailOutput::where("form_cut_input_id", $id)->
+            whereColumn("qty_output_original", "!=", "qty_output_aktual")->
+            exists();
+
+        if ($hasSwitching) {
+            return array(
+                "status" => 400,
+                "message" => "Form sudah ada transfer switching."
+            );
+        }
 
         $checkMarker = Marker::where("kode", $spreadingForm->id_marker)->first();
 
@@ -631,113 +637,127 @@ class SpreadingController extends Controller
             );
         }
 
-        // If the form only has part form (delete part form & reorder)
-        $partForm = PartForm::where('form_id', $id)->first();
-        if ($partForm) {
-            // Delete part form
-            $deletePartForm = PartForm::where('form_id', $id)->delete();
+        DB::beginTransaction();
+        try {
+            // If the form only has part form (delete part form & reorder)
+            $partForm = PartForm::where('form_id', $id)->first();
+            if ($partForm) {
+                // Delete part form
+                $deletePartForm = PartForm::where('form_id', $id)->delete();
 
-            if ($deletePartForm) {
-                // Reorder part form group
-                $stockerService->reorderStockerNumbering($partForm->part_id);
-            }
-        }
-
-        // Delete Detail
-        $spreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->get();
-
-        $idRolls = [];
-        $idFormDetailLapArr = [];
-        foreach ($spreadingFormDetails as $spreadingFormDetail) {
-            DB::table("form_cut_input_detail_delete")->insert([
-                "no_form_cut_input" => $spreadingFormDetail['no_form_cut_input'],
-                "id_roll" => $spreadingFormDetail['id_roll'],
-                "id_item" => $spreadingFormDetail['id_item'],
-                "color_act" => $spreadingFormDetail['color_act'],
-                "detail_item" => $spreadingFormDetail['detail_item'],
-                "group_roll" => $spreadingFormDetail['group_roll'],
-                "lot" => $spreadingFormDetail['lot'],
-                "roll" => $spreadingFormDetail['roll'],
-                "qty" => $spreadingFormDetail['qty'],
-                "unit" => $spreadingFormDetail['unit'],
-                "sisa_gelaran" => $spreadingFormDetail['sisa_gelaran'],
-                "sambungan" => $spreadingFormDetail['sambungan'],
-                "est_amparan" => $spreadingFormDetail['est_amparan'],
-                "lembar_gelaran" => $spreadingFormDetail['lembar_gelaran'],
-                "average_time" => $spreadingFormDetail['average_time'],
-                "kepala_kain" => $spreadingFormDetail['kepala_kain'],
-                "sisa_tidak_bisa" => $spreadingFormDetail['sisa_tidak_bisa'],
-                "reject" => $spreadingFormDetail['reject'],
-                "sisa_kain" => $spreadingFormDetail['sisa_kain'],
-                "total_pemakaian_roll" => $spreadingFormDetail['total_pemakaian_roll'],
-                "short_roll" => $spreadingFormDetail['short_roll'],
-                "piping" => $spreadingFormDetail['piping'],
-                "remark" => $spreadingFormDetail['remark'],
-                "status" => $spreadingFormDetail['status'],
-                "metode" => $spreadingFormDetail['metode'],
-                "group_stocker" => $spreadingFormDetail['group_stocker'],
-                "created_at" => $spreadingFormDetail['created_at'],
-                "updated_at" => $spreadingFormDetail['updated_at'],
-                "deleted_by" => Auth::user()->username,
-                "deleted_at" => Carbon::now(),
-            ]);
-
-            array_push($idRolls, $spreadingFormDetail->id_roll);
-            array_push($idFormDetailLapArr, $spreadingFormDetail->id);
-
-            // Delete Spreading Form Detail
-            $spreadingFormDetail->delete();
-        }
-
-        // Delete Detail Lap
-        $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
-
-        // Delete Cutting Plan Items
-        $deleteCutPlan = CutPlan::where('form_cut_id', $id)->delete();
-
-        // Spreading Form Delete Process
-        $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
-        if ($deleteSpreadingForm) {
-
-            // Delete Spreading Form Detail All
-            $deleteSpreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->delete();
-
-            // Update Scanned Item Balance
-            $cuttingService->fixMultipleRollQty($idRolls);
-
-            // Update Marker Balance
-            $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
-                "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.($spreadingForm->qty_ply ? $spreadingForm->qty_ply : 0))
-            ]);
-
-            // Similar Form No. Cutting Update
-            $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->
-                leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
-                where("marker_input.act_costing_ws", $checkMarker ? $checkMarker->act_costing_ws : null)->
-                where("marker_input.color", $checkMarker ? $checkMarker->color : null)->
-                where("marker_input.panel", $checkMarker ? $checkMarker->panel : null)->
-                where("form_cut_input.status", "SELESAI PENGERJAAN")->
-                orderBy("form_cut_input.waktu_selesai", "asc")->
-                orderBy("form_cut_input.no_cut", "asc")->
-                get();
-
-            if ($formCuts->count() > 0) {
-                $i=0;
-                foreach ($formCuts as $formCut) {
-                    $i++;
-
-                    $updateFormCut = FormCutInput::where("id", $formCut->id)->
-                        update([
-                            "no_cut" => $i
-                        ]);
+                if ($deletePartForm) {
+                    // Reorder part form group
+                    $stockerService->reorderStockerNumbering($partForm->part_id);
                 }
             }
 
-            return array(
-                "status" => 200,
-                "message" => "Form berhasil dihapus",
-                "table" => "datatable"
-            );
+            // Delete Detail
+            $spreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->get();
+
+            $idRolls = [];
+            $idFormDetailLapArr = [];
+            foreach ($spreadingFormDetails as $spreadingFormDetail) {
+                DB::table("form_cut_input_detail_delete")->insert([
+                    "no_form_cut_input" => $spreadingFormDetail['no_form_cut_input'],
+                    "id_roll" => $spreadingFormDetail['id_roll'],
+                    "id_item" => $spreadingFormDetail['id_item'],
+                    "color_act" => $spreadingFormDetail['color_act'],
+                    "detail_item" => $spreadingFormDetail['detail_item'],
+                    "group_roll" => $spreadingFormDetail['group_roll'],
+                    "lot" => $spreadingFormDetail['lot'],
+                    "roll" => $spreadingFormDetail['roll'],
+                    "qty" => $spreadingFormDetail['qty'],
+                    "unit" => $spreadingFormDetail['unit'],
+                    "sisa_gelaran" => $spreadingFormDetail['sisa_gelaran'],
+                    "sambungan" => $spreadingFormDetail['sambungan'],
+                    "est_amparan" => $spreadingFormDetail['est_amparan'],
+                    "lembar_gelaran" => $spreadingFormDetail['lembar_gelaran'],
+                    "average_time" => $spreadingFormDetail['average_time'],
+                    "kepala_kain" => $spreadingFormDetail['kepala_kain'],
+                    "sisa_tidak_bisa" => $spreadingFormDetail['sisa_tidak_bisa'],
+                    "reject" => $spreadingFormDetail['reject'],
+                    "sisa_kain" => $spreadingFormDetail['sisa_kain'],
+                    "total_pemakaian_roll" => $spreadingFormDetail['total_pemakaian_roll'],
+                    "short_roll" => $spreadingFormDetail['short_roll'],
+                    "piping" => $spreadingFormDetail['piping'],
+                    "remark" => $spreadingFormDetail['remark'],
+                    "status" => $spreadingFormDetail['status'],
+                    "metode" => $spreadingFormDetail['metode'],
+                    "group_stocker" => $spreadingFormDetail['group_stocker'],
+                    "created_at" => $spreadingFormDetail['created_at'],
+                    "updated_at" => $spreadingFormDetail['updated_at'],
+                    "deleted_by" => Auth::user()->username,
+                    "deleted_at" => Carbon::now(),
+                ]);
+
+                array_push($idRolls, $spreadingFormDetail->id_roll);
+                array_push($idFormDetailLapArr, $spreadingFormDetail->id);
+
+                // Delete Spreading Form Detail
+                $spreadingFormDetail->delete();
+            }
+
+            // Delete Detail Lap
+            $deleteSpreadingFormDetailLap = FormCutInputDetailLap::whereIn("form_cut_input_detail_id", $idFormDetailLapArr)->delete();
+
+            // Delete Form Cut Input Detail Output
+            FormCutInputDetailOutput::where("form_cut_input_id", $id)->delete();
+
+            // Delete Cutting Plan Items
+            $deleteCutPlan = CutPlan::where('form_cut_id', $id)->delete();
+
+            // Spreading Form Delete Process
+            $deleteSpreadingForm = FormCutInput::where('id', $id)->delete();
+            if ($deleteSpreadingForm) {
+
+                // Delete Spreading Form Detail All
+                $deleteSpreadingFormDetails = FormCutInputDetail::where('form_cut_id', $spreadingForm->id)->delete();
+
+                // Update Scanned Item Balance
+                $cuttingService->fixMultipleRollQty($idRolls);
+
+                // Update Marker Balance
+                $updateMarkerBalance = Marker::where("kode", $spreadingForm->id_marker)->update([
+                    "gelar_qty_balance" => DB::raw('gelar_qty_balance + '.($spreadingForm->qty_ply ? $spreadingForm->qty_ply : 0))
+                ]);
+
+                // Similar Form No. Cutting Update
+                $formCuts = FormCutInput::selectRaw("form_cut_input.id as id, form_cut_input.no_form, form_cut_input.status")->
+                    leftJoin("marker_input", "marker_input.kode", "=", "form_cut_input.id_marker")->
+                    where("marker_input.act_costing_ws", $checkMarker ? $checkMarker->act_costing_ws : null)->
+                    where("marker_input.color", $checkMarker ? $checkMarker->color : null)->
+                    where("marker_input.panel", $checkMarker ? $checkMarker->panel : null)->
+                    where("form_cut_input.status", "SELESAI PENGERJAAN")->
+                    orderBy("form_cut_input.waktu_selesai", "asc")->
+                    orderBy("form_cut_input.no_cut", "asc")->
+                    get();
+
+                if ($formCuts->count() > 0) {
+                    $i=0;
+                    foreach ($formCuts as $formCut) {
+                        $i++;
+
+                        $updateFormCut = FormCutInput::where("id", $formCut->id)->
+                            update([
+                                "no_cut" => $i
+                            ]);
+                    }
+                }
+
+                DB::commit();
+
+                return array(
+                    "status" => 200,
+                    "message" => "Form berhasil dihapus",
+                    "table" => "datatable"
+                );
+            }
+
+            DB::rollBack();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            Log::error("Gagal menghapus form ".$spreadingForm->no_form." : ".$th->getMessage());
         }
 
         return array(
@@ -780,7 +800,7 @@ class SpreadingController extends Controller
                 SUM(cutting.qty_modify_size) qty_modify_size,
                 SUM(cutting.switching_out) qty_switching_out,
                 SUM(cutting.switching_in) qty_switching_in,
-                SUM(cutting.qty) qty
+                SUM(cutting.qty - cutting.switching_out + cutting.switching_in) qty
             FROM
             (
                 SELECT
@@ -807,17 +827,9 @@ class SpreadingController extends Controller
                     ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) qty_awal,
                     0 as qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
-                    CASE
-                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
-                        THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                        ELSE 0
-                    END AS switching_out,
-                    CASE
-                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) > 0
-                        THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                        ELSE 0
-                    END AS switching_in,
-                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
+                    0 AS switching_out,
+                    0 AS switching_in,
+                    ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM
                     form_cut_input
                     LEFT JOIN (
@@ -952,17 +964,9 @@ class SpreadingController extends Controller
                     0 qty_awal,
                     ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
-                    CASE
-                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
-                        THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                        ELSE 0
-                    END AS switching_out,
-                    CASE
-                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) > 0
-                        THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                        ELSE 0
-                    END AS switching_in,
-                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
+                    0 AS switching_out,
+                    0 AS switching_in,
+                    ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM laravel_nds.form_cut_input
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
@@ -1071,6 +1075,249 @@ class SpreadingController extends Controller
                 GROUP BY
                     form_cut_reject.id,
                     form_cut_reject_detail.so_det_id
+
+                UNION ALL
+
+                /* Switching: kolom disamakan dengan union di atas, tanpa join part (report ini tidak per part) */
+                SELECT
+                    tanggal_form AS tanggal,
+                    meja,
+                    ws AS worksheet,
+                    buyer,
+                    styleno AS style,
+                    color,
+                    msb_id_so_det AS id_so_det,
+                    size,
+                    dest,
+                    (CASE WHEN dest IS NOT NULL AND dest != '-' THEN CONCAT(size, ' - ', dest) ELSE size END) size_dest,
+                    group_roll,
+                    NULL AS lot,
+                    no_cut,
+                    no_form,
+                    no_marker,
+                    panel,
+                    '-' AS max_group,
+                    NULL AS group_stocker,
+                    NULL AS difference_qty,
+                    NULL AS modified_qty,
+                    0 AS qty_awal,
+                    0 AS qty_additional,
+                    0 AS qty_modify_size,
+                    SUM(total_out) AS switching_out,
+                    SUM(total_in) AS switching_in,
+                    0 AS qty
+                FROM (
+                    /* LOGS ASAL (OUT) - Standard Form */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_asal.no_form AS no_form,
+                        form_asal.no_cut AS no_cut,
+                        COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) AS tanggal_form,
+                        UPPER(meja_asal.name) AS meja,
+                        marker_asal.kode AS no_marker,
+                        msb_asal.ws AS ws,
+                        msb_asal.buyer AS buyer,
+                        msb_asal.styleno AS styleno,
+                        msb_asal.color AS color,
+                        msb_asal.size AS size,
+                        msb_asal.dest AS dest,
+                        msb_asal.id_so_det AS msb_id_so_det,
+                        marker_asal.panel AS panel,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                        0 AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        LEFT JOIN users meja_asal ON meja_asal.id = form_asal.no_meja
+                        LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                        LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                    UNION ALL
+
+                    /* LOGS TUJUAN (IN) - Standard Form */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_tujuan.no_form AS no_form,
+                        form_tujuan.no_cut AS no_cut,
+                        COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) AS tanggal_form,
+                        UPPER(meja_tujuan.name) AS meja,
+                        marker_tujuan.kode AS no_marker,
+                        msb_tujuan.ws AS ws,
+                        msb_tujuan.buyer AS buyer,
+                        msb_tujuan.styleno AS styleno,
+                        msb_tujuan.color AS color,
+                        msb_tujuan.size AS size,
+                        msb_tujuan.dest AS dest,
+                        msb_tujuan.id_so_det AS msb_id_so_det,
+                        marker_tujuan.panel AS panel,
+                        0 AS total_out,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        LEFT JOIN users meja_tujuan ON meja_tujuan.id = form_tujuan.no_meja
+                        LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                        LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                    UNION ALL
+
+                    /* LOGS ASAL (OUT) - Additional Stocker */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_asal.no_form AS no_form,
+                        form_asal.no_cut AS no_cut,
+                        COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) AS tanggal_form,
+                        UPPER(meja_asal.name) AS meja,
+                        marker_asal.kode AS no_marker,
+                        stocker_ws_additional_asal.act_costing_ws AS ws,
+                        stocker_ws_additional_asal.buyer AS buyer,
+                        stocker_ws_additional_asal.style AS styleno,
+                        stocker_ws_additional_asal.color AS color,
+                        msb_asal.size AS size,
+                        msb_asal.dest AS dest,
+                        msb_asal.id_so_det AS msb_id_so_det,
+                        stocker_ws_additional_asal.panel AS panel,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                        0 AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        LEFT JOIN users meja_asal ON meja_asal.id = form_asal.no_meja
+                        LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                        INNER JOIN stocker_ws_additional stocker_ws_additional_asal ON stocker_ws_additional_asal.form_cut_id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        INNER JOIN stocker_ws_additional_detail stocker_ws_additional_detail_asal ON stocker_ws_additional_detail_asal.stocker_additional_id = stocker_ws_additional_asal.id
+                            AND stocker_ws_additional_detail_asal.size = marker_detail_asal.size
+                        LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = stocker_ws_additional_detail_asal.so_det_id
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                    UNION ALL
+
+                    /* LOGS TUJUAN (IN) - Additional Stocker */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_tujuan.no_form AS no_form,
+                        form_tujuan.no_cut AS no_cut,
+                        COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) AS tanggal_form,
+                        UPPER(meja_tujuan.name) AS meja,
+                        marker_tujuan.kode AS no_marker,
+                        stocker_ws_additional_tujuan.act_costing_ws AS ws,
+                        stocker_ws_additional_tujuan.buyer AS buyer,
+                        stocker_ws_additional_tujuan.style AS styleno,
+                        stocker_ws_additional_tujuan.color AS color,
+                        msb_tujuan.size AS size,
+                        msb_tujuan.dest AS dest,
+                        msb_tujuan.id_so_det AS msb_id_so_det,
+                        stocker_ws_additional_tujuan.panel AS panel,
+                        0 AS total_out,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        LEFT JOIN users meja_tujuan ON meja_tujuan.id = form_tujuan.no_meja
+                        LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                        INNER JOIN stocker_ws_additional stocker_ws_additional_tujuan ON stocker_ws_additional_tujuan.form_cut_id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        INNER JOIN stocker_ws_additional_detail stocker_ws_additional_detail_tujuan ON stocker_ws_additional_detail_tujuan.stocker_additional_id = stocker_ws_additional_tujuan.id
+                            AND stocker_ws_additional_detail_tujuan.size = marker_detail_tujuan.size
+                        LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = stocker_ws_additional_detail_tujuan.so_det_id
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                    UNION ALL
+
+                    /* LOGS ASAL (OUT) - Custom Case */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_asal.no_form AS no_form,
+                        form_asal.no_cut AS no_cut,
+                        COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) AS tanggal_form,
+                        UPPER(meja_asal.name) AS meja,
+                        marker_asal.kode AS no_marker,
+                        msb_asal.ws AS ws,
+                        msb_asal.buyer AS buyer,
+                        msb_asal.styleno AS styleno,
+                        msb_asal.color AS color,
+                        msb_asal.size AS size,
+                        msb_asal.dest AS dest,
+                        msb_asal.id_so_det AS msb_id_so_det,
+                        marker_asal.panel AS panel,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                        0 AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        LEFT JOIN users meja_asal ON meja_asal.id = form_asal.no_meja
+                        LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                        LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = form_cut_input_detail_output_logs.so_det_id_asal
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND (form_cut_input_detail_output_logs.so_det_id_asal > 0 OR form_cut_input_detail_output_logs.so_det_id_tujuan > 0)
+
+                    UNION ALL
+
+                    /* LOGS TUJUAN (IN) - Custom Case */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_tujuan.no_form AS no_form,
+                        form_tujuan.no_cut AS no_cut,
+                        COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) AS tanggal_form,
+                        UPPER(meja_tujuan.name) AS meja,
+                        marker_tujuan.kode AS no_marker,
+                        msb_tujuan.ws AS ws,
+                        msb_tujuan.buyer AS buyer,
+                        msb_tujuan.styleno AS styleno,
+                        msb_tujuan.color AS color,
+                        msb_tujuan.size AS size,
+                        msb_tujuan.dest AS dest,
+                        msb_tujuan.id_so_det AS msb_id_so_det,
+                        marker_tujuan.panel AS panel,
+                        0 AS total_out,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        LEFT JOIN users meja_tujuan ON meja_tujuan.id = form_tujuan.no_meja
+                        LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                        LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = form_cut_input_detail_output_logs.so_det_id_tujuan
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND (form_cut_input_detail_output_logs.so_det_id_asal > 0 OR form_cut_input_detail_output_logs.so_det_id_tujuan > 0)
+                ) log_data
+                GROUP BY
+                    tanggal_form,
+                    meja,
+                    ws,
+                    buyer,
+                    styleno,
+                    color,
+                    msb_id_so_det,
+                    size,
+                    dest,
+                    group_roll,
+                    no_cut,
+                    no_form,
+                    no_marker,
+                    panel
             ) cutting
             GROUP BY
                 tanggal,
@@ -1233,7 +1480,7 @@ class SpreadingController extends Controller
                 SUM(cutting.qty_modify_size) qty_modify_size,
                 SUM(cutting.switching_out) qty_switching_out,
                 SUM(cutting.switching_in) qty_switching_in,
-                SUM(cutting.qty) qty
+                SUM(cutting.qty - cutting.switching_out + cutting.switching_in) qty
             FROM
             (
                 SELECT
@@ -1260,17 +1507,9 @@ class SpreadingController extends Controller
                     ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) qty_awal,
                     0 as qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
-                    CASE
-                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
-                        THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                        ELSE 0
-                    END AS switching_out,
-                    CASE
-                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) > 0
-                        THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(marker_input_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                        ELSE 0
-                    END AS switching_in,
-                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
+                    0 AS switching_out,
+                    0 AS switching_in,
+                    ( COALESCE ( marker_input_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM
                     form_cut_input
                     LEFT JOIN (
@@ -1333,7 +1572,7 @@ class SpreadingController extends Controller
                 WHERE
                     form_cut_input.status = 'SELESAI PENGERJAAN' and
                     COALESCE(DATE(form_cut_input.waktu_selesai), DATE(form_cut_input.waktu_mulai), DATE(form_cut_input.tgl_input)) between '".$dateFrom."' and '".$dateTo."' and
-                    (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0) OR form_cut_input_detail_output.qty_output_aktual > 0)
+                    (marker_input_detail.ratio > 0 OR (similar.max_group = form_cut_input_detail.group_stocker AND modify_size_qty.difference_qty > 0))
                 GROUP BY
                     form_cut_input.id,
                     form_cut_input_detail.group_roll,
@@ -1405,17 +1644,9 @@ class SpreadingController extends Controller
                     0 qty_awal,
                     ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) qty_additional,
                     (COALESCE(modify_size_qty.difference_qty, 0)) qty_modify_size,
-                    CASE
-                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) < 0
-                        THEN ABS(SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                        ELSE 0
-                    END AS switching_out,
-                    CASE
-                        WHEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0))) > 0
-                        THEN (SUM(form_cut_input_detail_output.qty_output_aktual) - (COALESCE(stocker_ws_additional_detail.ratio, 0) * COALESCE(form_cut_input_detail.total_lembar, 0)))
-                        ELSE 0
-                    END AS switching_in,
-                    COALESCE ( SUM(form_cut_input_detail_output.qty_output_aktual), ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
+                    0 AS switching_out,
+                    0 AS switching_in,
+                    ( COALESCE ( stocker_ws_additional_detail.ratio, 0 ) * COALESCE ( form_cut_input_detail.total_lembar, 0 ) ) + COALESCE ( modify_size_qty.difference_qty, 0 ) qty
                 FROM laravel_nds.form_cut_input
                 LEFT JOIN laravel_nds.stocker_ws_additional ON stocker_ws_additional.form_cut_id = form_cut_input.id
                 LEFT JOIN laravel_nds.stocker_ws_additional_detail ON stocker_ws_additional_detail.stocker_additional_id = stocker_ws_additional.id
@@ -1479,7 +1710,6 @@ class SpreadingController extends Controller
                     AND (
                         stocker_ws_additional_detail.ratio > 0
                         OR modify_size_qty.difference_qty != 0
-                        OR form_cut_input_detail_output.qty_output_aktual > 0
                     )
                 GROUP BY
                     form_cut_input.id,
@@ -1524,13 +1754,271 @@ class SpreadingController extends Controller
                 GROUP BY
                     form_cut_reject.id,
                     form_cut_reject_detail.so_det_id
+
+
+                UNION ALL
+
+                /* Switching: kolom disamakan dengan union di atas, part di-join di luar subquery */
+                SELECT
+                    tanggal_form AS tanggal,
+                    meja,
+                    ws AS worksheet,
+                    buyer,
+                    styleno AS style,
+                    color,
+                    msb_id_so_det AS id_so_det,
+                    size,
+                    dest,
+                    (CASE WHEN dest IS NOT NULL AND dest != '-' THEN CONCAT(size, ' - ', dest) ELSE size END) size_dest,
+                    group_roll,
+                    NULL AS lot,
+                    no_cut,
+                    no_form,
+                    no_marker,
+                    panel,
+                    '-' AS max_group,
+                    NULL AS group_stocker,
+                    NULL AS difference_qty,
+                    NULL AS modified_qty,
+                    0 AS qty_awal,
+                    0 AS qty_additional,
+                    0 AS qty_modify_size,
+                    SUM(total_out) AS switching_out,
+                    SUM(total_in) AS switching_in,
+                    0 AS qty
+                FROM (
+                    /* LOGS ASAL (OUT) - Standard Form */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_asal.no_form AS no_form,
+                        form_asal.no_cut AS no_cut,
+                        COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) AS tanggal_form,
+                        UPPER(meja_asal.name) AS meja,
+                        marker_asal.kode AS no_marker,
+                        msb_asal.ws AS ws,
+                        msb_asal.buyer AS buyer,
+                        msb_asal.styleno AS styleno,
+                        msb_asal.color AS color,
+                        msb_asal.size AS size,
+                        msb_asal.dest AS dest,
+                        msb_asal.id_so_det AS msb_id_so_det,
+                        marker_asal.panel AS panel,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                        0 AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        LEFT JOIN users meja_asal ON meja_asal.id = form_asal.no_meja
+                        LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                        LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                    UNION ALL
+
+                    /* LOGS TUJUAN (IN) - Standard Form */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_tujuan.no_form AS no_form,
+                        form_tujuan.no_cut AS no_cut,
+                        COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) AS tanggal_form,
+                        UPPER(meja_tujuan.name) AS meja,
+                        marker_tujuan.kode AS no_marker,
+                        msb_tujuan.ws AS ws,
+                        msb_tujuan.buyer AS buyer,
+                        msb_tujuan.styleno AS styleno,
+                        msb_tujuan.color AS color,
+                        msb_tujuan.size AS size,
+                        msb_tujuan.dest AS dest,
+                        msb_tujuan.id_so_det AS msb_id_so_det,
+                        marker_tujuan.panel AS panel,
+                        0 AS total_out,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        LEFT JOIN users meja_tujuan ON meja_tujuan.id = form_tujuan.no_meja
+                        LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                        LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                    UNION ALL
+
+                    /* LOGS ASAL (OUT) - Additional Stocker */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_asal.no_form AS no_form,
+                        form_asal.no_cut AS no_cut,
+                        COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) AS tanggal_form,
+                        UPPER(meja_asal.name) AS meja,
+                        marker_asal.kode AS no_marker,
+                        stocker_ws_additional_asal.act_costing_ws AS ws,
+                        stocker_ws_additional_asal.buyer AS buyer,
+                        stocker_ws_additional_asal.style AS styleno,
+                        stocker_ws_additional_asal.color AS color,
+                        msb_asal.size AS size,
+                        msb_asal.dest AS dest,
+                        msb_asal.id_so_det AS msb_id_so_det,
+                        stocker_ws_additional_asal.panel AS panel,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                        0 AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        LEFT JOIN users meja_asal ON meja_asal.id = form_asal.no_meja
+                        LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                        INNER JOIN stocker_ws_additional stocker_ws_additional_asal ON stocker_ws_additional_asal.form_cut_id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        INNER JOIN stocker_ws_additional_detail stocker_ws_additional_detail_asal ON stocker_ws_additional_detail_asal.stocker_additional_id = stocker_ws_additional_asal.id
+                            AND stocker_ws_additional_detail_asal.size = marker_detail_asal.size
+                        LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = stocker_ws_additional_detail_asal.so_det_id
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                    UNION ALL
+
+                    /* LOGS TUJUAN (IN) - Additional Stocker */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_tujuan.no_form AS no_form,
+                        form_tujuan.no_cut AS no_cut,
+                        COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) AS tanggal_form,
+                        UPPER(meja_tujuan.name) AS meja,
+                        marker_tujuan.kode AS no_marker,
+                        stocker_ws_additional_tujuan.act_costing_ws AS ws,
+                        stocker_ws_additional_tujuan.buyer AS buyer,
+                        stocker_ws_additional_tujuan.style AS styleno,
+                        stocker_ws_additional_tujuan.color AS color,
+                        msb_tujuan.size AS size,
+                        msb_tujuan.dest AS dest,
+                        msb_tujuan.id_so_det AS msb_id_so_det,
+                        stocker_ws_additional_tujuan.panel AS panel,
+                        0 AS total_out,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        LEFT JOIN users meja_tujuan ON meja_tujuan.id = form_tujuan.no_meja
+                        LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                        INNER JOIN stocker_ws_additional stocker_ws_additional_tujuan ON stocker_ws_additional_tujuan.form_cut_id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        INNER JOIN stocker_ws_additional_detail stocker_ws_additional_detail_tujuan ON stocker_ws_additional_detail_tujuan.stocker_additional_id = stocker_ws_additional_tujuan.id
+                            AND stocker_ws_additional_detail_tujuan.size = marker_detail_tujuan.size
+                        LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = stocker_ws_additional_detail_tujuan.so_det_id
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND form_cut_input_detail_output_logs.so_det_id_tujuan is null and form_cut_input_detail_output_logs.so_det_id_asal is null
+
+                    UNION ALL
+
+                    /* LOGS ASAL (OUT) - Custom Case */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_asal.no_form AS no_form,
+                        form_asal.no_cut AS no_cut,
+                        COALESCE(DATE(form_asal.waktu_selesai), DATE(form_asal.waktu_mulai), DATE(form_asal.tgl_input)) AS tanggal_form,
+                        UPPER(meja_asal.name) AS meja,
+                        marker_asal.kode AS no_marker,
+                        msb_asal.ws AS ws,
+                        msb_asal.buyer AS buyer,
+                        msb_asal.styleno AS styleno,
+                        msb_asal.color AS color,
+                        msb_asal.size AS size,
+                        msb_asal.dest AS dest,
+                        msb_asal.id_so_det AS msb_id_so_det,
+                        marker_asal.panel AS panel,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_out,
+                        0 AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        LEFT JOIN users meja_asal ON meja_asal.id = form_asal.no_meja
+                        LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                        LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = form_cut_input_detail_output_logs.so_det_id_asal
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND (form_cut_input_detail_output_logs.so_det_id_asal > 0 OR form_cut_input_detail_output_logs.so_det_id_tujuan > 0)
+
+                    UNION ALL
+
+                    /* LOGS TUJUAN (IN) - Custom Case */
+                    SELECT
+                        form_cut_input_detail_output_logs.group_roll_asal AS group_roll,
+                        form_tujuan.no_form AS no_form,
+                        form_tujuan.no_cut AS no_cut,
+                        COALESCE(DATE(form_tujuan.waktu_selesai), DATE(form_tujuan.waktu_mulai), DATE(form_tujuan.tgl_input)) AS tanggal_form,
+                        UPPER(meja_tujuan.name) AS meja,
+                        marker_tujuan.kode AS no_marker,
+                        msb_tujuan.ws AS ws,
+                        msb_tujuan.buyer AS buyer,
+                        msb_tujuan.styleno AS styleno,
+                        msb_tujuan.color AS color,
+                        msb_tujuan.size AS size,
+                        msb_tujuan.dest AS dest,
+                        msb_tujuan.id_so_det AS msb_id_so_det,
+                        marker_tujuan.panel AS panel,
+                        0 AS total_out,
+                        form_cut_input_detail_output_logs.qty_transfer AS total_in
+                    FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        LEFT JOIN users meja_tujuan ON meja_tujuan.id = form_tujuan.no_meja
+                        LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                        LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = form_cut_input_detail_output_logs.so_det_id_tujuan
+                    WHERE
+                        (form_cut_input_detail_output_logs.is_active IS NULL OR form_cut_input_detail_output_logs.is_active > 0)
+                        AND form_cut_input_detail_output_logs.created_at BETWEEN '".$dateFrom." 00:00:00' AND '".$dateTo." 23:59:59'
+                        AND (form_cut_input_detail_output_logs.so_det_id_asal > 0 OR form_cut_input_detail_output_logs.so_det_id_tujuan > 0)
+                ) log_data
+                GROUP BY
+                    tanggal_form,
+                    meja,
+                    ws,
+                    buyer,
+                    styleno,
+                    color,
+                    msb_id_so_det,
+                    size,
+                    dest,
+                    group_roll,
+                    no_cut,
+                    no_form,
+                    no_marker,
+                    panel
             ) cutting
             LEFT JOIN part on part.act_costing_ws = cutting.worksheet and part.panel = cutting.panel
             LEFT JOIN part_detail on part_detail.part_id = part.id
             LEFT JOIN master_part on master_part.id = part_detail.master_part_id
             LEFT JOIN part_custom pcust ON pcust.part_id = part.id and pcust.part_detail_id = part_detail.id and pcust.color = cutting.color AND (CASE WHEN pcust.tanggal_berlaku IS NOT NULL THEN pcust.tanggal_berlaku <= cutting.tanggal ELSE 1=1 END)
+            LEFT JOIN (
+                -- part detail yang pertama kali dipakai oleh stocker manual SM-10112026 9:15 (injectan) tidak dihitung
+                SELECT s.part_detail_id
+                FROM stocker_input s
+                INNER JOIN (
+                    SELECT part_detail_id, MIN(id) min_id
+                    FROM stocker_input
+                    WHERE part_detail_id IN (SELECT part_detail_id FROM stocker_input WHERE notes = 'STOCKER MANUAL SM-10112026 9:15')
+                    GROUP BY part_detail_id
+                ) f ON f.min_id = s.id
+                WHERE s.notes = 'STOCKER MANUAL SM-10112026 9:15'
+            ) pd_manual ON pd_manual.part_detail_id = part_detail.id
             WHERE
-                (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL)
+                pd_manual.part_detail_id IS NULL AND
+                (COALESCE(pcust.set_part_status, part_detail.part_status) != 'complement' OR COALESCE(pcust.set_part_status, part_detail.part_status) IS NULL) AND
+                (CASE WHEN tanggal > '2026-09-30' THEN COALESCE(part_detail.status, 'active') = 'active' ELSE 1=1 END)
             GROUP BY
                 tanggal,
                 meja,
