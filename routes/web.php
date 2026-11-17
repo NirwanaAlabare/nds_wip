@@ -25,6 +25,8 @@ use App\Http\Controllers\FinishGoodAlokasiKartonController;
 use App\Http\Controllers\FinishGoodDashboardController;
 use App\Http\Controllers\FinishGoodMasterLokasiController;
 use App\Http\Controllers\FinishGoodPenerimaanController;
+use App\Http\Controllers\PemasukanBarangJadiSoController;
+use App\Http\Controllers\PengeluaranBarangJadiSoController;
 use App\Http\Controllers\FinishGoodPengeluaranController;
 use App\Http\Controllers\FinishGoodReturController;
 use App\Http\Controllers\GAApprovalBahanBakarController;
@@ -869,7 +871,7 @@ Route::middleware('auth')->group(function () {
     // Packing Out
     Route::controller(PackingPackingOutController::class)->prefix("packing-out-packing")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name('packing-out');
-        Route::get('/create', 'create')->name('create-packing-out');
+        // Route::get('/create', 'create')->name('create-packing-out');
         Route::get('/getno_carton', 'getno_carton')->name('getno_carton');
         Route::get('/getpo', 'getpo')->name('getpo');
         Route::get('/packing_out_show_summary', 'packing_out_show_summary')->name('packing_out_show_summary');
@@ -1083,16 +1085,36 @@ Route::middleware('auth')->group(function () {
     });
 
     // Penerimaan Finish Good
-    Route::controller(FinishGoodPenerimaanController::class)->prefix("finish_good_penerimaan")->middleware('finishgood')->group(function () {
-        Route::get('/', 'index')->name('finish_good_penerimaan');
-        Route::get('/fg_in_getno_carton', 'fg_in_getno_carton')->name('fg_in_getno_carton');
-        Route::get('/search_po', 'search_po')->name('fg_in_search_po');
-        Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
-        Route::get('/create', 'create')->name('create_penerimaan_finish_good');
-        Route::post('/check_fg_in', 'check_fg_in')->name('check-fg-in');
-        Route::post('/store', 'store')->name('store-fg-in');
-        Route::get('/export_excel_fg_in_list', 'export_excel_fg_in_list')->name('export_excel_fg_in_list');
-        Route::get('/export_excel_fg_in_summary', 'export_excel_fg_in_summary')->name('export_excel_fg_in_summary');
+    // Route::controller(FinishGoodPenerimaanController::class)->prefix("finish_good_penerimaan")->middleware('finishgood')->group(function () {
+    //     Route::get('/', 'index')->name('finish_good_penerimaan');
+    //     Route::get('/fg_in_getno_carton', 'fg_in_getno_carton')->name('fg_in_getno_carton');
+    //     Route::get('/search_po', 'search_po')->name('fg_in_search_po');
+    //     Route::get('/show_preview_fg_in', 'show_preview_fg_in')->name('show_preview_fg_in');
+    //     Route::get('/create', 'create')->name('create_penerimaan_finish_good');
+    //     Route::post('/check_fg_in', 'check_fg_in')->name('check-fg-in');
+    //     Route::post('/store', 'store')->name('store-fg-in');
+    //     Route::get('/export_excel_fg_in_list', 'export_excel_fg_in_list')->name('export_excel_fg_in_list');
+    //     Route::get('/export_excel_fg_in_summary', 'export_excel_fg_in_summary')->name('export_excel_fg_in_summary');
+    // });
+
+    // Pemasukan Barang Jadi SO
+    Route::controller(PemasukanBarangJadiSoController::class)->prefix("pemasukan_barang_jadi_so")->middleware('finishgood')->group(function () {
+        Route::get('/', 'index')->name('pemasukan_barang_jadi_so');
+        Route::get('/create', 'create')->name('create_pemasukan_barang_jadi_so');
+        Route::get('/get_po', 'get_po')->name('pbj_so_get_po');
+        Route::get('/get_ws_by_po', 'get_ws_by_po')->name('pbj_so_get_ws_by_po');
+        Route::get('/get_ws_by_supplier', 'get_ws_by_supplier')->name('pbj_so_get_ws_by_supplier');
+        Route::get('/get_detail_by_ws', 'get_detail_by_ws')->name('pbj_so_get_detail_by_ws');
+        Route::post('/store', 'store')->name('pbj_so_store');
+        Route::get('/export_excel', 'export_excel')->name('pbj_so_export_excel');
+    });
+
+    // Pengeluaran Barang Jadi SO
+    Route::controller(PengeluaranBarangJadiSoController::class)->prefix("pengeluaran_barang_jadi_so")->middleware('finishgood')->group(function () {
+        Route::get('/create', 'create')->name('create_pengeluaran_barang_jadi_so');
+        Route::get('/get_sent_to', 'get_sent_to')->name('pbj_out_get_sent_to');
+        Route::get('/get_po', 'get_po')->name('pbj_out_get_po');
+        Route::get('/get_po_detail', 'get_po_detail')->name('pbj_out_get_po_detail');
     });
 
     // Pengeluaran Finish Good
