@@ -871,7 +871,7 @@ Route::middleware('auth')->group(function () {
     // Packing Out
     Route::controller(PackingPackingOutController::class)->prefix("packing-out-packing")->middleware('packing')->group(function () {
         Route::get('/', 'index')->name('packing-out');
-        Route::get('/create', 'create')->name('create-packing-out');
+        // Route::get('/create', 'create')->name('create-packing-out');
         Route::get('/getno_carton', 'getno_carton')->name('getno_carton');
         Route::get('/getpo', 'getpo')->name('getpo');
         Route::get('/packing_out_show_summary', 'packing_out_show_summary')->name('packing_out_show_summary');
@@ -1113,6 +1113,8 @@ Route::middleware('auth')->group(function () {
     Route::controller(PengeluaranBarangJadiSoController::class)->prefix("pengeluaran_barang_jadi_so")->middleware('finishgood')->group(function () {
         Route::get('/create', 'create')->name('create_pengeluaran_barang_jadi_so');
         Route::get('/get_sent_to', 'get_sent_to')->name('pbj_out_get_sent_to');
+        Route::get('/get_po', 'get_po')->name('pbj_out_get_po');
+        Route::get('/get_po_detail', 'get_po_detail')->name('pbj_out_get_po_detail');
     });
 
     // Pengeluaran Finish Good

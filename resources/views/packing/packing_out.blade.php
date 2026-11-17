@@ -34,7 +34,7 @@
         <div class="card-body">
             <div class="d-flex align-items-end gap-3 mb-3">
                 <div class="mb-3">
-                    <a href="{{ route('create-packing-out') }}" class="btn btn-outline-primary position-relative">
+                    <a href="{{ route('create-packing-out-scan') }}" class="btn btn-outline-primary position-relative">
                         <i class="fas fa-barcode"></i>
                         Baru Scan
                     </a>
