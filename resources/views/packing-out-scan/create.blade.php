@@ -990,6 +990,7 @@
                         <label class="ps-po-in">
                             <span>PO</span>
                             <select class="form-control form-control-sm select2bs4" id="poSelect" style="width: 100%;">
+                                <option value="">Pilih PO</option>
                                 @foreach (collect($data_po)->pluck('po')->unique() as $po)
                                     <option value="{{ $po }}">{{ $po }}</option>
                                 @endforeach
@@ -1717,7 +1718,8 @@
 
         $('#poSelect').select2({
             theme: 'bootstrap4',
-            width: 'resolve'
+            width: 'resolve',
+            placeholder: 'Pilih PO'
         }).on('change', function () {
             fillDest(this.value);
         });
@@ -1803,7 +1805,7 @@
             });
         }
 
-        // PO pertama + dest pertamanya langsung dimuat
-        fillDest($('#poSelect').val());
+        // Awal buka halaman: PO masih kosong ("Pilih PO"), karton belum dimuat
+        fillDest('');
     </script>
 @endsection
