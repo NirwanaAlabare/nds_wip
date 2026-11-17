@@ -977,16 +977,142 @@
             .ps-act { grid-template-columns: 52px 50px 1fr; }
             .ps-act .pl { display: none; }
         }
+
+        /* Tombol header (Panduan & Kembali): hover tetap terang, bukan hitam (timpa style.css global) */
+        .ps-head-r .btn-light:hover,
+        .ps-head-r .btn-light:focus-visible {
+            background-color: #e2e6ea !important;
+            border-color: #e2e6ea !important;
+            color: #1d2433 !important;
+        }
+
+        /* ===== Panduan ===== */
+        #psGuide, .ps-spot-l {
+            --g-ink: #1d2433; --g-muted: #6b7385; --g-line: #ebe7de; --g-soft: #f7f5f0;
+            --g-pri: #4057e3; --g-ok: #1a9d63; --g-wip: #e39a12; --g-err: #e0483e; --g-empty: #e4e1d8; --g-acc: #ff971f;
+        }
+        .ps-g { padding: 0 20px 20px; color: var(--g-ink); font-size: 13.5px; }
+        .ps-g-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 0; background: #fff; border-bottom: 1px solid var(--g-line); margin-bottom: 4px; }
+        .ps-g-nav a { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--g-soft); color: var(--g-pri); text-decoration: none; border: 1px solid var(--g-line); }
+        .ps-g-nav a:hover { background: var(--g-pri); color: #fff; }
+        .ps-g section { padding-top: 16px; scroll-margin-top: 56px; }
+        .ps-g h6 { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: 700; color: var(--g-pri); border-left: 4px solid var(--g-acc); padding-left: 8px; margin-bottom: 10px; }
+        .ps-g ul { padding-left: 18px; margin-bottom: 0; }
+        .ps-g li { margin-bottom: 6px; line-height: 1.5; }
+        .ps-g-t { margin-bottom: 0; }
+        .ps-g-t td { vertical-align: top; padding: 7px 8px; line-height: 1.5; }
+        .ps-g-t td:first-child { width: 210px; white-space: nowrap; color: var(--g-pri); }
+        .ps-g-btn { display: inline-block; font-size: 12px; padding: 2px 8px; border: 1px solid #c5ccd6; border-radius: .3rem; background: #fff; }
+        .ps-g-b { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; color: #fff; }
+        .ps-g-b.ok { background: var(--g-ok); } .ps-g-b.warn { background: var(--g-wip); } .ps-g-b.err { background: var(--g-err); } .ps-g-b.info { background: var(--g-pri); }
+        .ps-g-c { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 4px 0 2px; vertical-align: middle; }
+        .ps-g-flow { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .ps-g-flow > div { flex: 1; min-width: 140px; background: var(--g-soft); border: 1px solid var(--g-line); border-radius: .5rem; padding: 8px 12px; }
+        .ps-g-flow > div.ok { background: #e7f7ee; border-color: #b9e8cf; }
+        .ps-g-flow b { display: block; color: var(--g-pri); } .ps-g-flow span { font-size: 12px; color: var(--g-muted); }
+        .ps-g-flow > i { align-self: center; font-style: normal; font-weight: 700; color: var(--g-acc); }
+        .ps-g-faq dt { color: var(--g-pri); margin-top: 8px; } .ps-g-faq dd { margin: 2px 0 0; }
+        .ps-g kbd { font-size: 11px; padding: 1px 5px; }
+        .ps-g-show { border: 1px solid var(--g-pri); background: #fff; color: var(--g-pri); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 2px 10px; }
+        .ps-g-show:hover, .ps-g-show.pri { background: var(--g-pri); color: #fff; }
+        .ps-g-show.pri:hover { filter: brightness(.92); }
+        .ps-g-note { font-size: 12.5px; color: var(--g-muted); margin-bottom: 10px; }
+
+        /* Panduan: peta halaman */
+        .ps-map { background: var(--g-soft); border: 1px solid var(--g-line); border-radius: .6rem; padding: 14px; max-width: 760px; }
+        .ps-map-z { position: relative; cursor: pointer; transition: box-shadow .15s; }
+        .ps-map-z:hover { box-shadow: 0 0 0 2px var(--g-acc); z-index: 6; }
+        .ps-map-n { position: absolute; top: -9px; left: -9px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; background: var(--g-acc); color: #fff !important; font-size: 12px; font-weight: 700; display: grid; place-items: center; text-decoration: none; box-shadow: 0 0 0 2px #fff; }
+        .ps-map-n.sm { width: 18px; height: 18px; font-size: 10.5px; top: -7px; left: -7px; }
+        .ps-map-n:hover, .ps-map-n:focus-visible { background: var(--g-pri); z-index: 5; }
+        .ps-map-tip { position: absolute; top: calc(100% + 8px); left: -4px; width: 230px; padding: 8px 10px; border-radius: .45rem; background: #1d2433; color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45; text-align: left; box-shadow: 0 6px 18px rgba(0,0,0,.25); opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity .15s, transform .15s, visibility .15s; pointer-events: none; }
+        .ps-map-tip:before { content: ""; position: absolute; top: -5px; left: 10px; width: 10px; height: 10px; background: #1d2433; transform: rotate(45deg); }
+        .ps-map-n.tip-l .ps-map-tip { left: auto; right: -4px; }
+        .ps-map-n.tip-l .ps-map-tip:before { left: auto; right: 10px; }
+        .ps-map-tip b { display: block; font-size: 12.5px; margin-bottom: 2px; color: #ffc98a; }
+        .ps-map-tip small { display: block; margin-top: 5px; font-size: 10.5px; color: rgba(255,255,255,.65); }
+        .ps-map-n:hover .ps-map-tip, .ps-map-n:focus-visible .ps-map-tip { opacity: 1; visibility: visible; transform: none; }
+        .ps-map-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; padding: 6px 8px 6px 10px; border-radius: .4rem; background: var(--sb-color, #082149); }
+        .ps-map-head b { font-size: 12px; color: #fff; }
+        .ps-map-head .r { display: flex; gap: 4px; padding: 3px; border-radius: .35rem; }
+        .ps-map-head .r i { width: 40px; height: 14px; border-radius: 3px; background: #fff; }
+        .ps-map-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px; }
+        .ps-map-col { display: flex; flex-direction: column; gap: 12px; }
+        .ps-map-card { background: #fff; border: 1px solid var(--g-line); border-radius: .45rem; padding: 8px; }
+        .ps-map-card .h { font-size: 9.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--g-muted); margin: 0 0 6px 10px; }
+        .ps-map-card .po { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 8px; border-radius: .3rem; }
+        .ps-map-card .po i { height: 16px; border-radius: .25rem; border: 1px solid #c5ccd6; background: #fff; }
+        .ps-map-card .inp { display: flex; gap: 4px; border-radius: .3rem; margin-bottom: 6px; }
+        .ps-map-card .inp span { flex: 1; font-size: 10px; color: #9aa4b1; border: 1.5px solid var(--g-pri); border-radius: .3rem; padding: 4px 6px; }
+        .ps-map-card .inp i { font-style: normal; font-size: 10px; border-radius: .3rem; padding: 4px 8px; background: var(--g-pri); color: #fff; }
+        .ps-map-card .md { display: flex; gap: 4px; border-radius: .3rem; }
+        .ps-map-card .md i { height: 12px; width: 60px; border-radius: 10px; border: 1px solid #c5ccd6; }
+        .ps-map-card .md i.on { background: var(--g-pri); border-color: var(--g-pri); }
+        .ps-map-card .cc { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .ps-map-card .cc b { font-size: 20px; line-height: 1; color: var(--g-ink); }
+        .ps-map-card .ring { width: 38px; height: 38px; margin-left: auto; border-radius: 50%; background: conic-gradient(var(--g-wip) 0 60%, var(--g-empty) 60% 100%); -webkit-mask: radial-gradient(circle, transparent 12px, #000 13px); mask: radial-gradient(circle, transparent 12px, #000 13px); }
+        .ps-map-card .sku { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+        .ps-map-card .sku em { width: 20px; height: 16px; border-radius: .25rem; background: var(--g-soft); border: 1px solid var(--g-line); }
+        .ps-map-card .sku s { flex: 1; height: 6px; border-radius: 3px; background: var(--g-empty); text-decoration: none; overflow: hidden; }
+        .ps-map-card .sku s i { display: block; height: 100%; background: var(--g-wip); }
+        .ps-map-card .sku s i.d { background: var(--g-ok); }
+        .ps-map-card .pg { display: flex; height: 7px; border-radius: 4px; overflow: hidden; background: var(--g-empty); margin-bottom: 6px; }
+        .ps-map-card .sz { height: 5px; border-radius: 3px; background: var(--g-empty); margin-top: 4px; overflow: hidden; }
+        .ps-map-card .sz i { display: block; height: 100%; background: var(--g-pri); }
+        .ps-map-card .fl { display: flex; gap: 3px; margin-bottom: 6px; border-radius: .3rem; }
+        .ps-map-card .fl i { height: 10px; width: 26px; border-radius: 10px; border: 1px solid #c5ccd6; }
+        .ps-map-card .fl i.on { background: var(--g-pri); border-color: var(--g-pri); }
+        .ps-map-card .tl { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; border-radius: .3rem; }
+        .ps-map-card .tl i { aspect-ratio: 1; border-radius: .2rem; background: var(--g-empty); }
+        .ps-map-card .tl i.f { background: var(--g-ok); } .ps-map-card .tl i.p { background: var(--g-wip); }
+        .ps-map-card .tl i.s { box-shadow: 0 0 0 2px var(--g-pri); }
+        .ps-map-card .ac { height: 6px; border-radius: 3px; background: var(--g-empty); margin-top: 5px; width: 85%; }
+        .ps-map-card .ac.s { width: 60%; }
+
+        /* Panduan: sorot elemen & tur */
+        .ps-spot { position: fixed; z-index: 2000; border-radius: .6rem; box-shadow: 0 0 0 9999px rgba(17,24,39,.6); outline: 3px solid #ff971f; outline-offset: 3px; pointer-events: none; animation: psSpot 1.2s ease-in-out infinite; }
+        @keyframes psSpot { 50% { outline-offset: 8px; outline-color: rgba(255,151,31,.6); } }
+        .ps-spot-cv { position: fixed; inset: 0; z-index: 1999; cursor: pointer; }
+        .ps-spot-l { position: fixed; z-index: 2001; background: #fff; color: var(--g-ink); font-size: 13px; padding: 10px 12px; border-radius: .5rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); width: 340px; max-width: calc(100vw - 16px); }
+        .ps-spot-l .st { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--g-pri); margin-bottom: 4px; }
+        .ps-spot-l .dots { display: flex; gap: 4px; }
+        .ps-spot-l .dots i { width: 7px; height: 7px; border-radius: 50%; background: #e2e6ec; }
+        .ps-spot-l .dots i.done { background: #b7c2f5; }
+        .ps-spot-l .dots i.on { background: var(--g-acc); width: 16px; border-radius: 4px; }
+        .ps-spot-l > b { display: block; font-weight: 700; }
+        .ps-spot-l > span.d { display: block; color: #3d4450; font-size: 12.5px; line-height: 1.5; margin-top: 3px; }
+        .ps-spot-l > span.d b { color: var(--g-ink); }
+        .ps-spot-l .nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
+        .ps-spot-l .nav button { border: 1px solid #c5ccd6; background: #fff; color: var(--g-ink); font-size: 12.5px; font-weight: 600; border-radius: .35rem; padding: 4px 12px; }
+        .ps-spot-l .nav button:disabled { opacity: .4; }
+        .ps-spot-l .nav button.pri { background: var(--g-pri); border-color: var(--g-pri); color: #fff; }
+        .ps-spot-l .nav button:not(:disabled):hover { filter: brightness(.95); }
+        .ps-spot-l small { display: block; color: var(--g-muted); font-size: 11.5px; margin-top: 6px; padding-top: 5px; border-top: 1px solid #e2e6ec; }
+        .ps-spot-l kbd { font-size: 10px; padding: 0 4px; }
+
+        @media (max-width: 576px) {
+            .ps-g-t td:first-child { width: auto; white-space: normal; }
+            .ps-g-flow > i { display: none; }
+            .ps-map-grid { grid-template-columns: 1fr; }
+        }
     </style>
 @endsection
 
 @section('content')
     <div class="ps-app" id="psApp">
         <div class="card mb-3">
-            <div class="card-header bg-sb">
+            <div class="card-header bg-sb d-flex align-items-center">
                 <h5 class="card-title fw-bold mb-0">
                     <i class="fas fa-box"></i> Packing Out — Scan Karton
                 </h5>
+                <div class="ps-head-r d-flex gap-2 ms-auto" style="margin-block: -.5rem;">
+                    <button type="button" class="btn btn-light btn-sm" id="guideBtn">
+                        <i class="fas fa-book-open"></i> Panduan
+                    </button>
+                    <a class="btn btn-light btn-sm" href="{{ route('packing-out') }}">
+                        <i class="fas fa-arrow-left"></i> Kembali
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -1035,7 +1161,7 @@
             <aside class="ps-col">
                 <div class="ps-card" id="progCard"></div>
 
-                <div class="ps-card">
+                <div class="ps-card" id="mapCard">
                     <div class="ps-row">
                         <span class="ps-title">Peta Karton</span>
                         <span class="ps-sp"></span>
@@ -1049,7 +1175,7 @@
                     <div class="ps-tiles" id="tiles"></div>
                 </div>
 
-                <div class="ps-card">
+                <div class="ps-card" id="actCard">
                     <div class="ps-row">
                         <span class="ps-title">Aktivitas Terakhir</span>
                         <span class="ps-sp"></span>
@@ -1058,6 +1184,195 @@
                     <div class="ps-act-list" id="activity"></div>
                 </div>
             </aside>
+        </div>
+    </div>
+
+    {{-- Panduan halaman --}}
+    <div class="modal fade" id="psGuide" tabindex="-1" aria-labelledby="psGuideTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <div>
+                        <small class="text-uppercase fw-bold" style="letter-spacing: .6px; opacity: .75;">Panduan</small>
+                        <h5 class="modal-title fw-bold" id="psGuideTitle">Packing Out — Scan Karton</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body ps-g">
+                    <nav class="ps-g-nav">
+                        <a href="#psg-peta">Peta halaman</a><a href="#psg-alur">Alur singkat</a><a href="#psg-atas">Tombol atas</a><a href="#psg-po">Pilih PO</a><a href="#psg-scan">Scan SKU</a>
+                        <a href="#psg-hasil">Hasil scan</a><a href="#psg-karton">Karton aktif</a><a href="#psg-prog">Progress PO</a><a href="#psg-map">Peta karton</a><a href="#psg-act">Aktivitas</a><a href="#psg-tips">Tips &amp; FAQ</a>
+                    </nav>
+
+                    <section id="psg-peta">
+                        <h6><span>Peta halaman</span> <button type="button" class="ps-g-show pri" data-tour="0"><i class="fa fa-play"></i> Mulai tur</button></h6>
+                        <p class="ps-g-note">Klik <b>nomor</b> untuk membaca penjelasannya, atau klik <b>kotaknya</b> untuk melihat langsung di halaman.</p>
+                        <div class="ps-map">
+                            <div class="ps-map-head">
+                                <b>Packing Out — Scan Karton</b>
+                                <div class="ps-map-z r" data-spot=".ps-head-r"><a href="#psg-atas" class="ps-map-n tip-l" aria-label="Tombol di kanan atas">2<span class="ps-map-tip" role="tooltip"><b>Tombol di kanan atas</b>Panduan dan Kembali ke daftar Packing Out.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i></div>
+                            </div>
+                            <div class="ps-map-grid">
+                                <div class="ps-map-col">
+                                    <div class="ps-map-card">
+                                        <div class="h">Scan di sini</div>
+                                        <div class="po ps-map-z" data-spot=".ps-po-row"><a href="#psg-po" class="ps-map-n sm" aria-label="Pilih PO">3<span class="ps-map-tip" role="tooltip"><b>Pilih PO, Dest &amp; Tgl Shipment</b>Pilih PO lalu Dest. Data karton langsung dimuat.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i><i></i></div>
+                                        <div class="inp ps-map-z" data-spot=".ps-scan-box"><a href="#psg-scan" class="ps-map-n sm" aria-label="Scan SKU">4<span class="ps-map-tip" role="tooltip"><b>Kolom scan</b>Scan barcode SKU. Setiap scan langsung tersimpan.<small>Klik nomor untuk penjelasan lengkap</small></span></a><span>Scan barcode SKU…</span><i>Simpan</i></div>
+                                        <div class="md"><i class="on"></i><i></i><i></i></div>
+                                    </div>
+                                    <div class="ps-map-z ps-map-card" data-spot="#cartonCard">
+                                        <a href="#psg-karton" class="ps-map-n" aria-label="Karton aktif">6<span class="ps-map-tip" role="tooltip"><b>Karton aktif</b>Karton yang sedang diisi beserta daftar SKU dan sisa pcs-nya.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h">Karton aktif</div>
+                                        <div class="cc"><b>#12</b><div class="ring"></div></div>
+                                        <div class="sku"><em></em><s><i class="d" style="width:100%"></i></s></div>
+                                        <div class="sku"><em></em><s><i style="width:55%"></i></s></div>
+                                        <div class="sku"><em></em><s><i style="width:0"></i></s></div>
+                                    </div>
+                                </div>
+                                <div class="ps-map-col">
+                                    <div class="ps-map-z ps-map-card" data-spot="#progCard">
+                                        <a href="#psg-prog" class="ps-map-n tip-l" aria-label="Progress PO">7<span class="ps-map-tip" role="tooltip"><b>Progress PO</b>Persen pcs terisi, jumlah karton full, dan progres per size.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h">Progress PO</div>
+                                        <div class="pg"><i style="width:45%;background:var(--g-ok)"></i><i style="width:20%;background:var(--g-wip)"></i></div>
+                                        <div class="sz"><i style="width:80%"></i></div><div class="sz"><i style="width:50%"></i></div>
+                                    </div>
+                                    <div class="ps-map-z ps-map-card" data-spot="#mapCard">
+                                        <a href="#psg-map" class="ps-map-n tip-l" aria-label="Peta karton">8<span class="ps-map-tip" role="tooltip"><b>Peta karton</b>Semua karton PO dengan warna status. Klik kotak untuk pindah karton.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h">Peta karton</div>
+                                        <div class="fl"><i class="on"></i><i></i><i></i><i></i></div>
+                                        <div class="tl"><i class="f"></i><i class="f"></i><i class="f"></i><i class="p s"></i><i class="p"></i><i></i><i></i><i></i></div>
+                                    </div>
+                                    <div class="ps-map-z ps-map-card" data-spot="#actCard">
+                                        <a href="#psg-act" class="ps-map-n tip-l" aria-label="Aktivitas terakhir">9<span class="ps-map-tip" role="tooltip"><b>Aktivitas terakhir</b>Daftar scan di sesi ini dan tombol batalkan scan terakhir.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h">Aktivitas terakhir</div>
+                                        <div class="ac"></div><div class="ac s"></div><div class="ac"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="psg-alur">
+                        <h6>1. Alur singkat</h6>
+                        <div class="ps-g-flow">
+                            <div><b>Pilih PO &amp; Dest</b><span>data karton dimuat</span></div><i>→</i>
+                            <div><b>Scan SKU</b><span>barcode pada garmen</span></div><i>→</i>
+                            <div><b>Dicek</b><span>ke isi karton aktif</span></div><i>→</i>
+                            <div class="ok"><b>Langsung tersimpan</b><span>tanpa tombol simpan tambahan</span></div>
+                        </div>
+                        <ul>
+                            <li>Setiap 1 scan = <b>+1 pcs</b> ke karton aktif.</li>
+                            <li>Hasil scan sebelumnya (dari hari atau komputer lain) ikut dimuat saat PO dipilih, jadi angka selalu melanjutkan.</li>
+                            <li>Qty per SKU tidak bisa melebihi qty di packing list. Kalau sudah cukup, scan akan ditolak.</li>
+                        </ul>
+                    </section>
+
+                    <section id="psg-atas">
+                        <h6><span>2. Tombol di kanan atas</span> <button type="button" class="ps-g-show" data-spot=".ps-head-r"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm ps-g-t">
+                            <tr><td><span class="ps-g-btn">Panduan</span></td><td>Membuka halaman ini.</td></tr>
+                            <tr><td><span class="ps-g-btn">Kembali</span></td><td>Kembali ke daftar Packing Out.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="psg-po">
+                        <h6><span>3. Pilih PO, Dest &amp; Tgl Shipment</span> <button type="button" class="ps-g-show" data-spot=".ps-po-row"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm ps-g-t">
+                            <tr><td><b>PO</b></td><td>Pilih nomor PO yang akan di-packing. Bisa diketik untuk mencari.</td></tr>
+                            <tr><td><b>Dest</b></td><td>Daftar tujuan otomatis menyesuaikan PO. Dest pertama langsung dipilih dan datanya dimuat. Ganti bila tujuannya berbeda.</td></tr>
+                            <tr><td><b>Tgl Shipment</b></td><td>Tampil otomatis sesuai PO + Dest terpilih (hanya informasi).</td></tr>
+                        </table>
+                        <ul class="mt-2">
+                            <li>Setelah dimuat, sistem langsung memilih <b>karton belum full pertama</b> sebagai karton aktif.</li>
+                        </ul>
+                    </section>
+
+                    <section id="psg-scan">
+                        <h6><span>4. Kolom scan</span> <button type="button" class="ps-g-show" data-spot=".ps-scan-box"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm ps-g-t">
+                            <tr><td><b>Kolom scan</b></td><td>Scanner otomatis menekan Enter. Kalau mengetik manual, tekan <kbd>Enter</kbd> atau tombol <b>Simpan</b>.</td></tr>
+                            <tr><td><b>Fokus otomatis</b></td><td>Mengetik di mana saja langsung masuk ke kolom scan. Klik area kosong di halaman juga mengembalikan kursor ke kolom ini.</td></tr>
+                            <tr><td><b>Menyimpan…</b></td><td>Selama scan disimpan, kolom dan tombol dikunci sebentar supaya tidak tersimpan dobel. Tunggu sampai tombol kembali ke <b>Simpan</b>.</td></tr>
+                            <tr><td><b>Belum ada karton aktif</b></td><td>Langsung scan saja: sistem memilihkan karton belum full yang masih butuh SKU itu.</td></tr>
+                            <tr><td><b>Barcode di beberapa baris</b></td><td>Kalau satu barcode ada di beberapa baris karton (misal beda color), 1 scan menambah +1 ke semua baris yang masih kurang.</td></tr>
+                            <tr><td><b>MODE</b> <small class="text-muted">(PO multi-style)</small></td><td>Hanya muncul bila karton berisi lebih dari satu style.<br>
+                                <span class="ps-g-btn">1 Set = A + B</span> scan masuk ke style mana pun yang masih butuh.<br>
+                                <span class="ps-g-btn">Hanya [style]</span> scan hanya masuk ke style itu; baris style lain tampil pudar.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="psg-hasil">
+                        <h6><span>5. Arti hasil scan</span> <button type="button" class="ps-g-show" data-spot="#scanCard"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <p class="ps-g-note">Hasil tampil sebagai notifikasi di atas layar, kartu scan berkedip hijau/merah, dan ada bunyi.</p>
+                        <table class="table table-sm ps-g-t">
+                            <tr><td><span class="ps-g-b ok">+1 Size · Color</span></td><td>Scan tersimpan. Bunyi <i>bip</i> pendek. Baris SKU di karton aktif ikut berkedip.</td></tr>
+                            <tr><td><span class="ps-g-b ok">Karton FULL</span></td><td>Karton sudah terisi penuh. Bunyi tiga nada naik. Klik karton berikutnya di <b>Peta karton</b> untuk pindah.</td></tr>
+                            <tr><td><span class="ps-g-b warn">Tidak ada stok</span></td><td>Sebagian baris (size · color) tidak ikut masuk karton karena stoknya habis.</td></tr>
+                            <tr><td><span class="ps-g-b err">Bukan isi karton #N</span></td><td>SKU tidak ada di karton aktif. Notifikasi menyebutkan karton belum full yang butuh SKU ini, buka lewat Peta karton.</td></tr>
+                            <tr><td><span class="ps-g-b err">Sudah cukup</span></td><td>Size · color itu di karton aktif sudah lengkap. Simpan garmennya untuk karton berikutnya.</td></tr>
+                            <tr><td><span class="ps-g-b err">Tidak dibutuhkan</span></td><td>SKU tidak dibutuhkan di karton mana pun. Cek barcode atau PO/Dest yang dipilih.</td></tr>
+                            <tr><td><span class="ps-g-b err">Gagal disimpan</span></td><td>Koneksi atau server bermasalah. Data tidak tersimpan, ulangi scan.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="psg-karton">
+                        <h6><span>6. Karton aktif</span> <button type="button" class="ps-g-show" data-spot="#cartonCard"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li><b>#Nomor karton</b> dan statusnya:
+                                <span class="ps-g-c" style="background:var(--g-ok)"></span><b>Full</b>,
+                                <span class="ps-g-c" style="background:var(--g-wip)"></span><b>Sedang diisi</b>,
+                                <span class="ps-g-c" style="background:var(--g-empty)"></span><b>Belum diisi</b>. Di bawahnya urutan karton dari total karton PO.</li>
+                            <li><b>Tipe pack</b> dan <b>Keterangan</b> muncul bila diisi di packing list.</li>
+                            <li><b>Lingkaran %</b> dan <b>Sisa pcs</b>: berapa pcs lagi supaya karton ini full.</li>
+                            <li><b>Worksheet · Style · Color · Isi</b>: ringkasan isi karton.</li>
+                            <li><b>Daftar SKU</b>: tiap baris berisi size, color, SKU, bar progres, dan <i>terisi / qty</i>. Baris yang belum lengkap selalu di atas; yang sudah lengkap bertanda <b>Lengkap ✓</b>.</li>
+                        </ul>
+                    </section>
+
+                    <section id="psg-prog">
+                        <h6><span>7. Progress PO</span> <button type="button" class="ps-g-show" data-spot="#progCard"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li><b>Persen besar</b> = pcs terisi ÷ total pcs seluruh karton PO + Dest terpilih.</li>
+                            <li><b>Bar bertumpuk</b>: porsi karton <span class="ps-g-c" style="background:var(--g-ok)"></span>Full dan <span class="ps-g-c" style="background:var(--g-wip)"></span>Sedang diisi.</li>
+                            <li><b>Karton full · Pcs terisi · Sisa pcs</b>: ringkasan angka PO.</li>
+                            <li><b>Per size</b>: progres tiap size, urut sesuai master size. Bar jadi hijau saat size itu lengkap.</li>
+                        </ul>
+                    </section>
+
+                    <section id="psg-map">
+                        <h6><span>8. Peta karton</span> <button type="button" class="ps-g-show" data-spot="#mapCard"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li><b>Kotak karton</b>: nomor, <i>terisi/total</i>, dan bar. Warna mengikuti status (hijau full, oranye sedang diisi, abu belum diisi). Karton aktif diberi garis tepi. <b>Klik kotak</b> untuk pindah karton aktif.</li>
+                            <li><b>Filter</b>: <span class="ps-g-btn">Semua</span> <span class="ps-g-btn">Belum full</span> <span class="ps-g-btn">Sedang diisi</span> <span class="ps-g-btn">Belum diisi</span> <span class="ps-g-btn">Full</span>, lengkap dengan jumlahnya.</li>
+                            <li><b>Blok #1–100, #101–200, …</b>: muncul bila karton lebih dari 100. Bar hijau di tiap blok = porsi karton full di blok itu.</li>
+                            <li><b># nomor + Buka</b>: ketik nomor karton lalu <kbd>Enter</kbd> untuk langsung membukanya.</li>
+                        </ul>
+                    </section>
+
+                    <section id="psg-act">
+                        <h6><span>9. Aktivitas terakhir</span> <button type="button" class="ps-g-show" data-spot="#actCard"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li>30 scan terakhir di <b>sesi ini</b>: jam, nomor karton, size, color, dan SKU. Klik <b>#nomor</b> untuk membuka kartonnya.</li>
+                            <li><span class="ps-g-btn">↺ Batalkan scan terakhir</span> menghapus 1 scan terakhir (setelah konfirmasi). Bisa diulang untuk scan sebelumnya.</li>
+                            <li>Daftar ini hanya berisi scan sejak halaman dibuka. Setelah refresh, daftar kosong lagi dan scan lama tidak bisa dibatalkan dari sini.</li>
+                        </ul>
+                    </section>
+
+                    <section id="psg-tips">
+                        <h6>10. Tips &amp; FAQ</h6>
+                        <dl class="ps-g-faq">
+                            <dt>Salah scan?</dt>
+                            <dd>Tekan <b>↺ Batalkan scan terakhir</b> sebelum halaman di-refresh.</dd>
+                            <dt>Karton sudah full, lalu bagaimana?</dt>
+                            <dd>Klik karton berikutnya di <b>Peta karton</b> (filter <i>Belum full</i> memudahkan), atau langsung scan: kalau tidak ada karton aktif, sistem memilihkannya.</dd>
+                            <dt>Muncul "PO ini belum punya packing list"?</dt>
+                            <dd>Packing list untuk PO + Dest itu belum diinput. Hubungi admin packing.</dd>
+                            <dt>Kursor hilang dari kolom scan?</dt>
+                            <dd>Klik area kosong di halaman atau langsung ketik/scan, kursor kembali ke kolom scan.</dd>
+                        </dl>
+                    </section>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -1714,11 +2029,180 @@
         });
 
         $(document).on('keydown', function (e) {
+            // Panduan / tur sedang terbuka: jangan pindahkan fokus ke kolom scan
+            if (document.querySelector('.modal.show') || spotIdx >= 0) return;
+
             const a = document.activeElement, inField = a && /INPUT|SELECT|TEXTAREA/.test(a.tagName);
 
             // Ketik di mana saja langsung masuk ke kolom scan
             if (!inField && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) el('scanInput').focus();
         });
+
+        // ===== Panduan: sorot elemen asli + tur langkah demi langkah =====
+        const gEl = el('psGuide'), gBs = bootstrap.Modal.getOrCreateInstance(gEl);
+        const TOUR_KEY = 'ps_tour_seen_{{ Auth::id() }}';
+        const STEPS = [
+            { sel: '.ps-head-r', sec: 'psg-atas', lbl: 'Tombol di kanan atas',
+              d: '<b>Panduan</b> membuka halaman bantuan ini · <b>Kembali</b> ke daftar Packing Out.' },
+            { sel: '.ps-po-row', sec: 'psg-po', lbl: 'Pilih PO, Dest & Tgl Shipment',
+              d: 'Pilih PO lalu Dest. Data karton langsung dimuat dan karton belum full pertama otomatis jadi karton aktif.' },
+            { sel: '.ps-scan-box', sec: 'psg-scan', lbl: 'Kolom scan',
+              d: 'Scan barcode SKU (atau ketik lalu <b>Enter</b>/<b>Simpan</b>). Setiap scan = +1 pcs dan langsung tersimpan.' },
+            { sel: '#scanCard', sec: 'psg-hasil', lbl: 'Hasil scan',
+              d: 'Notifikasi muncul di atas layar. Kartu berkedip <b>hijau</b> = tersimpan, <b>merah</b> = ditolak/gagal, disertai bunyi.' },
+            { sel: '#cartonCard', sec: 'psg-karton', lbl: 'Karton aktif',
+              d: 'Karton yang sedang diisi: status, sisa pcs, dan daftar SKU dengan jumlah terisi / qty.' },
+            { sel: '#progCard', sec: 'psg-prog', lbl: 'Progress PO',
+              d: 'Persen pcs terisi, jumlah karton full, sisa pcs, dan progres per size.' },
+            { sel: '#mapCard', sec: 'psg-map', lbl: 'Peta karton',
+              d: 'Semua karton PO dengan warna status. Klik kotak untuk pindah karton, atau ketik nomornya lalu <b>Buka</b>.' },
+            { sel: '#actCard', sec: 'psg-act', lbl: 'Aktivitas terakhir',
+              d: 'Scan di sesi ini. <b>↺ Batalkan scan terakhir</b> untuk membatalkan salah scan.' },
+        ];
+        let spotTok = 0, spotIdx = -1, tourFirst = false;
+
+        function gGo(id, smooth) {
+            const t = gEl.querySelector(id);
+            if (t) t.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        }
+
+        function spotClear() {
+            spotTok++;
+            document.querySelectorAll('.ps-spot, .ps-spot-l, .ps-spot-cv').forEach(x => x.remove());
+            removeEventListener('scroll', spotOff, true);
+            removeEventListener('resize', spotOff);
+        }
+
+        // Tutup tur & kembali ke panduan di bagian langkah terakhir yang dilihat
+        function spotOff() {
+            const s = STEPS[spotIdx], first = tourFirst;
+            spotClear();
+            spotIdx = -1;
+            if (first) {
+                tourFirst = false;
+                try { localStorage.setItem(TOUR_KEY, '1'); } catch (e) {}
+            }
+            gEl.addEventListener('shown.bs.modal', () => gGo(first || !s ? '#psg-peta' : '#' + s.sec), { once: true });
+            gBs.show();
+        }
+
+        function spotGo(i) {
+            if (i < 0 || i >= STEPS.length) return;
+            spotClear();
+            spotIdx = i;
+
+            const s = STEPS[i], n = STEPS.length;
+            const target = [...document.querySelectorAll(s.sel)].find(x => x.offsetParent !== null);
+            if (!target) { spotOff(); return; }
+
+            const tok = spotTok;
+            if (document.activeElement) document.activeElement.blur();
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Tunggu scroll berhenti (posisi elemen stabil beberapa frame), baru pasang sorotan
+            let last = null, still = 0;
+            const t0 = performance.now();
+            (function wait() {
+                if (tok !== spotTok) return;
+                const top = target.getBoundingClientRect().top;
+                still = last !== null && Math.abs(top - last) < 0.5 ? still + 1 : 0;
+                last = top;
+                if (still >= 6 || performance.now() - t0 > 2000) draw(); else requestAnimationFrame(wait);
+            })();
+
+            function draw() {
+                const r = target.getBoundingClientRect(), pad = 6;
+
+                const cv = document.createElement('div');
+                cv.className = 'ps-spot-cv';
+                cv.onclick = spotOff;
+
+                const box = document.createElement('div');
+                box.className = 'ps-spot';
+                Object.assign(box.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px' });
+
+                const l = document.createElement('div');
+                l.className = 'ps-spot-l';
+                l.innerHTML = `<div class="st"><span>Langkah ${i + 1} dari ${n}</span><span class="dots">${STEPS.map((_, k) => `<i class="${k === i ? 'on' : k < i ? 'done' : ''}"></i>`).join('')}</span></div>
+                    <b>${esc(s.lbl)}</b><span class="d">${s.d}</span>
+                    <div class="nav"><button type="button" data-nav="prev" ${i ? '' : 'disabled'}>‹ Sebelumnya</button>
+                        <button type="button" data-nav="next" class="pri">${i === n - 1 ? 'Selesai ✓' : 'Berikutnya ›'}</button></div>
+                    <small><kbd>←</kbd><kbd>→</kbd> pindah langkah · <kbd>Esc</kbd>, scroll, atau klik area gelap untuk kembali ke panduan</small>`;
+                l.onclick = e => {
+                    const b = e.target.closest('[data-nav]');
+                    if (!b) return;
+                    if (b.dataset.nav === 'prev') spotGo(i - 1);
+                    else if (i === n - 1) spotOff();
+                    else spotGo(i + 1);
+                };
+
+                document.body.append(cv, box, l);
+
+                const lh = l.offsetHeight, below = r.bottom + 16 + lh < innerHeight;
+                l.style.left = Math.max(8, Math.min(innerWidth - l.offsetWidth - 8, r.left)) + 'px';
+                l.style.top = (below ? r.bottom + 16 : Math.max(8, r.top - lh - 16)) + 'px';
+
+                const nx = l.querySelector('[data-nav="next"]');
+                if (nx) nx.focus({ preventScroll: true });
+
+                // Mulai dengarkan scroll user setelah sorotan tampil
+                setTimeout(() => {
+                    if (tok !== spotTok || !document.querySelector('.ps-spot')) return;
+                    addEventListener('scroll', spotOff, true);
+                    addEventListener('resize', spotOff);
+                }, 250);
+            }
+        }
+
+        el('guideBtn').addEventListener('click', e => {
+            e.stopPropagation();
+            gBs.show();
+        });
+
+        // Klik di dalam panduan: nomor/nav → lompat ke bagian; kotak/tombol "Tunjukkan" → sorot di halaman
+        gEl.addEventListener('click', e => {
+            const a = e.target.closest('.ps-map-n, .ps-g-nav a');
+            if (a) {
+                e.preventDefault();
+                e.stopPropagation();
+                gGo(a.getAttribute('href'), true);
+                return;
+            }
+
+            const b = e.target.closest('[data-spot], [data-tour]');
+            if (!b) return;
+
+            const idx = b.dataset.tour !== undefined ? 0 : Math.max(0, STEPS.findIndex(x => x.sel === b.dataset.spot));
+            gEl.addEventListener('hidden.bs.modal', () => spotGo(idx), { once: true });
+            gBs.hide();
+        });
+
+        // Panduan ditutup (bukan karena masuk tur): kursor kembali ke kolom scan
+        gEl.addEventListener('hidden.bs.modal', () => {
+            setTimeout(() => { if (spotIdx < 0) focusScan(); }, 0);
+        });
+
+        document.addEventListener('keydown', e => {
+            if (spotIdx < 0) return;
+            if (e.key === 'Escape') { e.preventDefault(); spotOff(); return; }
+            if (!document.querySelector('.ps-spot')) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); spotIdx === STEPS.length - 1 ? spotOff() : spotGo(spotIdx + 1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); spotGo(spotIdx - 1); }
+        }, true);
+
+        // Tur otomatis saat halaman pertama kali dibuka oleh user ini (per user per browser)
+        function autoTour() {
+            let seen = false;
+            try { seen = localStorage.getItem(TOUR_KEY) === '1'; } catch (e) { seen = true; }
+            if (seen) return;
+
+            setTimeout(() => {
+                if (spotIdx < 0 && !document.querySelector('.modal.show')) {
+                    tourFirst = true;
+                    spotGo(0);
+                }
+            }, 600);
+        }
 
         // ===== Init =====
 
@@ -1826,5 +2310,6 @@
 
         // Awal buka halaman: PO masih kosong ("Pilih PO"), karton belum dimuat
         fillDest('');
+        autoTour();
     </script>
 @endsection

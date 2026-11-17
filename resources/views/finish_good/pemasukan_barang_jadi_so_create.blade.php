@@ -258,6 +258,104 @@
             #pbj .tb .grow { display: none; }
             #pbj .hm { display: none; }
         }
+
+        /* Tombol header (Panduan & Kembali): hover tetap terang, bukan hitam (timpa style.css global) */
+        .pbj-head-r .btn-light:hover,
+        .pbj-head-r .btn-light:focus-visible {
+            background-color: #e2e6ea !important;
+            border-color: #e2e6ea !important;
+            color: #1f2933 !important;
+        }
+
+        /* ===== Panduan ===== */
+        #gdGuide, .gd-spot-l {
+            --g-ink: #1f2933; --g-muted: #6b7785; --g-line: #dde2e8; --g-soft: #f3f5f7;
+            --g-pri: var(--sb-color, #082149); --g-ok: #1a9d63; --g-err: #d93848; --g-acc: #ff971f;
+        }
+        .gd { padding: 0 20px 20px; color: var(--g-ink); font-size: 13.5px; }
+        .gd-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 0; background: #fff; border-bottom: 1px solid var(--g-line); margin-bottom: 4px; }
+        .gd-nav a { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--g-soft); color: var(--g-pri); text-decoration: none; border: 1px solid var(--g-line); }
+        .gd-nav a:hover { background: var(--g-pri); color: #fff; }
+        .gd section { padding-top: 16px; scroll-margin-top: 56px; }
+        .gd h6 { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: 700; color: var(--g-pri); border-left: 4px solid var(--g-acc); padding-left: 8px; margin-bottom: 10px; }
+        .gd ul { padding-left: 18px; margin-bottom: 0; }
+        .gd li { margin-bottom: 6px; line-height: 1.5; }
+        .gd-t { margin-bottom: 0; }
+        .gd-t td { vertical-align: top; padding: 7px 8px; line-height: 1.5; }
+        .gd-t td:first-child { width: 200px; white-space: nowrap; color: var(--g-pri); }
+        .gd-btn { display: inline-block; font-size: 12px; padding: 2px 8px; border: 1px solid #c5ccd6; border-radius: .3rem; background: #fff; }
+        .gd-flow { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .gd-flow > div { flex: 1; min-width: 130px; background: var(--g-soft); border: 1px solid var(--g-line); border-radius: .5rem; padding: 8px 12px; }
+        .gd-flow > div.ok { background: #e7f7ee; border-color: #b9e8cf; }
+        .gd-flow b { display: block; color: var(--g-pri); } .gd-flow span { font-size: 12px; color: var(--g-muted); }
+        .gd-flow > i { align-self: center; font-style: normal; font-weight: 700; color: var(--g-acc); }
+        .gd-faq dt { color: var(--g-pri); margin-top: 8px; } .gd-faq dd { margin: 2px 0 0; }
+        .gd kbd { font-size: 11px; padding: 1px 5px; }
+        .gd-show { border: 1px solid var(--g-pri); background: #fff; color: var(--g-pri); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 2px 10px; }
+        .gd-show:hover, .gd-show.pri { background: var(--g-pri); color: #fff; }
+        .gd-show.pri:hover { filter: brightness(.92); }
+        .gd-note { font-size: 12.5px; color: var(--g-muted); margin-bottom: 10px; }
+        .gd-box { border-radius: .5rem; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; line-height: 1.5; border: 1px solid var(--g-line); background: var(--g-soft); }
+
+        /* Panduan: peta halaman */
+        .gd-map { background: var(--g-soft); border: 1px solid var(--g-line); border-radius: .6rem; padding: 14px; max-width: 760px; }
+        .gd-map-z { position: relative; cursor: pointer; transition: box-shadow .15s; }
+        .gd-map-z:hover { box-shadow: 0 0 0 2px var(--g-acc); z-index: 6; }
+        .gd-map-n { position: absolute; top: -9px; left: -9px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; background: var(--g-acc); color: #fff !important; font-size: 12px; font-weight: 700; display: grid; place-items: center; text-decoration: none; box-shadow: 0 0 0 2px #fff; }
+        .gd-map-n:hover, .gd-map-n:focus-visible { background: var(--g-pri); z-index: 5; }
+        .gd-map-tip { position: absolute; top: calc(100% + 8px); left: -4px; width: 230px; padding: 8px 10px; border-radius: .45rem; background: #1f2933; color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45; text-align: left; box-shadow: 0 6px 18px rgba(0,0,0,.25); opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity .15s, transform .15s, visibility .15s; pointer-events: none; }
+        .gd-map-tip:before { content: ""; position: absolute; top: -5px; left: 10px; width: 10px; height: 10px; background: #1f2933; transform: rotate(45deg); }
+        .gd-map-n.tip-l .gd-map-tip { left: auto; right: -4px; }
+        .gd-map-n.tip-l .gd-map-tip:before { left: auto; right: 10px; }
+        .gd-map-tip b { display: block; font-size: 12.5px; margin-bottom: 2px; color: #ffc98a; }
+        .gd-map-tip small { display: block; margin-top: 5px; font-size: 10.5px; color: rgba(255,255,255,.65); }
+        .gd-map-n:hover .gd-map-tip, .gd-map-n:focus-visible .gd-map-tip { opacity: 1; visibility: visible; transform: none; }
+        .gd-map-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; padding: 6px 8px 6px 10px; border-radius: .4rem; background: var(--g-pri); }
+        .gd-map-head b { font-size: 12px; color: #fff; }
+        .gd-map-head .r { display: flex; gap: 4px; padding: 3px; border-radius: .35rem; }
+        .gd-map-head .r i { width: 40px; height: 14px; border-radius: 3px; background: #fff; }
+        .gd-map-grid { display: grid; grid-template-columns: 1.8fr 1fr; gap: 12px; align-items: start; }
+        .gd-map-col { display: flex; flex-direction: column; gap: 10px; }
+        .gd-map-card { background: #fff; border: 1px solid var(--g-line); border-radius: .45rem; padding: 8px; }
+        .gd-map-card .h { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--g-ink); margin: 0 0 6px 10px; }
+        .gd-map-card .h em { font-style: normal; width: 15px; height: 15px; border-radius: 50%; background: var(--g-pri); color: #fff; font-size: 9px; display: grid; place-items: center; }
+        .gd-map-card .fs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .gd-map-card .fs i { height: 16px; border-radius: .25rem; border: 1px solid #c5ccd6; background: #fff; }
+        .gd-map-card .tbl i { display: block; height: 8px; border-radius: 3px; background: #e8ecf1; margin-top: 4px; }
+        .gd-map-card .tbl i.g { background: color-mix(in srgb, var(--g-pri) 15%, #fff); }
+        .gd-map-card .pl { display: flex; gap: 5px; }
+        .gd-map-card .pl i { flex: 1; height: 22px; border-radius: .3rem; background: var(--g-soft); border: 1px solid var(--g-line); }
+        .gd-map-card .bar { height: 6px; border-radius: 3px; background: #e8ecf1; overflow: hidden; margin-bottom: 6px; }
+        .gd-map-card .bar b { display: block; height: 100%; width: 60%; background: var(--g-pri); }
+        .gd-map-card .ln { height: 6px; border-radius: 3px; background: #e8ecf1; margin-top: 5px; width: 85%; }
+        .gd-map-card .sv { height: 18px; border-radius: .3rem; background: var(--g-pri); margin-top: 8px; }
+
+        /* Panduan: sorot elemen & tur */
+        .gd-spot { position: fixed; z-index: 2000; border-radius: .6rem; box-shadow: 0 0 0 9999px rgba(17,24,39,.6); outline: 3px solid #ff971f; outline-offset: 3px; pointer-events: none; animation: gdSpot 1.2s ease-in-out infinite; }
+        @keyframes gdSpot { 50% { outline-offset: 8px; outline-color: rgba(255,151,31,.6); } }
+        .gd-spot-cv { position: fixed; inset: 0; z-index: 1999; cursor: pointer; }
+        .gd-spot-l { position: fixed; z-index: 2001; background: #fff; color: var(--g-ink); font-size: 13px; padding: 10px 12px; border-radius: .5rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); width: 340px; max-width: calc(100vw - 16px); }
+        .gd-spot-l .st { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--g-pri); margin-bottom: 4px; }
+        .gd-spot-l .dots { display: flex; gap: 4px; }
+        .gd-spot-l .dots i { width: 7px; height: 7px; border-radius: 50%; background: #e2e6ec; }
+        .gd-spot-l .dots i.done { background: #9fb3d1; }
+        .gd-spot-l .dots i.on { background: var(--g-acc); width: 16px; border-radius: 4px; }
+        .gd-spot-l > b { display: block; font-weight: 700; }
+        .gd-spot-l > span.d { display: block; color: #3d4450; font-size: 12.5px; line-height: 1.5; margin-top: 3px; }
+        .gd-spot-l > span.d b { color: var(--g-ink); }
+        .gd-spot-l .nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
+        .gd-spot-l .nav button { border: 1px solid #c5ccd6; background: #fff; color: var(--g-ink); font-size: 12.5px; font-weight: 600; border-radius: .35rem; padding: 4px 12px; }
+        .gd-spot-l .nav button:disabled { opacity: .4; }
+        .gd-spot-l .nav button.pri { background: var(--g-pri); border-color: var(--g-pri); color: #fff; }
+        .gd-spot-l .nav button:not(:disabled):hover { filter: brightness(.95); }
+        .gd-spot-l small { display: block; color: var(--g-muted); font-size: 11.5px; margin-top: 6px; padding-top: 5px; border-top: 1px solid #e2e6ec; }
+        .gd-spot-l kbd { font-size: 10px; padding: 0 4px; }
+
+        @media (max-width: 576px) {
+            .gd-t td:first-child { width: auto; white-space: normal; }
+            .gd-flow > i { display: none; }
+            .gd-map-grid { grid-template-columns: 1fr; }
+        }
     </style>
 @endsection
 
@@ -265,9 +363,14 @@
     <div class="card card-primary">
         <div class="card-header bg-sb d-flex align-items-center">
             <h5 class="card-title fw-bold mb-0"><i class="fas fa-box"></i> Pemasukan Barang Jadi SO</h5>
-            <a class="btn btn-light btn-sm ms-auto" style="margin-block: -.5rem;" href="{{ route('pemasukan_barang_jadi_so') }}">
-                <i class="fas fa-arrow-left"></i> Kembali
-            </a>
+            <div class="pbj-head-r d-flex gap-2 ms-auto" style="margin-block: -.5rem;">
+                <button type="button" class="btn btn-light btn-sm" id="gdBtn">
+                    <i class="fas fa-book-open"></i> Panduan
+                </button>
+                <a class="btn btn-light btn-sm" href="{{ route('pemasukan_barang_jadi_so') }}">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <div id="pbj">
@@ -397,6 +500,172 @@
                     </div>
                 </div>
                 <div class="pbj-toast" id="toast"></div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Panduan halaman --}}
+    <div class="modal fade" id="gdGuide" tabindex="-1" aria-labelledby="gdGuideTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <div>
+                        <small class="text-uppercase fw-bold" style="letter-spacing: .6px; opacity: .75;">Panduan</small>
+                        <h5 class="modal-title fw-bold" id="gdGuideTitle">Pemasukan Barang Jadi SO</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body gd">
+                    <nav class="gd-nav">
+                        <a href="#gd-peta">Peta halaman</a><a href="#gd-alur">Alur singkat</a><a href="#gd-atas">Tombol atas</a><a href="#gd-asal">Asal barang</a><a href="#gd-ref">Referensi order</a>
+                        <a href="#gd-detail">Detail</a><a href="#gd-bpb">No. BPB</a><a href="#gd-sum">Ringkasan &amp; simpan</a><a href="#gd-tips">Tips &amp; FAQ</a>
+                    </nav>
+
+                    <section id="gd-peta">
+                        <h6><span>Peta halaman</span> <button type="button" class="gd-show pri" data-tour="0"><i class="fa fa-play"></i> Mulai tur</button></h6>
+                        <p class="gd-note">Klik <b>nomor</b> untuk membaca penjelasannya, atau klik <b>kotaknya</b> untuk melihat langsung di halaman.</p>
+                        <div class="gd-map">
+                            <div class="gd-map-head">
+                                <b>Pemasukan Barang Jadi SO</b>
+                                <div class="gd-map-z r" data-spot=".pbj-head-r"><a href="#gd-atas" class="gd-map-n tip-l" aria-label="Tombol di kanan atas">2<span class="gd-map-tip" role="tooltip"><b>Tombol di kanan atas</b>Panduan dan Kembali ke daftar Pemasukan Barang Jadi SO.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i></div>
+                            </div>
+                            <div class="gd-map-grid">
+                                <div class="gd-map-col">
+                                    <div class="gd-map-z gd-map-card" data-spot='#pbj .sec[data-sec="1"]'>
+                                        <a href="#gd-asal" class="gd-map-n" aria-label="Asal barang">3<span class="gd-map-tip" role="tooltip"><b>1. Asal Barang</b>Supplier, Jenis Pemasukan, dan Jenis Dokumen.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h"><em>1</em> Asal Barang</div>
+                                        <div class="fs"><i></i><i></i><i></i></div>
+                                    </div>
+                                    <div class="gd-map-z gd-map-card" data-spot='#pbj .sec[data-sec="2"]'>
+                                        <a href="#gd-ref" class="gd-map-n" aria-label="Referensi order">4<span class="gd-map-tip" role="tooltip"><b>2. Referensi Order</b>Pilih PO atau WS, lalu isi Invoice, No. Reff, dan Grade.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h"><em>2</em> Referensi Order</div>
+                                        <div class="fs"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                                    </div>
+                                    <div class="gd-map-z gd-map-card" data-spot='#pbj .sec[data-sec="3"]'>
+                                        <a href="#gd-detail" class="gd-map-n" aria-label="Detail">5<span class="gd-map-tip" role="tooltip"><b>3. Detail</b>Tabel baris barang. Isi kolom Qty BPB.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h"><em>3</em> Detail Barang / Qty</div>
+                                        <div class="tbl"><i class="g"></i><i></i><i></i><i class="g"></i><i></i></div>
+                                    </div>
+                                </div>
+                                <div class="gd-map-col">
+                                    <div class="gd-map-z gd-map-card" data-spot="#pbj .doc-id">
+                                        <a href="#gd-bpb" class="gd-map-n tip-l" aria-label="No. BPB">6<span class="gd-map-tip" role="tooltip"><b>BPB # &amp; BPB Date</b>Nomor BPB dibuat otomatis saat simpan. Tanggal = hari ini.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="pl"><i></i><i></i></div>
+                                    </div>
+                                    <div class="gd-map-z gd-map-card" data-spot="#pbj .side .panel">
+                                        <a href="#gd-sum" class="gd-map-n tip-l" aria-label="Ringkasan">7<span class="gd-map-tip" role="tooltip"><b>Ringkasan &amp; Simpan</b>Progres kolom wajib, isi form, total qty, tombol Simpan dan Kosongkan form.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                        <div class="h">Ringkasan</div>
+                                        <div class="bar"><b></b></div>
+                                        <div class="ln"></div><div class="ln"></div><div class="ln"></div>
+                                        <div class="sv"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="gd-alur">
+                        <h6>1. Alur singkat</h6>
+                        <div class="gd-flow">
+                            <div><b>Asal barang</b><span>supplier, jenis pemasukan &amp; dokumen</span></div><i>→</i>
+                            <div><b>Referensi order</b><span>PO / WS, invoice, reff, grade</span></div><i>→</i>
+                            <div><b>Isi Qty BPB</b><span>per baris di tabel detail</span></div><i>→</i>
+                            <div class="ok"><b>Simpan</b><span>nomor BPB dibuat otomatis</span></div>
+                        </div>
+                        <ul>
+                            <li>Kolom bertanda <b style="color:var(--g-err)">*</b> wajib diisi. Judul tiap bagian menampilkan jumlah kolom wajib yang sudah terisi, misalnya <i>2/3 wajib</i>.</li>
+                            <li>Ada dua alur, ditentukan otomatis dari <b>Supplier</b>:</li>
+                        </ul>
+                        <div class="gd-box mt-2"><b>Supplier NAG (hasil produksi internal)</b> — data dari packing list &amp; scan packing out. Qty diisi per PO + color + size, <b>maksimal sisa bisa masuk</b> (sudah discan − sudah masuk).</div>
+                        <div class="gd-box"><b>Supplier lain</b> — data dari baris SO. Kolom <b>Bal</b> (sisa belum masuk) hanya sebagai info, Qty BPB tidak dibatasi.</div>
+                    </section>
+
+                    <section id="gd-atas">
+                        <h6><span>2. Tombol di kanan atas</span> <button type="button" class="gd-show" data-spot=".pbj-head-r"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm gd-t">
+                            <tr><td><span class="gd-btn">Panduan</span></td><td>Membuka halaman ini.</td></tr>
+                            <tr><td><span class="gd-btn">Kembali</span></td><td>Kembali ke daftar Pemasukan Barang Jadi SO. Isian yang belum disimpan akan hilang.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="gd-asal">
+                        <h6><span>3. Asal Barang</span> <button type="button" class="gd-show" data-spot='#pbj .sec[data-sec="1"]'><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm gd-t">
+                            <tr><td><b>Supplier</b></td><td>Pilih supplier (bisa diketik untuk mencari). Supplier menentukan alur (NAG atau lainnya) serta daftar PO/WS. <b>Ganti supplier</b> mengosongkan PO, WS, dan qty yang sudah diisi.</td></tr>
+                            <tr><td><b>Jenis Pemasukan</b></td><td>Pilih jenis transaksi. Setelah dipilih, Jenis Dokumen otomatis disarankan:
+                                <br>• Hasil Produksi / Hasil Perbaikan Produksi → <b>INHOUSE</b>
+                                <br>• Pembelian → <b>BC 4.0</b>
+                                <br>• Retur dari Subkontraktor CMT / Jasa → <b>BC 2.6.2</b></td></tr>
+                            <tr><td><b>Jenis Dokumen</b></td><td>Terisi otomatis dari saran di atas, tetap bisa diganti manual.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="gd-ref">
+                        <h6><span>4. Referensi Order</span> <button type="button" class="gd-show" data-spot='#pbj .sec[data-sec="2"]'><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <p class="gd-note">Setelah Supplier dan Jenis Pemasukan terisi, muncul kotak info yang menjelaskan alur yang sedang dipakai.</p>
+                        <table class="table table-sm gd-t">
+                            <tr><td><b>Pilih Berdasarkan</b></td><td><span class="gd-btn">PO</span> atau <span class="gd-btn">WS</span>. Supplier NAG awalnya memakai PO, supplier lain WS. Mengganti pilihan ini mengosongkan detail.</td></tr>
+                            <tr><td><b>PO</b></td><td>Daftar PO milik supplier. Setelah PO dipilih, <b>semua WS di dalamnya otomatis terpilih</b> dan detail dibatasi ke PO itu. WS yang tidak perlu bisa dihapus.</td></tr>
+                            <tr><td><b>WS</b></td><td>Daftar WS milik supplier. Bisa pilih lebih dari satu; detail dimuat ulang setiap WS berubah (qty yang sudah diisi ikut dikosongkan).</td></tr>
+                            <tr><td><b>Invoice</b></td><td>Nomor invoice, contoh <i>INV/NAG/2611/0087</i>.</td></tr>
+                            <tr><td><b>No. Reff</b></td><td>Nomor surat jalan.</td></tr>
+                            <tr><td><b>Grade</b></td><td>Klik <span class="gd-btn">A</span> <span class="gd-btn">B</span> atau <span class="gd-btn">C</span>.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="gd-detail">
+                        <h6><span>5. Detail Barang / Detail Qty</span> <button type="button" class="gd-show" data-spot='#pbj .sec[data-sec="3"]'><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li>Baris dikelompokkan per <b>WS + color</b>. Baris judul kelompok menampilkan style, color, dan sisa pcs.</li>
+                            <li><b>Supplier NAG</b>: kolom PO, WS, Style, Color, Size, Qty PO, Sudah Discan, Sudah Masuk, <b>Sisa Bisa Masuk</b>, Qty BPB. Baris yang sisanya habis terkunci (<i>Habis</i>). Qty melebihi sisa ditandai merah dan <b>tidak bisa disimpan</b>.</li>
+                            <li><b>Supplier lain</b>: kolom SO, WS, Style, Product, Dest, Color, Size, Qty SO, Unit, <b>Bal</b>, Qty BPB. Centang <b>Tampilkan semua kolom</b> untuk menampilkan Product Desc, Buyer PO, Reff No, Style No Prod, dan SKU.</li>
+                        </ul>
+                        <table class="table table-sm gd-t mt-2">
+                            <tr><td><b>Kolom cari</b></td><td>Saring baris berdasarkan PO/SO, WS, style, color, size, SKU, dll.</td></tr>
+                            <tr><td><span class="gd-btn">Isi semua = Sisa / Bal</span></td><td>Mengisi Qty BPB semua baris dengan sisanya.</td></tr>
+                            <tr><td><span class="gd-btn">Isi = Sisa / Bal</span></td><td>Tombol di baris judul kelompok: mengisi hanya kelompok itu.</td></tr>
+                            <tr><td><span class="gd-btn">Kosongkan qty</span></td><td>Menghapus semua Qty BPB yang sudah diisi.</td></tr>
+                            <tr><td><b>Pindah baris</b></td><td>Di kolom Qty BPB, tekan <kbd>↑</kbd> / <kbd>↓</kbd> untuk pindah ke baris atas/bawah.</td></tr>
+                            <tr><td><b>Total</b></td><td>Baris paling bawah menjumlahkan semua kolom angka dan Qty BPB.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="gd-bpb">
+                        <h6><span>6. BPB # &amp; BPB Date</span> <button type="button" class="gd-show" data-spot="#pbj .doc-id"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li><b>BPB #</b> dibuat otomatis oleh sistem saat data disimpan, tidak perlu diisi.</li>
+                            <li><b>BPB Date</b> adalah tanggal hari ini.</li>
+                        </ul>
+                    </section>
+
+                    <section id="gd-sum">
+                        <h6><span>7. Ringkasan &amp; Simpan</span> <button type="button" class="gd-show" data-spot="#pbj .side .panel"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li><b>Bar progres</b>: berapa kolom wajib yang sudah terisi (Detail dihitung terisi bila total qty &gt; 0 dan tidak ada yang melebihi batas).</li>
+                            <li><b>Daftar ringkasan</b>: isian form saat ini; yang masih kosong tampil <i>—</i>.</li>
+                            <li><b>Total Qty BPB</b>: jumlah pcs yang akan dimasukkan.</li>
+                            <li><span class="gd-btn">Simpan</span>: bila masih ada yang kurang, muncul peringatan <i>Belum lengkap</i>, kolomnya ditandai merah dan halaman bergulir ke kolom pertama yang kurang. Bila berhasil, muncul nomor BPB dengan dua pilihan:
+                                <br>• <b>Lihat data</b> — tutup jendela; detail dimuat ulang supaya <i>Sudah Masuk</i> &amp; sisa terbaru.
+                                <br>• <b>Input baru</b> — form dikosongkan untuk input berikutnya.</li>
+                            <li><span class="gd-btn">Kosongkan form</span>: mengosongkan seluruh isian <b>tanpa konfirmasi</b>.</li>
+                            <li>Di layar kecil (HP/tablet), tombol <b>Simpan</b> ada di bar bawah layar beserta jumlah kolom wajib yang terisi.</li>
+                        </ul>
+                    </section>
+
+                    <section id="gd-tips">
+                        <h6>8. Tips &amp; FAQ</h6>
+                        <dl class="gd-faq">
+                            <dt>Daftar PO / WS kosong?</dt>
+                            <dd>Pastikan Supplier sudah dipilih. Bila tetap kosong, supplier itu memang belum punya PO/WS.</dd>
+                            <dt>Kolom Qty BPB terkunci "Habis"?</dt>
+                            <dd>(Supplier NAG) Semua yang sudah discan packing out sudah dimasukkan. Scan packing out dulu untuk menambah sisa.</dd>
+                            <dt>Tidak bisa simpan karena "melebihi sisa"?</dt>
+                            <dd>Turunkan qty yang ditandai merah, atau tekan <b>Isi = Sisa</b> pada kelompoknya.</dd>
+                            <dt>Qty yang sudah diisi tiba-tiba hilang?</dt>
+                            <dd>Mengganti Supplier, PO, WS, atau pilihan PO/WS akan memuat ulang detail dan mengosongkan qty.</dd>
+                        </dl>
+                    </section>
+                </div>
             </div>
         </div>
     </div>
@@ -895,6 +1164,166 @@
             $("#btnReset").onclick = reset;
 
             mode = ""; checkMode(); update();
+        })();
+
+        // ===== Panduan: sorot elemen asli + tur langkah demi langkah =====
+        (function() {
+            const gEl = document.getElementById("gdGuide"), gBs = bootstrap.Modal.getOrCreateInstance(gEl);
+            const TOUR_KEY = "pbj_so_tour_seen_{{ Auth::id() }}";
+            const escH = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+            const STEPS = [
+                {sel: ".pbj-head-r", sec: "gd-atas", lbl: "Tombol di kanan atas",
+                    d: "<b>Panduan</b> membuka halaman bantuan ini · <b>Kembali</b> ke daftar Pemasukan Barang Jadi SO."},
+                {sel: '#pbj .sec[data-sec="1"]', sec: "gd-asal", lbl: "1. Asal Barang",
+                    d: "Pilih <b>Supplier</b>, <b>Jenis Pemasukan</b>, lalu <b>Jenis Dokumen</b> (otomatis disarankan dari jenis pemasukan)."},
+                {sel: '#pbj .sec[data-sec="2"]', sec: "gd-ref", lbl: "2. Referensi Order",
+                    d: "Pilih berdasarkan <b>PO</b> atau <b>WS</b>, lalu isi <b>Invoice</b>, <b>No. Reff</b>, dan <b>Grade</b>."},
+                {sel: '#pbj .sec[data-sec="3"]', sec: "gd-detail", lbl: "3. Detail",
+                    d: "Isi <b>Qty BPB</b> per baris. Gunakan <b>Isi semua</b> / <b>Isi = Sisa</b> untuk mengisi cepat, <kbd>↑</kbd><kbd>↓</kbd> untuk pindah baris."},
+                {sel: "#pbj .doc-id", sec: "gd-bpb", lbl: "BPB # & BPB Date",
+                    d: "Nomor BPB dibuat otomatis saat simpan. Tanggal = hari ini."},
+                {sel: "#pbj .side .panel", sec: "gd-sum", lbl: "Ringkasan & Simpan",
+                    d: "Pantau kolom wajib yang sudah terisi dan total qty, lalu tekan <b>Simpan</b>."},
+            ];
+            let spotTok = 0, spotIdx = -1, tourFirst = false;
+
+            function gGo(id, smooth) {
+                const t = gEl.querySelector(id);
+                if (t) t.scrollIntoView({behavior: smooth ? "smooth" : "auto", block: "start"});
+            }
+
+            function spotClear() {
+                spotTok++;
+                document.querySelectorAll(".gd-spot, .gd-spot-l, .gd-spot-cv").forEach(x => x.remove());
+                removeEventListener("scroll", spotOff, true);
+                removeEventListener("resize", spotOff);
+            }
+
+            // Tutup tur & kembali ke panduan di bagian langkah terakhir yang dilihat
+            function spotOff() {
+                const s = STEPS[spotIdx], first = tourFirst;
+                spotClear();
+                spotIdx = -1;
+                if (first) {
+                    tourFirst = false;
+                    try { localStorage.setItem(TOUR_KEY, "1"); } catch (e) {}
+                }
+                gEl.addEventListener("shown.bs.modal", () => gGo(first || !s ? "#gd-peta" : "#" + s.sec), {once: true});
+                gBs.show();
+            }
+
+            function spotGo(i) {
+                if (i < 0 || i >= STEPS.length) return;
+                spotClear();
+                spotIdx = i;
+
+                const s = STEPS[i], n = STEPS.length;
+                const target = [...document.querySelectorAll(s.sel)].find(x => x.offsetParent !== null);
+                if (!target) { spotOff(); return; }
+
+                const tok = spotTok;
+                if (document.activeElement) document.activeElement.blur();
+                target.scrollIntoView({behavior: "smooth", block: "center"});
+
+                // Tunggu scroll berhenti (posisi elemen stabil beberapa frame), baru pasang sorotan
+                let last = null, still = 0;
+                const t0 = performance.now();
+                (function wait() {
+                    if (tok !== spotTok) return;
+                    const top = target.getBoundingClientRect().top;
+                    still = last !== null && Math.abs(top - last) < 0.5 ? still + 1 : 0;
+                    last = top;
+                    if (still >= 6 || performance.now() - t0 > 2000) draw(); else requestAnimationFrame(wait);
+                })();
+
+                function draw() {
+                    const r = target.getBoundingClientRect(), pad = 6;
+
+                    const cv = document.createElement("div");
+                    cv.className = "gd-spot-cv";
+                    cv.onclick = spotOff;
+
+                    const box = document.createElement("div");
+                    box.className = "gd-spot";
+                    // Elemen lebih tinggi dari layar: sorotan dibatasi ke area yang terlihat
+                    const top = Math.max(8, r.top - pad), bottom = Math.min(innerHeight - 8, r.bottom + pad);
+                    Object.assign(box.style, {left: r.left - pad + "px", top: top + "px", width: r.width + pad * 2 + "px", height: Math.max(0, bottom - top) + "px"});
+
+                    const l = document.createElement("div");
+                    l.className = "gd-spot-l";
+                    l.innerHTML = `<div class="st"><span>Langkah ${i + 1} dari ${n}</span><span class="dots">${STEPS.map((_, k) => `<i class="${k === i ? "on" : k < i ? "done" : ""}"></i>`).join("")}</span></div>
+                        <b>${escH(s.lbl)}</b><span class="d">${s.d}</span>
+                        <div class="nav"><button type="button" data-nav="prev" ${i ? "" : "disabled"}>‹ Sebelumnya</button>
+                            <button type="button" data-nav="next" class="pri">${i === n - 1 ? "Selesai ✓" : "Berikutnya ›"}</button></div>
+                        <small><kbd>←</kbd><kbd>→</kbd> pindah langkah · <kbd>Esc</kbd>, scroll, atau klik area gelap untuk kembali ke panduan</small>`;
+                    l.onclick = e => {
+                        const b = e.target.closest("[data-nav]");
+                        if (!b) return;
+                        if (b.dataset.nav === "prev") spotGo(i - 1);
+                        else if (i === n - 1) spotOff();
+                        else spotGo(i + 1);
+                    };
+
+                    document.body.append(cv, box, l);
+
+                    // Label di bawah sorotan bila muat, kalau tidak di atas, kalau tetap tidak muat di dalam bagian bawah layar
+                    const lh = l.offsetHeight;
+                    let ly = bottom + 16 + lh < innerHeight ? bottom + 16 : top - lh - 16;
+                    if (ly < 8) ly = innerHeight - lh - 12;
+                    l.style.left = Math.max(8, Math.min(innerWidth - l.offsetWidth - 8, r.left)) + "px";
+                    l.style.top = ly + "px";
+
+                    const nx = l.querySelector('[data-nav="next"]');
+                    if (nx) nx.focus({preventScroll: true});
+
+                    // Mulai dengarkan scroll user setelah sorotan tampil
+                    setTimeout(() => {
+                        if (tok !== spotTok || !document.querySelector(".gd-spot")) return;
+                        addEventListener("scroll", spotOff, true);
+                        addEventListener("resize", spotOff);
+                    }, 250);
+                }
+            }
+
+            document.getElementById("gdBtn").addEventListener("click", () => gBs.show());
+
+            // Klik di dalam panduan: nomor/nav → lompat ke bagian; kotak/tombol "Tunjukkan" → sorot di halaman
+            gEl.addEventListener("click", e => {
+                const a = e.target.closest(".gd-map-n, .gd-nav a");
+                if (a) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    gGo(a.getAttribute("href"), true);
+                    return;
+                }
+
+                const b = e.target.closest("[data-spot], [data-tour]");
+                if (!b) return;
+
+                const idx = b.dataset.tour !== undefined ? 0 : Math.max(0, STEPS.findIndex(x => x.sel === b.dataset.spot));
+                gEl.addEventListener("hidden.bs.modal", () => spotGo(idx), {once: true});
+                gBs.hide();
+            });
+
+            document.addEventListener("keydown", e => {
+                if (spotIdx < 0) return;
+                if (e.key === "Escape") { e.preventDefault(); spotOff(); return; }
+                if (!document.querySelector(".gd-spot")) return;
+                if (e.key === "ArrowRight") { e.preventDefault(); spotIdx === STEPS.length - 1 ? spotOff() : spotGo(spotIdx + 1); }
+                else if (e.key === "ArrowLeft") { e.preventDefault(); spotGo(spotIdx - 1); }
+            }, true);
+
+            // Tur otomatis saat halaman pertama kali dibuka oleh user ini (per user per browser)
+            let seen = false;
+            try { seen = localStorage.getItem(TOUR_KEY) === "1"; } catch (e) { seen = true; }
+            if (!seen) {
+                setTimeout(() => {
+                    if (spotIdx < 0 && !document.querySelector(".modal.show")) {
+                        tourFirst = true;
+                        spotGo(0);
+                    }
+                }, 600);
+            }
         })();
     </script>
 @endsection
