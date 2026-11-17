@@ -146,6 +146,22 @@ return [
             ]) : [],
         ],
 
+        // Percobaan DB baru marketing
+        'mysql_mkt' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST_MKT', '127.0.0.1'),
+            'port' => env('DB_PORT_MKT', '3306'),
+            'database' => env('DB_DATABASE_MKT', 'forge'),
+            'username' => env('DB_USERNAME_MKT', 'forge'),
+            'password' => env('DB_PASSWORD_MKT', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'mysql_nds' => [
             'driver' => env('DB_CONNECTION_nds', 'mysql'),
             'url' => env('DATABASE_URL'),
