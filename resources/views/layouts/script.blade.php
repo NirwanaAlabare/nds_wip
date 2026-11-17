@@ -11,6 +11,10 @@
 <script src="{{ asset('plugins/izitoast/dist/js/iziToast.min.js') }}"></script>
 <!-- Sweet Alert -->
 <script src="{{ asset('plugins/sweetalert/dist/sweetalert2.all.min.js') }}"></script>
+@if (str_contains(optional(request()->route())->getActionName() ?? '', 'Marketing_'))
+<!-- Alert modul Marketing: katalog teks + gaya dialog/toast -->
+<script src="{{ asset('dist/js/marketing-alert.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-alert.js')) }}"></script>
+@endif
 <!-- AdminLTE App -->
 <script src="{{ asset('dist/js/adminlte.min.js') }}"></script>
 <!-- AdminLTE App -->

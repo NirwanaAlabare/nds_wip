@@ -477,10 +477,10 @@ class Marketing_BomController extends Controller
             return;
         }
         $history = app(MarketingHistoryService::class);
-        if ($action === 'items_added' && $history->bomCreatedOnce($costingId, $bomId)) {
+        if ($action === 'items_added' && $history->bomCreatedOnce($costingId)) {
             return;
         }
-        $history->bomItemsChanged($costingId, $bomId, $action, $count);
+        $history->bomItemsChanged($costingId, $action, $count);
     }
 
     public function storeJoItems(Request $request)

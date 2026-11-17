@@ -53,6 +53,8 @@ use App\Http\Controllers\Marketing_BomController;
 use App\Http\Controllers\Marketing_CostingController;
 use App\Http\Controllers\Marketing_WorksheetController;
 use App\Http\Controllers\Marketing_SOController;
+use App\Http\Controllers\Marketing_SalesOrderController;
+use App\Http\Controllers\Marketing_BomNdsController;
 use App\Http\Controllers\MarketingDashboardController;
 use App\Http\Controllers\MasterLokasiController;
 use App\Http\Controllers\MgtReportDailyCostController;
@@ -898,7 +900,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', 'create')->name('create-packing-out-scan');
         Route::get('/get-carton-data', 'getCartonData')->name('get-carton-data-packing-out-scan');
         Route::post('/store', 'store')->name('store-packing-out-scan');
-        Route::post('/destroy', 'destroy')->name('destroy-packing-out-scan');    
+        Route::post('/destroy', 'destroy')->name('destroy-packing-out-scan');
     });
 
     Route::controller(PackingListController::class)->prefix("packing-list")->middleware('packing')->group(function () {
@@ -1282,20 +1284,19 @@ Route::middleware('auth')->group(function () {
     Route::controller(MarketingDashboardController::class)->middleware('marketing')->group(function () {
         Route::get('/dashboard_marketing', 'dashboard_marketing')->name('dashboard-marketing');
         Route::get('/dashboard_marketing/data', 'data')->name('dashboard-marketing-data');
+        Route::get('/dashboard_marketing/board', 'board')->name('dashboard-marketing-board');
     });
 
     // Approval Center
-    // Approval Center: approval + lock/unlock Costing & BOM
     Route::controller(Marketing_ApprovalCenterController::class)->prefix('marketing/approval-center')->middleware('marketing')->group(function () {
         Route::get('/', 'index')->name('marketing-approval-center');
-        Route::get('/documents/{type}', 'documents')->where('type', 'costing|bom')->name('marketing-approval-documents');
+        Route::get('/documents/{type}', 'documents')->where('type', 'costing|bom|so')->name('marketing-approval-documents');
         Route::get('/unlock-requests/{type}', 'unlockRequests')->where('type', 'costing|bom|so')->name('marketing-approval-unlock-requests');
-        Route::post('/decide/{type}', 'decide')->where('type', 'costing|bom')->name('marketing-approval-decide');
+        Route::post('/decide/{type}', 'decide')->where('type', 'costing|bom|so')->name('marketing-approval-decide');
         Route::post('/unlock', 'unlock')->name('marketing-approval-unlock');
         Route::post('/request-unlock', 'requestUnlock')->name('marketing-request-unlock');
     });
 
-    // Master Data > Master Group / Master Content & Item (dipakai Costing, BOM, SO)
     Route::controller(Marketing_MasterGroupController::class)->prefix('master-data/master-group')->middleware('role:master_data')->group(function () {
         Route::get('/', 'index')->name('marketing-master-group');
         Route::post('/', 'store')->name('marketing-master-group-store');
@@ -1471,6 +1472,37 @@ Route::middleware('auth')->group(function () {
         Route::post('/execute-merge', 'executeMerge')->name('so-execute-merge');
         Route::get('/input-barcode/{id}', 'inputBarcodePage')->name('so-input-barcode');
         Route::post('/save-barcode', 'saveBarcode')->name('so-save-barcode');
+    });
+
+    // Sales Order DB baru (trial)
+    Route::controller(Marketing_SalesOrderController::class)->prefix('master-marketing-so-nds')->middleware('marketing')->group(function () {
+        Route::get('/create', 'create')->name('so-nds-create');
+        Route::get('/edit/{id}', 'edit')->name('so-nds-edit');
+        Route::get('/cmt-check/{id}', 'cmtCheck')->name('so-nds-cmt-check');
+        Route::get('/costing-preview/{id}', 'costingPreview')->name('so-nds-costing-preview');
+        Route::post('/upload/{id}', 'upload')->name('so-nds-upload');
+        Route::post('/discard/{id}', 'discard')->name('so-nds-discard');
+        Route::get('/rows/{id}', 'rows')->name('so-nds-rows');
+        Route::post('/update-cells/{id}', 'updateCells')->name('so-nds-update-cells');
+        Route::post('/add-row/{id}', 'addRow')->name('so-nds-add-row');
+        Route::post('/delete-rows/{id}', 'deleteRows')->name('so-nds-delete-rows');
+        Route::post('/store-destination', 'storeDestination')->name('so-nds-store-destination');
+        Route::post('/save/{id}', 'save')->name('so-nds-save');
+        Route::get('/detail/{id}', 'detail')->name('so-nds-detail');
+        Route::get('/pdf/{id}', 'pdf')->name('so-nds-pdf');
+        Route::get('/pdf-batch', 'pdfBatch')->name('so-nds-pdf-batch');
+        Route::get('/excel/{id}', 'excel')->name('so-nds-excel');
+    });
+
+    // BOM di DB baru marketing (percobaan nds): 1 halaman = 1 WS.
+    Route::controller(Marketing_BomNdsController::class)->prefix('master-marketing-bom-nds')->middleware('marketing')->group(function () {
+        Route::get('/so/{soId}', 'edit')->name('bom-nds-edit');
+        Route::post('/save/{lineId}', 'save')->name('bom-nds-save');
+        // Dokumen: ?line= satu WS, tanpa line = semua WS di SO.
+        Route::get('/detail/{soId}', 'detail')->name('bom-nds-detail');
+        Route::get('/pdf/{soId}', 'pdf')->name('bom-nds-pdf');
+        Route::get('/pdf-batch', 'pdfBatch')->name('bom-nds-pdf-batch');
+        Route::get('/excel/{soId}', 'excel')->name('bom-nds-excel');
     });
 
     // Marketing Report

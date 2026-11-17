@@ -5,7 +5,7 @@
     <style>
         .md-page { padding: 6px 4px 24px; color: #1e293b; font-family: Inter, sans-serif; }
 
-        /* Header + time picker (gaya Grafana) */
+        /* Header + time picker  */
         .md-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
         .md-head h1 { margin: 0; color: #1e293b; font-size: 17px; font-weight: 500; }
         .md-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -145,7 +145,7 @@
                             </div>
                             <div class="md-picker-error" id="md-picker-error" hidden></div>
                             <div class="md-picker-actions">
-                                <button type="button" class="mkt-ico mkt-ico--copy" id="md-copy-range" title="Copy rentang waktu" data-tip="Copy"><i class="fas fa-copy"></i></button>
+                                <button type="button" class="mkt-ico mkt-ico--copy" id="md-copy-range" data-tip="Copy"><i class="fas fa-copy"></i></button>
                                 <button type="button" class="md-btn md-btn-icon" id="md-paste-range" title="Paste rentang waktu"><i class="far fa-clipboard"></i></button>
                                 <button type="button" class="md-apply" id="md-apply-range">Apply time range</button>
                             </div>
@@ -273,7 +273,7 @@
             const REFRESH_OPTIONS = [['', 'Off'], ['5s', '5s'], ['10s', '10s'], ['30s', '30s'], ['1m', '1m'], ['5m', '5m'], ['15m', '15m'], ['30m', '30m'], ['1h', '1h'], ['2h', '2h'], ['1d', '1d']];
             const UNIT_MS = { s: 1e3, m: 6e4, h: 36e5, d: 864e5, w: 6048e5 };
 
-            /* ---------- waktu: "now-1d/d" (relatif, gaya Grafana) atau "YYYY-MM-DD HH:mm:ss" ---------- */
+            /* ---------- waktu: "now-1d/d" atau "YYYY-MM-DD HH:mm:ss" ---------- */
             function startOf(d, unit) {
                 const r = new Date(d);
                 if (unit === 'y') r.setMonth(0, 1);
@@ -388,7 +388,7 @@
                     },
                     axisBorder: { show: false }, tooltip: { enabled: false }
                 },
-                // Tooltip seperti Grafana: nilai per bulan (atau per hari), tanpa jam.
+                // Tooltip nilai per bulan (atau per hari), tanpa jam.
                 tooltip: { x: { formatter: ts => periodLabel(ts) } }
             }, options);
             const periodLabel = ts => new Date(ts).toLocaleDateString('en-GB', bucket === 'day'

@@ -22,7 +22,7 @@
         .costing-detail-alert > span i { margin-right: 6px; }
         .costing-detail-alert form { margin: 0; }
 
-        .costing-detail-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .costing-detail-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
         .costing-detail-stat { min-width: 0; min-height: 76px; padding: 10px 14px; border-radius: 10px; background: #6c8798; color: #fff; box-shadow: 0 3px 8px rgba(30, 41, 59, .10); }
         .costing-detail-stat span { display: block; margin-bottom: 4px; color: #e7eef2; font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: 0.2px; line-height: 1.25; }
         .costing-detail-stat strong { display: block; overflow: hidden; color: #fff; font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: 0.05em; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
@@ -106,7 +106,7 @@
             .costing-detail-stat strong { font-size: 18px; }
         }
         @media (max-width: 1199.98px) {
-            .costing-detail-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .costing-detail-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .costing-detail-stat span { font-size: 16px; }
             .costing-detail-stat strong { font-size: 18px; }
             .costing-detail-field span, .costing-detail-field strong { font-size: 16px; }
@@ -257,9 +257,7 @@
     $profitUsd = round(($vatUsd * 1.06) * 10000000) / 10000000;
     $pictures = collect($pictures);
     $summaryCards = [
-        ['No Worksheet', $costing->kpno ?: '-'],
         ['No Costing', $costing->no_costing ?: '-'],
-        ['DELIVERY DATE', $costing->deldate ? \Carbon\Carbon::parse($costing->deldate)->format('d/m/Y') : '-'],
         ['Qty Planned', $costing->qty_planned?: 0],
         ['SMV (MINUTES)', rtrim(rtrim(number_format((float) ($costing->smv ?? 0), 3, ',', '.'), '0'), ',')],
         ['CONFIRM PRICE', number_format($confirmPrice, 2, ',', '.')],
@@ -268,7 +266,7 @@
 <div class="costing-detail-page">
     <div class="card costing-detail-card">
         <div class="card-body">
-            <div class="costing-crumb"><a href="{{ route('master-costing') }}">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing</a> &nbsp;›&nbsp; <b>Detail Costing</b></div>
+            <div class="costing-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; Costing &nbsp;›&nbsp; <b>Detail Costing</b></div>
             <div class="costing-detail-heading">
                 <div>
                     <h1 class="costing-detail-title">Detail Costing <i class="fas fa-info-circle"></i></h1>
@@ -303,7 +301,7 @@
 
             <div class="costing-detail-summary">
                 @foreach ($summaryCards as [$label, $value])
-                <div class="costing-detail-stat{{ $loop->index < 3 ? ' is-light' : '' }}"><span>{{ $label }}</span><strong>{{ $value }}</strong></div>
+                <div class="costing-detail-stat{{ $loop->index < 1 ? ' is-light' : '' }}"><span>{{ $label }}</span><strong>{{ $value }}</strong></div>
                 @endforeach
             </div>
 
@@ -322,10 +320,14 @@
                     <section class="costing-detail-panel">
                         <h2>Product &amp; Type</h2>
                         <div class="costing-detail-fields">
+                            @if (empty($ndsTrial))
                             <div class="costing-detail-field"><span>Product Group</span><strong class="mkt-tc">{{ $costing->product_group ?: '-' }}</strong></div>
+                            @endif
                             <div class="costing-detail-field"><span>Product Item</span><strong class="mkt-tc">{{ $costing->product_item_name ?: '-' }}</strong></div>
                             <div class="costing-detail-field"><span>Product Type</span><strong>{{ $productSetNames ?: '-' }}</strong></div>
+                            @if (empty($ndsTrial))
                             <div class="costing-detail-field"><span>Costing Type</span><strong>{{ strtoupper($costing->type ?: '-') }}</strong></div>
+                            @endif
                             <div class="costing-detail-field"><span>Unit</span><strong>{{ $costing->unit ?: '-' }}</strong></div>
                             <div class="costing-detail-field"><span>Worksheet Type</span><strong>{{ $costing->tipe_ws ?: '-' }}</strong></div>
                         </div>

@@ -184,7 +184,7 @@
 @endphp
 <div class="card card-sb">
     <div class="card-body so-page">
-        <div class="so-breadcrumb">Marketing &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Proses</a> &nbsp;›&nbsp; Sales Order &nbsp;›&nbsp; <strong>Edit Sales Order</strong></div>
+        <div class="so-breadcrumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; Sales Order &nbsp;›&nbsp; <strong>Edit Sales Order</strong></div>
         <div class="so-page-heading">
             <h1>Edit Sales Order <i class="far fa-question-circle"></i></h1>
             <p><i class="fa-solid fa-circle-info"></i>Untuk Mengubah Detail SO</p>

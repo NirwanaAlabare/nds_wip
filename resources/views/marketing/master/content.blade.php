@@ -118,7 +118,7 @@
 @section('content')
 <div class="mc-page">
     <div class="mc-card">
-        <div class="mc-crumb">Master Data &nbsp;›&nbsp; <b>Master Content</b></div>
+        <div class="mc-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; Master Data &nbsp;›&nbsp; <b>Master Content</b></div>
         <h1 class="mc-title">Content & Items List <i class="fas fa-info-circle" title="Content di bawah group, item di bawah content"></i></h1>
         <p class="mc-subtitle"><i class="fas fa-database"></i> List Data Master Content & Items</p>
         <div class="mc-search">
@@ -344,7 +344,7 @@
                         <td class="mc-group-cell">${mcEscape(row.nama_group)}</td>
                         ${MC_COLS.map(field => cellHtml(row, field)).join('')}
                         <td class="text-center">
-                            <button type="button" class="mkt-ico mkt-ico--edit mc-action is-edit" title="Edit" data-tip="Edit"><i class="far fa-edit"></i></button> <button type="button" class="mkt-ico mkt-ico--delete mc-action is-delete" title="Delete" data-tip="Delete"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="mkt-ico mkt-ico--edit mc-action is-edit" data-tip="Edit"><i class="far fa-edit"></i></button> <button type="button" class="mkt-ico mkt-ico--delete mc-action is-delete" data-tip="Delete"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>`).join(''));
             }
@@ -377,12 +377,24 @@
             $('#mc-tbody').on('click', '.is-delete', function () {
                 const row = rowOf($(this));
                 const url = row.id_item ? MC_ROUTES.itemDestroy.replace(':id', row.id_item) : MC_ROUTES.contentDestroy.replace(':id', row.id_contents);
-                const label = row.id_item ? `item ${row.itemdesc}` : `content ${row.nm_contents}`;
-                Swal.fire({ icon: 'warning', title: `Hapus ${label}?`, showCancelButton: true, confirmButtonText: 'Hapus', cancelButtonText: 'Batal', confirmButtonColor: '#e11d48' })
-                    .then(result => {
-                        if (!result.isConfirmed) return;
-                        request(url, 'DELETE', {}).done(res => { toast(res.message); loadRows(); loadContents(); }).fail(showError);
+                const ask = row.id_item
+                    ? mktAlert('DEL-01', { item: row.itemdesc })
+                    : Swal.fire({
+                        icon: 'warning',
+                        title: 'Hapus content ini?',
+                        text: `Content ${row.nm_contents} akan dihapus dari master content.`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Delete',
+                        cancelButtonText: 'Cancel',
+                        focusCancel: true
                     });
+                ask.then(result => {
+                    if (!result.isConfirmed) return;
+                    request(url, 'DELETE', {}).done(() => {
+                        row.id_item ? mktAlert('DEL-02', { item: row.itemdesc }) : mktToast('ok', 'Content dihapus', `${row.nm_contents} sudah dihapus dari master content.`);
+                        loadRows(); loadContents();
+                    }).fail(xhr => showError(xhr, row.id_item ? 'Item belum dihapus' : 'Content belum dihapus'));
+                });
             });
             $('#mc-pages').on('click', '.mc-page-btn:not(:disabled)', function () {
                 mcState.page = Number($(this).data('page'));
@@ -488,15 +500,23 @@
 
             $('#mc-save').on('click', function () {
                 const tab = $('.mc-tab.active').data('tab');
-                const $btn = $(this).prop('disabled', true);
+                const $btn = $(this);
                 const done = () => $btn.prop('disabled', false);
-                let call;
+                let send, subject, changed, detail;
 
                 if (tab === 'content') {
                     const payload = { id_group: $('#mc-content-group').val(), nm_contents: $('#mc-content-name').val().trim() };
-                    if (!payload.id_group || !payload.nm_contents) { done(); Swal.fire('Perhatian', 'Nama Group dan Nama Content wajib diisi.', 'warning'); return; }
+                    if (!payload.id_group) { mktFieldError('#mc-content-group', 'Pilih Nama Group dulu, baru content bisa disimpan.'); return; }
+                    if (!payload.nm_contents) { mktFieldError('#mc-content-name', 'Isi Nama Content dulu, baru content bisa disimpan.'); return; }
                     const editing = mcEditing && mcEditing.type === 'content' ? mcEditing.row : null;
-                    call = editing ? request(MC_ROUTES.contentUpdate.replace(':id', editing.id_contents), 'PUT', payload) : request(MC_ROUTES.contentStore, 'POST', payload);
+                    subject = `Content ${payload.nm_contents}`;
+                    detail = ` di group ${$('#mc-content-group option:selected').text()}`;
+                    if (editing) {
+                        changed = [];
+                        if (payload.nm_contents !== String(editing.nm_contents ?? '')) changed.push('nama');
+                        if (String(payload.id_group) !== String(editing.id_group ?? '')) changed.push('group');
+                    }
+                    send = () => editing ? request(MC_ROUTES.contentUpdate.replace(':id', editing.id_contents), 'PUT', payload) : request(MC_ROUTES.contentStore, 'POST', payload);
                 } else {
                     // Weight format Indonesia: 1.234,5 (titik = ribuan, koma = desimal).
                     const weightText = $('#mc-item-weight').val().trim();
@@ -511,13 +531,43 @@
                         length: $('#mc-item-length').val().trim(),
                         gramasi: weight
                     };
-                    if (!payload.id_contents || !payload.itemdesc || !payload.kd_satuan) { done(); Swal.fire('Perhatian', 'Content, Nama Item, dan Unit wajib diisi.', 'warning'); return; }
-                    if (weight !== '' && (isNaN(Number(weight)) || Number(weight) < 0)) { done(); Swal.fire('Perhatian', 'Weight harus berupa angka.', 'warning'); return; }
+                    if (!payload.id_contents) { mktFieldError('#mc-item-content', 'Pilih Content Name dulu, baru item bisa disimpan.'); return; }
+                    if (!payload.itemdesc) { mktFieldError('#mc-item-name', 'Isi Nama Item dulu, baru item bisa disimpan.'); return; }
+                    if (!payload.kd_satuan) { mktFieldError('#mc-item-unit', 'Pilih Unit dulu, baru item bisa disimpan.'); return; }
+                    if (weight !== '' && (isNaN(Number(weight)) || Number(weight) < 0)) { mktFieldError('#mc-item-weight', 'Weight diisi angka, misalnya 1,5.'); return; }
                     const editing = mcEditing && mcEditing.type === 'item' ? mcEditing.row : null;
-                    call = editing ? request(MC_ROUTES.itemUpdate.replace(':id', editing.id_item), 'PUT', payload) : request(MC_ROUTES.itemStore, 'POST', payload);
+                    subject = `Item ${payload.itemdesc}`;
+                    detail = ` di content ${$('#mc-item-content option:selected').text()}`;
+                    if (editing) {
+                        const same = (a, b) => String(a ?? '').trim() === String(b ?? '').trim();
+                        const sameNumber = (a, b) => (String(a ?? '') === '' || String(b ?? '') === '') ? same(a, b) : Number(a) === Number(b);
+                        changed = [];
+                        if (!same(payload.itemdesc, editing.itemdesc)) changed.push('nama');
+                        if (!same(payload.size, editing.size)) changed.push('size');
+                        if (!same(payload.color, editing.color)) changed.push('color');
+                        if (!same(payload.kd_satuan, editing.kd_satuan)) changed.push('unit');
+                        if (!sameNumber(payload.gramasi, editing.gramasi)) changed.push('weight');
+                        if (!same(payload.width, editing.width)) changed.push('width');
+                        if (!same(payload.length, editing.length)) changed.push('length');
+                    }
+                    send = () => editing ? request(MC_ROUTES.itemUpdate.replace(':id', editing.id_item), 'PUT', payload) : request(MC_ROUTES.itemStore, 'POST', payload);
                 }
 
-                call.done(res => { toast(res.message); resetForms(); loadRows(); loadContents(); }).fail(showError).always(done);
+                if (changed && !changed.length) {
+                    mktToast('info', 'Belum ada perubahan', 'Ubah datanya dulu, baru klik Save.');
+                    return;
+                }
+                // "nama, size, dan unit" / "nama dan group"
+                const joinWords = list => list.length > 1 ? list.slice(0, -1).join(', ') + (list.length > 2 ? ',' : '') + ' dan ' + list[list.length - 1] : list.join('');
+                const ask = changed ? mktAlert('UPD-01', { subject: subject, detail: joinWords(changed) }) : mktAlert('SV-01', { subject: subject, detail: detail });
+                ask.then(result => {
+                    if (!result.isConfirmed) return;
+                    $btn.prop('disabled', true);
+                    send().done(() => {
+                        changed ? mktAlert('UPD-02', { subject: subject }) : mktAlert('SV-06', { subject: subject });
+                        resetForms(); loadRows(); loadContents();
+                    }).fail(xhr => showError(xhr, tab === 'content' ? 'Content belum tersimpan' : 'Item belum tersimpan')).always(done);
+                });
             });
 
             /* ---------- helper ---------- */
@@ -525,13 +575,13 @@
                 return $.ajax({ url: url, method: 'POST', data: Object.assign({ _token: MC_CSRF, _method: method }, payload) });
             }
 
-            function toast(message) {
-                Swal.fire({ icon: 'success', title: 'Berhasil', text: message, timer: 1500, showConfirmButton: false });
-            }
-
-            function showError(xhr) {
+            function showError(xhr, title) {
                 const errors = xhr.responseJSON?.errors;
-                Swal.fire('Gagal', errors ? Object.values(errors).flat()[0] : (xhr.responseJSON?.message || 'Terjadi kesalahan.'), 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: title,
+                    text: errors ? Object.values(errors).flat()[0] : (xhr.responseJSON?.message || 'Server tidak merespons dengan benar. Coba lagi, hubungi IT bila masih gagal.')
+                });
             }
 
             loadContents();

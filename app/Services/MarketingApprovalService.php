@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
  *                     A = di-unlock manager (default, termasuk baris lama/native). Berlaku selama
  *                     DATE_ADD(unlock_date, INTERVAL 2 DAY) > hari ini dan di-unlock setelah approval terakhir,
  *                     R = ditolak manager, C = dibatalkan peminta, D = selesai (Save and lock / Cancel editing).
- * - Histori (request, unlock, catatan Return/Cancel): mkt_hist.
+ * - Histori (request, unlock, catatan Return/Cancel): process_logs di DB baru (lihat MarketingHistoryService).
  * Approved = terkunci. Staff menyimpan perubahan saat return / cancel -> kembali Awaiting.
  * Costing unlocked hanya bisa diedit peminta; Save and lock menutup unlock dan Costing kembali Awaiting Approval.
  */
@@ -144,13 +144,6 @@ class MarketingApprovalService
             WHERE u.{$waiting} AND u.id_jo IN (" . self::bomJoIdsSql($idExpression) . "))";
     }
 
-    /** Catatan Return to Staff / Cancel terakhir dari manager. */
-    public static function latestNoteSql(string $type, string $idExpression): string
-    {
-        return "(SELECT h.`desc` FROM mkt_hist h
-            WHERE h.type = '{$type}' AND h.type_id = {$idExpression} AND h.action IN ('return', 'cancel')
-            ORDER BY h.id DESC LIMIT 1)";
-    }
 
     public function status(string $type, int $id): ?string
     {
@@ -241,7 +234,7 @@ class MarketingApprovalService
             foreach ($eligible as $id) {
                 if ($action === 'approve') {
                     // Kalimat approval + "ready to be created as ..." (lihat MarketingHistoryService::approved).
-                    app(MarketingHistoryService::class)->approved($type, $this->costingId($type, $id), (int) $id, $this->number($type, $id));
+                    app(MarketingHistoryService::class)->approved($type, $this->costingId($type, $id), $this->number($type, $id));
                     continue;
                 }
                 $description = $action === 'approve'
@@ -346,6 +339,7 @@ class MarketingApprovalService
      */
     public function costingUnlockState(int $id): array
     {
+        $this->closeExpiredCostingUnlocks($id);
         $db = $this->db();
         $status = $this->status('costing', $id);
         $state = [
@@ -434,13 +428,7 @@ class MarketingApprovalService
             $number = $this->number('costing', $costingId);
             // Cancel editing juga dihitung berubah kalau selama unlock sudah ada simpanan (header / item).
             $unlockedAt = $state['unlock']->approved_at ?? $state['unlock']->dateinput ?? null;
-            $changed = $saved || $db->table('mkt_hist')
-                ->where('id_act_cost', $costingId)
-                ->whereIn('type', ['costing', 'costing_item'])
-                ->whereIn('action', ['updated', 'items_added', 'items_updated', 'items_deleted'])
-                ->when($unlockedAt, fn ($q) => $q->where('created_at', '>=', $unlockedAt))
-                ->exists();
-            if (!$changed) {
+            if (!$saved && !app(MarketingHistoryService::class)->costingChangedSince($costingId, $unlockedAt)) {
                 $this->history('costing', $costingId, 'relocked', "Edit Costing {$number} dibatalkan, Costing dikunci lagi.");
                 return;
             }
@@ -449,6 +437,50 @@ class MarketingApprovalService
             $this->history('costing', $costingId, 'resubmitted', "Costing {$number} Rev {$state['rev']} diubah dan menunggu approval manager lagi.");
         });
     }
+
+    /**
+     * Masa unlock habis padahal Costing sudah diedit dan belum di-Save and lock: kembali Awaiting Approval,
+     * supaya perubahannya tidak ikut berstatus Approved tanpa dicek manager. Tanpa edit, Costing tetap Approved (terkunci).
+     * Baris native (approved_at kosong) tidak ikut.
+     */
+    public function closeExpiredCostingUnlocks(?int $costingId = null): int
+    {
+        $db = $this->db();
+        $expired = $db->table('unlock_cost as u')
+            ->join('act_costing as a', 'a.id', '=', 'u.id_cost')
+            ->where('u.status', self::UNLOCK_APPROVED)
+            ->whereNotNull('u.approved_at')
+            ->whereRaw('DATE_ADD(u.unlock_date, INTERVAL 2 DAY) <= CURDATE()')
+            ->whereRaw("UPPER(TRIM(COALESCE(a.app1, ''))) IN ('A', 'Y')")
+            ->whereRaw("u.approved_at >= COALESCE(a.app1_date, '1970-01-01')")
+            ->when($costingId, fn ($q) => $q->where('u.id_cost', $costingId))
+            ->orderByDesc('u.approved_at')
+            ->get(['u.id_cost', 'u.approved_at'])
+            ->unique('id_cost');
+
+        $closed = 0;
+        foreach ($expired as $row) {
+            $id = (int) $row->id_cost;
+            // Sudah di-unlock lagi dan masih aktif: tunggu sampai unlock itu ditutup.
+            if ($this->status('costing', $id) !== 'approved' || !app(MarketingHistoryService::class)->costingChangedSince($id, $row->approved_at)) {
+                continue;
+            }
+            $db->transaction(function () use ($db, $id, $row) {
+                $rev = $db->table('unlock_cost')->where('id_cost', $id)->where('status', self::UNLOCK_DONE)->count() + 1;
+                $db->table('unlock_cost')
+                    ->where('id_cost', $id)
+                    ->where('status', self::UNLOCK_APPROVED)
+                    ->where('approved_at', $row->approved_at)
+                    ->update(['status' => self::UNLOCK_DONE]);
+                $db->table('act_costing')->where('id', $id)->update(['app1' => self::CONFIG['costing']['awaiting_value']]);
+                $this->history('costing', $id, 'resubmitted', "Masa unlock Costing {$this->number('costing', $id)} Rev {$rev} habis, perubahannya menunggu approval manager lagi.");
+            });
+            $closed++;
+        }
+
+        return $closed;
+    }
+
 
     private function isRequester(?string $username): bool
     {
@@ -487,7 +519,7 @@ class MarketingApprovalService
 
     private function history(string $type, int $id, string $action, string $description): void
     {
-        app(MarketingHistoryService::class)->record($this->costingId($type, $id), $type, $action, $description, $id);
+        app(MarketingHistoryService::class)->record($this->costingId($type, $id), $type, $action, $description);
     }
 
     private function assertType(string $type): void

@@ -40,6 +40,16 @@
             $footer = true;
         @endphp
     @endif
+
+    {{-- Halaman marketing yang dibuka di popup (mis. Detail dari Approval Center): ?embed=1 = tanpa navbar & footer. --}}
+    @if (request()->boolean('embed') && str_contains(optional(request()->route())->getActionName() ?? '', 'Marketing_'))
+        @php
+            $navbar = false;
+            $footer = false;
+            $containerFluid = true;
+            $mktEmbed = true;
+        @endphp
+    @endif
 {{-- End of Page Configurations --}}
 
 <!DOCTYPE html>
@@ -51,11 +61,65 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('dist/img/tabicon.png') }}">
-    <title>{{ preg_match("/generate/i", strtolower(Route::current()->getName())) < 1 ? (ucwords(preg_replace("/-|_/", " ", Route::current()->getName())) ? ucwords(preg_replace("/-|_/", " ", Route::current()->getName())) : "NDS") : "NDS" }}</title>
+    @php
+        // Judul tab halaman marketing (nama route => judul); route lain memakai judul dari nama route.
+        $pageTitles = [
+            'dashboard-marketing' => 'Dashboard',
+            'marketing-approval-center' => 'Approval Center',
+            'master-costing' => 'Costing',
+            'create-costing' => 'Create Costing',
+            'edit-costing' => 'Edit Costing',
+            'detail-costing' => 'Detail Costing',
+            'copy-costing' => 'Copy Costing',
+            'master-costing-approval' => 'Approval Costing',
+            'marketing-worksheet' => 'Worksheet',
+            'master-bom' => 'BOM',
+            'create-bom' => 'Create BOM',
+            'edit-bom' => 'Edit BOM',
+            'show-detail-bom' => 'Detail BOM',
+            'master-bom-approval' => 'Approval BOM',
+            'bom-nds-edit' => 'BOM',
+            'bom-nds-detail' => 'Detail BOM',
+            'master-marketing-so' => 'Sales Order',
+            'create-so' => 'Create Sales Order',
+            'so-edit-page' => 'Edit Sales Order',
+            'so-detail-page' => 'Detail Sales Order',
+            'so-nds-create' => 'Create Sales Order',
+            'so-nds-edit' => 'Edit Sales Order',
+            'so-nds-detail' => 'Detail Sales Order',
+            'marketing-master-group' => 'Master Group',
+            'marketing-master-content' => 'Master Content',
+        ];
+    @endphp
+    <title>{{ $pageTitles[Route::currentRouteName()] ?? (preg_match("/generate/i", strtolower(Route::current()->getName())) < 1 ? (ucwords(preg_replace("/-|_/", " ", Route::current()->getName())) ? ucwords(preg_replace("/-|_/", " ", Route::current()->getName())) : "NDS") : "NDS") }}</title>
 
     @include('layouts.link')
 
+    @if (str_contains(optional(request()->route())->getActionName() ?? '', 'Marketing_'))
+        <link rel="stylesheet" href="{{ asset('dist/css/marketing-alert.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-alert.css')) }}">
+        {{-- Breadcrumb marketing: Home -> tampilan awal, Marketing -> dashboard marketing; link abu, putih + garis bawah saat hover. --}}
+        <style>
+            :is(.ac-breadcrumb, .bom-breadcrumb, .ndoc-crumb, .so-breadcrumb, .ws-crumb, .costing-crumb, .mc-crumb, .mg-crumb) a { color: #b4b4b4; text-decoration: none; }
+            :is(.ac-breadcrumb, .bom-breadcrumb, .ndoc-crumb, .so-breadcrumb, .ws-crumb, .costing-crumb, .mc-crumb, .mg-crumb) a:hover { color: #fff; text-decoration: underline; }
+        </style>
+    @endif
+    @if (!empty($mktEmbed))
+        {{-- Mode popup: breadcrumb tidak perlu. --}}
+        <style>.costing-crumb, .bom-breadcrumb, .ndoc-crumb, .so-breadcrumb, .ws-crumb { display: none !important; }</style>
+    @endif
+
     @yield('custom-link')
+
+    @if (str_contains(optional(request()->route())->getActionName() ?? '', 'Marketing_'))
+        {{-- Modul marketing: semua teks dropdown tampil kapital (hanya tampilan, value tetap). --}}
+        <style>
+            select.form-control, select.form-select, select.custom-select,
+            .select2-container .select2-selection__rendered,
+            .select2-container .select2-selection__placeholder,
+            .select2-container .select2-selection__choice,
+            .select2-results__option { text-transform: uppercase; }
+        </style>
+    @endif
 </head>
 
 <body class="hold-transition layout-top-nav">

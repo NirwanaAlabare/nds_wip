@@ -1,0 +1,2384 @@
+@extends('layouts.index')
+
+@section('custom-link')
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-form.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-form.css')) }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-fonts.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-fonts.css')) }}">
+
+<style>
+    :root {
+        --sb-navy: #0f172a;
+        --sb-blue: #3085d6;
+        --sb-blue-dark: #1e3a8a;
+        --sb-border: #e2e8f0;
+    }
+
+    /* ============ CARD UTAMA & CONTAINER ============ */
+    .card-sb {
+        border: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07);
+    }
+
+    .card-sb > .card-header {
+        background: #fff !important;
+        border: none;
+        padding: 1.2rem 1.4rem .4rem;
+        position: relative;
+    }
+
+    .card-sb > .card-header::before {
+        content: none;
+    }
+
+    .card-sb > .card-header .card-eyebrow {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        color: #64748b;
+        display: none;
+        margin-bottom: 4px;
+    }
+
+    .card-sb > .card-header .card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #294d68 !important;
+        margin: 0;
+    }
+
+    /* Preview card header khusus (warning) */
+    .card-sb > .card-header.bg-warning {
+        background: linear-gradient(135deg, #f0ad4e, #d9822b) !important;
+    }
+    .card-sb > .card-header.bg-warning::before {
+        background: repeating-linear-gradient(180deg, #fff3cd 0px, #fff3cd 10px, transparent 10px, transparent 20px);
+    }
+    .card-sb > .card-header.bg-warning .card-title {
+        color: white !important;
+    }
+
+    .card-sb > .card-body {
+        background: #fff;
+        padding: 1rem 1.4rem 1.4rem;
+    }
+
+    .card-footer.text-right {
+        border-top: 1px solid #eef1f5;
+        background: #fff;
+        padding: 1rem 2rem;
+    }
+    .card-footer .btn {
+        border-radius: 8px;
+        font-weight: 700;
+    }
+    .btn-success { background: linear-gradient(135deg, #22c55e, #15803d); border: none; }
+
+    #card-preview {
+        margin: 0 1.4rem 1.4rem;
+        width: calc(100% - 2.8rem);
+        border-radius: 12px;
+        box-shadow: 0 5px 12px -3px rgba(30, 41, 59, .18), 0 2px 4px rgba(30, 41, 59, .07);
+    }
+    #card-preview .card-header { background: #294d68 !important; }
+    #card-preview.so-preview-section { margin: 0 1.4rem 1.4rem; width: auto; border: 0; border-radius: 8px; background: #fff; box-shadow: 0 4px 8px -2px rgba(30, 41, 59, .16), 0 1px 2px rgba(30, 41, 59, .06); }
+    .so-preview-body { padding: 12px; border-radius: 0; background: #fff; box-shadow: none; }
+    .so-preview-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 4px 2px; font-family: Inter, sans-serif; font-size: 12px; color: #1e293b; }
+    .so-preview-pager .dataTables_length label { display: inline-flex; align-items: center; gap: 10px; margin: 0; font-weight: 400; }
+    .so-preview-pager .dataTables_length select { width: auto; height: 32px; min-width: 64px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 13px; }
+    .so-preview-pager .pagination { margin: 0; gap: 6px; }
+    .so-preview-pager .page-link { min-width: 28px; height: 28px; padding: 0 6px; border: 0; border-radius: 4px; background: transparent; color: #64748b; font-size: 13px; line-height: 28px; text-align: center; }
+    .so-preview-pager .page-item.active .page-link { background: #274b63; color: #fff; font-weight: 700; }
+    .so-preview-pager .page-item.disabled .page-link { opacity: .35; }
+    #card-preview .card-body {
+        max-height: none;
+        overflow: visible;
+        padding: 0 1rem 1rem;
+    }
+    #card-preview .table-responsive { overflow: visible; }
+    #card-preview .so-preview-table-wrap { overflow-x: auto; padding: 8px 10px 0; border: 1px solid #edf1f5; border-radius: 8px; background: #fff; }
+
+    /* ============ FORM & INPUT STYLING ============ */
+    .form-section-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--sb-navy);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 1.1rem;
+        padding-bottom: 0.7rem;
+        border-bottom: 1px solid #eef1f5;
+    }
+    .form-section-title i { color: var(--sb-blue); font-size: 13px; }
+
+    .form-group label {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 0.3px;
+    }
+
+    .form-control,
+    .select2-container--bootstrap4 .select2-selection {
+        height: 42px;
+        min-height: 42px;
+        border-radius: 8px;
+        border: 1.5px solid var(--sb-border);
+        font-size: 12px;
+    }
+    .form-control:focus,
+    .select2-container--bootstrap4.select2-container--focus .select2-selection {
+        border-color: var(--sb-blue) !important;
+        box-shadow: 0 0 0 3px rgba(48, 133, 214, 0.12) !important;
+    }
+
+    .form-section.form-section-upload {
+        background: #f4f8fd;
+        border-color: #dbe7f7;
+    }
+
+    .upload-preview-box {
+        border: 1.5px dashed #cbd5e1;
+        border-radius: 12px;
+        background: #ffffff;
+        min-height: 180px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    /* ============ TABLE PREVIEW ============ */
+    #table-preview-so {
+        width: 100%;
+        min-width: 100%;
+        table-layout: fixed;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: none !important;
+        margin-bottom: 0;
+    }
+
+    #table-preview-so thead th,
+    #table-preview-so tbody td,
+    #table-preview-so tfoot th {
+        box-sizing: border-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    #table-preview-so thead th {
+        background-color: #294d68 !important;
+        color: #ffffff !important;
+        text-align: center !important;
+        border: none !important;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        padding: 10px 8px;
+    }
+
+    #table-preview-so tbody td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    #table-preview-so tfoot th {
+        padding: 10px 8px;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        background: #ffe0e0;
+        border-top: 0;
+    }
+
+    #table-preview-so tbody td.preview-col-qty,
+    #table-preview-so tfoot th.preview-col-qty,
+    #table-preview-so tbody td.preview-col-total,
+    #table-preview-so tfoot th.preview-col-total {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    #table-preview-so .preview-col-total {
+        background-color: #dc3545 !important;
+        color: #ffffff !important;
+    }
+
+    #table-preview-so thead th:first-child {
+        border-top-left-radius: 8px;
+        border-bottom-left-radius: 8px;
+    }
+
+    /* #table-preview-so thead th:last-child {
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+    } */
+
+    /* ============ CUSTOM COMPONENTS / SO LAYOUT ============ */
+    .so-page-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 14px; }
+    .so-create-body { font-family: 'Poppins', sans-serif; }
+    .so-breadcrumb { margin-bottom: 18px; padding: 8px 10px; border-radius: 4px; background: #284A63; color: #b4b4b4; font-size: 16px; font-weight: 500; }
+    .so-breadcrumb a { color: #b4b4b4; text-decoration: none; }
+    .so-breadcrumb a:hover { color: #fff; text-decoration: underline; }
+    .so-breadcrumb strong { color: #fff; font-weight: 500; }
+    .so-page-heading h1 { margin: 0; color: #284a63; font-size: 32px; font-weight: 700; letter-spacing: 0; }
+    .so-page-heading h1 i { font-size: 11px; vertical-align: middle; }
+    .so-page-heading p { margin: 4px 0 0; color: #284a63; font-size: 12px; font-weight: 600; }
+    .so-page-heading p i { margin-right: 6px; color: #a3b2c7; }
+    .so-costing-label { color: #64748b; font-size: 12px; font-weight: 700; }
+    .so-bom-picker .form-control, .so-bom-picker .btn { height: 36px; font-size: 12px; }
+    .so-source-fields { display: none !important; }
+    .so-summary-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0 0 16px; }
+    .so-summary-card { min-width: 0; min-height: 76px; padding: 10px 14px; border: 1px solid #e1e7ef; border-radius: 10px; background: #fff; box-shadow: 0 3px 8px rgba(30, 41, 59, .10); }
+    .so-summary-card > span { display: block; margin-bottom: 4px; color: #9e9e9e; font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: 0.2px; }
+    .so-summary-card > strong { display: block; overflow: hidden; color: #284a63; font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: 0.05em; text-overflow: ellipsis; white-space: nowrap; }
+    /* Satu WS satu baris, supaya semua nomor terbaca kalau SO punya beberapa set. */
+    #summary-worksheet-no { overflow-wrap: anywhere; white-space: pre-line; }
+    .so-summary-card.is-navy { border-color: #294d68; background: #294d68; color: #fff; }
+    .so-summary-card.is-navy > span, .so-summary-card.is-navy > strong { color: #fff; }
+    .so-summary-card.is-orange { border-color: #ffad2f; background: #ffad2f; }
+    .so-summary-card.is-orange > span, .so-summary-card.is-orange > strong { color: #fff; }
+    .so-summary-card.is-blue { border-color: #49a8f4; background: #49a8f4; }
+    .so-summary-card.is-blue > span, .so-summary-card.is-blue > strong { color: #fff; }
+    .so-top-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: stretch; margin-bottom: 14px; }
+    .so-info-column { display: flex; min-width: 0; flex-direction: column; gap: 12px; }
+    .so-overview-section { min-width: 0; overflow: hidden; border: 1px solid #e1e7ef; border-radius: 10px; background: #fff; box-shadow: 0 3px 8px rgba(30, 41, 59, .10); }
+    .so-create-body .so-overview-title,
+    .so-create-body .so-summary-item,
+    .so-create-body .so-summary-item > span,
+    .so-create-body .so-summary-item strong,
+    .so-create-body .so-image-caption,
+    .so-create-body .so-image-counter { font-family: 'Poppins', sans-serif; }
+    .so-overview-title { margin: 0 12px; padding: 9px 0 7px; border-bottom: 1px solid #dce4ec; color: #616161; font-size: 16px; font-weight: 500; }
+    #so-information-title, .so-information-title { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.05em; }
+    .so-overview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 22px; padding: 8px 12px 10px; }
+    .so-summary-item { display: flex; min-width: 0; min-height: 69px; flex-direction: column; justify-content: center; gap: 9px; padding: 3px 0; border-bottom: 1px solid #e7e7e7; color: #3b3336; font-size: 12px; }
+    .so-summary-item > span { overflow: hidden; color: #9e9e9e; font-size: 18px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+    .so-summary-item strong { overflow: hidden; color: #284a63; font-size: 18px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .so-review-section { display: flex; min-height: 100%; flex-direction: column; }
+    .so-review-section .so-image-review { flex: 1; }
+    .so-image-thumbs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 12px; }
+    .so-image-thumbs:empty { display: none; }
+    .so-image-thumbs button { width: 76px; height: 97px; padding: 3px; border: 1px solid #dce4ec; border-radius: 6px; background: #fff; cursor: pointer; }
+    .so-image-thumbs button.is-active { border: 2px solid #1d6fd8; }
+    .so-image-thumbs img { width: 100%; height: 100%; object-fit: contain; }
+    .so-image-caption { margin: 6px 0 12px; color: #9aa5ad; font-size: 12px; text-align: center; }
+    .so-image-caption:empty { display: none; }
+    /* Shipping & Destinations selebar penuh, 6 kolom dalam satu baris. */
+    .so-shipping-section { margin-bottom: 14px; }
+    .so-overview-grid.so-shipping-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    @media (max-width: 1199.98px) { .so-overview-grid.so-shipping-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 575.98px) { .so-overview-grid.so-shipping-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .so-section {
+        margin-bottom: 14px;
+        overflow: hidden;
+        border: 1px solid #284a63;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 4px 8px -2px rgba(30, 41, 59, .16), 0 1px 2px rgba(30, 41, 59, .06);
+    }
+
+    .so-section-toggle {
+        display: flex; align-items: center; justify-content: space-between; width: 100%;
+        padding: 8px 16px; border: 0; border-radius: 0;
+        background: #fff; color: #284a63; text-align: left; font-family: 'Poppins', sans-serif; font-size: 25px; font-weight: 500;
+    }
+    .so-section-toggle:focus { outline: 0; box-shadow: 0 0 0 2px rgba(48, 133, 214, .12); }
+    .so-section > .collapse.show { border-top: 1px solid #edf1f5; }
+    .so-section.so-heading-only { overflow: hidden; border: 0; border-radius: 8px; background: #fff; box-shadow: 0 4px 8px -2px rgba(30, 41, 59, .16), 0 1px 2px rgba(30, 41, 59, .06); }
+    .so-section.so-heading-only .so-section-toggle { border: 1px solid #284a63; border-radius: 6px; }
+    .so-section.so-heading-only > .collapse.show { border-top: 0; }
+
+    .so-chevron { display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 5px; background: #aabac5; color: #fff; font-size: 10px; }
+    .so-chevron i { transition: transform .2s ease; }
+    .so-section-toggle[aria-expanded="false"] .so-chevron i { transform: rotate(180deg); }
+
+    .so-edit-grid {
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 18px;
+        padding: 14px 12px 4px; border-radius: 0; background: #fff;
+    }
+    .so-edit-grid .form-group { min-width: 0; margin-bottom: 12px; }
+    .so-edit-grid label { display: block; min-height: 27px; margin-bottom: 5px; color: #34282c; font-size: 16px; }
+    .so-create-body .so-edit-grid label:not(.form-check-label):not(.custom-file-label) { font-weight: 400; }
+    .so-edit-grid .form-control,
+    .so-edit-grid .select2-container--bootstrap4 .select2-selection { height: 59px; min-height: 59px; border: 1px solid #e1e5e9; border-radius: 12px; box-shadow: none; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; line-height: 1; color: #000; }
+    .so-edit-grid .form-control { padding: 0 16px; }
+    .so-edit-grid .form-control::placeholder { color: #ababab; }
+    .so-edit-grid .form-control:focus,
+    .so-edit-grid .select2-container--bootstrap4.select2-container--focus .select2-selection,
+    .so-edit-grid .select2-container--bootstrap4.select2-container--open .select2-selection { border-color: #284a63 !important; box-shadow: none !important; }
+    .so-edit-grid .select2-container--bootstrap4 .select2-selection--single { display: flex; align-items: center; padding: 0 44px 0 16px; }
+    .so-edit-grid .select2-container--bootstrap4 .select2-selection__rendered { padding: 0; color: #000; font-size: 14px; font-weight: 500; line-height: 1; }
+    .so-edit-grid .select2-container--bootstrap4 .select2-selection__placeholder { color: #ababab; }
+    .so-edit-grid .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow { top: 50%; right: 16px; width: 12px; height: 12px; transform: translateY(-50%); }
+    .so-edit-grid .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b { top: 50%; left: 50%; width: 8px; height: 8px; margin: -6px 0 0 -4px; border: solid #284a63; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+    .so-edit-grid .select2-container--bootstrap4.select2-container--open .select2-selection--single .select2-selection__arrow b { margin-top: -2px; transform: rotate(-135deg); }
+    /* State 2: ada isi + hover/fokus = border navy dan tanda X untuk menghapus pilihan (allowClear), menggantikan chevron.
+       State 3: sudah terpilih & diam = border abu + chevron. */
+    .so-edit-grid .form-group .select2-container--bootstrap4 .select2-selection { position: relative; }
+    .so-edit-grid .form-group .select2-container--bootstrap4 .select2-selection__clear { display: none; position: absolute; top: 50%; right: 14px; z-index: 2; float: none; width: 18px; height: 18px; margin: 0; padding: 0; transform: translateY(-50%); color: #284a63; font-size: 20px; font-weight: 400; line-height: 18px; text-align: center; cursor: pointer; }
+    .so-edit-grid .form-group .select2-container--bootstrap4:not(.select2-container--disabled):is(:hover, .select2-container--focus, .select2-container--open) .select2-selection__clear { display: block; }
+    .so-edit-grid .form-group .select2-container--bootstrap4:not(.select2-container--disabled):is(:hover, .select2-container--focus, .select2-container--open) .select2-selection--single:has(.select2-selection__clear) .select2-selection__arrow { display: none; }
+    .so-edit-grid .form-group .select2-container--bootstrap4:not(.select2-container--disabled):hover .select2-selection:has(.select2-selection__clear) { border-color: #284a63; }
+    /* State 4: disabled / readonly / view only = label ikut pudar. */
+    .so-edit-grid .form-group:has(.select2-container--disabled) label, .so-edit-grid .form-group:has(.form-control:disabled) label, .so-edit-grid .form-group:has(.form-control[readonly]) label { color: #c4c4c4; }
+    /* Disabled/readonly: teks & panah pudar. */
+    .so-edit-grid .form-control[readonly],
+    .so-edit-grid .form-control:disabled,
+    .so-edit-grid .select2-container--bootstrap4.select2-container--disabled .select2-selection { background-color: #f8f8f8; border-color: #e9ecef; color: #ababab; }
+    .so-edit-grid .select2-container--bootstrap4.select2-container--disabled .select2-selection__rendered { color: #ababab; }
+    .so-edit-grid .select2-container--bootstrap4.select2-container--disabled .select2-selection__arrow b { border-color: #c4c4c4; }
+    /* Error: tambahkan class .is-invalid pada .form-group (label, border, teks, panah merah + "Required"). */
+    .so-edit-grid .form-group.is-invalid label { color: #c8161d; }
+    .so-edit-grid .form-group.is-invalid .form-control,
+    .so-edit-grid .form-group.is-invalid .select2-container--bootstrap4 .select2-selection { border-color: #c8161d !important; color: #c8161d; }
+    .so-edit-grid .form-group.is-invalid .select2-container--bootstrap4 .select2-selection__rendered,
+    .so-edit-grid .form-group.is-invalid .select2-container--bootstrap4 .select2-selection__placeholder,
+    .so-edit-grid .form-group.is-invalid .form-control::placeholder { color: #c8161d; }
+    .so-edit-grid .form-group.is-invalid .select2-container--bootstrap4 .select2-selection__arrow b { border-color: #c8161d; }
+    .so-edit-grid .form-group.is-invalid::after { content: 'Required'; display: block; margin-top: 4px; color: #c8161d; font-size: 13px; font-weight: 500; }
+    .so-file-dropzone.is-invalid { border-color: #c8161d; color: #c8161d; }
+    /* Detail SO kosong saat Save: tabel diberi garis merah + pesan (detail boleh dari upload atau Add manual). */
+    #card-preview.is-invalid .so-preview-table-wrap { border-color: #c8161d; }
+    #card-preview.is-invalid .so-detail-empty-hint { color: #c8161d; }
+    .so-detail-empty-hint { padding: 22px 10px !important; color: #64748b; font-size: 14px; text-align: center !important; white-space: normal; }
+    .so-file-dropzone.is-invalid::after { content: 'Required'; color: #c8161d; font-size: 13px; font-weight: 500; }
+
+    /* Banner "N fields are empty" (sama seperti Costing). */
+    .mkt-error-alert { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 12px; border-radius: 4px; background: #ff5f5f; color: #fff; font-family: Inter, sans-serif; font-size: 13px; }
+    .mkt-error-alert[hidden] { display: none; }
+    .mkt-error-alert > span { flex: 1; }
+    .mkt-error-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #fff; font-size: 16px; line-height: 1; }
+
+    .so-notes-field { grid-column: span 2; }
+
+    .so-image-review { display: flex; min-height: 270px; align-items: center; justify-content: center; gap: 24px; padding: 12px; }
+    .so-image-nav { width: 34px; height: 34px; border: 0; border-radius: 50%; color: #7b8791; background: #f1f3f5; }
+    .so-image-preview { display: flex; min-width: 160px; min-height: 190px; align-items: center; justify-content: center; color: #64748b; font-size: 12px; }
+    .so-image-preview img { max-width: min(100%, 330px); max-height: 250px; object-fit: contain; }
+    .so-image-counter { min-width: 50px; color: #64748b; text-align: center; font-size: 11px; margin-bottom: 10px; }
+    .so-overview-section .so-image-counter { margin-bottom: 12px; }
+
+    .so-upload-panel { margin-top: 2px; padding: 18px 12px; border: 1px solid #d0d0d0; border-radius: 4px; }
+    .so-upload-toolbar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+    .so-template-btn { width: 350px; gap: 12px; border-radius: 32px; }
+    .so-upload-toolbar .btn { border-radius: 24px; background: #284A63; border-color: #284A63; font-size: 18px; font-weight: 700; padding: 8px 22px; font-family: 'SF Pro Rounded', sans-serif; }
+
+    .so-file-dropzone { display: flex; min-height: 105px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 2px dashed #294d68; border-radius: 4px; color: #555; cursor: pointer; font-size: 10px; }
+    .so-file-dropzone > i { color: #294d68; font-size: 28px; margin-bottom: 4px; }
+    .so-file-dropzone small { font-size: 9px; }
+    .so-file-dropzone.dragging { background: #f1f7fc; }
+
+    .so-selected-file { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 9px 12px; border: 1px solid #d8dce0; border-radius: 8px; color: #607080; font-size: 11px; }
+    .so-selected-file > i { color: #15803d; font-size: 17px; }
+    .so-selected-file span { flex: 1; }
+    .so-selected-file button { width: 22px; height: 22px; border: 1px solid #333; border-radius: 5px; background: #fff; }
+
+    #btn-upload-so:not(.mkt-btn) { height: 38px; font-size: 11px; font-weight: 700; }
+
+    /* ============ MEDIA QUERIES ============ */
+    @media (max-width: 767px) {
+        .so-page-heading { flex-direction: column; }
+        .so-summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .so-top-layout { grid-template-columns: 1fr; }
+        .so-review-section { min-height: 280px; }
+        .so-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 480px) {
+        .so-summary-cards, .so-overview-grid, .so-edit-grid { grid-template-columns: 1fr; }
+        .so-notes-field { grid-column: auto; }
+    }
+    /* table-preview-so font size nya kecilin dikit */
+    #table-preview-so td, #table-preview-so th {
+        font-size: 12px !important;
+    }
+
+
+
+    /* ============ DETAIL SO (baca-saja) ============ */
+    .so-no-badge { display: inline-block; margin-left: 10px; padding: 3px 10px; border-radius: 12px; background: #e2e8f0; color: #284a63; font-size: 12px; font-weight: 600; vertical-align: middle; }
+    .so-view .so-edit-grid .form-control,
+    .so-view .so-edit-grid .select2-container--bootstrap4 .select2-selection { background: #f4f5f7 !important; cursor: default; }
+    .so-view .so-edit-grid .select2-selection__arrow { display: none; }
+    .so-lock-alert { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding: 8px 12px; border-radius: 4px; background: #ff5f5f; color: #fff; font-size: 12px; }
+    .so-lock-alert > span { flex: 1; }
+    .so-lock-alert.is-unlocked { background: #198038; }
+    .so-lock-alert > span i { margin-right: 6px; }
+    .so-lock-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #fff; font-size: 18px; line-height: 1; }
+    .so-summary-cards.is-four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .so-detail-card { margin: 0 0 16px; padding: 12px 12px 4px; border-radius: 10px; background: #fff; box-shadow: 0 3px 10px rgba(15, 23, 42, .10); }
+    .so-detail-scroll { overflow-x: auto; }
+    .so-detail-scroll::-webkit-scrollbar { height: 8px; }
+    .so-detail-scroll::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
+    .so-detail-scroll::-webkit-scrollbar-thumb { background: #284a63; border-radius: 4px; }
+    .so-detail-table { width: 100%; min-width: 900px; margin: 0; border-collapse: collapse; font-family: Inter, sans-serif; }
+    .so-detail-table th { padding: 10px 8px; background: #cfe2ff; color: #1e293b; font-size: 12px; font-weight: 500; text-transform: uppercase; white-space: nowrap; }
+    .so-detail-table td { padding: 9px 8px; border-bottom: 1px solid #edf1f5; color: #1e293b; font-size: 13px; vertical-align: top; }
+    .so-detail-table .so-dt-check { width: 30px; text-align: center; }
+    .so-detail-table tfoot td { height: 36px; background: #ffd6dc; border: 0; font-size: 14px; font-weight: 700; }
+    .so-detail-pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px 4px; color: #1e293b; font-family: Inter, sans-serif; font-size: 12px; }
+    .so-detail-pager > div:first-child { display: inline-flex; align-items: center; gap: 10px; }
+    .so-detail-pager select { height: 32px; min-width: 64px; padding: 0 8px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 13px; }
+    .so-detail-pages { display: inline-flex; align-items: center; gap: 6px; }
+    .so-detail-pages button { min-width: 28px; height: 28px; padding: 0 5px; border: 0; border-radius: 4px; background: transparent; color: #64748b; font-size: 13px; }
+    .so-detail-pages button.active { background: #274b63; color: #fff; font-weight: 700; }
+    .so-detail-pages button:disabled { opacity: .35; }
+    @media (max-width: 991.98px) { .so-summary-cards.is-four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 575.98px) { .so-summary-cards.is-four { grid-template-columns: 1fr; } }
+        input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
+        input[type="checkbox"]:not(.custom-control-input):hover:not(:checked):not(:indeterminate):not(:disabled) { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23cfd4dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):checked { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M2.5 6.2l2.3 2.3 4.7-4.9'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):indeterminate { border-color: #284a63; background-color: #284a63; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3e%3cpath fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' d='M3 6h6'/%3e%3c/svg%3e"); }
+        input[type="checkbox"]:not(.custom-control-input):focus { outline: 0; }
+        input[type="checkbox"]:not(.custom-control-input):focus-visible { box-shadow: 0 0 0 4px #b3daf7; }
+        input[type="checkbox"]:not(.custom-control-input):disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Carousel gambar (coverflow): semua gambar dirender sekali di satu panggung. Pindah gambar hanya mengubah posisi &
+       skala dengan transition CSS (gambar benar-benar bergeser, tanpa ganti src), jadi gerakannya halus.
+       Aktif = besar di tengah, sebelum/sesudah = kecil di samping (klik untuk pindah), titik aktif memanjang. */
+    .mkt-cf-stage { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; height: 288px; overflow: hidden; }
+    .mkt-cf-stage > .mkt-cf-main, .mkt-cf-stage > .mkt-cf-side { display: none !important; }
+    .mkt-cf-stage > img.mkt-cf-item { position: absolute; top: 50%; left: 50%; width: 182px; height: 256px; max-width: 46%; max-height: 256px; object-fit: contain; cursor: pointer; will-change: transform, opacity; transition: transform .55s cubic-bezier(.22, .61, .36, 1), opacity .55s ease; }
+    .mkt-cf-stage > img.mkt-cf-item.is-active { cursor: default; }
+    /* Gambar samping (sebelum/sesudah): 90x192, sejajar tengah dengan gambar aktif 182x256. */
+    .mkt-cf-stage > img.mkt-cf-item.is-side { width: 90px; height: 192px; max-height: 192px; }
+    .mkt-cf-stage > img.mkt-cf-item { transition-property: transform, opacity, width, height; }
+    .mkt-cf-stage > img.mkt-cf-item.is-far { opacity: 0 !important; pointer-events: none; }
+    .mkt-cf-dots { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 10px; min-height: 4px; }
+    .mkt-cf-dot { width: 6px; height: 4px; padding: 0; border: 0; border-radius: 2px; background: #d9dee5; cursor: pointer; transition: width .3s ease, background-color .3s ease; }
+    .mkt-cf-dot.is-active { width: 16px; background: #1d6fd8; }
+    @media (prefers-reduced-motion: reduce) { .mkt-cf-stage > img.mkt-cf-item { transition: none; } }
+    .so-image-review .mkt-cf-stage { flex: 1; min-width: 0; }
+
+    /* ============ RESPONSIVE (tablet & HP) — desktop >= 1200px tidak berubah ============ */
+    @media (max-width: 1199.98px) {
+        .so-summary-card > span { font-size: 16px; }
+        .so-summary-card > strong { font-size: 18px; }
+        .so-summary-item > span, .so-summary-item strong { font-size: 16px; }
+        .so-edit-grid { column-gap: 14px; }
+        .so-edit-grid label { font-size: 15px; }
+    }
+    @media (max-width: 991.98px) {
+        /* 5 kartu: 3 di atas + 2 di bawah; 4 kartu (Detail SO): 2 per baris. */
+        .so-summary-cards { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+        .so-summary-cards > .so-summary-card { grid-column: span 2; }
+        .so-summary-cards > .so-summary-card:nth-child(n+4) { grid-column: span 3; }
+        .so-summary-cards.is-four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .so-summary-cards.is-four > .so-summary-card { grid-column: auto; }
+        .so-summary-card { min-height: 0; }
+        .so-summary-card > span { font-size: 14px; }
+        .so-summary-card > strong { font-size: 18px; overflow-wrap: anywhere; white-space: normal; }
+        .so-top-layout { grid-template-columns: 1fr; }
+        .so-review-section { min-height: 0; }
+        .so-image-review { min-height: 0; }
+        .so-summary-item > span { font-size: 14px; }
+        .so-summary-item strong { font-size: 15px; white-space: normal; overflow-wrap: anywhere; }
+        .so-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .so-edit-grid label { min-height: 0; font-size: 14px; }
+        .so-edit-grid .form-control,
+        .so-edit-grid .select2-container--bootstrap4 .select2-selection { height: 48px; min-height: 48px; }
+        .so-upload-toolbar .btn { font-size: 15px; }
+    }
+    @media (max-width: 575.98px) {
+        .so-create-body.card-body { padding: .9rem .8rem 1rem; }
+        .so-breadcrumb { font-size: 13px; }
+        .so-page-heading h1 { font-size: 24px; }
+        .so-summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .so-summary-cards > .so-summary-card, .so-summary-cards > .so-summary-card:nth-child(n+4) { grid-column: auto; }
+        .so-summary-cards:not(.is-four) > .so-summary-card:last-child { grid-column: 1 / -1; }
+        .so-summary-cards.is-four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .so-summary-card { padding: 8px 10px; }
+        .so-summary-card > span { font-size: 13px; }
+        .so-summary-card > strong { font-size: 16px; }
+        .so-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; }
+        .so-overview-title, .so-section-toggle { font-size: 15px; }
+        .so-summary-item > span { font-size: 13px; }
+        .so-summary-item strong { font-size: 14px; }
+        .so-image-review { gap: 8px; padding: 10px 6px; }
+        .so-edit-grid { grid-template-columns: 1fr; }
+        .so-notes-field { grid-column: auto; }
+        .so-upload-toolbar { justify-content: stretch; }
+        .so-template-btn { width: 100%; }
+        .so-upload-toolbar .btn { padding: 8px 14px; font-size: 14px; }
+        .so-lock-alert { flex-wrap: wrap; }
+        .so-lock-alert > span { flex-basis: calc(100% - 30px); }
+        .card-footer.text-right { padding: .9rem .8rem; }
+        #card-preview { margin: 0 .8rem 1rem; width: calc(100% - 1.6rem); }
+    }
+    #so-information .so-summary-item:first-child > span { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.2px; }
+    #so-information .so-summary-item:first-child > strong { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.05em; }
+    #so-product-title, #so-shipping-title { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.05em; }
+    #so-product .so-summary-item > span, #so-shipping .so-summary-item > span { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 500; letter-spacing: 0.2px; }
+    #so-product .so-summary-item > strong, #so-shipping .so-summary-item > strong { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: 0.05em; }
+    @media (max-width: 359.98px) {
+        .so-summary-cards, .so-summary-cards.is-four, .so-overview-grid { grid-template-columns: 1fr; }
+    }
+    #table-preview-so { margin: 0 !important; font-family: Inter, sans-serif; }
+    #table-preview-so thead th { padding: 9px 8px; border: 0 !important; background: #cfe2ff !important; color: #1e293b !important; font-size: 11px !important; font-weight: 600; text-transform: uppercase; white-space: nowrap; }
+    #table-preview-so tbody td { padding: 8px; border: 0; border-bottom: 1px solid #edf1f5; color: #1e293b; font-size: 12px !important; background: #fff !important; box-shadow: none !important; }
+    #table-preview-so tfoot th { padding: 9px 8px; border: 0 !important; background: #ffd6dc !important; color: #1e293b; font-size: 12px !important; font-weight: 700; }
+    #table-preview-so thead th.preview-col-total { background: #cfe2ff !important; color: #1e293b !important; }
+    #table-preview-so tfoot th.preview-col-total { background: #ffd6dc !important; color: #1e293b !important; }
+    #table-preview-so tbody td.preview-col-total { background: #fff !important; color: #1e293b !important; font-weight: 700; }
+    #table-preview-so .preview-col-action { width: 56px; text-align: center; }
+    #table-preview-so .preview-col-check { width: 34px; text-align: center; }
+    #table-preview-so td.so-cell-editing input[list] { min-width: 220px; }
+    #table-preview-so td.so-cell-editing { position: relative; overflow: visible !important; }
+    #table-preview-so td.so-cell-editing .select2-container { min-width: 200px; text-align: left; }
+    #table-preview-so td.so-cell-editing .select2-dropdown { min-width: 260px; z-index: 1060; }
+    .select2-dropdown.so-cell-dd { min-width: 260px; }
+    .select2-dropdown.so-cell-dd .select2-results__option { white-space: nowrap; font-size: 12px; }
+    /* Sorotan halus (bukan biru terang bawaan select2), sama seperti dropdown Brand. */
+    .select2-container--bootstrap4 .select2-dropdown.so-cell-dd .select2-results__option { color: #1e293b; }
+    .select2-container--bootstrap4 .select2-dropdown.so-cell-dd .select2-results__option[aria-selected="true"] { background: #e8eef5; color: #284a63; font-weight: 600; }
+    .select2-container--bootstrap4 .select2-dropdown.so-cell-dd .select2-results__option--highlighted, .select2-container--bootstrap4 .select2-dropdown.so-cell-dd .select2-results__option--highlighted[aria-selected] { background: #f1f5f9; color: #1e293b; }
+    #table-preview-so .so-check-all, #table-preview-so .so-row-check { cursor: pointer; margin: 0; vertical-align: middle; }
+    #table-preview-so.is-saved .preview-col-check > * { display: none; }
+    #table-preview-so .preview-row-delete { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: #ff0000; color: #fff; font-size: 11px; box-shadow: 0 3px 6px rgba(255, 0, 0, .3); }
+    #table-preview-so .preview-row-delete:hover { background: #d9dbe3; color: #ff0000; }
+    #table-preview-so tbody tr:last-child td { border-bottom: 0; }
+    #card-preview .so-preview-table-wrap::after { display: block; height: 4px; border-radius: 4px; background: #284a63; content: ''; }
+    .so-preview-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 4px 0; color: #64748b; font-family: Inter, sans-serif; font-size: 10px; }
+    .so-preview-legend > span { display: inline-flex; align-items: center; gap: 4px; }
+    .so-preview-legend i { width: 9px; height: 9px; border: 1px solid #cbd5e1; border-radius: 2px; background: #fff; }
+    .so-preview-legend .is-auto { background: #f1f4f8; }
+    .so-preview-legend .is-pasted { border-color: #93c5fd; background: #dbeafe; }
+    .so-preview-legend .is-error { border-color: #fca5a5; background: #ffe4e6; }
+
+    #so-header-fields .so-edit-grid {
+        grid-template-columns: repeat(24, minmax(0, 1fr));
+        column-gap: 16px;
+        row-gap: 16px;
+        padding: 16px;
+    }
+    #so-header-fields .so-edit-grid .form-group { margin-bottom: 0; }
+    #so-header-fields .so-edit-grid .form-group:first-child { grid-column: span 3; }
+    #so-header-fields .so-edit-grid .form-group:nth-child(n+2):nth-child(-n+4) { grid-column: span 7; }
+    #so-header-fields .so-edit-grid .form-group:nth-child(n+5) { grid-column: span 8; }
+    #so-header-fields .so-edit-grid label {
+        min-height: 0;
+        margin-bottom: 8px;
+        color: #34282c;
+        font-family: 'Poppins', sans-serif;
+        font-size: 16px;
+        font-weight: 500;
+    }
+    #so-header-fields .so-edit-grid .form-control,
+    #so-header-fields .so-edit-grid .select2-container--bootstrap4 .select2-selection {
+        height: 59px;
+        min-height: 59px;
+        border: 1px solid #e1e5e9;
+        border-radius: 12px;
+        padding-left: 16px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+    }
+    #so-header-fields .so-edit-grid .form-control { padding-right: 16px; }
+    #so-header-fields .so-edit-grid .select2-container--bootstrap4 .select2-selection--single { padding-right: 44px; }
+    @media (max-width: 991.98px) {
+        #so-header-fields .so-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        #so-header-fields .so-edit-grid .form-group:nth-child(n) { grid-column: auto; }
+    }
+    @media (max-width: 575.98px) {
+        #so-header-fields .so-edit-grid { grid-template-columns: 1fr; }
+    }
+    /* Sales Order Detail ala Excel: putih = bisa diedit, abu = otomatis, biru = baru di-paste, merah = salah. */
+    #table-preview-so tbody td.so-cell { cursor: cell; white-space: pre; }  /* pre: spasi ganda tetap terlihat */
+    /* Sel yang digambar ulang setelah edit tidak membawa class text-center dari DataTables, jadi rata tengah dipasang di sini. */
+    #table-preview-so tbody td { text-align: center; }
+    #table-preview-so tbody td.so-cell:focus { outline: none; }
+    #table-preview-so tbody td.so-cell-auto { background: #f1f4f8 !important; color: #475569 !important; }
+    #table-preview-so tbody td.so-cell-selected { background: #e8f0fe !important; }
+    #table-preview-so tbody td.so-cell-follow { background: #f1f4f8 !important; color: #64748b !important; }
+    #table-preview-so tbody td.so-cell-follow.so-cell-selected { background: #e2e8f0 !important; }
+    #table-preview-so tbody td.so-cell-active { box-shadow: inset 0 0 0 2px #1d6fd8 !important; }
+    #table-preview-so tbody td.so-cell-pasted { background: #dbeafe !important; }
+    #table-preview-so tbody td.so-cell-error { background: #ffe4e6 !important; box-shadow: inset 0 0 0 2px #ef4444 !important; color: #b91c1c !important; }
+    #table-preview-so tbody td.so-cell-error.so-cell-active { box-shadow: inset 0 0 0 2px #1d6fd8, inset 0 0 0 4px #ef4444 !important; }
+    #table-preview-so tbody td.so-cell-editing { padding: 0 !important; overflow: visible !important; }
+    /* Destination: dropdown master (select2) di dalam sel. */
+    #table-preview-so .so-cell-input.so-cell-select { min-width: 150px; height: 34px; padding: 2px 6px; cursor: pointer; }
+    #table-preview-so .so-cell-input { width: 100%; min-height: 34px; padding: 4px 8px; border: 0; outline: 2px solid #1d6fd8; background: #fff; color: #1e293b; font: inherit; }
+    .so-preview-toolbar { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+    /* Fill handle ala Excel: kotak biru di pojok sel aktif, tarik ke atas/bawah untuk copy nilai (sama dengan tabel costing). */
+    #table-preview-so tbody td.so-cell { position: relative; }
+    #table-preview-so .so-fill-handle { position: absolute; right: 0; bottom: 0; z-index: 6; width: 8px; height: 8px; border: 1px solid #fff; background: #1a73e8; cursor: crosshair; }    #table-preview-so tbody td.so-fill-preview { background: #fff3c4 !important; box-shadow: inset 0 0 0 1px #e0a800 !important; }
+    body.so-filling, body.so-filling * { cursor: crosshair !important; user-select: none; }
+    body.so-selecting, body.so-selecting * { user-select: none; }
+    .so-create-body .mkt-btn, .so-create-body .mkt-icon-btn, .card-footer .mkt-btn { font-family: 'Poppins', sans-serif; font-weight: 600; }
+    .so-summary-item > span { font-family: 'Poppins', sans-serif; font-weight: 500 !important; }
+    .so-summary-item strong { font-weight: 700 !important; }
+    #table-preview-so, #table-preview-so th, #table-preview-so td, .so-preview-pager, .so-preview-pager .page-link, .so-preview-legend { font-family: 'Poppins', sans-serif !important; }
+    #table-preview-so thead th { font-size: 12px !important; font-weight: 500 !important; }
+    #table-preview-so tbody td { font-size: 13px !important; font-weight: 500 !important; }
+    #table-preview-so tfoot th, #table-preview-so tbody td.preview-col-total { font-size: 13px !important; font-weight: 600 !important; }
+    .so-preview-pager, .so-preview-pager .page-link { font-weight: 500; }
+    .so-preview-pager .page-item.active .page-link { font-weight: 600; }
+    .so-preview-legend { font-size: 11px; font-weight: 500; }
+    .so-file-dropzone span { font-size: 14px; font-weight: 500; }
+    .so-file-dropzone strong { font-weight: 600; }
+    .so-file-dropzone small { font-size: 12px; font-weight: 500; }
+    .so-image-caption { font-weight: 500; }
+    /* Section Sales Order & Purchase Order: satu baris, lebar per class (menyusut proporsional kalau layar sempit).
+       so-field-sm = Currency 162px, so-field-lg = Sales Order Type / FOB / PO System / Notes 368.4px; jarak 16px.
+       Field 59px, radius 12, border 1, padding 16. */
+    #so-header-fields .so-edit-grid { display: flex !important; flex-wrap: nowrap; column-gap: 16px; }
+    #so-header-fields .so-edit-grid > .form-group { min-width: 0; grid-column: auto !important; }
+    /* Tanpa batas lebar: field melebar proporsional mengisi card, jadi tidak ada sisa ruang kosong di kanan. */
+    #so-header-fields .so-edit-grid > .so-field-sm { flex: 162 1 0; }
+    #so-header-fields .so-edit-grid > .so-field-lg { flex: 368.4 1 0; }
+    #so-header-fields .so-edit-grid .form-control,
+    #so-header-fields .so-edit-grid .select2-container--bootstrap4 .select2-selection { height: 59px; min-height: 59px; border-width: 1px; border-radius: 12px; }
+    @media (max-width: 991.98px) {
+        /* Tablet: 2 field per baris. */
+        #so-header-fields .so-edit-grid { flex-wrap: wrap; row-gap: 16px; }
+        #so-header-fields .so-edit-grid > .so-field-sm,
+        #so-header-fields .so-edit-grid > .so-field-lg { flex: 1 1 calc(50% - 8px); max-width: calc(50% - 8px); }
+    }
+    @media (max-width: 575.98px) {
+        #so-header-fields .so-edit-grid > .so-field-sm,
+        #so-header-fields .so-edit-grid > .so-field-lg { flex-basis: 100%; max-width: 100%; }
+        .so-file-dropzone span { font-size: 13px; }
+    }
+    .so-preview-pager label, .so-preview-pager .dataTables_length label { font-weight: 500 !important; }
+    /* Label & nilai info seragam di tablet/HP (menimpa aturan per-ID). */
+    @media (max-width: 991.98px) {
+        .so-overview-section .so-summary-item > span { font-size: 14px !important; }
+        .so-overview-section .so-summary-item strong { font-size: 15px !important; }
+        .so-overview-section .so-overview-title { font-size: 16px !important; }
+    }
+    @media (max-width: 575.98px) {
+        .so-overview-section .so-summary-item > span { font-size: 13px !important; }
+        .so-overview-section .so-summary-item strong { font-size: 14px !important; }
+        .so-overview-section .so-overview-title { font-size: 15px !important; }
+    }
+    /* Font sesuai Figma (catatan QA) untuk desktop & tablet; HP (< 576px) tetap pakai ukuran kecil di atas. */
+    @media (min-width: 576px) {
+        .so-summary-card > span { font-family: 'Instrument Sans', sans-serif !important; font-size: 20px !important; font-weight: 500 !important; }
+        .so-summary-card > strong { font-family: 'Poppins', sans-serif !important; font-size: 24px !important; font-weight: 700 !important; }
+        .so-overview-section .so-summary-item > span { font-family: 'Instrument Sans', sans-serif !important; font-size: 18px !important; font-weight: 500 !important; }
+        .so-overview-section .so-summary-item strong { font-family: 'Poppins', sans-serif !important; font-size: 18px !important; font-weight: 700 !important; }
+        .so-section-toggle .text-danger { font-size: 26px; font-weight: 500; }
+        #so-header-fields .so-edit-grid .select2-selection__placeholder { font-size: 15px; font-weight: 500; }
+        #so-header-fields .so-edit-grid .form-control::placeholder { font-size: 16px; font-weight: 500; }
+    }
+    .so-template-btn, .card-footer .mkt-btn { font-family: 'SF Pro Rounded', ui-rounded, 'MKT Rounded', sans-serif !important; font-weight: 700 !important; font-size: 18px; }
+    .card-footer .mkt-btn--green { font-size: 19px; }
+    .so-file-dropzone span, .so-file-dropzone small { font-family: Inter, sans-serif; font-size: 14px; font-weight: 400; }
+    .so-file-dropzone strong { font-family: Inter, sans-serif; font-weight: 700; }
+    #btn-upload-so { font-family: Inter, sans-serif !important; font-size: 16px; font-weight: 700 !important; }
+    @media (max-width: 575.98px) {
+        .so-template-btn, .card-footer .mkt-btn { font-size: 14px; }
+        .so-file-dropzone span, .so-file-dropzone small { font-size: 13px; }
+    }
+</style>
+@endsection
+
+@section('content')
+<div class="card card-sb">
+    <form id="form-create-so" novalidate>
+        @csrf
+        <div class="card-body so-create-body">
+            <div class="so-breadcrumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a>  &nbsp;›&nbsp; Sales Order &nbsp;›&nbsp; <strong id="so-breadcrumb-title">{{ $so ? 'Edit Sales Order' : 'Create Sales Order' }}</strong></div>
+            <div class="so-page-heading">
+                <div>
+                    <h1><span id="so-page-title">{{ $so ? 'Edit Sales Order' : 'Create Sales Order' }}</span> <i class="far fa-question-circle"></i><span class="so-no-badge" id="so-no-badge" {{ $so ? '' : 'hidden' }}>{{ $so->so_no ?? '' }}</span></h1>
+                    <p><i class="fa-solid fa-circle-info"></i>{{ $so ? 'Untuk Mengubah Data SO' : 'Untuk Menambah Data SO' }}</p>
+                </div>
+            </div>
+            <div class="mkt-error-alert" id="so-error-alert" role="alert" hidden>
+                <i class="fas fa-exclamation-circle"></i><span></span>
+                <button type="button" class="mkt-error-alert-close" aria-label="Tutup" onclick="this.parentElement.hidden = true"><i class="far fa-times-circle"></i></button>
+            </div>
+            <input type="hidden" name="id_costing" id="id_costing" value="{{ $costing->id }}">
+
+            <div class="so-summary-cards is-four" aria-label="Ringkasan Costing">
+                <div class="so-summary-card">
+                    <span>No Costing</span>
+                    <strong id="summary-costing-no">{{ $costing->costing_no }}</strong>
+                </div>
+                <div class="so-summary-card">
+                    <span>No Worksheet</span>
+                    <strong id="summary-worksheet-no">-</strong>
+                </div>
+                <div class="so-summary-card is-navy">
+                    <span>QTY Planned</span>
+                    <strong id="summary-planned-qty" class="text-center">{{ $costing->planned_qty ? number_format($costing->planned_qty, 0, ',', '.') : '-' }}</strong>
+                </div>
+                <div class="so-summary-card is-blue">
+                    <span>Ex Factory Date</span>
+                    <strong id="summary-exfty-date">-</strong>
+                </div>
+            </div>
+
+            <div class="so-top-layout">
+                <div class="so-info-column">
+                    <section class="so-overview-section">
+                        <h2 id="so-information-title" class="so-overview-title">Information Buyer</h2>
+                        <div id="so-information" class="so-overview-grid">
+                            <div class="so-summary-item"><span>Buyer Name</span><strong id="summary-buyer">{{ $costing->buyer ?: '-' }}</strong></div>
+                            <div class="so-summary-item"><span>Kode Buyer</span><strong id="summary-buyer-code">{{ $costing->supplier_code ?: '-' }}</strong></div>
+                            <div class="so-summary-item"><span>Brand</span><strong id="summary-brand">{{ $costing->brand_name ?: '-' }}</strong></div>
+                            <div class="so-summary-item"><span>Season</span><strong id="summary-season">{{ $costing->season_name ?: '-' }}</strong></div>
+                            <div class="so-summary-item"><span>Style</span><strong id="summary-style">{{ $costing->style ?: '-' }}</strong></div>
+                        </div>
+                    </section>
+
+                    <section class="so-overview-section">
+                        <h2 id="so-product-title" class="so-overview-title">Product &amp; Type</h2>
+                        <div id="so-product" class="so-overview-grid">
+                            <div class="so-summary-item"><span>Product Group</span><strong id="summary-product-group">{{ $costing->sets->pluck('product_group_name')->filter()->unique()->implode(', ') ?: '-' }}</strong></div>
+                            <div class="so-summary-item"><span>Product Items</span><strong id="summary-product-item">{{ $costing->sets->pluck('product_item_name')->implode(', ') ?: '-' }}</strong></div>
+                            <div class="so-summary-item"><span>Product Type</span><strong id="summary-product-type">{{ $costing->sets->pluck('set_type')->implode(', ') ?: '-' }}</strong></div>
+                            <div class="so-summary-item"><span>Unit</span><strong id="summary-unit">{{ $costing->unit_code ?: '-' }}</strong></div>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="so-overview-section so-review-section">
+                    <h2 class="so-overview-title so-information-title">Review Image</h2>
+                    <div class="so-image-review">
+                        <button type="button" class="so-image-nav" disabled aria-label="Previous image"><i class="fas fa-chevron-left"></i></button>
+                        <div class="so-image-preview mkt-cf-stage">
+                            <img class="mkt-cf-side is-prev is-empty" alt="Gambar sebelumnya">
+                            <img id="preview_images" class="mkt-cf-main" src="" alt="Preview gambar Costing" hidden>
+                            <span id="text_preview">Gambar Costing akan ditampilkan di sini.</span>
+                            <img class="mkt-cf-side is-next is-empty" alt="Gambar berikutnya">
+                        </div>
+                        <button type="button" class="so-image-nav" disabled aria-label="Next image"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div id="so-image-counter" class="so-image-counter mkt-cf-dots"></div>
+                    <div id="so-image-thumbs" class="so-image-thumbs"></div>
+                    <div id="so-image-caption" class="so-image-caption"></div>
+                    <input type="hidden" id="image_costing_path" value="">
+                </section>
+            </div>
+
+            <section class="so-overview-section so-shipping-section">
+                <h2 id="so-shipping-title" class="so-overview-title">Shipping &amp; Destinations</h2>
+                <div id="so-shipping" class="so-overview-grid so-shipping-grid">
+                    <div class="so-summary-item"><span>Main Destination</span><strong id="summary-destination">{{ $costing->destination_name ?: '-' }}</strong></div>
+                    <div class="so-summary-item"><span>Marketing Order</span><strong id="summary-marketing-order">{{ $costing->office_name ?: '-' }}</strong></div>
+                    <div class="so-summary-item"><span>Notes</span><strong id="summary-notes">{{ $costing->notes ?: '-' }}</strong></div>
+                </div>
+            </section>
+
+            <section class="so-section so-heading-only">
+                <button type="button" class="so-section-toggle" data-target="#so-header-fields" aria-expanded="true">
+                    <span>Sales Order &amp; Purchase Order<span class="text-danger">*</span></span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div id="so-header-fields" class="collapse show">
+                    <div class="so-edit-grid">
+                        <div class="form-group so-field-lg">
+                            <label>SO Date</label>
+                            <input type="date" name="so_date" id="so_date" class="form-control" value="{{ $so->so_date ?? date('Y-m-d') }}" required>
+                        </div>
+                        <div class="form-group so-field-sm">
+                            <label>Currency</label>
+                            <select name="currency_id" id="currency_id" class="form-control select2bs4" required>
+                                <option value="">Choose Curr</option>
+                                @foreach ($currencies as $currency)
+                                    <option value="{{ $currency->id }}" {{ (int) ($so->currency_id ?? $costing->currency_id) === (int) $currency->id ? 'selected' : '' }}>{{ $currency->currency_code }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group so-field-lg">
+                            <label>Sales Order Type</label>
+                            <select name="so_type" id="so_type" class="form-control select2bs4" required>
+                                <option value="">Choose Sales Order Type</option>
+                                @foreach (['FOB', 'CMT'] as $type)
+                                    <option value="{{ $type }}" {{ ($so->so_type ?? null) === $type ? 'selected' : '' }}>{{ $type }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group so-field-lg">
+                            <label>Payment Term</label>
+                            <select name="payment_terms_id" id="payment_terms_id" class="form-control select2bs4" required>
+                                <option value="">Choose Payment Term</option>
+                                @foreach ($paymentTerms as $term)
+                                    <option value="{{ $term->id }}" {{ (int) ($so->payment_terms_id ?? 0) === (int) $term->id ? 'selected' : '' }}>{{ $term->term_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group so-field-lg so-notes-field">
+                            <label>Notes</label><input type="text" name="notes" id="notes" class="form-control" placeholder="Notes" value="{{ $so->notes ?? '' }}">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="so-section so-heading-only">
+                <button type="button" class="so-section-toggle" data-target="#so-upload-file" aria-expanded="true">
+                    <span>Upload File <small class="text-muted font-weight-normal">(opsional, detail juga bisa diisi manual lewat Add)</small></span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
+                </button>
+                <div id="so-upload-file" class="collapse show">
+                    <div class="so-upload-panel">
+                        <div class="so-upload-toolbar">
+                            <a href="{{ asset('template/template_upload_so_nds.xlsx') }}" class="mkt-btn mkt-btn--navy so-template-btn"><i class="fas fa-download"></i> Download Template Excel</a>
+                        </div>
+                        <input type="file" id="file_so" accept=".xls,.xlsx" hidden>
+                        <div id="so-file-dropzone" class="so-file-dropzone" role="button" tabindex="0">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Drag n Drop File Here Or <strong>Browse</strong></span>
+                            <small>Format .xlsx, max 50 MB</small>
+                        </div>
+                        <div id="so-selected-file" class="so-selected-file" hidden>
+                            <i class="fas fa-file-excel"></i><span id="so-selected-file-name"></span>
+                            <button type="button" id="so-remove-file" aria-label="Remove selected file"><i class="fas fa-times"></i></button>
+                        </div>
+                        <button type="button" id="btn-upload-so" class="mkt-btn mkt-btn--navy w-100 mt-3" disabled>Upload Now</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="so-section so-heading-only so-preview-section" id="card-preview">
+            <button type="button" class="so-section-toggle" data-target="#so-preview-body" aria-expanded="true">
+                <span>Sales Order Detail</span><span class="so-chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div id="so-preview-body" class="collapse show">
+            <div class="so-preview-body">
+                {{-- Banner SO-03 (baris belum valid): muncul saat Save, hilang sendiri setelah semua baris benar. --}}
+                <div id="so-detail-banner"></div>
+                <div class="so-preview-toolbar">
+                    <button type="button" class="mkt-btn mkt-btn--navy mkt-btn--sm" id="so-add-row" title="Tambah baris (Color, Size, Qty diisi di tabel)" hidden><i class="fas fa-plus"></i> Add</button>
+                    <button type="button" class="mkt-btn mkt-btn--red mkt-btn--sm" id="so-bulk-delete" title="Hapus baris yang dicentang" hidden disabled><i class="fas fa-trash-alt"></i> Hapus (0)</button>
+                </div>
+                <div class="table-responsive">
+                    <div class="so-preview-table-wrap">
+                    <table class="table table-sm table-striped text-nowrap w-100" id="table-preview-so">
+                        <thead class="bg-sb text-white text-center">
+                            <tr>
+                                <th class="preview-col-check"><input type="checkbox" class="so-check-all" title="Pilih semua"></th>
+                                <th class="preview-col-no">No</th>
+                                <th class="preview-col-po">No PO</th>
+                                <th class="preview-col-destination">Destination</th>
+                                <th class="preview-col-exfty">Ex Fty</th>
+                                <th class="preview-col-ship">Ship Mode</th>
+                                <th class="preview-col-set">Product Set</th>
+                                <th class="preview-col-color">Color</th>
+                                <th class="preview-col-size">Size</th>
+                                <th class="preview-col-qty">Qty</th>
+                                <th class="preview-col-action">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="so-preview-legend" aria-label="Keterangan tabel">
+                    <span><i></i>Editable</span>
+                    <span><i class="is-auto"></i>Auto calculated</span>
+                    <span><i class="is-pasted"></i>Just Pasted</span>
+                    <span><i class="is-error"></i>Error</span>
+                </div>
+            </div>
+            </div>
+        </section>
+
+        <div class="card-footer text-right">
+            <button type="button" id="btn-back" class="mkt-btn mkt-btn--red mkt-btn--cancel">
+                Cancel
+            </button>
+            <button type="submit" class="mkt-btn mkt-btn--green">Save</button>
+        </div>
+    </form>
+</div>
+
+{{-- Modal "Add Destination": tampilan sama dengan modal "Add Brand" di Costing. --}}
+<style>
+    .brand-dropdown .select2-results__option { padding: 6px 12px; color: #1e293b; font-size: 13px; font-weight: 500; }
+    .brand-opt { display: flex; align-items: center; gap: 8px; }
+    .brand-opt--add { padding: 2px 4px; border-radius: 3px; background: #e8eef5; color: #1e293b; }
+    .brand-opt--add i { color: #284a63; }
+    .brand-modal { max-width: 420px; }
+    .brand-modal .modal-content { border: 0; border-radius: 12px; }
+    .brand-modal .modal-header { justify-content: center; border-bottom: 1px solid #e2e8f0; }
+    .brand-modal .modal-title { color: #284a63; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 600; }
+    .brand-modal .brand-modal-card { display: grid; gap: 14px; padding: 14px; border-radius: 10px; box-shadow: 0 3px 10px rgba(15, 23, 42, .10); }
+    .brand-modal label { display: block; margin-bottom: 6px; color: #1e293b; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; }
+    .brand-modal .form-control { height: 42px; border: 1px solid #d6d6d6; border-radius: 10px; font-size: 14px; }
+    .brand-modal .modal-footer { justify-content: flex-end; gap: 10px; border-top: 0; }
+</style>
+<div class="modal fade" id="modal-add-destination" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered brand-modal" role="document">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Destination</h5></div>
+            <div class="modal-body">
+                <div class="brand-modal-card">
+                    <div>
+                        <label for="sd-country">Country</label>
+                        <select id="sd-country" class="form-control"></select>
+                    </div>
+                    <div>
+                        <label for="sd-code">Destination Code</label>
+                        <input type="text" id="sd-code" class="form-control" maxlength="20" placeholder="Destination Code" autocomplete="off">
+                    </div>
+                    <div>
+                        <label for="sd-name">Destination Name</label>
+                        <input type="text" id="sd-name" class="form-control" maxlength="100" placeholder="Destination Name" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="mkt-btn mkt-btn--red mkt-btn--cancel" data-dismiss="modal" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="mkt-btn mkt-btn--green dest-modal-save">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@section('custom-script')
+<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+<script src="{{ asset('dist/js/marketing-empty-state.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-empty-state.js')) }}"></script>
+<script>
+    let previewTable = null;
+    let previewUploadRows = [];
+    let soWorksheetBySet = {};    // nama set (huruf besar) => No WS yang sudah ada
+    let soFileUploaded = false;
+    let soId = @json($so->id ?? null);
+    let soSavedMode = false;      // true = so_tmp kosong dan yang tampil baris tersimpan (baca saja), false = isi so_tmp
+    const SO_URLS = {
+        save: @json(route('so-nds-save', ':id')),
+        upload: @json(route('so-nds-upload', ':id')),
+        rows: @json(route('so-nds-rows', ':id')),
+        cells: @json(route('so-nds-update-cells', ':id')),
+        add: @json(route('so-nds-add-row', ':id')),
+        remove: @json(route('so-nds-delete-rows', ':id')),
+        discard: @json(route('so-nds-discard', ':id')),
+        storeDestination: @json(route('so-nds-store-destination')),
+    };
+    // SO yang belum tersimpan memakai "new" + id_costing; so_tmp-nya milik Costing dan user yang login.
+    const soUrl = (name) => SO_URLS[name].replace(':id', soId || 'new');
+    const soData = (extra) => Object.assign({ _token: '{{ csrf_token() }}', id_costing: $('#id_costing').val() }, extra);
+
+    function formatSummaryDate(value) {
+        if (!value) return '-';
+        const match = String(value).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : String(value);
+    }
+
+    function loadPreviewUpload(init) {
+        const soScrollY = window.scrollY, $soWrap = $('.so-preview-table-wrap');
+        $soWrap.css('min-height', $soWrap.outerHeight() || '');
+        $('#table-preview-so tbody').html('<tr><td colspan="11" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
+        $('#summary-exfty-date').text('-');
+
+        $.ajax({
+            url: soUrl('rows'),
+            type: 'GET',
+            data: { id_costing: $('#id_costing').val(), init: init ? 1 : 0 },
+            success: function(res) {
+                if ($.fn.DataTable.isDataTable('#table-preview-so')) {
+                    $('#table-preview-so').DataTable().destroy();
+                }
+                // Satu baris = satu color + size, urut sesuai upload.
+                previewUploadRows = res.rows || [];
+                soWorksheetBySet = res.worksheet_by_set || {};
+                // Tanpa baris sama sekali = SO baru yang belum diisi: tabel tetap bisa diisi manual lewat Add.
+                soSavedMode = res.mode === 'saved' && previewUploadRows.length > 0;
+                // Tabel detail selalu tampil (detail bisa dari upload atau Add manual).
+                $('#card-preview').show();
+                if (previewUploadRows.length) $('#card-preview').removeClass('is-invalid');
+                soDupRows = soSavedMode ? new Set() : soDuplicateRows();
+                soSetErrs = soSavedMode ? {} : soSetMismatch();
+                soFollowRows = new Set(); // Qty BOTTOM diisi sendiri; beda dengan TOP = merah (soSetMismatch).
+                $('#summary-worksheet-no').text((res.worksheets || []).join('\n') || '-');
+                $('#so-add-row').prop('hidden', soSavedMode);
+                $('#so-discard-upload').prop('hidden', soSavedMode || !previewUploadRows.length);
+
+                let bodyHtml = '';
+                if (previewUploadRows.length > 0) {
+                    const exFactoryDate = previewUploadRows.find(row => row.ex_fty);
+                    $('#summary-exfty-date').text(formatSummaryDate(exFactoryDate ? exFactoryDate.ex_fty : null));
+                    previewUploadRows.forEach((row, rowIndex) => {
+                        bodyHtml += `<tr data-id="${row.id}">
+                            <td class="preview-col-check">${soSavedMode ? '' : `<input type="checkbox" class="so-row-check" data-id="${row.id}" aria-label="Pilih baris">`}</td>
+                            <td class="preview-col-no so-cell-auto">${rowIndex + 1}</td>
+                            ${soCell(rowIndex, 'po', 'preview-col-po')}
+                            ${soCell(rowIndex, 'destination', 'preview-col-destination')}
+                            ${soCell(rowIndex, 'ex_fty', 'preview-col-exfty')}
+                            ${soCell(rowIndex, 'ship_mode', 'preview-col-ship')}
+                            ${soCell(rowIndex, 'product_set', 'preview-col-set')}
+                            ${soCell(rowIndex, 'color', 'preview-col-color')}
+                            ${soCell(rowIndex, 'size', 'preview-col-size')}
+                            ${soCell(rowIndex, 'qty', 'preview-col-qty text-right')}
+                            <td class="preview-col-action">${soSavedMode ? '' : `
+                                <button type="button" class="preview-row-delete" data-row-index="${rowIndex}" aria-label="Hapus baris" title="Hapus baris">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>`}
+                            </td></tr>`;
+                    });
+                } else {
+                    bodyHtml = '<tr><td colspan="11" class="so-detail-empty-hint">Belum ada detail. Klik <b>Add</b> untuk mengisi manual, atau upload file Excel di atas.</td></tr>';
+                }
+                $('#table-preview-so tbody').html(bodyHtml);
+                $('#table-preview-so').toggleClass('is-saved', soSavedMode);
+                $('#table-preview-so .so-check-all').prop('checked', false);
+                soUpdateBulk();
+
+                if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
+                const grandTotal = previewUploadRows.reduce((sum, row) => sum + (Number(row.qty) || 0), 0);
+                $('#table-preview-so tfoot').html(`<tr>
+                    <th class="preview-col-check"></th>
+                    <th></th>
+                    <th class="text-left fw-bold">GRAND TOTAL</th>
+                    <th></th><th></th><th></th><th></th><th></th><th></th>
+                    <th class="preview-col-qty fw-bold">${grandTotal.toLocaleString('id-ID')}</th>
+                    <th class="preview-col-action"></th>
+                </tr>`);
+                if (grandTotal > 0) { $('#so-file-dropzone').removeClass('is-invalid'); refreshSoErrorAlert(); }
+
+                if (previewUploadRows.length > 0) {
+                    previewTable = $('#table-preview-so').DataTable({
+                        "paging": true,
+                        "pageLength": 10,
+                        "lengthMenu": [5, 10, 25, 50, 100],
+                        "dom": 't<"so-preview-pager"lp>',
+                        "language": { "lengthMenu": "Item Per Page _MENU_", "paginate": { "previous": "‹", "next": "›" } },
+                        "info": true,
+                        "searching": true,
+                        "ordering": false,
+                        "autoWidth": false,
+                        "responsive": false,
+                        "scrollX": false,
+                        "columnDefs": [
+                            { targets: 0, width: '34px' },
+                            { targets: 1, width: '40px' },
+                            { targets: 2, width: '160px' },
+                            { targets: 3, width: '190px' },
+                            { targets: 4, width: '115px' },
+                            { targets: 5, width: '110px' },
+                            { targets: 6, width: '130px' },
+                            { targets: 7, width: '190px' },
+                            { targets: 8, width: '80px' },
+                            { targets: 9, width: '90px' },
+                            { targets: '_all', className: 'text-center' }
+                        ],
+                        "drawCallback": function(settings) {
+                            let api = this.api();
+                            setTimeout(function() { api.columns.adjust(); }, 10);
+                        }
+                    });
+                }
+
+                soAfterRender();
+                $soWrap.css('min-height', '');
+                if (Math.abs(window.scrollY - soScrollY) > 2) window.scrollTo(window.scrollX, soScrollY);
+            },
+            error: function(xhr) {
+                $('#table-preview-so tbody').html('<tr><td colspan="11" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
+            }
+        });
+    }
+
+    // ===== Checkbox: hapus beberapa baris sekaligus (semua halaman tabel ikut dihitung) =====
+    function soCheckRows() {
+        return $.fn.DataTable.isDataTable('#table-preview-so') ? $($('#table-preview-so').DataTable().rows().nodes()).find('.so-row-check') : $('#table-preview-so .so-row-check');
+    }
+    function soUpdateBulk() {
+        const $all = soCheckRows(), n = $all.filter(':checked').length;
+        $('#so-bulk-delete').prop('hidden', soSavedMode || !$all.length).prop('disabled', n === 0).html('<i class="fas fa-trash-alt"></i> Hapus' + (n ? ' (' + n + ')' : ''));
+        $('#table-preview-so .so-check-all').prop('checked', $all.length > 0 && n === $all.length)
+            .prop('indeterminate', n > 0 && n < $all.length);
+    }
+    $(document).on('change', '#table-preview-so .so-check-all', function () {
+        soCheckRows().prop('checked', this.checked);
+        soUpdateBulk();
+    });
+    $(document).on('change', '#table-preview-so .so-row-check', soUpdateBulk);
+    $(document).on('click', '#so-bulk-delete', function () {
+        const ids = soCheckRows().filter(':checked').map(function () { return Number($(this).attr('data-id')); }).get();
+        if (!ids.length) return;
+        const one = ids.length === 1 ? previewUploadRows.find(r => Number(r.id) === ids[0]) : null;
+        const label = one ? (([one.color, one.size].filter(Boolean).join(' / ') || 'Baris baru') + (one.po ? ' PO ' + one.po : '')) : ids.length + ' baris';
+        const soNo = $.trim($('#so-no-badge').text());
+        mktAlert('DEL-03', { row: label, doc: soNo || 'Sales Order ini' }).then(function (result) {
+            if (!result.isConfirmed) return;
+            const $btn = $('#so-bulk-delete').prop('disabled', true);
+            $.ajax({ url: soUrl('remove'), type: 'POST', data: soData({ ids: ids }) })
+                .done(function () {
+                    // Semua baris terhapus: lepas juga file upload yang tadi dipilih.
+                    if (ids.length === previewUploadRows.length) { soInvalidEdits = {}; $('#file_so').val('').trigger('change'); }
+                    loadPreviewUpload();
+                })
+                .fail(function (xhr) { mktAlert('DEL-04', { detail: xhr.responseJSON?.message || 'Koneksi ke server terputus. Coba hapus lagi.' }); })
+                .always(function () { $btn.prop('disabled', false); });
+        });
+    });
+
+    $(document).on('click', '.preview-row-delete', function() {
+        const row = previewUploadRows[Number($(this).attr('data-row-index'))];
+        if (!row) return;
+        const label = ([row.color, row.size].filter(Boolean).join(' / ') || 'Baris baru') + (row.po ? ' PO ' + row.po : '');
+        const soNo = $.trim($('#so-no-badge').text());
+
+        mktAlert('DEL-03', { row: label, doc: soNo || 'Sales Order ini' }).then(function(result) {
+            if (!result.isConfirmed) return;
+            $.ajax({
+                url: soUrl('remove'),
+                type: 'POST',
+                data: soData({ ids: [row.id] }),
+                success: function() { loadPreviewUpload(); },
+                error: function(xhr) {
+                    mktAlert('DEL-04', { detail: xhr.responseJSON?.message || 'Koneksi ke server terputus. Coba hapus lagi.' });
+                }
+            });
+        });
+    });
+
+    // Tombol Add: baris baru kosong; semua kolom diisi di tabel (merah sampai lengkap, Save diblok).
+    $(document).on('click', '#so-add-row', function() {
+        const source = soActive ? previewUploadRows[soActive.row] : null;
+        const $button = $(this).prop('disabled', true);
+        $.ajax({
+            url: soUrl('add'),
+            type: 'POST',
+            data: soData({ source_id: source ? source.id : null })
+        }).done(function(res) {
+            soReloadState = { page: 'last', focusId: res.id, focusField: 'po', move: null, pasted: [], active: null };
+            loadPreviewUpload();
+        }).fail(function(xhr) {
+            mktToast('err', 'Baris belum ditambahkan', xhr.responseJSON?.message || 'Koneksi ke server terputus. Klik Add lagi.');
+        }).always(function() {
+            $button.prop('disabled', false);
+        });
+    });
+
+    $(document).on('click', '#so-discard-upload', function() {
+        Swal.fire({
+            icon: 'warning',
+            title: soId ? 'Buang perubahan ini?' : 'Kosongkan detail SO?',
+            text: soId ? 'Perubahan yang belum disimpan akan dibuang. Data yang sudah tersimpan tidak berubah.' : 'Semua baris detail yang belum disimpan (hasil upload maupun input manual) akan dibuang.',
+            showCancelButton: true,
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel'
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+            $.ajax({
+                url: soUrl('discard'),
+                type: 'POST',
+                data: soData(),
+                success: function() {
+                    // SO yang sudah ada: muat ulang supaya tabel kembali berisi data tersimpan.
+                    if (soId) {
+                        window.location.reload();
+                        return;
+                    }
+                    soInvalidEdits = {};
+                    $('#file_so').val('').trigger('change');
+                    loadPreviewUpload();
+                },
+                error: function(xhr) {
+                    mktToast('err', 'Hasil upload belum dibuang', xhr.responseJSON?.message || 'Koneksi ke server terputus. Coba lagi.');
+                }
+            });
+        });
+    });
+
+    // ===== Sales Order Detail: edit ala Excel (mirip grid Costing/BOM) =====
+    // Klik sel = pilih; ketik / Enter / F2 = edit; panah, Tab, Enter = pindah; Delete = kosongkan; Ctrl+V = paste (biru sebentar).
+    // Teks tidak boleh berspasi di awal/akhir atau berspasi ganda; qty angka bulat > 0; color, size, destination, set harus ada di master. Sel salah merah dan Save diblok.
+    // Ship Mode per baris (so_tmp.ship_modes_id); wajib setelah kolomnya ada di DB.
+    const SO_SHIP_READY = @json(app(\App\Services\MarketingSalesOrderService::class)->shipReady());
+    const SO_SHIP_OPTIONS = @json($shipModes->map(fn ($m) => ['id' => $m->id, 'name' => $m->ship_mode_name])->values());
+    const SO_TEXT_FIELDS = ['po', 'destination', 'ex_fty', 'ship_mode', 'product_set', 'color', 'size'];
+    const SO_REQUIRED_FIELDS = ['po', 'destination', 'ex_fty', 'product_set', 'color', 'size'].concat(SO_SHIP_READY ? ['ship_mode'] : []);
+    const SO_MASTER_COLORS = new Set(@json($masterColors));
+    const SO_MASTER_SIZES = new Set(@json($masterSizes));
+    const SO_MASTER_DESTINATIONS = new Set(@json($masterDestinations));
+    // Pilihan dropdown Destination (nama + kode) dan negara untuk modal tambah destinasi.
+    const SO_DEST_OPTIONS = @json($destinationOptions);
+    const SO_COUNTRIES = @json($countries);
+    const SO_SET_NAMES = new Set(@json($setNames));
+    // Set Costing berurutan; set pertama (mis. TOP) jadi acuan Color/Size/Qty set lain (mis. BOTTOM).
+    const SO_SET_GROUPS = @json($setGroups ?? []);
+    const soSetIndex = (value) => SO_SET_GROUPS.findIndex(names => names.includes(String(value || '').toUpperCase()));
+    // Nilai sel Destination = kode destinasi (unik); nama bisa sama di beberapa negara (mis. RETAIL).
+    const soDestFind = (value) => { const v = String(value || '').toUpperCase(); return SO_DEST_OPTIONS.find(o => String(o.code || '').toUpperCase() === v) || SO_DEST_OPTIONS.find(o => String(o.name).toUpperCase() === v); };
+    const soDestCountry = (value) => { const d = soDestFind(value); return d && d.country ? d.country : ''; };
+    const soDestLabel = (value) => { const d = soDestFind(value); return d ? (d.country ? d.country + ' - ' : '') + d.name : value; };
+    const soSizeKey = (value) => String(value).toUpperCase().replace(/\s+/g, '');
+    let soInvalidEdits = {};      // nilai salah yang belum dikirim ke server (tetap merah sampai diperbaiki)
+    let soActive = null;          // { row, field } sel aktif (fokus)
+    let soSel = null;             // { anchor: { row, field }, focus: { row, field } } kotak pilihan
+    let soDrag = null;            // 'select' (drag pilih) | 'fill' (tarik fill handle)
+    let soFillTo = null;          // posisi baris tujuan fill handle
+    let soReloadState = null;     // posisi halaman, sel aktif & sel hasil paste setelah tabel dimuat ulang
+
+    function soEsc(value) { return $('<div>').text(value === null || value === undefined ? '' : String(value)).html(); }
+    // Urutan kolom yang bisa diedit (untuk paste dari Excel): satu baris = satu color + size.
+    function soFieldOrder() { return ['po', 'destination', 'ex_fty', 'ship_mode', 'product_set', 'color', 'size', 'qty']; }
+    function soRowSig(index) {
+        const row = previewUploadRows[index] || {};
+        return 'id:' + row.id;
+    }
+    function soCellKey(index, field) { return soRowSig(index) + '|' + field; }
+
+    function soRawValue(index, field) {
+        const row = previewUploadRows[index] || {};
+        if (field === 'qty') return Number(row.qty) > 0 ? String(row.qty) : '';
+        if (field === 'product_set') return !row.product_set || row.product_set === '-' ? '' : String(row.product_set);
+        const value = row[field];
+        return value === null || value === undefined ? '' : String(value);
+    }
+    function soCurrentValue(index, field) {
+        const key = soCellKey(index, field);
+        return Object.prototype.hasOwnProperty.call(soInvalidEdits, key) ? soInvalidEdits[key] : soRawValue(index, field);
+    }
+
+    // Angka format Indonesia (titik ribuan, koma desimal); "1.500,25" -> 1500.25, "0.5" -> 0.5, "1.500" -> 1500.
+    function soParseNumber(value) {
+        let text = String(value === null || value === undefined ? '' : value).trim().replace(/\s/g, '');
+        if (text === '') return NaN;
+        const lastDot = text.lastIndexOf('.'), lastComma = text.lastIndexOf(',');
+        if (lastDot > -1 && lastComma > -1) {
+            text = lastComma > lastDot ? text.replace(/\./g, '').replace(',', '.') : text.replace(/,/g, '');
+        } else if (lastComma > -1) {
+            text = text.replace(/\./g, '').replace(',', '.');
+        } else if (/^-?\d{1,3}(\.\d{3})+$/.test(text)) {
+            text = text.replace(/\./g, '');
+        }
+        return /^-?\d*\.?\d+$/.test(text) ? Number(text) : NaN;
+    }
+
+    function soCellError(field, value) {
+        value = value === null || value === undefined ? '' : String(value);
+        if (SO_TEXT_FIELDS.includes(field)) {
+            if (value !== value.trim() || /\s{2,}/.test(value)) return 'Tidak boleh ada spasi di awal/akhir atau spasi ganda.';
+            if (SO_REQUIRED_FIELDS.includes(field) && value === '') return 'Wajib diisi.';
+            if (field === 'color' && !SO_MASTER_COLORS.has(value.toUpperCase())) return 'Color tidak ada di master.';
+            if (field === 'size' && !SO_MASTER_SIZES.has(soSizeKey(value))) return 'Size tidak ada di master.';
+            if (field === 'destination' && !SO_MASTER_DESTINATIONS.has(value.toUpperCase())) return 'Destination tidak ada di master.';
+            if (field === 'ship_mode' && value !== '' && !SO_SHIP_OPTIONS.some(m => String(m.name).toUpperCase() === value.toUpperCase())) return 'Ship Mode tidak ada di master.';
+            if (field === 'product_set' && !SO_SET_NAMES.has(value.toUpperCase())) return 'Product Set tidak ada di Costing.';
+            return null;
+        }
+        if (field === 'qty') {
+            const qty = value.replace(/[.,]/g, '');
+            if (value === '') return 'Wajib diisi.';
+            return /^\d+$/.test(qty) && Number(qty) > 0 ? null : 'Qty harus angka bulat lebih dari 0.';
+        }
+        return null;
+    }
+
+    // Baris yang sama persis dengan baris lain: PO + Destination + Ex Fty + Product Set + Color + Size.
+    // Sel Color & Size baris dobel merah, Save diblok.
+    const SO_DUPLICATE_MSG = 'Color + Size sama persis dengan baris lain (PO, Destination, Ex Fty, Product Set sama).';
+    let soDupRows = new Set();
+    function soDuplicateRows() {
+        const groups = {};
+        previewUploadRows.forEach((row, index) => {
+            const color = soCurrentValue(index, 'color').toUpperCase(), size = soCurrentValue(index, 'size').toUpperCase();
+            if (!color || !size) return;
+            const key = [soCurrentValue(index, 'po'), soCurrentValue(index, 'destination'), soCurrentValue(index, 'ex_fty'),
+                soCurrentValue(index, 'product_set'), color, soSizeKey(size)].join('\u0001');
+            (groups[key] = groups[key] || []).push(index);
+        });
+        const rows = new Set();
+        Object.values(groups).forEach(list => { if (list.length > 1) list.forEach(index => rows.add(index)); });
+        return rows;
+    }
+
+    // Costing lebih dari 1 set: baris set lain (mis. BOTTOM) harus punya Color + Size yang sama dengan set acuan (TOP)
+    // pada PO, Destination, Ex Fty yang sama, dan qty-nya juga harus sama. index => { size?: pesan, qty?: pesan }.
+    let soSetErrs = {};
+    function soSetMismatch() {
+        const result = {};
+        if (SO_SET_GROUPS.length < 2) return result;
+        const refName = SO_SET_GROUPS[0][0];
+        const keyOf = index => [soCurrentValue(index, 'po'), soCurrentValue(index, 'destination').toUpperCase(), soCurrentValue(index, 'ex_fty'),
+            soCurrentValue(index, 'color').toUpperCase(), soSizeKey(soCurrentValue(index, 'size'))].join('\u0001');
+        const ref = {}, refShip = {};
+        previewUploadRows.forEach((row, index) => {
+            if (soSetIndex(soCurrentValue(index, 'product_set')) !== 0) return;
+            ref[keyOf(index)] = soParseNumber(soCurrentValue(index, 'qty'));
+            refShip[keyOf(index)] = soCurrentValue(index, 'ship_mode').toUpperCase();
+        });
+        previewUploadRows.forEach((row, index) => {
+            const setIndex = soSetIndex(soCurrentValue(index, 'product_set'));
+            if (setIndex < 1 || !soCurrentValue(index, 'color') || !soCurrentValue(index, 'size')) return;
+            const key = keyOf(index);
+            if (!Object.prototype.hasOwnProperty.call(ref, key)) {
+                result[index] = { size: `Color + Size ini tidak ada di set ${refName} (PO, Destination, Ex Fty sama). Samakan dengan ${refName}.` };
+                return;
+            }
+            const qty = soParseNumber(soCurrentValue(index, 'qty'));
+            if (!isNaN(ref[key]) && !isNaN(qty) && qty !== ref[key]) {
+                result[index] = { qty: `Qty harus sama dengan set ${refName}: ${ref[key].toLocaleString('id-ID')}.` };
+            }
+            // Ship Mode boleh dipilih sendiri, tapi harus sama dengan TOP pasangannya.
+            const ship = soCurrentValue(index, 'ship_mode').toUpperCase();
+            if (SO_SHIP_READY && ship && refShip[key] && ship !== refShip[key]) {
+                result[index] = Object.assign(result[index] || {}, { ship_mode: `Ship Mode harus sama dengan set ${refName}: ${refShip[key]}.` });
+            }
+        });
+        return result;
+    }
+
+    // Qty baris set lain (BOTTOM) yang punya pasangan di set acuan (TOP) mengikuti TOP: tampil abu dan tidak bisa diedit.
+    let soFollowRows = new Set();
+    function soFollowQtyRows() {
+        const rows = new Set();
+        if (SO_SET_GROUPS.length < 2) return rows;
+        const keyOf = index => [soCurrentValue(index, 'po'), soCurrentValue(index, 'destination').toUpperCase(), soCurrentValue(index, 'ex_fty'),
+            soCurrentValue(index, 'color').toUpperCase(), soSizeKey(soCurrentValue(index, 'size'))].join('\u0001');
+        const ref = new Set();
+        previewUploadRows.forEach((row, index) => {
+            if (soSetIndex(soCurrentValue(index, 'product_set')) === 0 && Number(row.qty) > 0) ref.add(keyOf(index));
+        });
+        previewUploadRows.forEach((row, index) => {
+            if (soSetIndex(soCurrentValue(index, 'product_set')) > 0 && soCurrentValue(index, 'color') && soCurrentValue(index, 'size') && ref.has(keyOf(index))) rows.add(index);
+        });
+        return rows;
+    }
+
+    function soCountErrors() {
+        let count = 0;
+        previewUploadRows.forEach((row, index) => {
+            soFieldOrder().forEach(field => { if (soCellError(field, soCurrentValue(index, field))) count++; });
+        });
+        return count + soDuplicateRows().size * 2 + Object.keys(soSetMismatch()).length;   // Color + Size per baris dobel, + beda dengan set acuan
+    }
+
+    // HTML satu sel yang bisa diedit (dipakai saat render tabel).
+    function soCell(index, field, className) {
+        const value = soCurrentValue(index, field);
+        // Baris yang sudah tersimpan hanya dibaca; untuk mengubahnya upload ulang.
+        if (soSavedMode) return `<td class="${className} so-cell-auto" title="${soEsc(value)}">${soEsc(field === 'qty' ? Number(value).toLocaleString('id-ID') : (field === 'destination' && value ? soDestLabel(value) : (value || '-')))}</td>`;
+        const error = soCellError(field, value) || ((field === 'color' || field === 'size') && soDupRows.has(index) ? SO_DUPLICATE_MSG : null)
+            || (soSetErrs[index] && soSetErrs[index][field]) || null;
+        let shown = value === '' ? '-' : (field === 'destination' ? soDestLabel(value) : value);
+        if (field === 'qty' && /^\d+$/.test(value)) shown = Number(value).toLocaleString('id-ID');
+        const follow = field === 'qty' && !error && soFollowRows.has(index);
+        const tip = follow ? (field === 'qty' ? 'Qty' : 'Ship Mode') + ' mengikuti set ' + SO_SET_GROUPS[0][0] : (error || value);
+        return `<td class="${className} so-cell${error ? ' so-cell-error' : ''}${follow ? ' so-cell-follow' : ''}" tabindex="-1" data-row="${index}" data-field="${soEsc(field)}" title="${soEsc(tip)}">${soEsc(shown)}</td>`;
+    }
+
+    function soTd(index, field) {
+        return $('#table-preview-so tbody td.so-cell').filter(function () {
+            return Number(this.dataset.row) === index && this.dataset.field === field;
+        }).first();
+    }
+    // ===== Grid ala Excel (sama dengan tabel costing) =====
+    // Koordinat: baris = urutan baris yang tampil di halaman ini, kolom = urutan kolom yang bisa diedit.
+    function soVisibleRows() {
+        return $('#table-preview-so tbody tr').map(function () {
+            const cell = this.querySelector('td.so-cell');
+            return cell ? Number(cell.dataset.row) : null;
+        }).get();
+    }
+    function soRect() {
+        if (!soSel) return null;
+        const rows = soVisibleRows(), order = soFieldOrder();
+        const ar = rows.indexOf(soSel.anchor.row), fr = rows.indexOf(soSel.focus.row);
+        const ac = order.indexOf(soSel.anchor.field), fc = order.indexOf(soSel.focus.field);
+        if (ar < 0 || fr < 0 || ac < 0 || fc < 0) return null;
+        return { r0: Math.min(ar, fr), r1: Math.max(ar, fr), c0: Math.min(ac, fc), c1: Math.max(ac, fc), rows: rows, order: order };
+    }
+    function soIsMulti() { const R = soRect(); return !!R && (R.r1 > R.r0 || R.c1 > R.c0); }
+    function soRectCells(callback) {
+        const R = soRect();
+        if (!R) return;
+        for (let r = R.r0; r <= R.r1; r++) for (let c = R.c0; c <= R.c1; c++) callback(R.rows[r], R.order[c], r, c);
+    }
+    function soPaint() {
+        const $body = $('#table-preview-so tbody');
+        $body.find('td.so-cell-selected, td.so-cell-active, td.so-fill-preview').removeClass('so-cell-selected so-cell-active so-fill-preview');
+        $body.find('.so-fill-handle').remove();
+        const R = soRect();
+        if (!R) { soSel = null; soActive = null; return; }
+        soRectCells((row, field) => soTd(row, field).addClass('so-cell-selected'));
+        soActive = { row: soSel.focus.row, field: soSel.focus.field };
+        soTd(soActive.row, soActive.field).addClass('so-cell-active');
+        if (soDrag === 'fill') {
+            if (soFillTo === null || soFillTo >= R.r0 && soFillTo <= R.r1) return;
+            const from = soFillTo > R.r1 ? R.r1 + 1 : soFillTo, to = soFillTo > R.r1 ? soFillTo : R.r0 - 1;
+            for (let r = from; r <= to; r++) for (let c = R.c0; c <= R.c1; c++) soTd(R.rows[r], R.order[c]).addClass('so-fill-preview');
+            return;
+        }
+        soTd(R.rows[R.r1], R.order[R.c1]).append('<span class="so-fill-handle" title="Tarik ke atas/bawah untuk copy nilai"></span>');
+    }
+    function soFocusActive() {
+        if (!soActive) return;
+        const el = soTd(soActive.row, soActive.field)[0];
+        if (el && document.activeElement !== el) el.focus({ preventScroll: true });
+    }
+    // Pilih satu sel ($td), atau perluas kotak pilihan sampai $td (extend = Shift).
+    function soSelect($td, extend) {
+        if (!$td || !$td.length || !$td.hasClass('so-cell')) return;
+        const cell = { row: Number($td.attr('data-row')), field: $td.attr('data-field') };
+        soSel = extend && soSel ? { anchor: soSel.anchor, focus: cell } : { anchor: cell, focus: Object.assign({}, cell) };
+        soPaint();
+        $td[0].focus({ preventScroll: true });
+    }
+
+    // Sel-sel satu kolom yang tampil (urutan di layar).
+    function soColumnTds(field) {
+        return $('#table-preview-so tbody td.so-cell').filter(function () { return this.dataset.field === field; });
+    }
+    // Pindah sel (panah/Enter/Tab); extend = Shift+panah memperluas pilihan. Mengembalikan false bila di ujung.
+    function soMove($td, direction, extend) {
+        const rows = soVisibleRows(), order = soFieldOrder();
+        let r = rows.indexOf(Number($td.attr('data-row'))), c = order.indexOf($td.attr('data-field'));
+        if (r < 0 || c < 0) return false;
+        if (direction === 'up') r--;
+        if (direction === 'down') r++;
+        if (direction === 'left') c--;
+        if (direction === 'right') c++;
+        if (r < 0 || r >= rows.length || c < 0 || c >= order.length) return false;
+        soSelect(soTd(rows[r], order[c]), extend);
+        return true;
+    }
+    function soEdit($td, firstChar) {
+        if (!$td.length || $td.hasClass('so-cell-editing')) return;
+        const index = Number($td.attr('data-row'));
+        const field = $td.attr('data-field');
+        const original = soCurrentValue(index, field);
+        if ((field === 'qty' || field === 'ship_mode') && $td.hasClass('so-cell-follow')) {
+            const what = field === 'qty' ? 'Qty' : 'Ship Mode';
+            mktToast('info', what + ' mengikuti set ' + SO_SET_GROUPS[0][0], 'Ubah ' + what.toLowerCase() + ' di baris ' + SO_SET_GROUPS[0][0] + ' dengan PO, Destination, Ex Fty, Color, dan Size yang sama.');
+            return;
+        }
+        if (field === 'ship_mode' || field === 'destination') { soEditSelect2($td, index, field, original); return; }
+        // Ex Fty: input tanggal (format simpan YYYY-MM-DD); ketik huruf tidak dipakai.
+        const isDate = field === 'ex_fty';
+        if (isDate) firstChar = undefined;
+        const $input = $(`<input type="${isDate ? 'date' : 'text'}" class="so-cell-input" autocomplete="off">`).val(isDate ? (/^\d{4}-\d{2}-\d{2}/.test(original) ? original.slice(0, 10) : '') : (firstChar !== undefined ? firstChar : original));
+        $td.addClass('so-cell-editing').empty().append($input);
+        $input.trigger('focus');
+        if (isDate) { try { if ($input[0].showPicker) $input[0].showPicker(); } catch (err) { /* abaikan */ } }
+        else if (firstChar === undefined) $input[0].select();
+        let done = false;
+        const finish = function (save, move) {
+            if (done) return;
+            done = true;
+            const value = $input.val();
+            $td.removeClass('so-cell-editing');
+            if (save && value !== original) {
+                soCommit([{ row: index, field: field, value: value }], { move: move });
+            } else {
+                // Class bawaan (kolom, text-center) dipertahankan; class status sel (so-cell-*) dibuat ulang oleh soCell.
+                const keepClasses = $td.attr('class').split(/\s+/).filter(name => name && !/^so-(cell|fill)/.test(name)).join(' ');
+                $td.replaceWith(soCell(index, field, keepClasses));
+                const $fresh = soTd(index, field);
+                soSelect($fresh);
+                if (move) soMove($fresh, move);
+            }
+        };
+        $input.on('keydown', function (e) {
+            const el = this, caretAt = el.selectionStart === el.selectionEnd ? el.selectionStart : -1;
+            if (e.key === 'Enter') { e.preventDefault(); finish(true, e.shiftKey ? 'up' : 'down'); }
+            else if (e.key === 'Tab') { e.preventDefault(); finish(true, e.shiftKey ? 'left' : 'right'); }
+            else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+            else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); finish(true, e.key === 'ArrowUp' ? 'up' : 'down'); }
+            else if (e.key === 'ArrowLeft' && caretAt === 0) { e.preventDefault(); finish(true, 'left'); }
+            else if (e.key === 'ArrowRight' && caretAt === el.value.length) { e.preventDefault(); finish(true, 'right'); }
+            e.stopPropagation();
+        }).on('blur', function () { finish(true); });
+    }
+
+    // Destination & Ship Mode: input dengan daftar pilihan (datalist bawaan browser) yang bisa diketik untuk mencari.
+    // Destination tampil "NEGARA - DESTINASI (KODE)", yang disimpan nama destinasinya. Pilih dari daftar / Enter = simpan, Esc = batal.
+    const SO_ADD_DEST = '+ Tambah destinasi baru';
+    function soComboOptions(field) {
+        if (field === 'destination') {
+            return SO_DEST_OPTIONS.map(d => ({ value: d.code || d.name, alt: [d.code || d.name],
+                label: (d.country ? d.country + ' - ' : '') + d.name + (d.code && d.code !== d.name ? ' (' + d.code + ')' : '') }));
+        }
+        return SO_SHIP_OPTIONS.map(m => ({ value: m.name, alt: [m.name], label: m.name }));
+    }
+    function soEditCombo($td, index, field, original, firstChar) {
+        const opts = soComboOptions(field);
+        $('#so-combo-list').remove();
+        const $list = $('<datalist id="so-combo-list">').html((field === 'destination' ? `<option value="${soEsc(SO_ADD_DEST)}"></option>` : '')
+            + opts.map(o => `<option value="${soEsc(o.label)}"></option>`).join('')).appendTo('body');
+        const current = opts.find(o => String(o.value).toUpperCase() === String(original).toUpperCase());
+        const $input = $('<input type="text" class="so-cell-input" list="so-combo-list" autocomplete="off" placeholder="Ketik untuk cari...">')
+            .val(firstChar !== undefined ? firstChar : (current ? current.label : original));
+        $td.addClass('so-cell-editing').empty().append($input);
+        $input.trigger('focus');
+        if (firstChar === undefined) $input[0].select();
+        const resolve = text => {
+            const t = String(text || '').trim().toUpperCase();
+            if (!t) return '';
+            const o = opts.find(x => x.label.toUpperCase() === t || x.alt.some(a => a && String(a).toUpperCase() === t));
+            return o ? o.value : String(text).trim();
+        };
+        let done = false;
+        const finish = function (save, move) {
+            if (done) return;
+            done = true;
+            const raw = String($input.val() || '').trim();
+            $list.remove();
+            $td.removeClass('so-cell-editing');
+            const value = save ? resolve(raw) : original;
+            if (save && field === 'destination' && raw === SO_ADD_DEST) {
+                $td.replaceWith(soCell(index, field, soKeepClasses($td)));
+                soOpenDestinationModal(index);
+                return;
+            }
+            if (save && value !== '' && value !== original) {
+                soCommit([{ row: index, field: field, value: value }], { move: move });
+                return;
+            }
+            $td.replaceWith(soCell(index, field, soKeepClasses($td)));
+            const $fresh = soTd(index, field);
+            soSelect($fresh);
+            if (move) soMove($fresh, move);
+        };
+        $input.on('input', function (e) {
+            // Dipilih dari daftar (bukan diketik): langsung simpan.
+            const type = e.originalEvent && e.originalEvent.inputType;
+            const t = this.value.trim();
+            if ((!type || type === 'insertReplacementText') && (t === SO_ADD_DEST || opts.some(o => o.label === t))) finish(true, 'down');
+        }).on('keydown', function (e) {
+            e.stopPropagation();
+            if (e.key === 'Enter') { e.preventDefault(); finish(true, e.shiftKey ? 'up' : 'down'); }
+            else if (e.key === 'Tab') { e.preventDefault(); finish(true, e.shiftKey ? 'left' : 'right'); }
+            else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+        }).on('mousedown', e => e.stopPropagation())
+            .on('blur', () => setTimeout(() => finish(true), 0));
+        try { if ($input[0].showPicker) $input[0].showPicker(); } catch (err) { /* abaikan: daftar muncul saat mengetik */ }
+    }
+    // Destination & Ship Mode: select2 di dalam sel (bisa dicari). Dropdown ditempel ke sel; select2 di-destroy dulu sebelum sel
+    // diganti supaya dropdown tidak tertinggal / pindah ke pojok atas.
+    function soEditSelect2($td, index, field, original) {
+        const cur = String(original || '').toUpperCase();
+        const opts = soComboOptions(field);
+        const isDest = field === 'destination';
+        const $sel = $('<select class="so-cell-input">').html('<option value=""></option>'
+            + opts.map(o => `<option value="${soEsc(o.value)}"${o.alt.some(a => a && String(a).toUpperCase() === cur) ? ' selected' : ''}>${soEsc(o.label)}</option>`).join(''));
+        $td.addClass('so-cell-editing').empty().append($sel);
+        let done = false;
+        const finish = function (value, move) {
+            if (done) return;
+            done = true;
+            try { $sel.select2('destroy'); } catch (err) { /* abaikan */ }
+            $td.removeClass('so-cell-editing');
+            if (isDest && String(value || '').indexOf(SO_NEW_DEST) === 0) {
+                $td.replaceWith(soCell(index, field, soKeepClasses($td)));
+                soOpenDestinationModal(index, String(value).slice(SO_NEW_DEST.length));
+                return;
+            }
+            if (value && value !== original) {
+                soCommit([{ row: index, field: field, value: value }], { move: move });
+                return;
+            }
+            $td.replaceWith(soCell(index, field, soKeepClasses($td)));
+            const $fresh = soTd(index, field);
+            soSelect($fresh);
+            if (move) soMove($fresh, move);
+        };
+        // Destination seperti Brand di Costing: ketik nama yang belum ada di master -> muncul "Add Destination <ketikan>".
+        $sel.select2(Object.assign({
+            theme: 'bootstrap4', width: '100%', dropdownAutoWidth: true,
+            placeholder: isDest ? 'Cari destinasi...' : 'Pilih ship mode', dropdownCssClass: 'so-cell-dd' + (isDest ? ' brand-dropdown' : ''),
+            dropdownParent: $(document.body),
+        }, isDest ? {
+            tags: true,
+            language: { noResults: () => 'Ketik nama destinasi untuk menambah' },
+            createTag: params => {
+                const term = $.trim(params.term).replace(/\s+/g, ' ');
+                if (!term) return null;
+                // Selalu ada "Add Destination": nama yang sama boleh ditambah untuk negara lain.
+                return { id: SO_NEW_DEST + term, text: term };
+            },
+            insertTag: (data, tag) => { data.push(tag); },
+            templateResult: item => (item && String(item.id || '').indexOf(SO_NEW_DEST) === 0)
+                ? $(`<span class="brand-opt brand-opt--add"><i class="fas fa-plus-square"></i><span>Add Destination ${soEsc(item.text)}</span></span>`)
+                : (item ? item.text : ''),
+        } : {}));
+        // select2 menutup dropdown saat opsi dipilih; urutan event select/close bisa terbalik, jadi pilihan dicatat dulu
+        // dan baru diproses sesudah keduanya selesai (tutup tanpa memilih = batal).
+        let chosen = null;
+        $sel.on('select2:select', e => { chosen = e.params.data.id; setTimeout(() => finish(chosen, 'down'), 0); })
+            .on('change', () => { if ($sel.val() && String($sel.val()).toUpperCase() !== cur) chosen = chosen || $sel.val(); })
+            .on('select2:close', () => setTimeout(() => finish(chosen, chosen ? 'down' : null), 0));
+        $td.find('.select2-container').on('mousedown', e => e.stopPropagation());
+        $sel.select2('open');
+    }
+    // Ship Mode: dropdown bawaan browser dari master_ship_modes (pilih = simpan, Esc / klik di luar = batal).
+    function soEditShipMode($td, index, original) {
+        const field = 'ship_mode';
+        const cur = String(original || '').toUpperCase();
+        const $sel = $('<select class="so-cell-input so-cell-select">').html('<option value="">-- Ship Mode --</option>'
+            + SO_SHIP_OPTIONS.map(m => `<option value="${soEsc(m.name)}"${String(m.name).toUpperCase() === cur ? ' selected' : ''}>${soEsc(m.name)}</option>`).join(''));
+        $td.addClass('so-cell-editing').empty().append($sel);
+        let done = false;
+        const finish = function (value, move) {
+            if (done) return;
+            done = true;
+            $td.removeClass('so-cell-editing');
+            if (value && value !== original) {
+                soCommit([{ row: index, field: field, value: value }], { move: move });
+                return;
+            }
+            $td.replaceWith(soCell(index, field, soKeepClasses($td)));
+            const $fresh = soTd(index, field);
+            soSelect($fresh);
+            if (move) soMove($fresh, move);
+        };
+        $sel.on('change', () => finish($sel.val(), 'down'))
+            .on('keydown', function (e) {
+                e.stopPropagation();
+                if (e.key === 'Escape') { e.preventDefault(); finish(null); }
+                else if (e.key === 'Enter') { e.preventDefault(); finish($sel.val(), 'down'); }
+                else if (e.key === 'Tab') { e.preventDefault(); finish($sel.val(), e.shiftKey ? 'left' : 'right'); }
+            })
+            .on('mousedown', e => e.stopPropagation())
+            .on('blur', () => setTimeout(() => finish(null), 0));
+        $sel.trigger('focus');
+        try { if ($sel[0].showPicker) $sel[0].showPicker(); } catch (err) { /* abaikan */ }
+    }
+    function soKeepClasses($td) {
+        return $td.attr('class').split(/\s+/).filter(name => name && !/^so-(cell|fill)/.test(name)).join(' ');
+    }
+    // Modal "Add Destination" bergaya sama dengan "Add Brand" di Costing; nama terisi dari ketikan di dropdown.
+    const SO_NEW_DEST = '__new__:';
+    let soDestRow = null;
+    function soOpenDestinationModal(index, name) {
+        const $m = $('#modal-add-destination');
+        soDestRow = index;
+        const $country = $m.find('#sd-country');
+        if (!$country.data('select2')) {
+            $country.html('<option></option>' + SO_COUNTRIES.map(c => `<option value="${c.id}">${soEsc(c.name)}${c.code ? ' (' + soEsc(c.code) + ')' : ''}</option>`).join(''))
+                .select2({ theme: 'bootstrap4', width: '100%', placeholder: 'Choose Country', dropdownParent: $m });
+        }
+        $country.val('').trigger('change.select2');
+        $m.find('#sd-name').val(String(name || '').toUpperCase());
+        $m.find('#sd-code').val('');
+        $m.modal('show');
+        setTimeout(() => $country.select2('open'), 300);
+    }
+    $(document).on('input', '#sd-name, #sd-code', function () {
+        const pos = this.selectionStart;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(pos, pos);
+    });
+    $(document).on('click', '#modal-add-destination [data-dismiss="modal"]', () => $('#modal-add-destination').modal('hide'));
+    $(document).on('click', '#modal-add-destination .dest-modal-save', function () {
+        const $m = $('#modal-add-destination'), $btn = $(this);
+        const data = { name: $.trim($m.find('#sd-name').val()), code: $.trim($m.find('#sd-code').val()), country_id: $m.find('#sd-country').val() };
+        if (!data.name || !data.code || !data.country_id) {
+            Swal.fire('Peringatan', 'Country, Destination Code, dan Destination Name wajib diisi.', 'warning');
+            return;
+        }
+        $btn.prop('disabled', true);
+        $.ajax({ url: SO_URLS.storeDestination, type: 'POST', data: Object.assign({ _token: '{{ csrf_token() }}' }, data) })
+            .done(res => {
+                const d = res.data;
+                SO_DEST_OPTIONS.push(d);
+                SO_DEST_OPTIONS.sort((a, b) => String(a.country || '').localeCompare(String(b.country || '')) || String(a.name).localeCompare(String(b.name)));
+                SO_MASTER_DESTINATIONS.add(String(d.name).toUpperCase());
+                if (d.code) SO_MASTER_DESTINATIONS.add(String(d.code).toUpperCase());
+                $m.modal('hide');
+                mktToast('ok', 'Destinasi ditambahkan', d.name + ' sudah masuk master dan dipakai di baris ini.');
+                if (soDestRow !== null) soCommit([{ row: soDestRow, field: 'destination', value: d.code || d.name }], {});
+            })
+            .fail(xhr => {
+                const j = xhr.responseJSON || {};
+                Swal.fire('Gagal', j.errors ? Object.values(j.errors)[0][0] : (j.message || 'Koneksi ke server terputus. Coba lagi.'), 'error');
+            })
+            .always(() => $btn.prop('disabled', false));
+    });
+
+    // Simpan perubahan: yang salah disimpan lokal (merah), yang benar dikirim ke so_tmp lalu tabel dimuat ulang.
+    function soCommit(changes, options) {
+        options = options || {};
+        const toSend = [];
+        const sentChanges = [];   // pasangan toSend[i] -> changes, untuk menandai error dari server
+        changes.forEach(change => {
+            const key = soCellKey(change.row, change.field);
+            if (soCellError(change.field, change.value)) {
+                soInvalidEdits[key] = change.value;
+                return;
+            }
+            delete soInvalidEdits[key];
+            if (change.value !== soRawValue(change.row, change.field)) {
+                const row = previewUploadRows[change.row];
+                sentChanges.push(change);
+                toSend.push({ id: row.id, field: change.field, value: change.value });
+            }
+        });
+
+        const active = soActive;
+        soReloadState = {
+            page: previewTable ? previewTable.page() : 0,
+            active: active,
+            move: options.move || null,
+            sel: options.move ? null : (soSel ? { anchor: Object.assign({}, soSel.anchor), focus: Object.assign({}, soSel.focus) } : null),
+            pasted: options.pasted ? changes.filter(change => !soCellError(change.field, change.value)).map(change => ({ row: change.row, field: change.field })) : []
+        };
+        if (!toSend.length) {
+            loadPreviewUpload();
+            return;
+        }
+        $.ajax({
+            url: soUrl('cells'),
+            type: 'POST',
+            data: soData({ changes: toSend })
+        }).done(function (res) {
+            (res.errors || []).forEach(error => {
+                const change = sentChanges[error.index];
+                if (change) soInvalidEdits[soCellKey(change.row, change.field)] = change.value;
+            });
+            if (res.errors && res.errors.length) {
+                mktToast('warn', res.errors.length + ' sel belum disimpan', res.errors.map(error => error.message).join(' ') + ' Sel itu ditandai merah, perbaiki isinya.');
+            }
+        }).fail(function (xhr) {
+            mktToast('err', 'Perubahan belum tersimpan', xhr.responseJSON?.message || 'Koneksi ke server terputus. Ketik ulang isinya.');
+        }).always(function () {
+            loadPreviewUpload();
+        });
+    }
+
+    // Setelah tabel dimuat ulang: kembalikan halaman, sel aktif, dan tandai sel hasil paste (biru 4 detik).
+    function soAfterRender() {
+        const state = soReloadState;
+        soReloadState = null;
+        if (!state) return;
+        if (previewTable && state.page === 'last') previewTable.page('last').draw(false);
+        else if (previewTable && state.page) previewTable.page(Math.min(state.page, previewTable.page.info().pages - 1)).draw(false);
+        if (state.focusId) {
+            const index = previewUploadRows.findIndex(row => row.id === state.focusId);
+            if (index !== -1) state.active = { row: index, field: state.focusField || 'color' };
+        }
+        state.pasted.forEach(cell => soTd(cell.row, cell.field).addClass('so-cell-pasted'));
+        if (state.pasted.length) setTimeout(() => $('#table-preview-so td.so-cell-pasted').removeClass('so-cell-pasted'), 4000);
+        if (state.sel && !state.focusId) {
+            soSel = state.sel;
+            soPaint();
+            // Hasil paste melewati halaman ini: cukup pilih sel awal.
+            if (!soSel) soSelect(soTd(state.sel.anchor.row, state.sel.anchor.field));
+            soFocusActive();
+        } else if (state.active) {
+            const $td = soTd(state.active.row, state.active.field);
+            soSelect($td);
+            if (state.move) soMove($td, state.move);
+        }
+    }
+
+    // Isi sel-sel tujuan dari kotak pilihan (pola berulang bila pilihan > 1 baris), lalu pilih seluruh area.
+    function soFillToRow(t) {
+        const R = soRect();
+        if (!R || t >= R.r0 && t <= R.r1) return;
+        const n = R.r1 - R.r0 + 1;
+        const from = t > R.r1 ? R.r1 + 1 : t, to = t > R.r1 ? t : R.r0 - 1;
+        const changes = [];
+        for (let r = from; r <= to; r++) {
+            const sr = R.r0 + ((((r - R.r0) % n) + n) % n);
+            for (let c = R.c0; c <= R.c1; c++) changes.push({ row: R.rows[r], field: R.order[c], value: soCurrentValue(R.rows[sr], R.order[c]) });
+        }
+        soSel = { anchor: { row: R.rows[Math.min(R.r0, from)], field: R.order[R.c0] }, focus: { row: R.rows[Math.max(R.r1, to)], field: R.order[R.c1] } };
+        soCommit(changes, { pasted: true });
+    }
+    // Ctrl+D: 1 baris dipilih = copy dari baris di atasnya; banyak baris = copy baris teratas ke bawah.
+    function soFillDown() {
+        const R = soRect();
+        if (!R) return;
+        const changes = [];
+        const copyRow = (from, to) => { for (let c = R.c0; c <= R.c1; c++) changes.push({ row: R.rows[to], field: R.order[c], value: soCurrentValue(R.rows[from], R.order[c]) }); };
+        if (R.r0 === R.r1) { if (R.r0 === 0) return; copyRow(R.r0 - 1, R.r0); }
+        else for (let r = R.r0 + 1; r <= R.r1; r++) copyRow(R.r0, r);
+        soCommit(changes, { pasted: true });
+    }
+    function soClearSelection() {
+        const changes = [];
+        soRectCells((row, field) => changes.push({ row: row, field: field, value: '' }));
+        if (changes.length) soCommit(changes);
+    }
+    function soGridHasFocus() {
+        const el = document.activeElement;
+        return !!soSel && !!el && $(el).is('#table-preview-so td.so-cell');
+    }
+
+    // Fill handle: tekan kotak biru, tarik ke atas/bawah (preview kuning), lepas = copy nilai.
+    $(document).on('mousedown', '#table-preview-so .so-fill-handle', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!soSel || e.which !== 1) return;
+        soDrag = 'fill';
+        soFillTo = null;
+        $('body').addClass('so-filling');
+    });
+    $(document).on('mousedown', '#table-preview-so tbody td.so-cell', function (e) {
+        if (e.which !== 1 || $(this).hasClass('so-cell-editing') || $(e.target).hasClass('so-fill-handle')) return;
+        e.preventDefault();
+        const $editing = $('#table-preview-so .so-cell-input');
+        if ($editing.length) $editing.trigger('blur');
+        const $td = soTd(Number(this.dataset.row), this.dataset.field);
+        soSelect($td, e.shiftKey);
+        // Editor sebelumnya baru disimpan: setelah tabel dimuat ulang tetap pilih sel yang barusan diklik.
+        if (soReloadState && soSel) { soReloadState.move = null; soReloadState.active = null; soReloadState.sel = { anchor: Object.assign({}, soSel.anchor), focus: Object.assign({}, soSel.focus) }; }
+        if (!e.shiftKey) { soDrag = 'select'; $('body').addClass('so-selecting'); }
+    });
+    $(document).on('mouseenter', '#table-preview-so tbody td.so-cell', function () {
+        if (!soDrag || !soSel) return;
+        if (soDrag === 'select') {
+            soSel.focus = { row: Number(this.dataset.row), field: this.dataset.field };
+        } else {
+            const r = soVisibleRows().indexOf(Number(this.dataset.row));
+            if (r >= 0) soFillTo = r;
+        }
+        soPaint();
+    });
+    $(document).on('mouseup', function () {
+        if (!soDrag) return;
+        const mode = soDrag, target = soFillTo;
+        soDrag = null;
+        soFillTo = null;
+        $('body').removeClass('so-filling so-selecting');
+        soPaint();
+        if (mode === 'fill' && target !== null) soFillToRow(target);
+        soFocusActive();
+    });
+    // Klik di luar tabel = lepas pilihan (tombol Add tetap memakai baris aktif sebagai sumber).
+    $(document).on('mousedown', function (e) {
+        if ($(e.target).closest('#table-preview-so tbody, #so-add-row, .swal2-container, .select2-container, .select2-dropdown').length) return;
+        if (soSel) { soSel = null; soPaint(); }
+    });
+    $(document).on('dblclick', '#table-preview-so tbody td.so-cell', function () { soEdit($(this)); });
+    $(document).on('keydown', '#table-preview-so tbody td.so-cell', function (e) {
+        const $td = $(this);
+        if ($td.hasClass('so-cell-editing') || e.target !== this) return;
+        const key = e.key, ctrl = e.ctrlKey || e.metaKey;
+        if (ctrl && key.toLowerCase() === 'd') { e.preventDefault(); soFillDown(); return; }
+        if (ctrl || e.altKey) return;   // Ctrl+C / Ctrl+V lewat event copy & paste
+        const arrows = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
+        if (arrows[key]) { e.preventDefault(); soMove($td, arrows[key], e.shiftKey); return; }
+        if (key === 'Enter') { e.preventDefault(); soMove($td, e.shiftKey ? 'up' : 'down'); return; }
+        if (key === 'Tab') { e.preventDefault(); soMove($td, e.shiftKey ? 'left' : 'right'); return; }
+        if (key === 'F2') { e.preventDefault(); soEdit($td); return; }
+        if (key === 'Escape') { soSel = null; soPaint(); return; }
+        if (key === 'Delete') { e.preventDefault(); soClearSelection(); return; }
+        if (key === 'Backspace') { e.preventDefault(); soIsMulti() ? soClearSelection() : soEdit($td, ''); return; }
+        if (key.length === 1) { e.preventDefault(); soEdit($td, key); }
+    });
+    // Copy (Ctrl+C) satu sel atau kotak pilihan, format tab/baris baru seperti Excel.
+    $(document).on('copy', function (e) {
+        if (!soGridHasFocus()) return;
+        const clipboard = e.originalEvent.clipboardData;
+        if (!clipboard) return;
+        const R = soRect();
+        if (!R) return;
+        const lines = [];
+        for (let r = R.r0; r <= R.r1; r++) {
+            const values = [];
+            for (let c = R.c0; c <= R.c1; c++) values.push(soCurrentValue(R.rows[r], R.order[c]));
+            lines.push(values.join('\t'));
+        }
+        clipboard.setData('text/plain', lines.join('\n'));
+        e.preventDefault();
+    });
+    // Paste dari Excel (tab = kolom, baris baru = baris) mulai dari pojok kiri atas pilihan;
+    // satu nilai ke banyak sel terpilih = isi semua sel itu.
+    $(document).on('paste', function (e) {
+        if (!soGridHasFocus()) return;
+        const clipboard = e.originalEvent.clipboardData || window.clipboardData;
+        const text = clipboard ? clipboard.getData('text') : '';
+        if (!text) return;
+        e.preventDefault();
+        const R = soRect();
+        if (!R) return;
+        const matrix = text.replace(/\r/g, '').replace(/\n+$/, '').split('\n').map(line => line.split('\t'));
+        const changes = [];
+        if (matrix.length === 1 && matrix[0].length === 1 && soIsMulti()) {
+            soRectCells((row, field) => changes.push({ row: row, field: field, value: matrix[0][0] }));
+        } else {
+            const startRow = R.rows[R.r0];
+            let lastRow = startRow, lastField = R.order[R.c0];
+            matrix.forEach((cols, i) => cols.forEach((value, j) => {
+                const row = startRow + i, field = R.order[R.c0 + j];
+                if (row >= previewUploadRows.length || !field) return;
+                changes.push({ row: row, field: field, value: value });
+                lastRow = Math.max(lastRow, row);
+                if (R.c0 + j > R.order.indexOf(lastField)) lastField = field;
+            }));
+            soSel = { anchor: { row: startRow, field: R.order[R.c0] }, focus: { row: lastRow, field: lastField } };
+        }
+        if (changes.length) soCommit(changes, { pasted: true });
+    });
+
+    // Banner merah di atas form: "N fields are empty. Fill them in, then save again."
+    function showMktErrorAlert(selector, count, text) {
+        const $alert = $(selector);
+        $alert.find('span').text(text || (count + (count === 1 ? ' field is' : ' fields are') + ' empty. Fill them in, then save again.'));
+        $alert.prop('hidden', count === 0);
+        if (count > 0) $alert[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function refreshSoErrorAlert() {
+        if ($('#so-error-alert').prop('hidden')) return;
+        const count = $('.so-edit-grid .form-group.is-invalid').length + $('#card-preview.is-invalid').length;
+        $('#so-error-alert').find('span').text(count + (count === 1 ? ' field is' : ' fields are') + ' empty. Fill them in, then save again.');
+        $('#so-error-alert').prop('hidden', count === 0);
+    }
+
+    $(document).ready(function() {
+        let costingImages = @json($costingImages);
+        let selectedCostingImage = 0;
+
+        // Carousel coverflow: semua gambar dirender sekali; pindah gambar hanya menggeser & menskala (transition CSS).
+        // Sebelum/sesudah tidak berputar: di gambar pertama sisi kiri kosong, di gambar terakhir sisi kanan kosong.
+        function paintCoverflow($stage, urls, active, goTo) {
+            const stage = $stage[0];
+            if (!stage) return;
+            let $items = $stage.children('img.mkt-cf-item');
+            const key = urls.join('\n');
+            let fresh = false;
+            if ($stage.data('cfKey') !== key) {
+                $items.remove();
+                $items = $(urls.map((url, index) => $('<img class="mkt-cf-item" alt="">').attr('src', url)
+                    .on('click', () => $stage.data('cfGoTo')(index))[0]));
+                $stage.append($items).data('cfKey', key);
+                fresh = true;
+            }
+            $stage.data({ cfGoTo: goTo, cfActive: active, cfUrls: urls });
+            // Jarak tengah gambar aktif ke tengah gambar samping 195px (182/2 + celah 59 + 90/2); menyempit di layar kecil.
+            const gap = Math.min(195, Math.max(0, stage.clientWidth / 2 - 49));
+            $items.each(function (index) {
+                const offset = index - active, far = Math.abs(offset) > 1;
+                const x = Math.max(-2, Math.min(2, offset)) * gap;
+                const scale = far ? 0.8 : 1;   // samping pakai ukuran sendiri (90x192), bukan diskala
+                if (fresh) this.style.transition = 'none'; // posisi awal tanpa animasi
+                this.style.transform = `translate(-50%, -50%) translateX(${x}px) scale(${scale})`;
+                this.style.zIndex = String(10 - Math.min(Math.abs(offset), 9));
+                this.style.opacity = offset === 0 ? '1' : '0.85';
+                $(this).toggleClass('is-active', offset === 0).toggleClass('is-side', offset !== 0).toggleClass('is-far', far);
+            });
+            if (fresh) { void stage.offsetWidth; $items.css('transition', ''); }
+            // Hitung ulang posisi saat ukuran panggung berubah (resize, atau bagian yang tadinya tersembunyi dibuka).
+            if (!$stage.data('cfObserver') && window.ResizeObserver) {
+                const observer = new ResizeObserver(() => {
+                    const urlsNow = $stage.data('cfUrls');
+                    if (urlsNow) paintCoverflow($stage, urlsNow, $stage.data('cfActive'), $stage.data('cfGoTo'));
+                });
+                observer.observe(stage);
+                $stage.data('cfObserver', observer);
+            }
+        }
+        function paintCoverflowDots($dots, count, active, goTo) {
+            $dots.empty();
+            if (count < 2) return;
+            for (let i = 0; i < count; i++) {
+                $('<button type="button" class="mkt-cf-dot"></button>')
+                    .toggleClass('is-active', i === active)
+                    .attr('aria-label', `Gambar ${i + 1}`)
+                    .on('click', () => goTo(i))
+                    .appendTo($dots);
+            }
+        }
+
+        function renderCostingImage() {
+            const $preview = $('#preview_images');
+            const hasImages = costingImages.length > 0;
+            $('#text_preview').text(hasImages ? '' : 'Gambar Costing tidak tersedia.')
+                .prop('hidden', hasImages);
+            $preview.prop('hidden', !hasImages);
+            $('.so-image-nav').prop('disabled', costingImages.length < 2);
+
+            if (!hasImages) {
+                $preview.attr('src', '');
+                $('#image_costing_path').val('');
+                paintCoverflow($preview.closest('.mkt-cf-stage'), [], 0, $.noop);
+                paintCoverflowDots($('#so-image-counter'), 0, 0, $.noop);
+                $('#so-image-thumbs').empty();
+                $('#so-image-caption').text('');
+                return;
+            }
+
+            selectedCostingImage = (selectedCostingImage + costingImages.length) % costingImages.length;
+            $preview.attr('src', costingImages[selectedCostingImage]);
+            $('#image_costing_path').val(costingImages[selectedCostingImage]);
+            const goTo = index => { selectedCostingImage = index; renderCostingImage(); };
+            paintCoverflow($preview.closest('.mkt-cf-stage'), costingImages, selectedCostingImage, goTo);
+            paintCoverflowDots($('#so-image-counter'), costingImages.length, selectedCostingImage, goTo);
+            paintCostingThumbs(goTo);
+        }
+
+        function paintCostingThumbs(goTo) {
+            const $thumbs = $('#so-image-thumbs').empty();
+            $('#so-image-caption').text(costingImages.length ? `Image ${selectedCostingImage + 1} of ${costingImages.length}` : '');
+            if (costingImages.length < 2) return;
+            costingImages.forEach((url, index) => {
+                $('<button type="button">').toggleClass('is-active', index === selectedCostingImage)
+                    .attr('aria-label', `Gambar ${index + 1}`)
+                    .append($('<img alt="">').attr('src', url))
+                    .on('click', () => goTo(index))
+                    .appendTo($thumbs);
+            });
+        }
+
+        $('.so-image-nav[aria-label="Previous image"]').on('click', function() {
+            selectedCostingImage--;
+            renderCostingImage();
+        });
+        $('.so-image-nav[aria-label="Next image"]').on('click', function() {
+            selectedCostingImage++;
+            renderCostingImage();
+        });
+
+        // allowClear = tanda X untuk menghapus pilihan (state 2); hanya select di form SO yang punya opsi kosong.
+        $('.select2bs4').each(function () {
+            const clearable = $(this).closest('.so-edit-grid').length > 0 && $(this).find('option[value=""]').length > 0;
+            $(this).select2(Object.assign({ theme: 'bootstrap4', width: '100%' }, clearable ? {
+                allowClear: true,
+                placeholder: $(this).data('placeholder') || $(this).find('option[value=""]').first().text() || 'Choose'
+            } : {}));
+        });
+        // State 5 (error) hilang begitu field diisi.
+        $(document).on('change input', '.so-edit-grid .form-group.is-invalid :input', function () {
+            if (String($(this).val() || '').trim()) $(this).closest('.form-group').removeClass('is-invalid');
+            refreshSoErrorAlert();
+        });
+        $(document).on('select2:open', () => { document.querySelector('.select2-container--open .select2-search__field').focus(); });
+
+        $('.so-section-toggle').on('click', function() {
+            const $toggle = $(this);
+            const $section = $($toggle.attr('data-target'));
+            const isExpanded = $toggle.attr('aria-expanded') === 'true';
+            $section.collapse('toggle');
+            $toggle.attr('aria-expanded', String(!isExpanded));
+        });
+
+        $('#file_so').on('change', function() {
+            const file = this.files[0];
+            soFileUploaded = false;
+            $('#so-selected-file').prop('hidden', !file);
+            $('#so-selected-file-name').text(file ? file.name : '');
+            $('#btn-upload-so').prop('disabled', !file).text('Upload Now').removeClass('mkt-btn--green').addClass('mkt-btn--navy');
+        });
+
+        $('#so-file-dropzone').on('click keydown', function(event) {
+            if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            $('#file_so').trigger('click');
+        }).on('dragover', function(event) {
+            event.preventDefault();
+            $(this).addClass('dragging');
+        }).on('dragleave drop', function(event) {
+            event.preventDefault();
+            $(this).removeClass('dragging');
+        }).on('drop', function(event) {
+            const files = event.originalEvent.dataTransfer.files;
+            if (!files.length) return;
+            const transfer = new DataTransfer();
+            transfer.items.add(files[0]);
+            $('#file_so')[0].files = transfer.files;
+            $('#file_so').trigger('change');
+        });
+
+        $('#so-remove-file').on('click', function() {
+            $('#file_so').val('').trigger('change');
+        });
+
+        // Isian header wajib: ditandai merah kalau kosong. Dipakai sebelum upload dan sebelum Save.
+        function soHeaderEmpty(extra) {
+            let empty = 0;
+            ['#so_date', '#currency_id', '#so_type', '#payment_terms_id'].concat(extra || []).forEach((selector) => {
+                const isEmpty = !String($(selector).val() || '').trim();
+                $(selector).closest('.so-edit-grid .form-group').toggleClass('is-invalid', isEmpty);
+                if (isEmpty) empty++;
+            });
+            return empty;
+        }
+
+
+        // title = apa yang terjadi (mis. "File SO belum diproses"), fallback = sebab + langkah berikutnya kalau server tidak memberi pesan.
+        function showSoErrors(xhr, title, fallback) {
+            const res = xhr.responseJSON || {};
+            const errorRows = res.error_rows || {};
+            if (Array.isArray(res.errors) && Object.keys(errorRows).length) {
+                showSoUploadErrors(res, errorRows);
+                return;
+            }
+            if (res.errors) {
+                const errorList = Array.isArray(res.errors) ? res.errors : Object.values(res.errors).flat();
+                const errHtml = errorList.map(e => `<li>${soEsc(e)}</li>`).join('');
+                Swal.fire({ icon: 'error', title: title, html: `<div>${soEsc(res.message || 'Data berikut perlu diperbaiki dulu.')}</div><ul class="text-left" style="font-size: 13px;">${errHtml}</ul>` });
+            } else {
+                Swal.fire({ icon: 'error', title: title, text: res.message || fallback });
+            }
+        }
+
+        // Kalimat detail SO-03: baris dengan masalah yang sama digabung, mis. "Baris 9 dan 10: destination ARG tidak ada di master."
+        // Paling banyak 3 kalimat; sisanya disebut jumlahnya saja.
+        function soInvalidDetail(items) {
+            const groups = [];
+            const byText = {};
+            items.forEach(item => {
+                const text = String(item.text || '').trim().replace(/\.$/, '');
+                if (!text) return;
+                if (!byText[text]) { byText[text] = { text: text, rows: [] }; groups.push(byText[text]); }
+                if (!byText[text].rows.includes(item.row)) byText[text].rows.push(item.row);
+            });
+            const sentences = groups.slice(0, 3).map(group => {
+                const rows = group.rows.sort((a, b) => a - b);
+                const label = rows.length === 1 ? rows[0] : rows.slice(0, -1).join(', ') + ' dan ' + rows[rows.length - 1];
+                return 'Baris ' + label + ': ' + group.text.charAt(0).toLowerCase() + group.text.slice(1) + '.';
+            });
+            if (groups.length > 3) sentences.push((groups.length - 3) + ' masalah lain ditandai merah di tabel.');
+            return sentences.join(' ');
+        }
+
+        // Banner SO-03 di atas Sales Order Detail. Kembalikan true bila masih ada baris yang belum valid.
+        function renderSo03() {
+            const items = soGridInvalidItems();
+            if (!items.length) {
+                mktBanner.clear('#so-detail-banner');
+                return false;
+            }
+            mktAlert('SO-03', { count: new Set(items.map(item => item.row)).size, detail: soInvalidDetail(items) }, { target: '#so-detail-banner' });
+            return true;
+        }
+        // Setiap tabel digambar ulang (upload / edit / paste / buang upload): sel merah langsung dijelaskan di banner,
+        // tidak menunggu Save. Banner hilang sendiri begitu semua baris benar.
+        $('#table-preview-so').on('draw.dt', function () {
+            if (typeof soSavedMode !== 'undefined' && soSavedMode) mktBanner.clear('#so-detail-banner');
+            else renderSo03();
+        });
+
+        // Sel merah di grid -> daftar {row, text} untuk SO-03 (nomor baris = urutan di tabel).
+        function soGridInvalidItems() {
+            const labels = { po: 'PO', destination: 'destination', ex_fty: 'Ex Fty', ship_mode: 'Ship Mode', product_set: 'product set', color: 'warna', size: 'size', qty: 'qty' };
+            const items = [];
+            const dupRows = soDuplicateRows();
+            const setErrs = soSetMismatch();
+            const refName = SO_SET_GROUPS.length ? SO_SET_GROUPS[0][0] : 'TOP';
+            previewUploadRows.forEach((row, index) => {
+                soFieldOrder().forEach(field => {
+                    const value = String(soCurrentValue(index, field) ?? '');
+                    const error = soCellError(field, value);
+                    if (!error) return;
+                    let text;
+                    if (error === 'Wajib diisi.') text = labels[field] + ' belum diisi';
+                    else if (/tidak ada di master/.test(error)) text = labels[field] + ' ' + value + ' tidak ada di master';
+                    else if (/tidak ada di Costing/.test(error)) text = 'product set ' + value + ' tidak ada di Costing';
+                    else if (field === 'qty') text = 'qty harus angka bulat lebih dari 0';
+                    else text = labels[field] + ' ada spasi di awal/akhir atau spasi ganda';
+                    items.push({ row: index + 1, text: text });
+                });
+                if (dupRows.has(index)) items.push({ row: index + 1, text: 'warna dan size sama dengan baris lain di PO dan destination yang sama' });
+                if (setErrs[index] && setErrs[index].size) items.push({ row: index + 1, text: 'warna dan size tidak ada di set ' + refName });
+                if (setErrs[index] && setErrs[index].qty) items.push({ row: index + 1, text: 'qty beda dengan set ' + refName });
+                if (setErrs[index] && setErrs[index].ship_mode) items.push({ row: index + 1, text: 'ship mode beda dengan set ' + refName });
+            });
+            return items;
+        }
+
+        // Error upload ditampilkan per baris Excel beserta isinya (PO, Set, Color, ...), supaya user tidak perlu mencocokkan nomor baris sendiri.
+        function showSoUploadErrors(res, errorRows) {
+            const byRow = {};
+            const general = [];
+            res.errors.forEach(error => {
+                const match = String(error).match(/^Baris (\d+)\s*:?\s*(.*)$/);
+                if (match && errorRows[match[1]]) {
+                    (byRow[match[1]] = byRow[match[1]] || []).push(match[2].charAt(0).toUpperCase() + match[2].slice(1));
+                } else {
+                    general.push(error);
+                }
+            });
+            const cellStyle = 'padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: top;';
+            const show = value => value ? soEsc(value) : '<span style="color: #aaa;">(kosong)</span>';
+            const bodyRows = Object.keys(byRow).sort((a, b) => a - b).map(rowNo => {
+                const row = errorRows[rowNo];
+                return `<tr>
+                    <td style="${cellStyle} text-align: center;"><span style="display: inline-block; min-width: 38px; background: #dc3545; color: #fff; border-radius: 6px; padding: 2px 8px; font-weight: 700;">${rowNo}</span></td>
+                    <td style="${cellStyle}">${show(row.po)}</td>
+                    <td style="${cellStyle}">${show(row.product_set)}</td>
+                    <td style="${cellStyle}">${show(row.color)}</td>
+                    <td style="${cellStyle}">${show(row.destination)}</td>
+                    <td style="${cellStyle}">${show(row.ex_fty)}</td>
+                    <td style="${cellStyle} color: #b02a37; font-weight: 600;">${byRow[rowNo].map(soEsc).join('<br>')}</td>
+                </tr>`;
+            }).join('');
+            const headStyle = 'padding: 8px 10px; background: #274b63; color: #fff; text-align: left; white-space: nowrap;';
+            // Judul & kalimat persis katalog SO-03; tabel di bawahnya merinci isi tiap baris Excel.
+            const rowNos = Object.keys(byRow);
+            const items = [];
+            rowNos.forEach(rowNo => byRow[rowNo].forEach(text => items.push({ row: Number(rowNo), text: text })));
+            const so03 = mktAlertText('SO-03', { count: rowNos.length, detail: soInvalidDetail(items) });
+            Swal.fire({
+                icon: 'error',
+                title: soEsc(so03.title),
+                width: 1100,
+                confirmButtonText: 'Tutup',
+                html: `
+                    <div style="font-size: 16px; margin-bottom: 12px;">${soEsc(so03.message)}</div>
+                    ${general.length ? `<ul style="text-align: left; font-size: 15px; color: #b02a37;">${general.map(e => `<li>${soEsc(e)}</li>`).join('')}</ul>` : ''}
+                    <div style="max-height: 55vh; overflow: auto; border: 1px solid #ddd; border-radius: 8px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 15px; text-align: left;">
+                            <thead style="position: sticky; top: 0;"><tr>
+                                <th style="${headStyle} text-align: center;">Baris</th><th style="${headStyle}">PO</th><th style="${headStyle}">Product Set</th>
+                                <th style="${headStyle}">Color</th><th style="${headStyle}">Destination</th><th style="${headStyle}">Ex Fty</th><th style="${headStyle}">Yang Harus Diperbaiki</th>
+                            </tr></thead>
+                            <tbody>${bodyRows}</tbody>
+                        </table>
+                    </div>`,
+            });
+        }
+
+        $('#btn-upload-so').on('click', function() {
+            let file = $('#file_so')[0].files[0];
+            if (!file) return;
+            const empty = soHeaderEmpty();
+            showMktErrorAlert('#so-error-alert', empty);
+            if (empty) return;
+
+            let inputExcel = $('#file_so');
+            const uploadButton = $(this);
+            uploadButton.prop('disabled', true).text('Uploading...');
+            inputExcel.prop('disabled', true);
+
+            Swal.fire({ title: 'Memproses file Excel', text: 'Tunggu sebentar, baris SO sedang dibaca.', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            const finish = function() {
+                inputExcel.prop('disabled', false);
+                if (!soFileUploaded) uploadButton.prop('disabled', false).text('Upload Now');
+            };
+            let formData = new FormData();
+            formData.append('file_so', file);
+            formData.append('id_costing', $('#id_costing').val());
+            formData.append('_token', '{{ csrf_token() }}');
+
+            $.ajax({ url: soUrl('upload'), type: 'POST', data: formData, contentType: false, processData: false }).done(function(res) {
+                soFileUploaded = true;
+                soInvalidEdits = {};
+                uploadButton.removeClass('mkt-btn--navy').addClass('mkt-btn--green').text('Uploaded');
+                $('#so-file-dropzone').removeClass('is-invalid');
+                Swal.close();
+                mktToast('ok', 'File SO terbaca', res.message || 'Baris SO tampil di tabel. Cek lagi sebelum disimpan.');
+                loadPreviewUpload();
+            }).fail(function(xhr) {
+                showSoErrors(xhr, 'File SO belum diproses', 'Koneksi ke server terputus. Upload file lagi.');
+            }).always(finish);
+        });
+
+        let soSaving = false;   // Save yang sedang berjalan; klik Save berikutnya diabaikan sampai selesai.
+        $('#form-create-so').on('submit', function(e) {
+            e.preventDefault();
+            if (soSaving) return;
+
+            // Sel merah di Sales Order Detail -> blok.
+            const gridErrors = soSavedMode ? 0 : soCountErrors();
+            if (gridErrors) {
+                showMktErrorAlert('#so-error-alert', 0);
+                if (renderSo03()) document.getElementById('so-detail-banner').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            let visibleEmpty = soHeaderEmpty([]);
+            // Detail wajib minimal satu baris (dari upload atau Add manual).
+            const detailEmpty = !previewUploadRows.length;
+            $('#card-preview').toggleClass('is-invalid', detailEmpty);
+            if (detailEmpty) visibleEmpty++;
+
+            showMktErrorAlert('#so-error-alert', visibleEmpty);
+            if (visibleEmpty > 0) return;
+
+            // Hasil Save: toast SO-02 (No SO + semua No WS), lalu kembali ke listing.
+            function showSoSavedResult(res) {
+                const wsList = (res.worksheets || []).map(ws => ws.no_ws).filter(Boolean).join(', ');
+                Swal.close();
+                mktAlert('SO-02', { so: res.so_no || $.trim($('#so-no-badge').text()), ws: wsList || '-' }, { action: false });
+                return new Promise(resolve => setTimeout(resolve, 2500));
+            }
+
+            // Angka untuk SV-03: jumlah destination & PO berbeda dan total qty dari baris Sales Order Detail.
+            function soSaveSummary() {
+                const distinct = field => new Set(previewUploadRows.map(row => String(row[field] || '').trim().toUpperCase()).filter(Boolean)).size;
+                const qty = previewUploadRows.reduce((sum, row) => sum + (Number(String(row.qty ?? '').replace(/[.,]/g, '')) || 0), 0);
+                return {
+                    costing: $.trim($('#summary-costing-no').text()),
+                    dest: distinct('destination'),
+                    po: distinct('po'),
+                    qty: qty.toLocaleString('id-ID')
+                };
+            }
+
+            mktAlert('SV-03', soSaveSummary())
+            .then((result) => {
+                if (result.isConfirmed && !soSaving) {
+                    soSaving = true;
+                    const $saveButton = $('#form-create-so button[type="submit"]').prop('disabled', true);
+                    Swal.fire({ title: 'Menyimpan Sales Order', text: 'Tunggu sebentar, No WS sedang dibuat sistem.', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                    $.ajax({
+                        url: soUrl('save'), type: "POST", data: $(this).serialize(),
+                        complete: function(xhr) {
+                            // Berhasil = halaman pindah ke listing, jadi tombol tetap terkunci.
+                            if (xhr.status !== 200) {
+                                soSaving = false;
+                                $saveButton.prop('disabled', false);
+                            }
+                        },
+                        success: function(res) {
+                            showSoSavedResult(res)
+                            .then(() => { window.location.href = "{{ route('master-costing') }}"; });
+                        },
+                        error: function(xhr) {
+                            showSoErrors(xhr, 'Sales Order belum tersimpan', 'Koneksi ke server terputus. Klik Save lagi.');
+                            loadPreviewUpload();
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#btn-back').on('click', function(e) {
+            const leave = () => { window.location.href = "{{ route('master-costing') }}"; };
+            // Cancel membuang editan yang belum disimpan (SO baru: draft-nya ikut dibuang, jadi Add SO berikutnya mulai kosong).
+            // Ada perubahan -> konfirmasi dulu, sama seperti Cancel di BOM.
+            const discard = () => $.ajax({ url: soUrl('discard'), type: 'POST', data: soData(soId ? { edit_token: SO_EDIT_TOKEN } : {}) }).always(leave);
+            const changed = soId ? soTouched : previewUploadRows.length > 0;
+            if (!changed) {
+                soId ? discard() : leave();
+                return;
+            }
+            Swal.fire({
+                icon: 'warning',
+                title: 'Buang perubahan ini?',
+                text: soId ? 'Perubahan yang belum disimpan akan dibuang. Data yang sudah tersimpan tidak berubah.' : 'Detail SO yang belum disimpan akan dibuang.',
+                showCancelButton: true,
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+            }).then(r => { if (r.isConfirmed) discard(); });
+        });
+
+        // Edit SO: so_tmp disalin dari data tersimpan saat halaman dibuka. Kalau ditinggal tanpa perubahan apa pun,
+        // salinan itu dibuang supaya so_tmp tidak menumpuk. Draft yang sudah diubah / upload tetap disimpan.
+        const SO_EDIT_TOKEN = @json($editToken ?? '');
+        let soTouched = !@json($freshCopy ?? false);
+        $(document).ajaxSuccess(function(e, xhr, opt) {
+            if (/\/(update-cells|add-row|delete-rows|upload)\//.test(opt.url || '')) soTouched = true;
+        });
+        window.addEventListener('pagehide', function() {
+            if (!soId || soTouched || !navigator.sendBeacon) return;
+            const fd = new FormData();
+            Object.entries(soData({ edit_token: SO_EDIT_TOKEN })).forEach(([k, v]) => fd.append(k, v ?? ''));
+            navigator.sendBeacon(soUrl('discard'), fd);
+        });
+
+        renderCostingImage();
+        loadPreviewUpload(true);
+    });
+</script>
+@endsection

@@ -171,6 +171,9 @@
         /* Bulat 28x28: penuh = sudah dibuat, cincin = langkah berikutnya (Create ...), abu = belum bisa. */
         .action-round { --ar-c: #0ea5e9; --ar-ring: #7dd3fc; position: relative; width: 28px; height: 28px; padding: 0; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; background: var(--ar-c); color: #fff !important; font-size: 12px; text-decoration: none !important; border: 0; box-shadow: 0 3px 6px rgba(15, 23, 42, .18); transition: transform .15s ease, box-shadow .15s ease; cursor: pointer; }
         .action-round i { font-size: 12px !important; }
+        /* BOM perlu diperbarui (SO / Costing berubah setelah BOM disimpan). */
+        /* Titik merah: dokumen sebelumnya (Costing / SO) berubah, bagian ini perlu disesuaikan. */
+        .action-round.has-stale::after { content: ''; position: absolute; top: -3px; right: -3px; width: 11px; height: 11px; border-radius: 50%; background: #ef4444; border: 2px solid #fff; box-shadow: 0 0 0 2px rgba(239, 68, 68, .25); }
         .action-round svg { width: 14px; height: 14px; }
         .action-round.is-costing { --ar-c: #0a8bd8; --ar-ring: #7dd3fc; background: linear-gradient(180deg, #1ec8f3, #0a8bd8); }
         .action-round.is-so { --ar-c: #ff9800; --ar-ring: #fdc77a; background: linear-gradient(180deg, #ffc61a, #ff9800); }
@@ -201,8 +204,18 @@
         .costing-actions-menu .mkt-fab.is-excel { --fab-from: #34c55e; --fab-to: #198038; --fab-border: #34c55e; --fab-hover-from: #7ee29b; --fab-hover-to: #2fa556; }
         .costing-actions-menu .mkt-fab.is-download { --fab-from: #a024ec; --fab-to: #6b00d6; --fab-border: #a024ec; --fab-hover-from: #bb5cf4; --fab-hover-to: #8a2be8; }
         .costing-actions-menu .mkt-fab.is-detail { --fab-from: #4357e6; --fab-to: #1f2b9e; --fab-border: #4357e6; --fab-hover-from: #8d9cff; --fab-hover-to: #4a5ef0; }
+        /* Menu action listing: ikon satu warna (glyph gelap tanpa lingkaran warna), font seragam. */
+        .costing-actions-menu .mkt-fab { font-weight: 500; }
+        .costing-actions-menu .mkt-fab .mkt-fab-icon,
+        .costing-actions-menu .mkt-fab:hover .mkt-fab-icon,
+        .costing-actions-menu .mkt-fab:focus-visible .mkt-fab-icon,
+        .costing-actions-menu .mkt-fab:active .mkt-fab-icon { flex-basis: 18px; width: 18px; height: 18px; border: 0; background: none; color: #1e293b; }
+        .costing-actions-menu .mkt-fab .mkt-fab-icon i { font-size: 15px; }
+        .costing-actions-menu .mkt-fab-label { display: flex; flex-direction: column; min-width: 0; }
+        .costing-actions-menu .mkt-fab-label small { margin-top: 2px; color: #94a3b8; font-size: 10px; font-weight: 400; white-space: normal; }
+        .costing-actions-menu .dropdown-divider { margin: 4px 10px; }
         .costing-actions-menu .mkt-fab:disabled { background: transparent; color: #a0a7b4; cursor: not-allowed; }
-        .costing-actions-menu .mkt-fab:disabled .mkt-fab-icon { background: #eef0f5; border-color: #eef0f5; color: #c4c9d4; }
+        .costing-actions-menu .mkt-fab:disabled .mkt-fab-icon { background: none; border: 0; color: #c4c9d4; }
 
         .costing-timeline { display: block; padding: 16px 24px; border: 0; border-radius: 0; background: #f6f8fb; }
         .timeline-vertical { display: flex; flex-direction: column; gap: 18px; text-align: left; }
@@ -275,15 +288,17 @@
         .settings-popover-footer .mkt-btn { margin-left: 8px; }
 
         /* Costing item details modal */
-        .swal2-popup.batch-print-modal { width: min(480px, calc(100vw - 32px)) !important; padding: 24px; border-radius: 12px; }
-        .batch-print-modal .swal2-title { margin: 0 0 8px; color: #284a63; font-size: 22px; }
-        .batch-print-modal .swal2-html-container { margin: 0 0 18px; color: #64748b; font-size: 14px; line-height: 1.5; }
+        .swal2-popup.batch-print-modal { width: min(540px, calc(100vw - 32px)) !important; }
         .batch-print-modal .swal2-radio { display: flex; width: 100%; flex-direction: column; align-items: stretch; gap: 8px; margin: 1em 0 3px; }
         .batch-print-modal .swal2-radio label { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0; padding: 10px 12px; border: 1px solid #dce4ec; border-radius: 8px; color: #334155; font-size: 14px; line-height: 1.4; text-align: left; }
         .batch-print-modal .swal2-radio label:has(input:checked) { border-color: #284a63; background: #f1f6fa; }
         .batch-print-modal .swal2-radio input { margin: 0; }
-        .batch-print-modal .swal2-actions { gap: 8px; margin-top: 20px; }
-        .batch-print-modal .swal2-styled { min-width: 88px; border-radius: 20px; font-size: 13px; }
+        .batch-print-modal .bp-group-title { margin: 14px 0 0; color: #284a63; font-size: 13px; font-weight: 600; text-align: left; }
+        .batch-print-modal .bp-docs { flex-direction: row !important; }
+        .batch-print-modal .bp-docs label { flex: 1 1 0; flex-direction: column; align-items: flex-start !important; gap: 2px !important; position: relative; padding-left: 32px !important; }
+        .batch-print-modal .bp-docs label input { position: absolute; left: 12px; top: 14px; }
+        .batch-print-modal label small { color: #64748b; font-size: 11.5px; }
+        .batch-print-modal label.is-disabled { opacity: .5; cursor: not-allowed; }
         @media (max-width: 575px) {
         }
         input[type="checkbox"]:not(.custom-control-input) { -webkit-appearance: none; appearance: none; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: 1.5px solid #cfd4dc; border-radius: 4px; background: #fff no-repeat center / 10px 10px; vertical-align: middle; cursor: pointer; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease; }
@@ -314,6 +329,66 @@
         .costing-page .costing-table .date-badge { font-family: Inter, sans-serif; font-size: 12px !important; font-weight: 500 !important; }
         #table-costing_wrapper .dataTables_length, #table-costing_wrapper .dataTables_length label { font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 400 !important; line-height: 34px; }
         #table-costing_wrapper .dataTables_length select { height: 34px; min-width: 70px; font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 700 !important; line-height: 24px; color: #1e293b; }
+
+        /* Judul & footer tabel disamakan dengan Approval Center. */
+        .costing-page .costing-title { color: #284a63; }
+        #table-costing_wrapper .dataTables_info, #table-costing_wrapper .dataTables_length, #table-costing_wrapper .dataTables_length label { color: #212121; font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 400 !important; }
+        #table-costing_wrapper .dataTables_length select { height: 36px; margin: 0 8px; border: 1px solid #284a63; border-radius: 6px; color: #212121; font-weight: 400 !important; }
+        #table-costing_wrapper .dataTables_paginate .pagination { margin: 0; gap: 2px; }
+        #table-costing_wrapper .dataTables_paginate .paginate_button,
+        #table-costing_wrapper .dataTables_paginate .paginate_button.current { background: none !important; box-shadow: none; }
+        #table-costing_wrapper .dataTables_paginate .page-link { min-width: 28px; height: auto; padding: 4px 8px; border: 0; border-radius: 4px !important; background: none; color: #475569; font-family: 'Poppins', sans-serif !important; font-size: 16px !important; font-weight: 400 !important; line-height: 1.5; }
+        #table-costing_wrapper .dataTables_paginate .paginate_button.current .page-link,
+        #table-costing_wrapper .dataTables_paginate .page-item.active .page-link { background: #284a63 !important; color: #fff !important; }
+        #table-costing_wrapper .dataTables_paginate .page-item.disabled .page-link { background: none; color: #cbd5e1; }
+        @media (max-width: 767.98px) {
+            #table-costing_wrapper .dataTables_info, #table-costing_wrapper .dataTables_length, #table-costing_wrapper .dataTables_length label,
+            #table-costing_wrapper .dataTables_length select, #table-costing_wrapper .dataTables_paginate .page-link { font-size: 14px !important; }
+        }
+
+        /* Dialog polos: rata kiri, tanpa ikon besar, tombol biasa. */
+        .swal2-popup.so-preview-modal { width: min(1280px, calc(100vw - 32px)) !important; }
+        .so-preview-modal .swal2-html-container { text-align: left; font-family: Inter, sans-serif; font-size: 14px; }
+        /* Banner gaya katalog alert (SO-01 dll.): latar muda warna status + ikon bulat gradien. */
+        .so-preview-modal .sp-banner { --g1: #00c7e2; --g2: #007cc1; display: flex; align-items: flex-start; gap: 10px; margin: 8px 0; padding: 10px 12px; border-radius: 10px; background: #e8f6fc; color: #0f172a; font-size: 13px; line-height: 1.45; text-align: left; }
+        .so-preview-modal .sp-banner.is-warn { --g1: #ffc766; --g2: #f2994a; background: #fff6e8; }
+        .so-preview-modal .sp-banner-ic { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(180deg, var(--g1), var(--g2)); color: #fff; }
+        .so-preview-modal .sp-banner-ic svg { width: 16px; height: 16px; }
+        .so-preview-modal .sp-banner b { display: block; font-weight: 600; }
+        .so-preview-modal .sp-banner span { color: #334155; }
+        .so-preview-modal .sp-cols { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; }
+        .so-preview-modal .sp-cols > div { min-width: 0; }
+        @media (max-width: 900px) { .so-preview-modal .sp-cols { grid-template-columns: 1fr; } }
+        .so-preview-modal .sp-info { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 16px; margin: 10px 0 4px; font-size: 12.5px; }
+        .so-preview-modal .sp-info div { display: flex; flex-direction: column; min-width: 0; }
+        .so-preview-modal .sp-info span { color: #64748b; font-size: 11px; }
+        .so-preview-modal .sp-info b { color: #0f172a; font-weight: 600; overflow-wrap: anywhere; }
+        .so-preview-modal .sp-sub { margin: 12px 0 4px; color: #334155; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .so-preview-modal .sp-scroll { max-height: max(220px, calc(100vh - 400px)); overflow: auto; border: 1px solid #e2e8f0; border-radius: 6px; }
+        .so-preview-modal .sp-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .so-preview-modal .sp-table th { position: sticky; top: 0; background: #f1f5f9; color: #334155; font-size: 11px; font-weight: 600; text-transform: uppercase; padding: 6px 8px; text-align: left; white-space: nowrap; }
+        .so-preview-modal .sp-table td { padding: 5px 8px; border-top: 1px solid #f1f5f9; color: #1e293b; }
+        .so-preview-modal .sp-table tr.g td { border-top-color: #cbd5e1; }
+        .so-preview-modal .sp-table .n { text-align: right; white-space: nowrap; }
+        .so-preview-modal .sp-table .e { color: #94a3b8; text-align: center; }
+        .so-preview-modal .sp-note { margin: 8px 0; padding: 8px 10px; border-radius: 6px; background: #fff7e6; color: #92400e; font-size: 12.5px; }
+        .so-preview-modal .sp-note.is-err { background: #fdecec; color: #b42318; }
+        .swal2-popup.mkt-plain-modal { width: min(420px, calc(100vw - 32px)) !important; padding: 20px 22px 16px !important; border-radius: 8px !important; text-align: left; font-family: Inter, sans-serif; }
+        .mkt-plain-modal .swal2-html-container { margin: 0 !important; padding: 0 !important; text-align: left; color: #333; font-size: 14px; line-height: 1.55; }
+        .mkt-plain-modal .swal2-html-container p { margin: 0 0 8px; }
+        .mkt-plain-title { margin: 0 0 10px; color: #222; font-size: 18px; font-weight: 600; text-align: center; }
+        .mkt-plain-modal .swal2-icon.mkt-plain-icon { margin: 4px auto 12px; font-size: 12px; }
+        .mkt-plain-actions { justify-content: flex-end; gap: 8px; width: 100%; margin: 14px 0 0 !important; }
+        .mkt-plain-actions button { height: 34px; padding: 0 14px; border-radius: 5px; font-size: 13.5px; font-weight: 500; cursor: pointer; }
+        .mkt-plain-ok { border: 1px solid #284a63; background: #284a63; color: #fff; }
+        .mkt-plain-ok:hover { background: #1f3b50; }
+        .mkt-plain-cancel { border: 1px solid #ccc; background: #fff; color: #444; }
+        .mkt-plain-cancel:hover { background: #f3f3f3; }
+        .mkt-plain-list { display: flex; justify-content: center; gap: 36px; margin: 6px 0 12px; text-align: left; }
+        .mkt-plain-list ul { margin: 4px 0 0; padding-left: 18px; }
+        .mkt-plain-list li { margin: 2px 0; }
+        .mkt-plain-modal .swal2-icon.mkt-plain-icon-copy .swal2-icon-content { font-size: 2.6em; }
+        .mkt-plain-desc { display: inline-block; text-align: left; }
 
         /* ===== Popup tabel detail (Detail Material SO) — gaya tabel marketing ===== */
         .mkt-dt-modal { padding: 22px 24px 20px !important; border-radius: 16px !important; }
@@ -358,7 +433,7 @@
 
         <div class="card card-sb">
             <div class="card-body">
-                <div class="costing-crumb">Marketing &nbsp;›&nbsp; Process &nbsp;›&nbsp; <b>Marketing List</b></div>
+                <div class="costing-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; <b>Marketing List</b></div>
                 <h1 class="costing-title mt-3">Marketing List</h1>
 
                 <div class="list-shell">
@@ -378,14 +453,15 @@
                             </div>
 
                             <div id="search-menu" class="search-menu">
-                                <button type="button" data-filter="date">Due Date <i class="fas fa-chevron-right float-right mt-1"></i></button>
+                                <button type="button" data-filter="date">Costing Date <i class="fas fa-chevron-right float-right mt-1"></i></button>
                                 <button type="button" data-column="4">No Costing</button>
                                 <button type="button" data-filter="buyer">Buyer <i class="fas fa-chevron-right float-right mt-1"></i></button>
-                                <button type="button" data-column="7">Brand</button>
-                                <button type="button" data-column="8">Style</button>
-                                <button type="button" data-column="9">Market</button>
+                                <button type="button" data-column="5">No SO</button>
+                                <button type="button" data-column="8">Brand</button>
+                                <button type="button" data-column="9">Style</button>
+                                <button type="button" data-column="10">Market</button>
                                 <div id="date-submenu" class="search-submenu">
-                                    <b class="d-block mb-1 text-dark">Due Date</b>
+                                    <b class="d-block mb-1 text-dark">Costing Date</b>
                                     <label>Start Date<input type="date" id="menu-tgl-awal" class="form-control" value="{{ now()->subMonths(3)->toDateString() }}"></label>
                                     <label>End Date<input type="date" id="menu-tgl-akhir" class="form-control" value="{{ now()->toDateString() }}"></label>
                                     <button type="button" class="btn btn-sm btn-primary w-100 mt-2" id="apply-date-filter">Apply</button>
@@ -445,8 +521,9 @@
                                     <th><input type="checkbox" id="check-all-costing"></th>
                                     <th title="Timeline"></th>
                                     <th>No</th>
-                                    <th>Due Date</th>
+                                    <th>Costing Date</th>
                                     <th>No Costing</th>
+                                    <th>No SO</th>
                                     <th>No Worksheet</th>
                                     <th>Buyer</th>
                                     <th>Brand</th>
@@ -463,7 +540,10 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="d-flex justify-content-end mt-4">
+                    <div class="d-flex justify-content-end align-items-center mt-4">
+                        @if (!empty($ndsTrial))
+                            <span class="text-muted small me-3">Mode percobaan: Costing tersimpan di DB baru</span>
+                        @endif
                         <a href="{{ route('create-costing') }}" class="mkt-btn mkt-btn--navy">Add New</a>
                     </div>
                 </div>
@@ -517,7 +597,7 @@
         let dateFilterApplied = false;
         const defaultCostingStartDate = '{{ now()->subMonths(3)->toDateString() }}';
         const defaultCostingEndDate = '{{ now()->toDateString() }}';
-        const defaultColumnOrder = Array.from({ length: 15 }, (_, index) => index);
+        const defaultColumnOrder = Array.from({ length: 16 }, (_, index) => index);
         let pendingColumnOrder = defaultColumnOrder.slice();
         let appliedColumnOrder = defaultColumnOrder.slice();
         let amountFormat = 'full';
@@ -557,7 +637,7 @@
                 ajax: {
                     url: '{{ route("master-costing") }}',
                     data: function(d) {
-                        // Due Date hanya ikut kalau filternya diterapkan (sebelumnya selalu terkirim 3 bulan terakhir walau Filter: None).
+                        // Costing Date hanya ikut kalau filternya diterapkan (sebelumnya selalu terkirim 3 bulan terakhir walau Filter: None).
                         if (dateFilterApplied) {
                             d.tgl_awal = $('#menu-tgl-awal').val();
                             d.tgl_akhir = $('#menu-tgl-akhir').val();
@@ -567,7 +647,7 @@
                     }
                 },
                 columns: [
-                    { data: 'id', orderable: false, searchable: false, className: 'text-center align-middle', render: data => `<input type="checkbox" class="costing-check" value="${data}">` },
+                    { data: 'id', orderable: false, searchable: false, className: 'text-center align-middle', render: (data, type, row) => `<input type="checkbox" class="costing-check" value="${data}" data-so="${row.so_id || ''}" data-bom="${Number(row.bom_count) ? 1 : 0}">` },
                     {
                         data: null,
                         orderable: false,
@@ -590,8 +670,8 @@
                         className: 'text-center align-middle costing-col-no'
                     },
                     {
-                        data: 'due_date',
-                        name: 'a.deldate',
+                        data: 'costing_date',
+                        name: 'a.dateinput',
                         className: 'text-center align-middle costing-nowrap',
                         render: function (data, type) {
                             if (type !== 'display' || !data || data === '-') return data || '-';
@@ -614,10 +694,23 @@
                         }
                     },
                     { data: 'cost_no', name: 'a.cost_no', className: 'text-center align-middle text-dark costing-nowrap' },
-                    { data: 'kpno', name: 'a.kpno', className: 'text-center align-middle costing-nowrap', render: data => data || '-' },
-                    { data: 'nama_buyer', name: 'b.Supplier', className: 'align-middle', render: costingTitleCase },
-                    { data: 'brand', name: 'a.brand', className: 'align-middle', render: costingTitleCase },
-                    { data: 'styleno', name: 'a.styleno', className: 'align-middle' },
+                    // Satu baris per SO: Costing dengan beberapa SO tampil beberapa baris (Add SO = baris baru).
+                    { data: 'so_no', name: 's.so_no', className: 'text-center align-middle costing-nowrap', render: data => data ? escapeCostingHtml(data) : '-' },
+                    {
+                        data: 'kpno',
+                        name: 'a.kpno',
+                        className: 'text-center align-middle costing-nowrap',
+                        // SO dengan beberapa set menampilkan semua WS-nya, satu per baris.
+                        render: (data, type, row) => {
+                            if (!data) return '-';
+                            if (type !== 'display') return data;
+                            const list = String(data).split('\n').map(escapeCostingHtml).join('<br>');
+                            return row.ws_count > 1 ? `${list}<div class="text-muted small">${row.ws_count} WS</div>` : list;
+                        }
+                    },
+                    { data: 'nama_buyer', name: 'b.Supplier', className: 'align-middle', render: costingPlainCase },
+                    { data: 'brand', name: 'a.brand', className: 'align-middle', render: costingPlainCase },
+                    { data: 'styleno', name: 'a.styleno', className: 'align-middle', render: costingPlainCase },
                     { data: 'market', name: 'a.market', orderable: false, searchable: true, className: 'align-middle' },
                     {
                         data: 'qty',
@@ -665,7 +758,8 @@
                             const hasSo = Boolean(row.so_id);
                             const hasBom = Boolean(row.bom_id) && Number(row.bom_item_count) > 0;
 
-                            const soCreateUrl = "{{ route('create-so') }}?id_costing=" + encodeURIComponent(data);
+                            const ndsTrial = @json(!empty($ndsTrial));
+                            const soCreateUrl = "{{ !empty($ndsTrial) ? route('so-nds-create') : route('create-so') }}?id_costing=" + encodeURIComponent(data);
                             const bomCreateUrl = "{{ route('create-bom') }}?id_costing=" + encodeURIComponent(data) + "&id_so=" + encodeURIComponent(row.so_id);
 
                             const soDetailUrl = hasSo ? "{{ route('so-detail-page', ':id') }}".replace(':id', row.so_id) : '';
@@ -674,6 +768,16 @@
                             const soExcelUrl = hasSo ? "{{ route('export-excel-so', ':id') }}".replace(':id', row.so_id) : '';
                             const bomPdfUrl = hasBom ? "{{ route('print-bom-pdf', ':id') }}".replace(':id', row.bom_id) : '';
                             const bomExcelUrl = hasBom ? "{{ route('export-excel-bom') }}?id=" + encodeURIComponent(row.bom_id) : '';
+                            // DB baru: SO dibuat dari menu Costing (cek harga CMT dulu); satu Costing boleh punya beberapa SO.
+                            const cmtAttrs = `data-cmt-check="${"{{ route('so-nds-cmt-check', ':id') }}".replace(':id', data)}" data-cmt-url="${editUrl}#cmt"`;
+                            const soCount = Number(row.so_count) || 0;
+                            // Alur approval: SO hanya bisa dibuat dari Costing yang sudah Approved.
+                            const soBlocked = { awaiting: 'Costing belum di-approve', return: 'Costing di-Return ke Staff', cancel: 'Costing di-Cancel', unlocked: 'Costing sedang di-unlock' }[row.approval_status] || 'Costing belum di-approve';
+                            // SO pertama dibuat lewat tombol SO (putih); Add SO di menu Costing untuk SO berikutnya.
+                            const addSoItem = !ndsTrial || !hasSo ? '' : (Number(row.so_allowed) ? `<div class="dropdown-divider"></div>
+                                        <a class="dropdown-item mkt-fab is-add so-add-preview" href="${soCreateUrl}" data-preview="${"{{ route('so-nds-costing-preview', ':id') }}".replace(':id', data)}" data-cmt-url="${editUrl}#cmt"><span class="mkt-fab-icon"><i class="fas fa-plus-circle"></i></span><span class="mkt-fab-label">Add SO${soCount ? `<small>Sudah ada ${soCount} SO di Costing ini</small>` : ''}</span></a>`
+                                    : `<div class="dropdown-divider"></div>
+                                        <button type="button" class="dropdown-item mkt-fab is-add" disabled title="SO baru bisa dibuat setelah Costing di-approve di Approval Center"><span class="mkt-fab-icon"><i class="fas fa-plus-circle"></i></span><span class="mkt-fab-label">Add SO<small>${soBlocked}</small></span></button>`);
 
                             let costingBtn = `
                                 <div class="dropdown d-inline-block">
@@ -685,13 +789,73 @@
                                         ${row.approval_status === 'approved'
                                             ? unlockMenuItem('costing', data, row.cost_no, row.nama_buyer, row.costing_unlock_pending)
                                             : `<a class="dropdown-item mkt-fab is-edit" href="${editUrl}"><span class="mkt-fab-icon"><i class="fas fa-edit"></i></span>Edit</a>`}
-                                        <button type="button" class="dropdown-item mkt-fab is-copy" onclick="confirmCopy('${copyUrl}')"><span class="mkt-fab-icon"><i class="far fa-copy"></i></span>Copy</button>
+                                        <button type="button" class="dropdown-item mkt-fab is-copy" onclick="confirmCopy(this)" data-url="${copyUrl}" data-no="${escapeCostingHtml(row.cost_no).replace(/"/g, '&quot;')}" data-buyer="${escapeCostingHtml(row.nama_buyer).replace(/"/g, '&quot;')}" data-style="${escapeCostingHtml(row.styleno).replace(/"/g, '&quot;')}"><span class="mkt-fab-icon"><i class="far fa-copy"></i></span>Copy</button>
                                         <a class="dropdown-item mkt-fab is-pdf" href="${pdfUrl}" target="_blank"><span class="mkt-fab-icon"><i class="fas fa-file-pdf"></i></span>PDF</a>
-                                        <a class="dropdown-item mkt-fab is-excel" href="${excelUrl}"><span class="mkt-fab-icon"><i class="fas fa-file-excel"></i></span>Excel</a>
+                                        <a class="dropdown-item mkt-fab is-excel" href="${excelUrl}"><span class="mkt-fab-icon"><i class="fas fa-file-excel"></i></span>EXCEL</a>
+                                        ${addSoItem}
                                     </div>
                                 </div>`;
 
                             let soMenu = '';
+                            if (ndsTrial) {
+                                // Tombol putih = belum dibuat (klik untuk Create), warna penuh = sudah ada. BOM dibuka per SO (pilih WS di halamannya). Worksheet masih dikembangkan.
+                                const soNdsEditUrl = "{{ route('so-nds-edit', ':id') }}".replace(':id', row.so_id);
+                                const fab = (cls, icon, label, href, extra = '') => `<a class="dropdown-item mkt-fab ${cls}" href="${href}" ${extra}><span class="mkt-fab-icon"><i class="${icon}"></i></span>${label}</a>`;
+                                const menu = (id, toggle, items) => `<div class="dropdown d-inline-block">${toggle(id)}<div class="dropdown-menu dropdown-menu-right costing-actions-menu" id="${id}">${items}</div></div>`;
+                                if (hasSo) {
+                                    // SO: Edit (cek CMT dulu), Detail, PDF, Excel. SO tanpa approval; WS sudah dipakai Marker -> Edit memunculkan pop-up hubungi IT.
+                                    const soEditItem = row.so_marker_message
+                                        ? `<button type="button" class="dropdown-item mkt-fab is-edit so-marker-locked" data-message="${escapeCostingHtml(row.so_marker_message).replace(/"/g, '&quot;')}"><span class="mkt-fab-icon"><i class="fas fa-edit"></i></span>Edit</button>`
+                                        : fab('is-edit so-cmt-check', 'fas fa-edit', 'Edit', soNdsEditUrl, cmtAttrs);
+                                    // Titik merah: Costing berubah, SO perlu disesuaikan (alasan di tooltip). Hilang setelah SO disimpan ulang.
+                                    const soStale = Array.isArray(row.so_stale) ? row.so_stale : [];
+                                    const soTitle = soStale.length ? escapeCostingHtml('SO perlu disesuaikan: ' + soStale.join('; ')).replace(/"/g, '&quot;') : 'SO Menu';
+                                    soMenu = menu(`so-nds-menu-${row.so_id}`, id => `<button class="action-round is-so costing-menu-toggle${soStale.length ? ' has-stale' : ''}" data-menu-id="${id}" aria-expanded="false" type="button" title="${soTitle}">${AR_SO_ICON}</button>`,
+                                        fab('is-detail', 'fas fa-info-circle', 'Detail', "{{ route('so-nds-detail', ':id') }}".replace(':id', row.so_id))
+                                        + soEditItem
+                                        + fab('is-pdf', 'fas fa-file-pdf', 'PDF', "{{ route('so-nds-pdf', ':id') }}".replace(':id', row.so_id), 'target="_blank"')
+                                        + fab('is-excel', 'fas fa-file-excel', 'EXCEL', "{{ route('so-nds-excel', ':id') }}".replace(':id', row.so_id)));
+                                } else if (Number(row.so_allowed)) {
+                                    // Belum ada SO: tombol putih = langsung ke form Create SO (tanpa pop-up ringkasan; pop-up hanya untuk Add SO di menu Costing).
+                                    soMenu = `<a href="${soCreateUrl}" class="action-round is-so is-next" title="Create SO" aria-label="Create SO">${AR_SO_ICON}</a>`;
+                                } else {
+                                    soMenu = `<button class="action-round is-so is-off" disabled title="Belum bisa membuat SO: ${soBlocked}">${AR_SO_ICON}</button>`;
+                                }
+                                // BOM: belum ada = tombol putih (Create BOM), sudah ada = menu penuh. Kunci / Request Unlock per WS ada di halaman Input BOM.
+                                // Titik merah menempel selama BOM belum sesuai Costing / SO (content Costing ditambah/dihapus, color/size/destinasi SO berubah).
+                                const bomStaleDetail = Array.isArray(row.bom_stale_detail) ? row.bom_stale_detail : [];
+                                const bomStale = bomStaleDetail.length > 0;
+                                // Tooltip singkat; rinciannya ada di banner halaman BOM.
+                                const staleTitle = bomStale
+                                    ? escapeCostingHtml(`Ada item yang harus disesuaikan (${bomStaleDetail.map(w => w.no_ws).join(', ')})`).replace(/"/g, '&quot;')
+                                    : 'BOM Menu';
+                                const bomNdsEditUrl = "{{ route('bom-nds-edit', ':id') }}".replace(':id', row.so_id);
+                                // Satu BOM (per SO) berisi beberapa WS yang dipindah lewat tab di halaman BOM; approval/kunci per WS.
+                                // Edit selama masih ada WS yang belum approved / belum dibuat. Request Unlock satu menu saja:
+                                // kalau WS terkunci lebih dari satu, WS-nya dipilih di dialog (lihat .bom-unlock-pick).
+                                const bomEditItems = () => {
+                                    const list = Array.isArray(row.bom_list) ? row.bom_list : [];
+                                    const locked = list.filter(b => b.status === 'approved');
+                                    const canEdit = locked.length < list.length || Number(row.ws_count) > list.length;
+                                    const edit = canEdit ? fab('is-edit', 'fas fa-edit', 'Edit', bomNdsEditUrl) : '';
+                                    if (!locked.length) return edit;
+                                    const open = locked.filter(b => !Number(b.unlock_pending));
+                                    if (!open.length) return edit + unlockMenuItem('bom', locked[0].id, locked[0].bom_no, row.nama_buyer, 1);
+                                    if (open.length === 1) return edit + unlockMenuItem('bom', open[0].id, open[0].bom_no, row.nama_buyer, 0, locked.length > 1 || Number(row.ws_count) > 1 ? open[0].no_ws : '');
+                                    const data = escapeCostingHtml(JSON.stringify(open.map(b => ({ id: b.id, bom_no: b.bom_no, no_ws: b.no_ws })))).replace(/"/g, '&quot;');
+                                    return edit + `<button type="button" class="dropdown-item mkt-fab is-edit bom-unlock-pick" data-list="${data}" data-buyer="${escapeCostingHtml(row.nama_buyer).replace(/"/g, '&quot;')}"><span class="mkt-fab-icon"><i class="fas fa-lock-open"></i></span><span class="mkt-fab-label">Request Unlock<small>${open.length} WS terkunci</small></span></button>`;
+                                };
+                                const ndsBomBtn = !hasSo
+                                    ? `<button class="action-round is-bom is-off" disabled title="Buat Sales Order dulu"><i class="fas fa-layer-group"></i></button>`
+                                    : !Number(row.bom_count)
+                                    ? `<a href="${bomNdsEditUrl}" class="action-round is-bom is-next" title="Create BOM" aria-label="Create BOM"><i class="fas fa-layer-group"></i></a>`
+                                    : menu(`bom-nds-menu-${row.so_id}`, id => `<button class="action-round is-bom costing-menu-toggle${bomStale ? ' has-stale' : ''}" data-menu-id="${id}" aria-expanded="false" type="button" title="${staleTitle}"><i class="fas fa-layer-group"></i></button>`,
+                                        bomEditItems()
+                                        + fab('is-detail', 'fas fa-info-circle', 'Detail', "{{ route('bom-nds-detail', ':id') }}".replace(':id', row.so_id))
+                                        + fab('is-pdf', 'fas fa-file-pdf', 'PDF', "{{ route('bom-nds-pdf', ':id') }}".replace(':id', row.so_id), 'target="_blank"')
+                                        + fab('is-excel', 'fas fa-file-excel', 'EXCEL', "{{ route('bom-nds-excel', ':id') }}".replace(':id', row.so_id)));
+                                return `<div class="costing-actions">${costingBtn}${soMenu}${ndsBomBtn}</div>`;
+                            }
                             if (hasSo) {
                                 soMenu = `
                                 <div class="dropdown d-inline-block">
@@ -703,7 +867,7 @@
                                         <a class="dropdown-item mkt-fab is-edit" href="${soEditUrl}"><span class="mkt-fab-icon"><i class="fas fa-edit"></i></span>Edit</a>
                                         <button type="button" class="dropdown-item mkt-fab is-detail" onclick="showCostingSoMaterial(${row.so_id})"><span class="mkt-fab-icon"><i class="fas fa-boxes"></i></span>Detail Material</button>
                                         <a class="dropdown-item mkt-fab is-pdf" href="${soPdfUrl}" target="_blank"><span class="mkt-fab-icon"><i class="fas fa-file-pdf"></i></span>PDF</a>
-                                        <a class="dropdown-item mkt-fab is-excel" href="${soExcelUrl}"><span class="mkt-fab-icon"><i class="fas fa-file-excel"></i></span>Excel</a>
+                                        <a class="dropdown-item mkt-fab is-excel" href="${soExcelUrl}"><span class="mkt-fab-icon"><i class="fas fa-file-excel"></i></span>EXCEL</a>
                                     </div>
                                 </div>`;
                             } else if (approved) {
@@ -726,7 +890,7 @@
                                             ? unlockMenuItem('bom', row.bom_id, row.bom_no, row.nama_buyer, row.bom_unlock_pending)
                                             : (hasSo ? `<a class="dropdown-item mkt-fab is-edit" href="${bomCreateUrl}"><span class="mkt-fab-icon"><i class="fas fa-edit"></i></span>Edit Item</a>` : '')}
                                         <a class="dropdown-item mkt-fab is-pdf" href="${bomPdfUrl}" target="_blank"><span class="mkt-fab-icon"><i class="fas fa-file-pdf"></i></span>PDF</a>
-                                        <a class="dropdown-item mkt-fab is-excel" href="${bomExcelUrl}"><span class="mkt-fab-icon"><i class="fas fa-file-excel"></i></span>Excel</a>
+                                        <a class="dropdown-item mkt-fab is-excel" href="${bomExcelUrl}"><span class="mkt-fab-icon"><i class="fas fa-file-excel"></i></span>EXCEL</a>
                                     </div>
                                 </div>`;
                             } else if (canCreateBom) {
@@ -751,7 +915,8 @@
                     api.columns().every(function (i) {
                         const title = $(this.header()).text().trim() || 'Checkbox';
                         $(this.header()).addClass(`costing-col-${i}`);
-                        $('#column-toggles').append(`<label class="btn btn-sm btn-outline-secondary column-toggle active"><input type="checkbox" checked data-column="${i}"> ${title}</label>`);
+                        const shown = !COSTING_HIDDEN_BY_DEFAULT.includes(i);
+                        $('#column-toggles').append(`<label class="btn btn-sm btn-outline-secondary column-toggle ${shown ? 'active' : ''}"><input type="checkbox" ${shown ? 'checked' : ''} data-column="${i}"> ${title}</label>`);
                     });
                     $('#table-costing_wrapper thead tr').each(function () {
                         Array.from(this.cells).forEach((cell, index) => {
@@ -888,7 +1053,10 @@
             // Update Selected Count Badge
             // Pesan redirect (mis. costing terkunci saat membuka Edit) tidak ditampilkan layout, jadi tampilkan di sini.
             @if (session('warning') || session('error'))
-                Swal.fire('Perhatian', @json(session('warning') ?? session('error')), 'warning');
+                Swal.fire({ icon: @json(session('error') ? 'error' : 'warning'), title: 'Halaman belum bisa dibuka', text: @json(session('warning') ?? session('error')) });
+            @elseif (session('success'))
+                // Mis. setelah Save and lock Costing: dikunci dan menunggu approval.
+                mktToast('ok', @json(session('success_title', 'Costing menunggu approval')), @json(session('success')));
             @endif
 
             // Jumlah per status ikut dikirim server (mengikuti filter tanggal/buyer).
@@ -908,6 +1076,11 @@
                 table.ajax.reload();
             });
 
+            // SO yang WS-nya sudah dipakai Marker tidak bisa diedit dari Marketing.
+            $(document).on('click', '.so-marker-locked', function() {
+                Swal.fire({ icon: 'warning', title: 'Sales Order sudah ada di Marker', text: $(this).data('message'), confirmButtonText: 'Tutup' });
+            });
+
             $(document).on('click', '.marketing-request-unlock', function() {
                 const $btn = $(this);
                 openUnlockRequest({
@@ -916,9 +1089,41 @@
                     number: $btn.data('number'),
                     buyer: $btn.data('buyer'),
                     onSuccess: function(res) {
-                        Swal.fire({ icon: 'success', title: res.message, timer: 2000, showConfirmButton: false });
+                        mktToast('ok', 'Permintaan unlock terkirim', 'Permintaan menunggu keputusan Marketing Manager di Approval Center.');
                         table.ajax.reload(null, false);
                     }
+                });
+            });
+
+            // BOM dengan beberapa WS terkunci: pilih WS yang mau di-unlock, lalu dialog alasan yang sama.
+            $(document).on('click', '.bom-unlock-pick', function() {
+                const list = $(this).data('list') || [];
+                const buyer = $(this).data('buyer');
+                const options = {};
+                list.forEach(b => { options[b.id] = `${b.no_ws} (${b.bom_no})`; });
+                Swal.fire({
+                    title: 'Request Unlock BOM',
+                    text: 'Pilih worksheet yang BOM-nya mau diubah.',
+                    input: 'select',
+                    inputOptions: options,
+                    inputPlaceholder: 'Pilih worksheet',
+                    showCancelButton: true,
+                    confirmButtonText: 'Lanjut',
+                    cancelButtonText: 'Cancel',
+                    inputValidator: value => value ? undefined : 'Pilih worksheet dulu',
+                }).then(res => {
+                    if (!res.isConfirmed) return;
+                    const bom = list.find(b => String(b.id) === String(res.value));
+                    openUnlockRequest({
+                        type: 'bom',
+                        id: bom.id,
+                        number: `${bom.bom_no} · ${bom.no_ws}`,
+                        buyer: buyer,
+                        onSuccess: function() {
+                            mktToast('ok', 'Permintaan unlock terkirim', 'Permintaan menunggu keputusan Marketing Manager di Approval Center.');
+                            table.ajax.reload(null, false);
+                        }
+                    });
                 });
             });
 
@@ -928,46 +1133,65 @@
             });
 
             $('#btn-batch-print').on('click', function () {
-                const selectedIds = $('.costing-check:checked').map(function () {
-                    return this.value;
-                }).get();
-                if (!selectedIds.length) {
-                    Swal.fire('Pilih Costing', 'Centang minimal satu Costing untuk dicetak.', 'warning');
+                // Satu baris = satu SO. Costing dengan beberapa SO muncul di beberapa baris: id Costing cukup sekali.
+                const $checked = $('.costing-check:checked');
+                if (!$checked.length) {
+                    mktToast('info', 'Belum ada costing yang dipilih', 'Centang minimal satu costing dulu, baru klik Batch Print.');
                     return;
                 }
+                const uniq = list => [...new Set(list.filter(Boolean))];
+                const docs = {
+                    costing: { label: 'Costing', ids: uniq($checked.map(function () { return this.value; }).get()),
+                        one: "{{ route('print-costing-pdf', ':id') }}", batch: "{{ route('print-costing-batch-pdf') }}" },
+                    so: { label: 'Sales Order', ids: uniq($checked.map(function () { return this.dataset.so; }).get()),
+                        one: "{{ route('so-nds-pdf', ':id') }}", batch: "{{ route('so-nds-pdf-batch') }}" },
+                    bom: { label: 'BOM', ids: uniq($checked.filter(function () { return this.dataset.bom === '1'; }).map(function () { return this.dataset.so; }).get()),
+                        one: "{{ route('bom-nds-pdf', ':id') }}", batch: "{{ route('bom-nds-pdf-batch') }}" },
+                };
+                const radio = (name, value, text, checked, disabled) => `<label class="${disabled ? 'is-disabled' : ''}"><input type="radio" name="${name}" value="${value}"${checked ? ' checked' : ''}${disabled ? ' disabled' : ''}><span>${text}</span></label>`;
+                const docOptions = Object.entries(docs).map(([key, d], i) => radio('bp-doc', key,
+                    `${d.label} <small>${d.ids.length ? d.ids.length + ' dokumen' : (key === 'so' ? 'belum ada SO' : 'belum ada BOM')}</small>`, i === 0, !d.ids.length)).join('');
 
                 Swal.fire({
                     title: 'Batch Print',
-                    text: `${selectedIds.length} Costing dipilih. Pilih format PDF:`,
-                    input: 'radio',
-                    width: 480,
+                    html: `<div class="bp-group-title">Dokumen</div><div class="swal2-radio bp-docs">${docOptions}</div>
+                        <div class="bp-group-title">Format PDF</div><div class="swal2-radio">${radio('bp-mode', 'merge', 'Gabungkan menjadi satu PDF', true)}${radio('bp-mode', 'separate', 'Buka PDF masing-masing')}</div>`,
+                    width: 540,
                     customClass: { popup: 'batch-print-modal' },
-                    inputOptions: {
-                        merge: 'Gabungkan menjadi satu PDF',
-                        separate: 'Buka PDF masing-masing'
-                    },
-                    inputValue: 'merge',
-                    inputValidator: value => value ? undefined : 'Pilih format PDF terlebih dahulu.',
                     showCancelButton: true,
                     confirmButtonText: 'Print',
-                    cancelButtonText: 'Batal'
+                    cancelButtonText: 'Cancel',
+                    preConfirm: () => {
+                        const popup = Swal.getPopup();
+                        const doc = popup.querySelector('input[name="bp-doc"]:checked');
+                        const mode = popup.querySelector('input[name="bp-mode"]:checked');
+                        if (!doc || !mode) {
+                            Swal.showValidationMessage('Pilih dokumen dan format PDF dulu.');
+                            return false;
+                        }
+                        return { doc: doc.value, mode: mode.value };
+                    }
                 }).then(result => {
                     if (!result.isConfirmed) return;
+                    const d = docs[result.value.doc];
+                    const skipped = $checked.length - $checked.filter(function () {
+                        return result.value.doc === 'costing' || (result.value.doc === 'so' ? this.dataset.so : this.dataset.so && this.dataset.bom === '1');
+                    }).length;
+                    if (skipped) mktToast('info', `${skipped} baris dilewati`, `Baris itu belum punya ${d.label}.`);
 
-                    if (result.value === 'merge') {
-                        const url = new URL("{{ route('print-costing-batch-pdf') }}", window.location.origin);
-                        selectedIds.forEach(id => url.searchParams.append('ids[]', id));
+                    if (result.value.mode === 'merge') {
+                        const url = new URL(d.batch, window.location.origin);
+                        d.ids.forEach(id => url.searchParams.append('ids[]', id));
                         window.open(url.toString(), '_blank');
                         return;
                     }
 
                     const openedWindows = [];
-                    for (const id of selectedIds) {
-                        const pdfUrl = "{{ route('print-costing-pdf', ':id') }}".replace(':id', id);
-                        const printWindow = window.open(pdfUrl, '_blank');
+                    for (const id of d.ids) {
+                        const printWindow = window.open(d.one.replace(':id', id), '_blank');
                         if (!printWindow) {
                             openedWindows.forEach(openedWindow => openedWindow.close());
-                            Swal.fire('Popup diblokir', 'Izinkan pop-up untuk situs ini, lalu coba batch print lagi.', 'warning');
+                            Swal.fire({ icon: 'warning', title: 'Pop-up diblokir browser', text: 'PDF tidak bisa dibuka di tab baru. Izinkan pop-up untuk situs ini, lalu klik Batch Print lagi.' });
                             return;
                         }
                         openedWindows.push(printWindow);
@@ -1115,7 +1339,9 @@
             });
 
             $('#reset-settings').on('click', function () {
-                $('#column-toggles input').prop('checked', true).trigger('change');
+                $('#column-toggles input').each(function () {
+                    $(this).prop('checked', !COSTING_HIDDEN_BY_DEFAULT.includes(Number(this.dataset.column))).trigger('change');
+                });
                 pendingColumnOrder = defaultColumnOrder.slice();
                 renderColumnOrder();
                 $('.amount-format').removeClass('active').filter('[data-format="full"]').addClass('active');
@@ -1179,41 +1405,92 @@
         }
 
         function renderCostingTimeline(events, costing) {
+            // Timeline tampil berbahasa Indonesia. Kalimat di process_logs tetap disimpan apa adanya (sebagian berbahasa Inggris,
+            // dipakai juga untuk menggabungkan log item beruntun), lalu diterjemahkan di sini supaya log lama & baru seragam.
+            const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const pad = n => String(n).padStart(2, '0');
             const formatDateTime = (val) => {
                 if (!val) return '';
                 const d = new Date(String(val).replace(' ', 'T'));
                 if (Number.isNaN(d.getTime())) return escapeCostingHtml(val);
-                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                let hours = d.getHours();
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12 || 12;
-                const mins = d.getMinutes().toString().padStart(2, '0');
-                return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} @ ${hours}:${mins} ${ampm}`;
+                return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
             };
+            // "13 Nov 2026 @ 9:41 AM" (format di kalimat log) -> "13 Nov 2026 09:41".
+            const formatStamp = (stamp) => {
+                const m = String(stamp).match(/^(\d{1,2}) ([A-Z][a-z]{2}) (\d{4}) @ (\d{1,2}):(\d{2}) ([AP]M)$/);
+                if (!m) return stamp;
+                const hours = (Number(m[4]) % 12) + (m[6] === 'PM' ? 12 : 0);
+                const month = EN_MONTHS.indexOf(m[2]);
+                return `${m[1]} ${month >= 0 ? MONTHS[month] : m[2]} ${m[3]} ${pad(hours)}:${m[5]}`;
+            };
+            const dateHtml = text => text ? `<span class="timeline-v-date"> pada ${escapeCostingHtml(text)}</span>` : '';
 
             const costNo = escapeCostingHtml(costing.cost_no || 'Costing');
             const hasSalesOrder = events.some(event => String(event.type).toLowerCase() === 'so');
             const hasCostingReady = events.some(event => String(event.type).toLowerCase() === 'costing' && String(event.action).toLowerCase() === 'ready');
             const approved = Boolean(costing.approved);
 
-            // Histori format baru (kalimat lengkap + "on 23 Oct 2026 @ 2:05 PM", lihat MarketingHistoryService):
-            // ditampilkan apa adanya dengan badge status & nomor dokumen, tanpa tanggal tambahan.
+            // Histori format baru (kalimat lengkap + "on 23 Oct 2026 @ 2:05 PM", lihat MarketingHistoryService).
             const NEW_FORMAT_DATE = / on (\d{1,2} [A-Z][a-z]{2} \d{4} @ \d{1,2}:\d{2} [AP]M)\.?$/;
             const APPROVED_NOTE = 'This request has been approved.';
+            const APPROVED_NOTE_ID = 'Permintaan ini sudah disetujui.';
             const badge = status => status === 'Approved'
                 ? '<span class="timeline-v-badge badge-approved"><i class="fas fa-circle"></i>Approved</span>'
                 : '<span class="timeline-v-badge badge-awaiting"><i class="fas fa-square"></i>Awaiting Approval</span>';
+            const noteHtml = text => `<div class="timeline-v-note"><i class="far fa-comment-alt"></i><span>${escapeCostingHtml(text)}</span></div>`;
+            const docLabel = no => /^BOM\//i.test(no) ? 'BOM' : (/^SO\//i.test(no) ? 'Sales Order' : (/^CST\//i.test(no) ? 'Costing' : null));
+            const items_ = (n, noun) => `${n} item ${noun}`;
+            // Kalimat Inggris (sesudah nama pelaku dibuang) -> Indonesia. Nomor & status dirender belakangan.
+            const PHRASES = [
+                [/^created costing$/, () => 'membuat Costing'],
+                [/^updated costing$/, () => 'mengubah Costing'],
+                [/^changed status from Awaiting Approval to Approved$/, () => 'mengubah status dari Awaiting Approval ke Approved'],
+                [/^added (\d+) (costing|BOM) items?(?: in (.+))?$/, (m, n, noun, cats) => `menambah ${items_(n, noun === 'costing' ? 'Costing' : 'BOM')}${cats ? ' di ' + cats : ''}`],
+                [/^deleted (\d+) (costing|BOM) items?(?: in (.+))?$/, (m, n, noun, cats) => `menghapus ${items_(n, noun === 'costing' ? 'Costing' : 'BOM')}${cats ? ' di ' + cats : ''}`],
+                [/^updated (costing|BOM) items?(?: in (.+?))? \((\d+) changes?\)$/, (m, noun, cats, n) => `mengubah item ${noun === 'costing' ? 'Costing' : 'BOM'}${cats ? ' di ' + cats : ''} (${n} perubahan)`],
+                [/^created sales order(?: (\S+))?$/i, (m, no) => `membuat Sales Order${no ? ' ' + no : ''}`],
+                [/^saved sales order (\S+) details$/i, (m, no) => `menyimpan detail Sales Order ${no}`],
+                [/^updated sales order (\S+)(?: \((.+)\))?$/i, (m, no, parts) => `mengubah Sales Order ${no}${parts ? ' (' + parts
+                    .replace(/details? updated/g, 'detail diubah').replace(/details? added/g, 'detail ditambah')
+                    .replace(/details? deleted/g, 'detail dihapus').replace(/details? restored/g, 'detail dikembalikan') + ')' : ''}`],
+                [/^created BOM$/, () => 'membuat BOM'],
+                [/^(created|updated) BOM (\S+) for worksheet (.+)$/, (m, verb, no, ws) => `${verb === 'created' ? 'membuat' : 'mengubah'} BOM ${no} untuk WS ${ws}`],
+                [/^Request unlock: ?(.*)$/i, (m, reason) => `mengajukan Request Unlock${reason ? ': ' + reason : ''}`],
+                [/^(Costing|BOM|Sales Order) (\S+) di-unlock \((.+)\)\.?$/, (m, label, no, until) => `meng-unlock ${label} ${no} (${until})`],
+                // Kalimat tanpa pelaku. "Sales Order BOM/..." = label salah di log lama approval BOM.
+                [/^(?:Costing|Sales Order|BOM) (\S+) is Approved automatically by the system and ready to be created as a BOM$/, (m, no) => `Sales Order ${no} otomatis Approved oleh sistem dan siap dibuat BOM`],
+                [/^(?:Costing|Sales Order|BOM) (\S+) is Approved(?: and ready to be created as an? (.+))?$/, (m, no, next) => {
+                    const label = docLabel(no) || 'Dokumen';
+                    if (label === 'BOM') return `BOM ${no} sudah Approved`;
+                    return `${label} ${no} Approved${next ? ' dan siap dibuat ' + next : ''}`;
+                }],
+            ];
+            const translate = text => {
+                for (const [re, fn] of PHRASES) {
+                    const m = text.match(re);
+                    if (m) return { text: fn(...m), done: true };
+                }
+                return { text, done: false };
+            };
+            // Escape lalu tebalkan nomor dokumen dan ganti status dengan badge.
+            const decorate = text => escapeCostingHtml(text)
+                .replace(/\b((?:CST|SO|BOM)\/\d{4}\/\d+)\b/g, '<span class="timeline-v-costno">$1</span>')
+                .replace(/Awaiting Approval|Approved/g, badge);
+
             function renderNewFormat(event) {
                 let text = String(event.desc || '');
                 const hasNote = text.endsWith(' ' + APPROVED_NOTE);
                 if (hasNote) text = text.slice(0, -(APPROVED_NOTE.length + 1)).replace(/\.$/, '');
                 const match = text.match(NEW_FORMAT_DATE);
                 const body = match ? text.slice(0, match.index) : text;
-                let html = escapeCostingHtml(body)
-                    .replace(/^(Costing|Sales Order|BOM) (\S+) is /, (all, label, no) => `${label} <span class="timeline-v-costno">${no}</span> is `)
-                    .replace(/Awaiting Approval|Approved/g, badge);
-                if (match) html += `<span class="timeline-v-date"> on ${escapeCostingHtml(match[1])}</span>`;
-                if (hasNote) html += `<div class="timeline-v-note"><i class="far fa-comment-alt"></i><span>${APPROVED_NOTE}</span></div>`;
+                // Pelaku ditulis tebal. Histori lama masih berbunyi "Marketing Staff/Manager", diganti dengan user yang mencatatnya.
+                const actor = event.user || '';
+                const actorPrefix = ['Marketing Staff ', 'Marketing Manager ', actor ? actor + ' ' : null].find(prefix => prefix && body.startsWith(prefix));
+                const rest = actorPrefix ? body.slice(actorPrefix.length) : body;
+                let html = (actorPrefix ? `<b>${escapeCostingHtml(actor || actorPrefix.trim())}</b> ` : '') + decorate(translate(rest).text);
+                if (match) html += dateHtml(formatStamp(match[1]));
+                if (hasNote) html += noteHtml(APPROVED_NOTE_ID);
                 return html;
             }
             const newFormatIcons = {
@@ -1236,50 +1513,63 @@
                         <div class="timeline-v-content">${renderNewFormat(event)}</div>
                     </div>`;
                 }
-                const username = event.user || 'Marketing Staff';
-                const user = `<b>${escapeCostingHtml(username)}</b>`;
+                const username = event.user || '';
+                const user = username ? `<b>${escapeCostingHtml(username)}</b> ` : '';
+                const desc = String(event.desc || '');
                 const date = formatDateTime(event.created_at);
                 let icon = 'fa-clock';
                 let iconClass = '';
                 let description;
+                let note = '';
 
                 if (action === 'created' && type !== 'so') {
                     icon = 'fa-plus';
                     iconClass = 'is-created';
-                    description = `${user} created costing <span class="timeline-v-costno">${costNo}</span>`;
+                    description = `${user}membuat Costing <span class="timeline-v-costno">${costNo}</span>`;
                 } else if (action === 'approved') {
                     icon = 'fa-clipboard-check';
                     iconClass = 'is-approved';
-                    description = `${user} changed status from <span class="timeline-v-badge badge-awaiting"><i class="fas fa-square"></i>Awaiting Approval</span> to <span class="timeline-v-badge badge-approved"><i class="fas fa-circle"></i>Approved</span>`;
+                    description = `${user}mengubah status dari ${badge('Awaiting Approval')} ke ${badge('Approved')}`;
+                    note = noteHtml(APPROVED_NOTE_ID);
+                } else if (action === 'return' || action === 'cancel') {
+                    // Catatan Return to Staff / Cancel berisi alasan dari approver.
+                    icon = action === 'return' ? 'fa-undo' : 'fa-ban';
+                    description = `${user}mengubah status ke <b>${action === 'return' ? 'Return to Staff' : 'Cancel'}</b>`;
+                    note = desc ? noteHtml(desc) : '';
                 } else if (action === 'copied') {
                     icon = 'fa-copy';
-                    const sourceMatch = String(event.desc || '').match(/(?:dibuat|disalin) dari\s+(.+?)[.!]?$/i);
-                    const source = sourceMatch ? ` from <span class="timeline-v-costno">${escapeCostingHtml(sourceMatch[1])}</span>` : '';
-                    description = `${user} copied costing <span class="timeline-v-costno">${costNo}</span>${source}`;
+                    const sourceMatch = desc.match(/(?:dibuat|disalin) dari\s+(.+?)[.!]?$/i);
+                    const source = sourceMatch ? ` dari <span class="timeline-v-costno">${escapeCostingHtml(sourceMatch[1])}</span>` : '';
+                    description = `${user}menyalin Costing <span class="timeline-v-costno">${costNo}</span>${source}`;
                 } else if (action === 'updated' && type === 'costing') {
                     icon = 'fa-pen';
-                    description = `${user} updated costing <span class="timeline-v-costno">${costNo}</span>`;
-                } else if (type === 'so') {
+                    description = `${user}mengubah Costing <span class="timeline-v-costno">${costNo}</span>`;
+                } else if (type === 'so' && /dibuat untuk (?:Purchase Order|PO)/i.test(desc)) {
                     icon = 'fa-file-alt';
-                    const soMatch = String(event.desc || '').match(/Sales Order\s+(.+?)\s+dibuat untuk (?:Purchase Order|PO)\s+(.+?)[.!]?$/i);
-                    description = soMatch
-                        ? `${user} created Sales Order <span class="timeline-v-costno">${escapeCostingHtml(soMatch[1])}</span> for Purchase Order <span class="timeline-v-costno">${escapeCostingHtml(soMatch[2])}</span>`
-                        : `${user} ${escapeCostingHtml(event.desc || 'created a Sales Order.')}`;
+                    const soMatch = desc.match(/Sales Order\s+(.+?)\s+dibuat untuk (?:Purchase Order|PO)\s+(.+?)[.!]?$/i);
+                    description = `${user}membuat Sales Order <span class="timeline-v-costno">${escapeCostingHtml(soMatch[1])}</span> untuk PO <span class="timeline-v-costno">${escapeCostingHtml(soMatch[2])}</span>`;
                 } else {
                     const actionIcons = {
                         updated: 'fa-pen',
                         item_added: 'fa-plus',
                         item_updated: 'fa-pen',
-                        item_deleted: 'fa-trash'
+                        item_deleted: 'fa-trash',
+                        unlock_requested: 'fa-unlock-alt',
+                        unlock_cancelled: 'fa-times-circle',
+                        unlocked: 'fa-unlock',
+                        relocked: 'fa-lock',
+                        resubmitted: 'fa-paper-plane'
                     };
-                    icon = actionIcons[action] || icon;
-                    description = `${user} ${escapeCostingHtml(event.desc || event.action || 'updated costing')}`;
+                    icon = actionIcons[action] || (type === 'so' ? 'fa-file-alt' : icon);
+                    const translated = translate(desc.replace(/\.$/, ''));
+                    // Kalimat yang sudah lengkap (diawali nama dokumen, "Masa unlock", "Edit ...") tidak diberi nama pelaku di depan.
+                    const standalone = !translated.done && /^(Costing|BOM|Sales Order|Request unlock|Masa unlock|Edit )/.test(desc);
+                    description = desc
+                        ? (standalone ? decorate(desc.replace(/\.$/, '')) : `${user}${decorate(translated.text)}`)
+                        : `${user}${escapeCostingHtml(event.action || 'mengubah Costing')}`;
                 }
 
-                const dateText = date ? `<span class="timeline-v-date"> on ${escapeCostingHtml(date)}</span>` : '';
-                const note = action === 'approved'
-                    ? '<div class="timeline-v-note"><i class="far fa-comment-alt"></i><span>This request has been approved.</span></div>'
-                    : '';
+                const dateText = dateHtml(date);
 
                 return `<div class="timeline-v-item">
                     <div class="timeline-v-icon ${iconClass}"><i class="fas ${icon}"></i></div>
@@ -1289,15 +1579,14 @@
 
             if (approved && !hasSalesOrder && !hasCostingReady) {
                 const readyDate = formatDateTime(costing.approved_at);
-                const readyDateText = readyDate ? `<span class="timeline-v-date"> on ${escapeCostingHtml(readyDate)}</span>` : '';
                 items.push(`<div class="timeline-v-item">
                     <div class="timeline-v-icon"><i class="fas fa-plus"></i></div>
-                    <div class="timeline-v-content">Costing <span class="timeline-v-costno">${costNo}</span> is <span class="timeline-v-badge badge-approved"><i class="fas fa-circle"></i>Approved</span> and ready to be created as a Sales Order${readyDateText}</div>
+                    <div class="timeline-v-content">Costing <span class="timeline-v-costno">${costNo}</span> ${badge('Approved')} dan siap dibuat Sales Order${dateHtml(readyDate)}</div>
                 </div>`);
             } else if (!approved) {
                 items.push(`<div class="timeline-v-item">
                     <div class="timeline-v-icon"><i class="fas fa-plus"></i></div>
-                    <div class="timeline-v-content">Costing <span class="timeline-v-costno">${costNo}</span> is <span class="timeline-v-badge badge-awaiting"><i class="fas fa-square"></i>Awaiting Approval</span></div>
+                    <div class="timeline-v-content">Costing <span class="timeline-v-costno">${costNo}</span> masih ${badge('Awaiting Approval')}</div>
                 </div>`);
             }
 
@@ -1329,6 +1618,19 @@
         function costingTitleCase(data, type) {
             if (type !== 'display' || !data) return data || '-';
             return window.mktTitleCaseHtml(data);
+        }
+
+        // Buyer, Brand, Style: tanpa huruf kapital semua (KANMAX ENTERPRISES LTD -> Kanmax Enterprises Ltd, PT X -> Pt X).
+        // Kata yang mengandung angka (kode style OLD562936, HG21) dibiarkan apa adanya. Sort/search tetap memakai data asli.
+        function costingPlainCase(data, type) {
+            if (type !== 'display' || !data) return data || '-';
+            const box = document.createElement('textarea');
+            box.innerHTML = String(data);
+            const text = box.value.split(/(\s+)/).map(word => /\d/.test(word) ? word
+                : word.toLowerCase().replace(/(^|[\-\/(&.,])([a-z])/g, (m, sep, ch) => sep + ch.toUpperCase())).join('');
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // Tabel detail bergaya tabel marketing (header biru muda, isi Inter 14, angka rata kanan id-ID, pager).
@@ -1388,8 +1690,7 @@
                 width: 1400,
                 showCloseButton: true,
                 confirmButtonText: 'Tutup',
-                buttonsStyling: false,
-                customClass: { popup: 'mkt-dt-modal', title: 'mkt-dt-title', htmlContainer: 'mkt-dt-body', confirmButton: 'mkt-btn mkt-btn--navy', actions: 'mkt-dt-actions' },
+                customClass: { popup: 'mkt-dt-modal', title: 'mkt-dt-title', htmlContainer: 'mkt-dt-body', actions: 'mkt-dt-actions' },
                 didOpen: popup => {
                     render(popup);
                     popup.querySelector('.mkt-dt-per-page').addEventListener('change', () => { page = 1; render(popup); });
@@ -1419,7 +1720,7 @@
                 ], response.data || []);
             }).fail(function (xhr) {
                 const message = xhr.responseJSON && xhr.responseJSON.message;
-                Swal.fire('Gagal memuat material SO', message || 'Terjadi kesalahan saat mengambil material SO.', 'error');
+                Swal.fire({ icon: 'error', title: 'Material SO belum bisa dimuat', text: message || 'Data material SO tidak terambil dari server. Coba buka lagi, hubungi IT bila masih gagal.' });
             });
         }
 
@@ -1436,7 +1737,7 @@
                 ], response.data || []);
             }).fail(function (xhr) {
                 const message = xhr.responseJSON && xhr.responseJSON.message;
-                Swal.fire('Gagal memuat detail BOM', message || 'Terjadi kesalahan saat mengambil detail BOM.', 'error');
+                Swal.fire({ icon: 'error', title: 'Detail BOM belum bisa dimuat', text: message || 'Data detail BOM tidak terambil dari server. Coba buka lagi, hubungi IT bila masih gagal.' });
             });
         }
 
@@ -1450,14 +1751,17 @@
         }
 
         // Lebar tabel (px) di bawah batas ini -> kolom disembunyikan otomatis, supaya tidak perlu scroll ke samping.
-        // Index kolom: 1 Timeline, 2 No, 4 Due Date, 5 No Worksheet, 7 Brand, 8 Style, 9 Market, 10 Qty,
-        // 11 Confirm Price, 12 Product Group, 13 Product Item.
+        // Index kolom: 0 Checkbox, 1 Timeline, 2 No, 3 Costing Date, 4 No Costing, 5 No SO, 6 No Worksheet, 7 Buyer, 8 Brand,
+        // 9 Style, 10 Market, 11 Qty, 12 Confirm Price, 13 Product Group, 14 Product Item, 15 Action.
+        // Disembunyikan sejak awal (Market selalu kosong, Product Group sudah tersirat dari Product Item); bisa dicentang lagi di Table Settings.
+        const COSTING_HIDDEN_BY_DEFAULT = [10, 13];
+
         const COSTING_AUTO_HIDE = [
-            { below: 1600, columns: [9, 12] },
-            { below: 1450, columns: [7, 13] },
-            { below: 1100, columns: [4, 11] },
-            { below: 860, columns: [2, 5, 10] },
-            { below: 576, columns: [8] },
+            { below: 1600, columns: [10, 13] },
+            { below: 1450, columns: [8, 14] },
+            { below: 1100, columns: [3, 12] },
+            { below: 860, columns: [2, 6, 11] },
+            { below: 576, columns: [9] },
             { below: 360, columns: [1] },
             { below: 260, columns: [0] }
         ];
@@ -1528,35 +1832,136 @@
         }
 
         // Costing / BOM Approved (terkunci): Request Unlock, atau "Menunggu Unlock" bila sudah diajukan.
-        function unlockMenuItem(type, id, number, buyer, pending) {
+        // sub: keterangan kecil di bawah label (mis. No WS untuk BOM per WS).
+        function unlockMenuItem(type, id, number, buyer, pending, sub = '') {
             const attr = value => $('<div>').text(value || '').html().replace(/"/g, '&quot;');
+            const small = sub ? `<small>${attr(sub)}</small>` : '';
             if (Number(pending)) {
-                return '<button type="button" class="dropdown-item mkt-fab is-edit" disabled><span class="mkt-fab-icon"><i class="fas fa-hourglass-half"></i></span>Menunggu Unlock</button>';
+                return `<button type="button" class="dropdown-item mkt-fab is-edit" disabled><span class="mkt-fab-icon"><i class="fas fa-hourglass-half"></i></span><span class="mkt-fab-label">Menunggu Unlock${small}</span></button>`;
             }
-            return `<button type="button" class="dropdown-item mkt-fab is-edit marketing-request-unlock" data-type="${type}" data-id="${id}" data-number="${attr(number)}" data-buyer="${attr(buyer)}"><span class="mkt-fab-icon"><i class="fas fa-lock-open"></i></span>Request Unlock</button>`;
+            return `<button type="button" class="dropdown-item mkt-fab is-edit marketing-request-unlock" data-type="${type}" data-id="${id}" data-number="${attr(number)}" data-buyer="${attr(buyer)}"><span class="mkt-fab-icon"><i class="fas fa-lock-open"></i></span><span class="mkt-fab-label">Request Unlock${small}</span></button>`;
         }
 
 
-        function confirmCopy(url) {
-            Swal.fire({
-                title: 'Copy Costing?',
-                text: 'Data header dan semua detail akan dicopy ke nomor costing baru.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-copy"></i> Ya, Copy!',
-                cancelButtonText: 'Batal',
-            }).then((result) => {
-                if (result.isConfirmed) {
+        // Harga CMT dibaca saat diklik, bukan saat tabel dimuat. Kalau pengecekan gagal, halaman SO tetap memeriksanya di server.
+        $(document).on('click', '.so-cmt-check', function(event) {
+            event.preventDefault();
+            const target = this.href;
+            const cmtUrl = this.dataset.cmtUrl;
+            $.get(this.dataset.cmtCheck).done(function(res) {
+                if (res.issues.length) {
                     Swal.fire({
-                        title: 'Sedang menyalin...',
-                        text: 'Mohon tunggu sebentar.',
-                        allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
+                        icon: 'warning',
+                        title: 'Harga CMT belum lengkap',
+                        showCancelButton: true,
+                        focusConfirm: true,
+                        confirmButtonText: 'Add CMT Price',
+                        cancelButtonText: 'Cancel',
+                        html: `${res.issues.map(escapeCostingHtml).join('<br>')}<br>Lengkapi harga CMT semua product item dulu, baru Sales Order bisa dibuat.`,
+                    }).then(result => {
+                        if (result.isConfirmed) goWithLoading(cmtUrl, "Membuka Costing...");
                     });
-                    window.location.href = url;
+                } else {
+                    goWithLoading(target, "Membuka Sales Order...");
                 }
+            }).fail(function() {
+                goWithLoading(target, "Membuka Sales Order...");
+            });
+        });
+
+        // Pindah halaman sambil menampilkan loading, supaya user tahu halaman sedang dibuka (bukan error).
+        function goWithLoading(url, title) {
+            Swal.fire({ title: title || 'Memuat...', text: 'Mohon tunggu sebentar.', allowOutsideClick: false, allowEscapeKey: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+            window.location.href = url;
+        }
+        // Kembali lewat tombol Back (halaman dari cache browser): tutup loading yang tertinggal.
+        window.addEventListener('pageshow', e => { if (e.persisted && Swal.isVisible()) Swal.close(); });
+
+        // Add SO: tampilkan ringkasan Costing (header, content, cons, charge, SO yang sudah ada) supaya user yakin Costing-nya benar.
+        $(document).on('click', '.so-add-preview', function(event) {
+            event.preventDefault();
+            const target = this.href;
+            const cmtUrl = this.dataset.cmtUrl;
+            const esc = escapeCostingHtml;
+            const num = v => Number(v || 0).toLocaleString('id-ID', { maximumFractionDigits: 4 });
+            Swal.fire({ title: 'Memuat data Costing...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            $.get(this.dataset.preview).done(function(res) {
+                if (res.status !== 200) {
+                    Swal.fire({ icon: 'error', title: 'Data costing belum bisa dimuat', text: res.message || 'Costing tidak ditemukan. Muat ulang halaman lalu coba lagi.' });
+                    return;
+                }
+                const d = res.data, c = d.costing;
+                const info = [
+                    ['No Costing', c.costing_no], ['Buyer', c.buyer], ['Brand', c.brand], ['Style', c.style],
+                    ['Product Item', (d.sets || []).join(', ')], ['Qty', num(c.planned_qty)], ['FOB', `${c.currency_code || ''} ${num(c.fob_price)}`],
+                ].map(([k, v]) => `<div><span>${k}</span><b>${esc(v || '-')}</b></div>`).join('');
+                const matRows = d.materials.length
+                    ? d.materials.map((m, i) => {
+                        const first = i === 0 || d.materials[i - 1].content !== m.content;
+                        return `<tr class="${first ? 'g' : ''}"><td>${first ? esc(m.content) : ''}</td><td>${esc(m.set)}</td><td>${esc(m.shell || '-')}</td><td>${esc(m.part || '-')}</td><td class="n">${num(m.cons)}</td><td>${esc(m.unit || '-')}</td><td class="n">${num(m.loss)}%</td></tr>`;
+                    }).join('')
+                    : '<tr><td colspan="7" class="e">Belum ada material</td></tr>';
+                const chgRows = d.charges.length
+                    ? d.charges.map(m => `<tr><td>${esc(m.content)}</td><td>${esc(m.set)}</td><td class="n">${num(m.price)}</td></tr>`).join('')
+                    : '<tr><td colspan="3" class="e">Belum ada charge</td></tr>';
+                // Banner gaya katalog alert: ikon bulat gradien + judul + pesan (pesan sudah berupa HTML aman).
+                const banner = (kind, title, messageHtml) => `<div class="sp-banner${kind === 'warn' ? ' is-warn' : ''}"><span class="sp-banner-ic">${kind === 'warn'
+                    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5v8"/><path d="M12 17.8v.01"/></svg>'
+                    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11v7"/><path d="M12 6.5v.01"/></svg>'}</span><div><b>${esc(title)}</b><span>${messageHtml}</span></div></div>`;
+                const so01 = d.orders.length ? mktAlertText('SO-01', { count: d.orders.length, next: d.orders.length + 1, costing: c.costing_no }) : null;
+                const orders = so01 ? banner('info', so01.title, esc(so01.message)) : '';
+                const cmt = d.cmt_issues.length
+                    ? banner('warn', 'Harga CMT belum lengkap', `${d.cmt_issues.map(esc).join('<br>')}<br>Lengkapi harga CMT dulu, baru SO bisa dibuat.`)
+                    : '';
+                Swal.fire({
+                    customClass: { popup: 'so-preview-modal' },
+                    showCancelButton: true,
+                    confirmButtonText: d.cmt_issues.length ? 'Add CMT Price' : 'Create SO',
+                    cancelButtonText: 'Cancel',
+                    title: 'Create SO dari costing ini?',
+                    html: `
+                        ${orders}${cmt}
+                        <div class="sp-info">${info}</div>
+                        <div class="sp-cols">
+                            <div><div class="sp-sub">Material</div>
+                            <div class="sp-scroll"><table class="sp-table"><thead><tr><th>Content</th><th>Set</th><th>Shell</th><th>Part</th><th class="n">Cons</th><th>Unit</th><th class="n">Loss</th></tr></thead><tbody>${matRows}</tbody></table></div></div>
+                            <div><div class="sp-sub">Manufacturing &amp; Other Cost</div>
+                            <div class="sp-scroll"><table class="sp-table"><thead><tr><th>Content</th><th>Set</th><th class="n">Price</th></tr></thead><tbody>${chgRows}</tbody></table></div></div>
+                        </div>`,
+                }).then(result => {
+                    if (result.isConfirmed) goWithLoading(d.cmt_issues.length ? cmtUrl : target, d.cmt_issues.length ? "Membuka Costing..." : "Membuka Create SO...");
+                });
+            }).fail(function() {
+                Swal.fire({ icon: 'error', title: 'Data costing belum bisa dimuat', text: 'Ringkasan costing tidak terambil dari server. Klik Add SO lagi, hubungi IT bila masih gagal.' });
+            });
+        });
+
+        function confirmCopy(btn) {
+            const d = Object.fromEntries(Object.entries(btn.dataset).map(([k, v]) => [k, k === 'url' ? v : escapeCostingHtml(v)]));
+            Swal.fire({
+                icon: 'info',
+                showCancelButton: true,
+                focusConfirm: true,
+                confirmButtonText: 'Copy Costing',
+                cancelButtonText: 'Cancel',
+                title: `Copy costing ${d.no || ''}?`,
+                html: `
+                    <p class="mkt-plain-desc">Buyer : ${d.buyer || '-'}<br>Style : ${d.style || '-'}</p>
+                    <div class="mkt-plain-list">
+                        <div><b>Ikut dicopy</b><ul><li>Header costing</li><li>Set &amp; material</li><li>Biaya lain (charges)</li><li>Gambar costing</li></ul></div>
+                        <div><b>Tidak ikut</b><ul><li>Sales Order</li><li>BOM</li></ul></div>
+                    </div>
+                    <p>Costing baru mendapat nomor baru dan approval dimulai dari awal.</p>`,
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+                Swal.fire({
+                    title: `Menyalin ${d.no || 'costing'}...`,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => Swal.showLoading(),
+                });
+
+                window.location.href = d.url;
             });
         }
     </script>

@@ -1080,9 +1080,14 @@
 
                 {{-- Marketing --}}
                 @if ($page == 'dashboard-marketing')
+                    {{-- Dashboard Marketing (sebelum menu Process). --}}
+                    <li class="nav-item">
+                        <a href="{{ route('dashboard-marketing') }}"
+                            class="nav-link {{ request()->routeIs('dashboard-marketing') ? 'active' : '' }}">Dashboard</a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'marketing-master' && !in_array($subPage, ['marketing-master-costing-approval', 'marketing-master-bom-approval']) ? 'active' : '' }}">Proses</a>
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'marketing-master' && !in_array($subPage, ['marketing-master-costing-approval', 'marketing-master-bom-approval']) ? 'active' : '' }}">Process</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
                                 <a href="{{ route('master-costing') }}"

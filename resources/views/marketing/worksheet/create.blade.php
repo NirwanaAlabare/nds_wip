@@ -124,7 +124,7 @@
 
 @section('content')
 <div class="ws-page">
-    <div class="ws-crumb">Marketing &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Proses</a> &nbsp;› Worksheet &nbsp;› &nbsp; <b>Create Worksheet</b></div>
+    <div class="ws-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;› Worksheet &nbsp;› &nbsp; <b>Create Worksheet</b></div>
     <div class="card ws-card">
         <div class="card-body">
             <h1 class="ws-title">Create Worksheet <i class="fas fa-info-circle"></i></h1>
@@ -583,11 +583,11 @@
                         table.draw(false);
                         return;
                     }
-                    Swal.fire({ icon: 'warning', title: 'Gagal menyimpan', text: res.message || 'Terjadi kesalahan.' });
+                    mktToast('err', 'Perubahan belum tersimpan', res.message || 'Server belum bisa menyimpan perubahan ini. Ketik ulang isinya.');
                     reload();
                 })
                 .fail(xhr => {
-                    fail(xhr);
+                    fail(xhr, 'Perubahan belum tersimpan');
                     reload();
                 });
         }
@@ -605,6 +605,8 @@
         $('#ws-part').select2({ theme: 'bootstrap4', width: '100%', placeholder: 'Choose Part' });
         $('#ws-color').select2({ theme: 'bootstrap4', width: '100%', placeholder: 'All Color' });
         $('#ws-size').select2({ theme: 'bootstrap4', width: '100%', placeholder: 'All Size' });
+        // Pesan field (mktFieldError) hilang saat pilihan select2 diganti.
+        $('#ws-shell, #ws-part, #ws-color, #ws-size').on('change', function () { this.dispatchEvent(new Event('input')); });
 
         const table = $('#ws-table').DataTable({
             data: [],
@@ -676,20 +678,27 @@
             });
         }
 
-        function handle(res) {
+        // failTitle = apa yang tidak terjadi; onOk = alert sukses (default toast dengan pesan server).
+        function handle(res, failTitle, onOk) {
             if (res.status !== 200) {
-                Swal.fire({ icon: 'warning', title: 'Gagal', text: res.message || 'Terjadi kesalahan.' });
+                Swal.fire({ icon: 'error', title: failTitle, text: res.message || 'Server belum bisa memproses permintaan ini. Coba lagi.' });
                 return false;
             }
             if (res.rows) setRows(res.rows);
-            Swal.fire({ icon: 'success', title: res.message, timer: 1500, showConfirmButton: false });
+            if (onOk) onOk(res);
+            else mktToast('ok', res.message || 'Data tersimpan', '');
             return true;
         }
 
-        function fail(xhr) {
+        function fail(xhr, title) {
             const errors = xhr.responseJSON?.errors;
-            Swal.fire({ icon: 'error', title: 'Gagal', text: errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || 'Terjadi kesalahan.') });
+            Swal.fire({ icon: 'error', title: title || 'Worksheet belum tersimpan', text: errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || 'Koneksi ke server terputus. Coba lagi.') });
         }
+
+        // Konfirmasi SV-05 sebelum Save, toast WS-01 setelah berhasil.
+        const WS_NO = @json($costing->kpno ?: '-');
+        const SO_NOS = @json($soNumbers ?: '-');
+        const wsSaved = () => mktAlert('WS-01', { ws: WS_NO, so: SO_NOS });
 
         $.get(urls.rows).done(res => setRows(res.rows || []));
 
@@ -697,8 +706,12 @@
             event.preventDefault();
             const shell = $('#ws-shell').val();
             const part = $('#ws-part').val();
-            if (!shell || !part) {
-                Swal.fire({ icon: 'warning', title: 'Shell dan Part wajib dipilih.' });
+            if (!shell) {
+                mktFieldError('#ws-shell', 'Pilih Shell dulu.');
+                return;
+            }
+            if (!part) {
+                mktFieldError('#ws-part', 'Pilih Part dulu.');
                 return;
             }
             const qty = $('#ws-qty').val();
@@ -706,12 +719,15 @@
 
             if (editId) {
                 if (qty === '') {
-                    Swal.fire({ icon: 'warning', title: 'Qty wajib diisi.' });
+                    mktFieldError('#ws-qty', 'Isi Qty dulu.');
                     return;
                 }
-                $.ajax({ url: urls.update.replace(':id', editId), method: 'PUT', headers, data: { id_panel: shell, id_part: part, qty } })
-                    .done(res => { if (handle(res)) setEditMode(null); })
-                    .fail(fail);
+                mktAlert('SV-05', { ws: WS_NO, so: SO_NOS }).then(result => {
+                    if (!result.isConfirmed) return;
+                    $.ajax({ url: urls.update.replace(':id', editId), method: 'PUT', headers, data: { id_panel: shell, id_part: part, qty } })
+                        .done(res => { if (handle(res, 'Worksheet belum tersimpan', wsSaved)) setEditMode(null); })
+                        .fail(xhr => fail(xhr, 'Worksheet belum tersimpan'));
+                });
                 return;
             }
 
@@ -721,12 +737,15 @@
                 .filter(d => (!colors.length || colors.includes(d.color)) && (!sizes.length || sizes.includes(d.size)))
                 .map(d => d.id);
             if (!ids.length) {
-                Swal.fire({ icon: 'warning', title: 'Tidak ada color / size yang cocok di Sales Order.' });
+                mktFieldError('#ws-size', 'Color dan size ini tidak ada di Sales Order. Pilih kombinasi lain.');
                 return;
             }
-            $.ajax({ url: urls.store, method: 'POST', headers, data: { id_panel: shell, id_part: part, id_so_det: ids, qty: qty === '' ? null : qty } })
-                .done(res => { if (handle(res)) setEditMode(null); })
-                .fail(fail);
+            mktAlert('SV-05', { ws: WS_NO, so: SO_NOS }).then(result => {
+                if (!result.isConfirmed) return;
+                $.ajax({ url: urls.store, method: 'POST', headers, data: { id_panel: shell, id_part: part, id_so_det: ids, qty: qty === '' ? null : qty } })
+                    .done(res => { if (handle(res, 'Worksheet belum tersimpan', wsSaved)) setEditMode(null); })
+                    .fail(xhr => fail(xhr, 'Worksheet belum tersimpan'));
+            });
         });
 
         $('#ws-cancel').on('click', () => setEditMode(null));
@@ -737,15 +756,23 @@
         });
 
         function destroy(ids) {
-            Swal.fire({ icon: 'question', title: `Hapus ${ids.length} baris worksheet?`, showCancelButton: true, confirmButtonText: 'Hapus', cancelButtonText: 'Batal' })
-                .then(result => {
+            // Satu baris = DEL-03 persis katalog; beberapa baris = kalimat yang sama dengan jumlah barisnya.
+            const one = ids.length === 1 ? rowsById.get(String(ids[0])) : null;
+            const ask = one
+                ? mktAlert('DEL-03', { row: [one.color, one.size].filter(Boolean).join(' / ') || 'Baris ini', doc: 'Worksheet ' + WS_NO })
+                : Swal.fire({ icon: 'warning', title: `Hapus ${ids.length} baris ini?`, text: `${ids.length} baris akan dihapus dari Worksheet ${WS_NO}.`, showCancelButton: true, confirmButtonText: 'Delete', cancelButtonText: 'Cancel', focusCancel: true });
+            ask.then(result => {
                     if (!result.isConfirmed) return;
                     $.ajax({ url: urls.destroy, method: 'DELETE', headers, data: { ids } })
                         .done(res => {
                             if (ids.map(String).includes($('#ws-edit-id').val())) setEditMode(null);
-                            handle(res);
+                            if (res.status !== 200) {
+                                mktAlert('DEL-04', { detail: res.message || 'Server belum bisa menghapus baris ini. Coba lagi.' });
+                                return;
+                            }
+                            handle(res, 'Baris belum terhapus', () => mktToast('ok', 'Baris dihapus', ids.length + ' baris sudah dihapus dari Worksheet ' + WS_NO + '.'));
                         })
-                        .fail(fail);
+                        .fail(xhr => fail(xhr, 'Baris belum terhapus'));
                 });
         }
 

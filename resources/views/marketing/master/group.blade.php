@@ -103,7 +103,7 @@
 <div class="mg-page">
 
     <div class="mg-card">
-        <div class="mg-crumb">Master Data &nbsp;›&nbsp; <b>Master Group</b></div>
+        <div class="mg-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; Master Data &nbsp;›&nbsp; <b>Master Group</b></div>
 
         <h1 class="mg-title">List Group <i class="fas fa-info-circle" title="Group material untuk content, item, dan BOM"></i></h1>
         <p class="mg-subtitle"><i class="fas fa-database"></i> List Data Master Group</p>
@@ -199,8 +199,8 @@
                     { data: 'nama_group', render: mgEscape },
                     {
                         data: null,
-                        render: () => '<button type="button" class="mkt-ico mkt-ico--edit is-edit" title="Edit" data-tip="Edit"><i class="far fa-edit"></i></button>'
-                            + '<button type="button" class="mkt-ico mkt-ico--delete is-delete" title="Delete" data-tip="Delete"><i class="fas fa-trash"></i></button>'
+                        render: () => '<button type="button" class="mkt-ico mkt-ico--edit is-edit" data-tip="Edit"><i class="far fa-edit"></i></button>'
+                            + '<button type="button" class="mkt-ico mkt-ico--delete is-delete" data-tip="Delete"><i class="fas fa-trash"></i></button>'
                     }
                 ]
             }).on('draw.dt', () => $('#mg-check-all').prop('checked', false));
@@ -214,6 +214,7 @@
                 $('#mg-id').val(row ? row.id : '');
                 $('#mg-kode').val(row ? row.kode_group : '');
                 $('#mg-nama').val(row ? row.nama_group : '');
+                $('#mg-form').data('row', row || null);
                 $('#mg-modal').modal('show');
             };
             $('#mg-modal').on('shown.bs.modal', () => $('#mg-kode').trigger('focus'));
@@ -229,47 +230,67 @@
                     kode_group: $('#mg-kode').val().trim(),
                     nama_group: $('#mg-nama').val().trim()
                 };
-                if (!payload.kode_group || !payload.nama_group) {
-                    Swal.fire('Perhatian', 'Group Code and Group Name wajib diisi.', 'warning');
-                    return;
+                if (!payload.kode_group) { mktFieldError('#mg-kode', 'Isi Group Code dulu, baru group bisa disimpan.'); return; }
+                if (!payload.nama_group) { mktFieldError('#mg-nama', 'Isi Group Name dulu, baru group bisa disimpan.'); return; }
+                const subject = `Group ${payload.nama_group}`;
+                let confirm;
+                if (id) {
+                    const old = $('#mg-form').data('row') || {};
+                    const changed = [];
+                    if (payload.kode_group !== String(old.kode_group ?? '')) changed.push('kode group');
+                    if (payload.nama_group !== String(old.nama_group ?? '')) changed.push('nama group');
+                    if (!changed.length) {
+                        mktToast('info', 'Belum ada perubahan', 'Ubah Group Code atau Group Name dulu, baru klik Save.');
+                        return;
+                    }
+                    payload._method = 'PUT';
+                    confirm = mktAlert('UPD-01', { subject: subject, detail: changed.join(' dan ') });
+                } else {
+                    confirm = mktAlert('SV-01', { subject: subject, detail: '' });
                 }
-                if (id) payload._method = 'PUT';
 
-                $('#mg-save').prop('disabled', true);
-                $.ajax({ url: id ? MG_ROUTES.update.replace(':id', id) : MG_ROUTES.store, method: 'POST', data: payload })
-                    .done(function (res) {
-                        $('#mg-modal').modal('hide');
-                        Swal.fire({ icon: 'success', title: 'Berhasil', text: res.message, timer: 1500, showConfirmButton: false });
-                        table.ajax.reload(null, false);
-                    })
-                    .fail(showError)
-                    .always(() => $('#mg-save').prop('disabled', false));
+                confirm.then(function (result) {
+                    if (!result.isConfirmed) return;
+                    $('#mg-save').prop('disabled', true);
+                    $.ajax({ url: id ? MG_ROUTES.update.replace(':id', id) : MG_ROUTES.store, method: 'POST', data: payload })
+                        .done(function () {
+                            $('#mg-modal').modal('hide');
+                            id ? mktAlert('UPD-02', { subject: subject }) : mktAlert('SV-06', { subject: subject });
+                            table.ajax.reload(null, false);
+                        })
+                        .fail(xhr => showError(xhr, 'Group belum tersimpan'))
+                        .always(() => $('#mg-save').prop('disabled', false));
+                });
             });
 
             $('#mg-table').on('click', '.is-delete', function () {
                 const row = table.row($(this).closest('tr')).data();
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Hapus group?',
-                    text: `${row.kode_group} - ${row.nama_group}`,
+                    title: 'Hapus group ini?',
+                    text: `Group ${row.kode_group} - ${row.nama_group} tidak akan muncul lagi di pilihan group. Data lama yang sudah memakainya tidak berubah.`,
                     showCancelButton: true,
-                    confirmButtonText: 'Hapus',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#e11d48'
+                    confirmButtonText: 'Delete',
+                    cancelButtonText: 'Cancel',
+                    focusCancel: true
                 }).then(function (result) {
                     if (!result.isConfirmed) return;
                     $.ajax({ url: MG_ROUTES.destroy.replace(':id', row.id), method: 'POST', data: { _token: MG_CSRF, _method: 'DELETE' } })
-                        .done(function (res) {
-                            Swal.fire({ icon: 'success', title: 'Berhasil', text: res.message, timer: 1500, showConfirmButton: false });
+                        .done(function () {
+                            mktToast('ok', 'Group dihapus', `${row.nama_group} sudah dihapus dari master group.`);
                             table.ajax.reload(null, false);
                         })
-                        .fail(showError);
+                        .fail(xhr => showError(xhr, 'Group belum dihapus'));
                 });
             });
 
-            function showError(xhr) {
+            function showError(xhr, title) {
                 const errors = xhr.responseJSON?.errors;
-                Swal.fire('Gagal', errors ? Object.values(errors).flat()[0] : (xhr.responseJSON?.message || 'Terjadi kesalahan.'), 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: title,
+                    text: errors ? Object.values(errors).flat()[0] : (xhr.responseJSON?.message || 'Server tidak merespons dengan benar. Coba lagi, hubungi IT bila masih gagal.')
+                });
             }
         });
     </script>

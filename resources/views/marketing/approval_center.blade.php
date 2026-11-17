@@ -9,8 +9,12 @@
     $unlockSections = [
         ['key' => 'costing', 'title' => 'Unlock Costing', 'number' => 'No Costing', 'enabled' => true],
         ['key' => 'bom', 'title' => 'Unlock BOM', 'number' => 'No BOM', 'enabled' => true],
-        ['key' => 'so', 'title' => 'Unlock SO', 'number' => 'No SO', 'enabled' => true],
     ];
+    // DB nds: SO tidak punya approval / unlock (bebas edit selama WS belum dipakai Marker). Unlock SO hanya alur Signalbit.
+    if (empty($ndsApproval)) {
+        $unlockSections[] = ['key' => 'so', 'title' => 'Unlock SO', 'number' => 'No SO', 'enabled' => true];
+    }
+    $ndsTypes = $ndsTypes ?? [];
     $searchColumns = ['number' => null, 'worksheet' => 'No Worksheet', 'buyer' => 'Buyer', 'brand' => 'Brand', 'style' => 'Style'];
 @endphp
 
@@ -43,6 +47,8 @@
         .ac-summary-card.is-unlock-bom span { color: #6d28d9; }
         .ac-summary-card.is-unlock-costing { background: #ffe4e6; border-color: #fecdd3; }
         .ac-summary-card.is-unlock-bom { background: #ede9fe; border-color: #ddd6fe; }
+        /* DB nds tanpa Unlock SO: 4 kartu dalam satu baris. */
+        @media (min-width: 1200px) { .ac-summary:not(:has(.is-unlock-so)) { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
         .ac-summary-card.is-unlock-so span { color: #c2410c; }
         .ac-summary-card.is-unlock-so { background: #ffedd5; border-color: #fed7aa; }
 
@@ -271,12 +277,30 @@
             .ac-card .dataTables_info, .ac-card .dataTables_length, .ac-card .dataTables_length label,
             .ac-card .dataTables_length select, .ac-card .page-link { font-size: 14px !important; }
         }
+        /* Tabel approval / unlock muat selebar kartu (tanpa scroll ke kanan): teks panjang turun baris,
+           kolom kecil (checkbox, timeline, no, tanggal, status, qty, action) tetap satu baris. */
+        /* Di HP (< 768px) tetap boleh scroll supaya kolom tidak terlalu sempit. */
+        @media (min-width: 768px) {
+            .ac-table-wrap { overflow-x: visible; }
+            .ac-table { table-layout: auto; }
+            .ac-table thead th, .ac-table tbody td { white-space: normal !important; overflow-wrap: anywhere; word-break: normal; }
+            .ac-table thead th { font-size: 11px !important; padding: 6px 5px; }
+            .ac-table tbody td { font-size: 13px !important; padding: 6px 5px; }
+            .ac-table th:nth-child(-n+3), .ac-table td:nth-child(-n+3), .ac-table td:last-child,
+            .ac-table .ac-date-badge, .ac-table .ac-badge { white-space: nowrap !important; }
+            .ac-table thead th:first-child, .ac-table tbody td:first-child { font-size: 13px !important; }
+            /* Header satu baris: huruf lebih kecil, ruang ikon sort dipersempit; isi sel tetap boleh turun baris. */
+            .ac-table thead th { white-space: nowrap !important; overflow-wrap: normal; font-size: 10px !important; letter-spacing: 0; padding: 7px 14px 7px 5px !important; }
+            .ac-table thead th:first-child, .ac-table thead th:last-child { padding-right: 5px !important; }
+            .ac-table thead th.sorting:before, .ac-table thead th.sorting_asc:before, .ac-table thead th.sorting_desc:before { right: 6px !important; }
+            .ac-table thead th.sorting:after, .ac-table thead th.sorting_asc:after, .ac-table thead th.sorting_desc:after { right: 1px !important; }
+        }
     </style>
 @endsection
 
 @section('content')
 <div class="ac-page font-inter">
-    <div class="ac-breadcrumb">Marketing &nbsp;›&nbsp; <strong>Approval</strong></div>
+    <div class="ac-breadcrumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <strong>Approval</strong></div>
     <div class="ac-frame">
     <div class="ac-heading">
         <h1>Approval Center <i class="far fa-question-circle"></i></h1>
@@ -288,7 +312,9 @@
         <a href="#ac-doc-bom" class="ac-summary-card is-bom"><span>Approval BOM</span><strong data-summary="bom">{{ $summary['bom'] }}</strong><small><b>Perlu ditinjau</b> oleh Manager</small></a>
         <a href="#ac-unlock-costing" class="ac-summary-card is-unlock-costing"><span>Unlock Costing</span><strong data-summary="unlock-costing">{{ $summary['unlock_costing'] }}</strong><small><b>Perlu ditinjau</b> oleh Manager</small></a>
         <a href="#ac-unlock-bom" class="ac-summary-card is-unlock-bom"><span>Unlock BOM</span><strong data-summary="unlock-bom">{{ $summary['unlock_bom'] }}</strong><small><b>Perlu ditinjau</b> oleh Manager</small></a>
-        <a href="#ac-unlock-so" class="ac-summary-card is-unlock-so"><span>Unlock SO</span><strong data-summary="unlock-so">{{ $summary['unlock_so'] }}</strong><small><b>Perlu ditinjau</b> oleh Manager</small></a>
+        @if (empty($ndsApproval))
+            <a href="#ac-unlock-so" class="ac-summary-card is-unlock-so"><span>Unlock SO</span><strong data-summary="unlock-so">{{ $summary['unlock_so'] }}</strong><small><b>Perlu ditinjau</b> oleh Manager</small></a>
+        @endif
     </div>
 
     @foreach ($docSections as $section)
@@ -405,6 +431,7 @@
             unlock: "{{ route('marketing-approval-unlock') }}",
             costingDetail: "{{ route('detail-costing', ':id') }}",
             soDetail: "{{ route('so-detail-page', ':id') }}",
+            bomNdsDetail: "{{ route('bom-nds-detail', ':id') }}",
             timeline: "{{ route('costing-timeline', ':id') }}"
         };
         const AC_CSRF = "{{ csrf_token() }}";
@@ -414,6 +441,13 @@
         };
         const AC_ACTION_LABEL = { approve: 'Approve', return: 'Return to Staff', cancel: 'Cancel' };
         const AC_SUMMARY_KEY = { 'doc-costing': 'costing', 'doc-bom': 'bom', 'unlock-costing': 'unlock-costing', 'unlock-bom': 'unlock-bom', 'unlock-so': 'unlock-so' };
+        // Tipe yang dibaca dari DB nds (Costing, dan BOM setelah kolom approval-nya dibuat): semua kolom dari subquery beralias "a".
+        const AC_NDS_TYPES = @json($ndsTypes);
+        const acCol = (type, legacy, nds) => AC_NDS_TYPES.includes(type) ? nds : legacy;
+        // Halaman detail: BOM DB nds per WS (SO + ?line=), Costing per id Costing.
+        const acDetailUrl = (type, row) => (type === 'bom' && AC_NDS_TYPES.includes('bom'))
+            ? AC_ROUTES.bomNdsDetail.replace(':id', row.so_id) + '?line=' + encodeURIComponent(row.line_id)
+            : (type === 'so' ? AC_ROUTES.soDetail.replace(':id', row.ref_id) : AC_ROUTES.costingDetail.replace(':id', row.id_costing));
 
         const escapeHtml = value => $('<div>').text(value ?? '').html();
         const acFormatNumber = value => value === null || value === undefined || value === '' ? '-' : Number(value).toLocaleString('id-ID', { maximumFractionDigits: 4 });
@@ -460,7 +494,7 @@
             $card.find('.ac-search-by').select2({ theme: 'bootstrap4', width: '100%', placeholder: 'Search By', closeOnSelect: false });
             if (kind === 'unlock' && String($card.data('ac-enabled')) !== '1') return;
 
-            const columns = kind === 'doc' ? docColumns() : unlockColumns(type);
+            const columns = kind === 'doc' ? docColumns(type) : unlockColumns(type);
             const table = $card.find('table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -579,9 +613,11 @@
             // Aksi
             $card.on('click', '[data-ac-action]', function () {
                 const action = $(this).data('ac-action');
-                const ids = $card.find('tbody .ac-row-check:checked').map((_, el) => el.value).get();
-                if (!ids.length) return;
-                action === 'unlock' ? submitUnlock(type, ids, reload) : submitDecision(type, action, ids, reload);
+                const $checked = $card.find('tbody .ac-row-check:checked');
+                const ids = $checked.map((_, el) => el.value).get();
+                if (!ids.length) { mktAlert('APR-01'); return; }
+                const rows = $checked.map((_, el) => table.row($(el).closest('tr')).data()).get();
+                action === 'unlock' ? submitUnlock(type, ids, rows, reload) : submitDecision(type, action, ids, rows, reload);
             });
 
             renderFilterSummary($card);
@@ -595,35 +631,69 @@
         ];
         const textColumn = (data, name) => ({ data: data, name: name, render: value => escapeHtml(value || '-') });
 
-        function docColumns() {
+        function docColumns(docType) {
             return fixedColumns().concat([
                 { data: 'deldate', name: 'a.deldate', className: 'text-center', render: value => value ? `<span class="ac-date-badge">${acFormatDate(value)}</span>` : '-' },
                 textColumn('doc_no', 'doc_no'),
                 { data: 'approval_status', name: 'approval_status', render: (status, type, row) => statusBadge(status, row.approval_note ? `Catatan: ${row.approval_note}` : '') },
                 textColumn('kpno', 'a.kpno'),
-                textColumn('buyer', 'b.Supplier'),
+                textColumn('buyer', acCol(docType, 'b.Supplier', 'a.buyer')),
                 textColumn('brand', 'a.brand'),
                 textColumn('styleno', 'a.styleno'),
                 textColumn('market', 'a.market'),
                 { data: 'qty', name: 'a.qty', className: 'text-right', render: acFormatNumber },
                 { data: 'cfm_price', name: 'a.cfm_price', className: 'text-right', render: acFormatNumber },
-                textColumn('product_group', 'p.product_group'),
-                textColumn('product_item', 'p.product_item'),
-                detailColumn(row => AC_ROUTES.costingDetail.replace(':id', row.id_costing))
+                textColumn('product_group', acCol(docType, 'p.product_group', 'a.product_group')),
+                textColumn('product_item', acCol(docType, 'p.product_item', 'a.product_item')),
+                detailColumn(row => acDetailUrl(docType, row))
             ]);
         }
 
-        // Kolom Action: ikon detail bulat, membuka halaman detail di tab baru.
+        // Kolom Action: ikon detail bulat, membuka halaman detail di popup (tanpa navbar, lewat ?embed=1).
         const detailColumn = urlOf => ({
             data: null, className: 'text-center', orderable: false,
-            render: (value, displayType, row) => `<a href="${urlOf(row)}" target="_blank" class="mkt-ico mkt-ico--detail" title="Detail" data-tip="Detail" aria-label="Detail"><i class="fas fa-info"></i></a>`
+            render: (value, displayType, row) => `<a href="${urlOf(row)}" class="mkt-ico mkt-ico--detail ac-detail-pop" data-tip="Detail" aria-label="Detail"><i class="fas fa-info"></i></a>`
+        });
+        $(document).on('click', '.ac-detail-pop', function (e) {
+            e.preventDefault();
+            const url = this.href + (this.href.includes('?') ? '&' : '?') + 'embed=1';
+            Swal.fire({
+                title: '',
+                html: `<iframe src="${url}" style="width:100%;height:72vh;border:0;border-radius:8px;background:#f4f6f9"></iframe>`
+                    + `<div class="text-right mt-2"><a href="${this.href}" target="_blank" style="font-size:13px">Buka di tab baru <i class="fas fa-external-link-alt"></i></a></div>`,
+                width: '92vw',
+                showConfirmButton: false,
+                showCloseButton: true,
+            });
         });
 
+        // Info dokumen terpilih (No Costing/BOM/SO, WS, Buyer, Style) di atas tombol konfirmasi Approve / Return / Cancel / Unlock.
+        // Teks katalog alert tidak diubah; info disisipkan sebelum baris tombol saat dialog terbuka.
+        function acDocsInfo(rows, type) {
+            const noLabel = { costing: 'No Costing', bom: 'No BOM', so: 'No SO' }[type] || 'No Dokumen';
+            const list = rows.filter(Boolean);
+            if (!list.length) return {};
+            // Dua kolom per dokumen: kiri No dokumen & Buyer, kanan WS & Style (label rata seperti form).
+            const pair = (label, value, bold) => `<div style="display:flex;gap:6px;min-width:0">
+                    <span style="flex:none;width:78px;color:#64748b">${label}</span><span style="flex:none">:</span>
+                    <span style="min-width:0;overflow-wrap:break-word;${bold ? 'font-weight:600;color:#1e293b' : 'color:#334155'}">${escapeHtml(value || '-')}</span>
+                </div>`;
+            const item = row => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 18px;padding:7px 0;border-bottom:1px solid #e3e9f2">
+                    ${pair(noLabel, row.doc_no, true)}${pair('WS', row.kpno)}
+                    ${pair('Buyer', row.buyer)}${pair('Style', row.styleno)}
+                </div>`;
+            const html = `<div class="ac-confirm-info" style="width:100%;max-height:200px;overflow:auto;margin:6px 0 2px;padding:4px 12px;border-radius:8px;background:#f5f8fc;text-align:left;font-size:12.5px;line-height:1.45">${list.map(item).join('')}</div>`;
+            return {
+                width: 560,
+                didOpen: () => {
+                    const actions = Swal.getActions();
+                    if (actions && !Swal.getPopup().querySelector('.ac-confirm-info')) actions.insertAdjacentHTML('beforebegin', html);
+                },
+            };
+        }
         // Kolom sama dengan tabel Approval, hanya nomor dokumen (Costing/BOM/SO) yang berbeda, plus kolom Action (detail).
         function unlockColumns(type) {
-            const detailUrl = row => type === 'so'
-                ? AC_ROUTES.soDetail.replace(':id', row.ref_id)
-                : AC_ROUTES.costingDetail.replace(':id', row.id_costing);
+            const detailUrl = row => acDetailUrl(type, row);
             return fixedColumns().concat([
                 { data: 'deldate', name: 'a.deldate', className: 'text-center', render: value => value ? `<span class="ac-date-badge">${acFormatDate(value)}</span>` : '-' },
                 textColumn('doc_no', 'doc_no'),
@@ -632,14 +702,14 @@
                         statusBadge('request', `Alasan: ${row.reason || '-'} · Diajukan ${row.requested_by || '-'} ${acFormatDate(row.requested_at)}`)
                 },
                 textColumn('kpno', 'a.kpno'),
-                textColumn('buyer', 'b.Supplier'),
+                textColumn('buyer', acCol(type, 'b.Supplier', 'a.buyer')),
                 textColumn('brand', 'a.brand'),
                 textColumn('styleno', 'a.styleno'),
                 textColumn('market', 'a.market'),
                 { data: 'qty', name: 'a.qty', className: 'text-right', render: acFormatNumber },
                 { data: 'cfm_price', name: 'a.cfm_price', className: 'text-right', render: acFormatNumber },
-                textColumn('product_group', 'p.product_group'),
-                textColumn('product_item', 'p.product_item'),
+                textColumn('product_group', acCol(type, 'p.product_group', 'a.product_group')),
+                textColumn('product_item', acCol(type, 'p.product_item', 'a.product_item')),
                 detailColumn(detailUrl)
             ]);
         }
@@ -673,44 +743,63 @@
             return `<div class="ac-timeline"><b>${escapeHtml(row.doc_no)}</b>${reason}${items || '<div class="text-muted">Belum ada riwayat.</div>'}</div>`;
         }
 
-        function submitDecision(type, action, ids, reload) {
-            const needsNote = action !== 'approve';
-            Swal.fire({
-                icon: needsNote ? undefined : 'question',
-                title: `${AC_ACTION_LABEL[action]} ${ids.length} data?`,
-                text: needsNote ? 'Catatan akan terlihat oleh staff.' : 'Data yang di-approve akan terkunci.',
-                input: needsNote ? 'textarea' : undefined,
+        // Label jenis dokumen di teks alert katalog (APR-xx / UNL-xx).
+        const AC_TYPE_LABEL = { costing: 'costing', bom: 'BOM', so: 'SO' };
+        // Server membalas "N data diproses." / "N data berhasil di-unlock."; ambil N untuk teks toast.
+        const acProcessed = (res, fallback) => parseInt(res && res.message, 10) || fallback;
+
+        function submitDecision(type, action, ids, rows, reload) {
+            const label = AC_TYPE_LABEL[type] || type;
+            const url = AC_ROUTES.decide.replace(':type', type);
+
+            if (action === 'approve') {
+                // Hanya Awaiting Approval yang diproses server; sisanya dilewati.
+                const ready = rows.filter(row => row && row.approval_status === 'awaiting');
+                const skipped = rows.length - ready.length;
+                if (!ready.length) {
+                    mktToast('info', 'Tidak ada baris yang bisa di-approve', 'Hanya baris berstatus Awaiting Approval yang bisa diproses. Pilih baris dari tab Awaiting Approval.');
+                    return;
+                }
+                const dialog = skipped
+                    ? mktAlert('APR-04', { skipped: skipped, total: rows.length, count: ready.length, type: label }, acDocsInfo(ready, type))
+                    : mktAlert(type === 'bom' ? 'APR-03' : 'APR-02', { count: ready.length, docs: ready.map(row => row.doc_no).join(', ') }, acDocsInfo(ready, type));
+                dialog.then(function (result) {
+                    if (!result.isConfirmed) return;
+                    postAction(url, { ids: ids, action: action, note: '' }, reload,
+                        res => mktAlert('APR-05', { count: acProcessed(res, ready.length), type: label }));
+                });
+                return;
+            }
+
+            // Return to Staff & Cancel wajib disertai catatan untuk staff.
+            mktAlert(action === 'return' ? 'APR-06' : 'APR-09', { count: ids.length, type: label, docs: rows.map(row => row && row.doc_no) }, {
+                input: 'textarea',
                 inputPlaceholder: 'Catatan untuk staff...',
                 inputAttributes: { maxlength: 1000 },
-                inputValidator: needsNote ? value => (!value || !value.trim()) ? 'Catatan wajib diisi.' : undefined : undefined,
-                showCancelButton: true,
-                confirmButtonText: AC_ACTION_LABEL[action],
-                cancelButtonText: 'Batal'
+                inputValidator: value => (!value || !value.trim()) ? mktAlertText('APR-07').message : undefined,
+                ...acDocsInfo(rows, type)
             }).then(function (result) {
                 if (!result.isConfirmed) return;
-                postAction(AC_ROUTES.decide.replace(':type', type), { ids: ids, action: action, note: needsNote ? result.value.trim() : '' }, reload);
+                postAction(url, { ids: ids, action: action, note: result.value.trim() }, reload,
+                    res => mktAlert(action === 'return' ? 'APR-08' : 'APR-10', { count: acProcessed(res, ids.length), type: label }));
             });
         }
 
-        function submitUnlock(type, ids, reload) {
-            const label = { bom: 'BOM', so: 'SO' }[type] || 'Costing';
-            Swal.fire({
-                icon: 'question',
-                title: `Unlock ${ids.length} ${label}?`,
-                text: `${label} bisa diedit hari ini dan besok. Setelah staff menyimpan perubahan, ${label} kembali menunggu approval.`,
-                showCancelButton: true,
-                confirmButtonText: 'Unlock',
-                cancelButtonText: 'Batal'
-            }).then(function (result) {
-                if (result.isConfirmed) postAction(AC_ROUTES.unlock, { type: type, ids: ids }, reload);
+        function submitUnlock(type, ids, rows, reload) {
+            const code = { costing: 'UNL-01', so: 'UNL-02', bom: 'UNL-03' }[type] || 'UNL-01';
+            mktAlert(code, { count: ids.length }, acDocsInfo(rows, type)).then(function (result) {
+                if (!result.isConfirmed) return;
+                postAction(AC_ROUTES.unlock, { type: type, ids: ids }, reload,
+                    res => mktAlert('UNL-04', { count: acProcessed(res, ids.length) }));
             });
         }
 
-        function postAction(url, payload, reload) {
+        function postAction(url, payload, reload, onSuccess) {
             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             $.ajax({ url: url, method: 'POST', data: Object.assign({ _token: AC_CSRF }, payload) })
                 .done(function (res) {
-                    Swal.fire('Berhasil', res.message, 'success');
+                    Swal.close();
+                    onSuccess(res);
                     reload();
                     // Approve/Unlock mengubah tabel lain (mis. status costing), muat ulang semuanya.
                     $('.ac-card table').each(function () {
@@ -719,7 +808,11 @@
                 })
                 .fail(function (xhr) {
                     const errors = xhr.responseJSON?.errors;
-                    Swal.fire('Gagal', errors ? Object.values(errors).flat()[0] : (xhr.responseJSON?.message || 'Terjadi kesalahan.'), 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Data belum diproses',
+                        text: errors ? Object.values(errors).flat()[0] : (xhr.responseJSON?.message || 'Server tidak merespons dengan benar. Coba lagi, hubungi IT bila masih gagal.')
+                    });
                 });
         }
     </script>

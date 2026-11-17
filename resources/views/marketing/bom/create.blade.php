@@ -896,7 +896,7 @@
 <form id="form-bom" action="{{ route('store-bom') }}" method="POST">
     @csrf
 
-    <div class="bom-breadcrumb">Marketing &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Proses</a> &nbsp;›&nbsp; Bill of Material &nbsp;›&nbsp; <strong>{{ $isEditBom ? 'Edit BOM' : 'Create BOM' }}</strong></div>
+    <div class="bom-breadcrumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; Bill of Material &nbsp;›&nbsp; <strong>{{ $isEditBom ? 'Edit BOM' : 'Create BOM' }}</strong></div>
     <div class="card card-primary ">
         <div class="card-body">
             <div class="bom-page-heading">

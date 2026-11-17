@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use App\Services\MarketingBomService;
 use App\Services\MarketingHistoryService;
 use App\Services\MarketingApprovalService;
+use App\Services\MarketingNdsCostingService;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
@@ -23,9 +24,20 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class Marketing_CostingController extends Controller
 {
+    // Percobaan DB baru: semua route Costing dilayani Marketing_CostingNdsController, tanpa Signalbit.
+    public function callAction($method, $parameters)
+    {
+        if (MarketingNdsCostingService::enabled() && !$this instanceof Marketing_CostingNdsController) {
+            return app(Marketing_CostingNdsController::class)->callAction($method, $parameters);
+        }
+
+        return parent::callAction($method, $parameters);
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            app(MarketingApprovalService::class)->closeExpiredCostingUnlocks();
             $tgl_awal = $request->tgl_awal;
             $tgl_akhir = $request->tgl_akhir;
             $db = DB::connection('mysql_sb');
@@ -91,13 +103,12 @@ class Marketing_CostingController extends Controller
                     'bm.created_at as bom_created_at',
                     DB::raw('COALESCE(bom_items.item_count, 0) as bom_item_count'),
                     DB::raw($statusSql . ' as approval_status'),
-                    DB::raw(MarketingApprovalService::latestNoteSql('costing', 'a.id') . ' as approval_note'),
                     DB::raw(MarketingApprovalService::statusSql('bom', 'bm') . ' as bom_approval_status'),
-                    DB::raw(MarketingApprovalService::latestNoteSql('bom', 'bm.id') . ' as bom_approval_note'),
                     DB::raw(MarketingApprovalService::pendingUnlockSql('costing', 'a.id') . ' as costing_unlock_pending'),
                     DB::raw('IF(bm.id IS NULL, 0, ' . MarketingApprovalService::pendingUnlockSql('bom', 'bm.id') . ') as bom_unlock_pending')
                 )
                 ->orderBy('a.id', 'desc');
+
 
             // Jumlah per status mengikuti filter tanggal/buyer, tapi tidak terfilter status itu sendiri.
             $statusCounts = $db->table('act_costing as a')
@@ -107,8 +118,9 @@ class Marketing_CostingController extends Controller
 
             foreach ([$data, $statusCounts] as $query) {
                 if (!empty($tgl_awal) && !empty($tgl_akhir)) {
-                    $query->whereDate('a.deldate', '>=', $tgl_awal)
-                        ->whereDate('a.deldate', '<=', $tgl_akhir);
+                    // Filter Costing Date = tanggal Costing dibuat.
+                    $query->whereDate('a.dateinput', '>=', $tgl_awal)
+                        ->whereDate('a.dateinput', '<=', $tgl_akhir);
                 }
                 if ($request->filled('buyers')) {
                     $query->whereIn('b.Id_Supplier', (array) $request->buyers);
@@ -130,6 +142,9 @@ class Marketing_CostingController extends Controller
                 })
                 ->addColumn('due_date', function ($row) {
                     return $row->deldate ? date('d M Y', strtotime($row->deldate)) : '-';
+                })
+                ->addColumn('costing_date', function ($row) {
+                    return $row->dateinput ? date('d M Y', strtotime($row->dateinput)) : '-';
                 })
                 ->editColumn('product_group_text', function ($row) {
                     if (!$row->product_group_text) return '-';
@@ -168,15 +183,7 @@ class Marketing_CostingController extends Controller
             return response()->json(['message' => 'Data Costing tidak ditemukan.'], 404);
         }
 
-        if (!Schema::connection('mysql_sb')->hasTable('mkt_hist')) {
-            return response()->json(['message' => 'Tabel mkt_hist belum tersedia. Jalankan script database costing_legacy_columns.sql terlebih dahulu.'], 503);
-        }
-
-        $history = $db->table('mkt_hist')
-            ->where('id_act_cost', $id)
-            ->orderBy('created_at')
-            ->orderBy('id')
-            ->get(['id', 'type', 'type_id', 'desc', 'user', 'created_at', 'action']);
+        $history = app(MarketingHistoryService::class)->timeline($id);
 
         return response()->json([
             'data' => $history,
@@ -234,6 +241,9 @@ class Marketing_CostingController extends Controller
                      ->orderBy('season', 'asc')
                      ->get();
 
+        [$buyers, $product_groups, $currencies, $shipmodes, $marketing_orders, $units, $suppliers, $seasons] = $this->limitFormOptions(
+            $buyers, $product_groups, $currencies, $shipmodes, $marketing_orders, $units, $suppliers, $seasons
+        );
 
        return view('marketing.costing.create', [
             'buyers'           => $buyers,
@@ -258,7 +268,7 @@ class Marketing_CostingController extends Controller
      * Style masuk ke act_costing.styleno (dan ikut ke SO/BOM): tidak boleh ada spasi di awal/akhir
      * atau spasi ganda di tengah, karena berpengaruh ke produksi.
      */
-    private static function styleSpacingRule(): \Closure
+    protected static function styleSpacingRule(): \Closure
     {
         return function ($attribute, $value, $fail) {
             $value = (string) $value;
@@ -284,6 +294,7 @@ class Marketing_CostingController extends Controller
             'upload_foto' => ['sometimes', 'array'],
             'upload_foto.*' => ['image', 'max:10240'],
         ]);
+
 
         $db = DB::connection('mysql_sb');
         $now = now();
@@ -375,8 +386,26 @@ class Marketing_CostingController extends Controller
         return redirect()->route('edit-costing', $insertId)->with('success', 'Costing berhasil dibuat');
     }
 
+    // Percobaan DB baru: dropdown form hanya menampilkan master yang ada di DB baru; nilai terpilih di $keep tetap ada.
+    private function limitFormOptions($buyers, $productGroups, $currencies, $shipModes, $marketingOrders, $units, $suppliers, $seasons, array $keep = []): array
+    {
+        $nds = app(MarketingNdsCostingService::class);
+
+        return [
+            $nds->limitOptions($buyers, 'Id_Supplier', 'master_partners', 'code', $keep['buyer'] ?? null, fn ($q) => $q->where('is_buyer', 1), 'SUP-'),
+            $nds->limitOptions($productGroups, 'product_group', 'master_product_group', 'product_group_code', $keep['product_group'] ?? null),
+            $nds->limitOptions($currencies, 'nama_pilihan', 'master_currencies', 'currency_code', $keep['currency'] ?? null),
+            $nds->limitOptions($shipModes, 'shipmode', 'master_ship_modes', 'ship_mode_name', collect($shipModes)->firstWhere('id', $keep['ship_mode'] ?? null)->shipmode ?? null),
+            $nds->limitOptions($marketingOrders, 'mkt_order', 'master_marketing_office', 'office_code', $keep['marketing_order'] ?? null),
+            $nds->limitOptions($units, 'nama_pilihan', 'master_units', 'unit_code', $keep['unit'] ?? null),
+            $nds->limitOptions($suppliers, 'Id_Supplier', 'master_partners', 'code', null, fn ($q) => $q->where('is_supplier', 1), 'SUP-'),
+            $nds->limitOptions($seasons, 'id_season', 'master_seasons', 'season_code', $keep['season'] ?? null, null, 'SSN-'),
+        ];
+    }
+
+
     // Angka header (Confirm Price, Rate, SMV, VAT, G&A) dikirim dalam format Indonesia (1.234.567,89) dari form Create/Edit Costing.
-    private function normalizeMoneyInputs(Request $request): void
+    protected function normalizeMoneyInputs(Request $request): void
     {
         foreach (['confirm_price', 'rate_to_idr', 'rate_from_idr', 'smv', 'vat', 'ga_percent'] as $field) {
             $value = $request->input($field);
@@ -663,8 +692,7 @@ class Marketing_CostingController extends Controller
                 $newId,
                 'costing',
                 'copied',
-                "Costing {$numbers['cost_no']} disalin dari {$original->cost_no}.",
-                $newId
+                "Costing {$numbers['cost_no']} disalin dari {$original->cost_no}."
             );
 
             return [$newId, $numbers['cost_no']];
@@ -790,6 +818,21 @@ class Marketing_CostingController extends Controller
 
         // dd($details);
 
+        if (!$viewOnly) {
+            [$buyers, $product_groups, $currencies, $shipmodes, $marketing_orders, $units, $suppliers, $seasons] = $this->limitFormOptions(
+                $buyers, $product_groups, $currencies, $shipmodes, $marketing_orders, $units, $suppliers, $seasons,
+                [
+                    'buyer' => $costing->id_buyer,
+                    'product_group' => $costing->product_group,
+                    'currency' => optional($currencies->firstWhere('id', $currencyId))->nama_pilihan,
+                    'ship_mode' => $costing->id_smode,
+                    'marketing_order' => $costing->mkt_order,
+                    'unit' => $costing->unit,
+                    'season' => $costing->season_id,
+                ]
+            );
+        }
+
         return view($viewOnly ? 'marketing.costing.detail' : 'marketing.costing.edit', [
             'costing'        => $costing,
             'buyers'           => $buyers,
@@ -806,10 +849,10 @@ class Marketing_CostingController extends Controller
             'set'        => $set,
             'destinations'        => $destinations,
             'seasons'             => $seasons,
-            'shellOptions'        => $viewOnly ? collect() : $db->table('masterpanel')->orderBy('nama_panel')->get(['id', 'nama_panel as name']),
-            'partOptions'         => $viewOnly ? collect() : DB::connection('mysql')->table('master_part')
+            'shellOptions'        => $viewOnly ? collect() : app(MarketingNdsCostingService::class)->limitOptions($db->table('masterpanel')->orderBy('nama_panel')->get(['id', 'nama_panel as name']), 'id', 'master_shells', 'shell_code', null, null, 'PNL-'),
+            'partOptions'         => $viewOnly ? collect() : app(MarketingNdsCostingService::class)->limitOptions(DB::connection('mysql')->table('master_part')
                 ->where(fn ($q) => $q->whereNull('cancel')->orWhere('cancel', 'N'))
-                ->orderBy('nama_part')->get(['id', 'nama_part as name']),
+                ->orderBy('nama_part')->get(['id', 'nama_part as name']), 'id', 'master_parts', 'part_code', null, null, 'PRT-'),
             'unlock'              => app(MarketingApprovalService::class)->costingUnlockState((int) $id),
             'viewOnly'            => $viewOnly,
             'buyerName'           => $db->table('mastersupplier')->where('Id_Supplier', $costing->id_buyer)->value('Supplier'),
@@ -842,7 +885,7 @@ class Marketing_CostingController extends Controller
     }
 
 
-    private function getCostingDetail($costingId, $rateToIdr)
+    protected function getCostingDetail($costingId, $rateToIdr)
     {
         $db = DB::connection('mysql_sb');
         $details = collect([
@@ -926,7 +969,7 @@ class Marketing_CostingController extends Controller
         return $details;
     }
 
-    private function collectCostingDetail($detail, float $rateToIdr): void
+    protected function collectCostingDetail($detail, float $rateToIdr): void
     {
         $price = (float) ($detail->price ?? 0);
         $isUsd = $detail->jenis_rate !== null
@@ -970,6 +1013,7 @@ class Marketing_CostingController extends Controller
             ->where('cancel', 'N')
             ->orderBy('brand')
             ->get(['kd_brand', 'brand']);
+        $brands = app(MarketingNdsCostingService::class)->limitOptions($brands, 'brand', 'master_brands', 'brand_name', null, fn ($q) => $q->whereIn('buyer_id', fn ($partners) => $partners->select('id')->from('master_partners')->where('code', 'SUP-' . $request->buyer)));
 
         return response()->json(['status' => 200, 'data' => $brands]);
     }
@@ -1043,6 +1087,7 @@ class Marketing_CostingController extends Controller
                 ->select('id as isi', $mysql_sb->raw("CONCAT(cfcode, ' ', cfdesc) as tampil"))
                 ->orderBy('id', 'DESC')
                 ->get();
+            $items = app(MarketingNdsCostingService::class)->limitOptions($items, 'isi', 'master_contents', 'content_code', null, null, 'MFG-');
 
             foreach ($items as $item){
                 $html .= "<option value='{$item->isi}'>{$item->tampil}</option>";
@@ -1054,6 +1099,7 @@ class Marketing_CostingController extends Controller
                 ->select('id as isi', $mysql_sb->raw("CONCAT(otherscode, ' ', othersdesc) as tampil"))
                 ->orderBy('id', 'desc')
                 ->get();
+            $others = app(MarketingNdsCostingService::class)->limitOptions($others, 'isi', 'master_contents', 'content_code', null, null, 'OTH-');
 
             foreach ($others as $o) {
                 $html .= '<option value="' . $o->isi . '">' . $o->tampil . '</option>';
@@ -1067,6 +1113,7 @@ class Marketing_CostingController extends Controller
                 ->where('cancel', 'N')
                 ->orderBy('nm_contents')
                 ->get(['id', 'id_group', 'nm_contents']);
+            $items = app(MarketingNdsCostingService::class)->limitOptions($items, 'id', 'master_contents', 'content_code', null, null, 'CNT-');
 
             foreach ($items as $item) {
                 $label = e("{$item->id} {$groups[$item->id_group]} {$item->nm_contents}");
@@ -1214,6 +1261,7 @@ class Marketing_CostingController extends Controller
             'remove_picture_files' => ['sometimes', 'array'],
             'remove_picture_files.*' => ['string', 'max:255'],
         ]);
+
 
         $db = DB::connection('mysql_sb');
 
@@ -1502,8 +1550,9 @@ class Marketing_CostingController extends Controller
             return redirect()->back()->with('error', 'Data Costing tidak ditemukan.');
         }
 
-        $pdf = Pdf::loadView('marketing.costing.pdf', $pdfData)
+        $pdf = Pdf::loadView($this->pdfView(), $pdfData)
                 ->setPaper('a4', 'landscape');
+        $this->decoratePdf($pdf, $pdfData);
 
         return $pdf->stream('Costing_'.$pdfData['costing']->no_costing.'.pdf');
     }
@@ -1512,7 +1561,7 @@ class Marketing_CostingController extends Controller
     {
         $validated = $request->validate([
             'ids' => ['required', 'array', 'min:1'],
-            'ids.*' => ['required', 'integer', 'distinct', 'exists:mysql_sb.act_costing,id'],
+            'ids.*' => ['required', 'integer', 'distinct', $this->batchCostingRule()],
         ]);
 
         $documents = [];
@@ -1523,7 +1572,8 @@ class Marketing_CostingController extends Controller
                 abort(404, 'Data Costing tidak ditemukan.');
             }
 
-            $html = view('marketing.costing.pdf', $pdfData)->render();
+            $pdfData['batch'] = true;
+            $html = view($this->pdfView(), $pdfData)->render();
             if (!preg_match('/<style\b[^>]*>(.*?)<\/style>/is', $html, $styleMatch)
                 || !preg_match('/<body\b[^>]*>(.*?)<\/body>/is', $html, $bodyMatch)) {
                 throw new \RuntimeException('Template PDF Costing tidak memiliki struktur dokumen yang valid.');
@@ -1540,12 +1590,29 @@ class Marketing_CostingController extends Controller
         $combinedHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $styles
             . '</style></head><body>' . implode("\n", $documents) . '</body></html>';
 
-        return Pdf::loadHTML($combinedHtml)
-            ->setPaper('a4', 'landscape')
-            ->stream('Costing_Batch.pdf');
+        $pdf = Pdf::loadHTML($combinedHtml)->setPaper('a4', 'landscape');
+        $this->decoratePdf($pdf, null);
+
+        return $pdf->stream('Costing_Batch.pdf');
     }
 
-    private function getCostingPdfData($id)
+    /** Tambahan setelah render (mis. footer nomor halaman). $pdfData null = batch print. */
+    protected function decoratePdf($pdf, ?array $pdfData): void
+    {
+    }
+
+    /** View PDF Costing; Costing DB baru memakai template sendiri. */
+    protected function pdfView(): string
+    {
+        return 'marketing.costing.pdf';
+    }
+
+    protected function batchCostingRule(): string
+    {
+        return 'exists:mysql_sb.act_costing,id';
+    }
+
+    protected function getCostingPdfData($id)
     {
         $db = DB::connection('mysql_sb');
         $costing = $db->table('act_costing as a')
@@ -2629,7 +2696,7 @@ class Marketing_CostingController extends Controller
                         'app1_date' => now(),
                         'app1_by' => Auth::user()->name
                     ]);
-                app(MarketingHistoryService::class)->approved('costing', (int) $id, (int) $id, (string) $costing->cost_no);
+                app(MarketingHistoryService::class)->approved('costing', (int) $id, (string) $costing->cost_no);
             });
 
             return response()->json(['status' => 200, 'message' => 'Costing berhasil di Approve.']);

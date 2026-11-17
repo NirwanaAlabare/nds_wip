@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Services\MarketingApprovalService;
+use App\Services\MarketingHistoryService;
+use App\Services\MarketingNdsApprovalService;
+use App\Services\MarketingNdsCostingService;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,30 +40,192 @@ class Marketing_ApprovalCenterController extends Controller
         ],
     ];
 
+    // Costing & SO DB baru: kolom dari subquery ndsQuery() beralias "a".
+    private const NDS_SEARCH_COLUMNS = [
+        'number' => 'a.doc_no',
+        'worksheet' => 'a.kpno',
+        'buyer' => 'a.buyer',
+        'brand' => 'a.brand',
+        'style' => 'a.styleno',
+    ];
+
     public function __construct(private MarketingApprovalService $approvals)
     {
     }
 
+    /** Approval Costing & SO dibaca dari DB baru saat percobaan DB baru aktif dan kolom approval sudah dibuat. */
+    private static function nds(?string $type = null): bool
+    {
+        if (!MarketingNdsCostingService::enabled()) {
+            return false;
+        }
+        if ($type === null) {
+            return MarketingNdsApprovalService::ready('costing');
+        }
+
+        return in_array($type, MarketingNdsApprovalService::TYPES, true) && MarketingNdsApprovalService::ready($type);
+    }
+
+    private function ndsApprovals(): MarketingNdsApprovalService
+    {
+        return app(MarketingNdsApprovalService::class);
+    }
+
     public function index()
     {
+        $nds = self::nds();
+        if ($nds) {
+            foreach (MarketingNdsApprovalService::TYPES as $type) {
+                $this->ndsApprovals()->closeExpiredUnlocks($type);
+            }
+        }
+        $awaiting = fn ($type) => self::nds($type)
+            // Costing bisa tampil beberapa baris (per SO): kartu menghitung dokumennya, bukan barisnya.
+            ? $this->ndsQuery($type)->where('a.approval_status', 'awaiting')->distinct()->count('a.id')
+            : $this->documentQuery($type)->whereRaw(MarketingApprovalService::statusSql($type, $type === 'costing' ? 'a' : 'bm') . " = 'awaiting'")->count();
+        $unlocks = fn ($type) => self::nds($type)
+            ? $this->ndsQuery($type)->where('a.unlock_pending', 1)->distinct()->count('a.id')
+            : $this->unlockRequestQuery($type)->count();
+
         return view('marketing.approval_center', [
             'page'           => 'dashboard-marketing',
             'subPageGroup'   => 'marketing-approval',
             'subPage'        => 'marketing-approval-center',
             'containerFluid' => true,
+            'ndsApproval'    => $nds,
+            // Tipe yang dibaca dari DB nds (kolom alias "a"): costing, dan bom setelah kolom approval bom dibuat.
+            'ndsTypes'       => array_values(array_filter(MarketingNdsApprovalService::TYPES, fn ($t) => self::nds($t))),
             'summary'        => [
-                'costing' => $this->documentQuery('costing')->whereRaw(MarketingApprovalService::statusSql('costing', 'a') . " = 'awaiting'")->count(),
-                'bom' => $this->documentQuery('bom')->whereRaw(MarketingApprovalService::statusSql('bom', 'bm') . " = 'awaiting'")->count(),
-                'unlock_costing' => $this->unlockRequestQuery('costing')->count(),
-                'unlock_bom' => $this->unlockRequestQuery('bom')->count(),
-                'unlock_so' => $this->unlockRequestQuery('so')->count(),
+                'costing' => $awaiting('costing'),
+                'bom' => $awaiting('bom'),
+                'unlock_costing' => $unlocks('costing'),
+                'unlock_bom' => $unlocks('bom'),
+                // SO DB nds tidak punya approval / unlock; Unlock SO hanya untuk alur Signalbit.
+                'unlock_so' => $nds ? 0 : $unlocks('so'),
             ],
         ]);
     }
 
-    /** Tabel Approval Costing / Approval BOM (DataTables) + jumlah per status. */
+    /**
+     * Costing / BOM DB baru beserta kolom tabel Approval (nama kolom sama dengan tabel Signalbit supaya satu template dipakai).
+     * Dibungkus subquery "a" supaya filter, sort, dan status bisa memakai alias. BOM = satu baris per WS (so_line).
+     */
+    private function ndsQuery(string $type)
+    {
+        $db = DB::connection('mysql_mkt');
+        $items = $db->table('costing_set as cs')
+            ->leftJoin('master_product_items as pi', 'pi.id', '=', 'cs.product_items_id')
+            ->leftJoin('master_product_group as g', 'g.id', '=', 'pi.product_group_id')
+            ->where(fn ($q) => $q->whereNull('cs.cancel')->orWhere('cs.cancel', '!=', 'Y'))
+            ->select('cs.costing_id', DB::raw("GROUP_CONCAT(DISTINCT pi.product_item_name ORDER BY cs.id SEPARATOR ', ') as product_item"),
+                DB::raw('MIN(g.product_group_name) as product_group'))
+            ->groupBy('cs.costing_id');
+        $poLines = fn ($key) => $db->table('so_line as l')
+            ->join('so_production as sp', 'sp.so_line_id', '=', 'l.id')
+            ->join('so_po as p', 'p.so_production_id', '=', 'sp.id')
+            ->leftJoin('master_destinations as d', 'd.id', '=', 'p.destination_id')
+            ->join('sales_orders as so', 'so.id', '=', 'l.sales_order_id')
+            ->where(fn ($q) => $q->whereNull('p.cancel')->orWhere('p.cancel', '!=', 'Y'))
+            ->where(fn ($q) => $q->whereNull('sp.cancel')->orWhere('sp.cancel', '!=', 'Y'))
+            ->select($key, DB::raw('MIN(p.delivery_date) as deldate'),
+                DB::raw("GROUP_CONCAT(DISTINCT l.no_ws ORDER BY l.no_ws SEPARATOR ', ') as kpno"),
+                DB::raw("GROUP_CONCAT(DISTINCT d.destination_name ORDER BY d.destination_name SEPARATOR ', ') as market"))
+            ->groupBy($key);
+        $status = MarketingNdsApprovalService::statusSql($type, $type === 'bom' ? 'bm' : 'c');
+        $id = $type === 'bom' ? 'bm.id' : 'c.id';
+
+        $inner = $type === 'bom'
+            ? $db->table('bom as bm')
+                ->join('costings as c', 'c.id', '=', 'bm.costings_id')
+                ->join('so_line as wl', 'wl.id', '=', 'bm.so_line_id')
+                ->leftJoinSub($poLines('l.id'), 'ln', 'ln.id', '=', 'wl.id')
+                ->leftJoinSub($db->table('so_production')->select('so_line_id', DB::raw('SUM(qty) as qty'))
+                    ->where(fn ($q) => $q->whereNull('cancel')->orWhere('cancel', '!=', 'Y'))->groupBy('so_line_id'), 'q', 'q.so_line_id', '=', 'wl.id')
+                ->where(fn ($q) => $q->whereNull('bm.cancel')->orWhere('bm.cancel', '!=', 'Y'))
+                ->select(['bm.id', 'bm.id as ref_id', 'c.id as id_costing', 'wl.sales_order_id as so_id', 'wl.id as line_id', 'bm.bom_no as doc_no',
+                    'bm.bom_date as doc_date', 'ln.deldate', 'wl.no_ws as kpno', 'ln.market', 'q.qty'])
+            // Costing: satu baris per SO (sama dengan Marketing List); Costing tanpa SO tetap satu baris. Aksi tetap per id Costing.
+            : $db->table('costings as c')
+                ->leftJoin('sales_orders as cso', fn ($j) => $j->on('cso.costing_id', '=', 'c.id')
+                    ->where(fn ($w) => $w->whereNull('cso.cancel')->orWhere('cso.cancel', '!=', 'Y')))
+                ->leftJoinSub($poLines('so.id'), 'ln', 'ln.id', '=', 'cso.id')
+                ->leftJoin('master_destinations as md', 'md.id', '=', 'c.main_destination_id')
+                ->where(fn ($q) => $q->whereNull('c.cancel')->orWhere('c.cancel', '!=', 'Y'))
+                ->select(['c.id', 'c.id as ref_id', 'c.id as id_costing', 'cso.id as so_id', 'cso.so_no', 'c.costing_no as doc_no', 'c.costing_date as doc_date', 'ln.deldate', 'ln.kpno',
+                    DB::raw('COALESCE(ln.market, md.destination_name) as market'), 'c.planned_qty as qty']);
+        $inner->leftJoin('master_partners as b', 'b.id', '=', 'c.buyer_id')
+            ->leftJoin('master_brands as br', 'br.id', '=', 'c.brand_id')
+            ->leftJoinSub($items, 'it', 'it.costing_id', '=', 'c.id')
+            ->addSelect([
+                'b.name as buyer', 'br.brand_name as brand', 'c.style as styleno', 'c.fob_price as cfm_price', 'it.product_group', 'it.product_item',
+                DB::raw("{$status} as approval_status"),
+                DB::raw("{$status} as doc_status"),
+                DB::raw('IF(' . MarketingNdsApprovalService::pendingUnlockSql($type, $id) . ', 1, 0) as unlock_pending'),
+                DB::raw(MarketingNdsApprovalService::requestColumnSql($type, $id, 'reason') . ' as reason'),
+                DB::raw(MarketingNdsApprovalService::requestColumnSql($type, $id, 'username') . ' as requested_by'),
+                DB::raw(MarketingNdsApprovalService::requestColumnSql($type, $id, 'dateinput') . ' as requested_at'),
+            ]);
+
+        return $db->query()->fromSub($inner, 'a');
+    }
+
+    private function applyNdsFilters($query, Request $request, string $dateColumn): void
+    {
+        if ($request->filled('tgl_awal') && $request->filled('tgl_akhir')) {
+            $query->whereDate($dateColumn, '>=', $request->tgl_awal)->whereDate($dateColumn, '<=', $request->tgl_akhir);
+        }
+        $keyword = trim((string) $request->keyword);
+        if ($keyword === '') {
+            return;
+        }
+        $selected = array_values(array_intersect(array_keys(self::NDS_SEARCH_COLUMNS), (array) $request->search_by)) ?: array_keys(self::NDS_SEARCH_COLUMNS);
+        $query->where(function ($q) use ($selected, $keyword) {
+            foreach ($selected as $key) {
+                $q->orWhere(self::NDS_SEARCH_COLUMNS[$key], 'like', "%{$keyword}%");
+            }
+        });
+    }
+
+    /** Tabel Approval Costing / SO DB baru. */
+    private function ndsDocuments(Request $request, string $type)
+    {
+        $this->ndsApprovals()->closeExpiredUnlocks($type);
+        $data = $this->ndsQuery($type);
+        $counts = $this->ndsQuery($type);
+        foreach ([$data, $counts] as $query) {
+            $this->applyNdsFilters($query, $request, 'a.doc_date');
+        }
+        if (in_array($request->status, self::STATUSES, true)) {
+            $data->where('a.approval_status', $request->status);
+        }
+        if (!$request->filled('order')) {
+            $data->orderByDesc('a.id')->orderByDesc('a.so_id');
+        }
+
+        $payload = DataTables::of($data)
+            ->with('status_counts', $counts->select('a.approval_status', DB::raw('COUNT(DISTINCT a.id) as total'))->groupBy('a.approval_status')->pluck('total', 'approval_status'))
+            ->addIndexColumn()
+            ->escapeColumns([])
+            ->make(true)
+            ->getData(true);
+        $notes = $this->ndsApprovals()->latestNotes($type, array_column($payload['data'] ?? [], 'id'));
+        foreach ($payload['data'] ?? [] as $index => $row) {
+            $payload['data'][$index]['approval_note'] = $notes[$row['id']] ?? null;
+        }
+
+        return response()->json($payload);
+    }
+
+    /** Tabel Approval Costing / Approval BOM / Approval SO (DataTables) + jumlah per status. */
     public function documents(Request $request, string $type)
     {
+        if (self::nds($type)) {
+            return $this->ndsDocuments($request, $type);
+        }
+        abort_if($type === 'so', 404);
+        if ($type === 'costing') {
+            $this->approvals->closeExpiredCostingUnlocks();
+        }
         $statusSql = MarketingApprovalService::statusSql($type, $type === 'costing' ? 'a' : 'bm');
         $data = $this->documentQuery($type);
         $counts = $this->documentQuery($type);
@@ -88,14 +253,13 @@ class Marketing_ApprovalCenterController extends Controller
                 'p.product_group',
                 'p.product_item',
                 DB::raw($statusSql . ' as approval_status'),
-                DB::raw(MarketingApprovalService::latestNoteSql($type, $type === 'costing' ? 'a.id' : 'bm.id') . ' as approval_note'),
             ]);
         // Urutan default hanya saat user belum klik sort di header tabel.
         if (! $request->filled('order')) {
             $data->orderByDesc($type === 'costing' ? 'a.id' : 'bm.id');
         }
 
-        return DataTables::of($data)
+        $response = DataTables::of($data)
             ->with('status_counts', $counts->select(DB::raw($statusSql . ' as approval_status'), DB::raw('COUNT(*) as total'))
                 ->groupBy('approval_status')
                 ->pluck('total', 'approval_status'))
@@ -103,11 +267,29 @@ class Marketing_ApprovalCenterController extends Controller
             // Teks di-escape di browser (escapeHtml); tanpa ini "H&M" tampil "H&amp;amp;M".
             ->escapeColumns([])
             ->make(true);
+
+        // Catatan ada di DB baru, jadi dilengkapi per halaman.
+        $payload = $response->getData(true);
+        $notes = app(MarketingHistoryService::class)->latestNotes($type, array_column($payload['data'] ?? [], 'id_costing'));
+        foreach ($payload['data'] ?? [] as $index => $row) {
+            $payload['data'][$index]['approval_note'] = $notes[$row['id_costing']] ?? null;
+        }
+
+        return response()->json($payload);
     }
 
     /** Tabel Unlock Costing / BOM / SO: dokumen yang punya request unlock (status W) di unlock_cost / unlock_jo / unlock_so. */
     public function unlockRequests(Request $request, string $type)
     {
+        if (self::nds($type)) {
+            $data = $this->ndsQuery($type)->where('a.unlock_pending', 1);
+            if (!$request->filled('order')) {
+                $data->orderBy('a.id')->orderBy('a.so_id');
+            }
+            $this->applyNdsFilters($data, $request, 'a.requested_at');
+
+            return DataTables::of($data)->addIndexColumn()->escapeColumns([])->make(true);
+        }
         $data = $this->unlockRequestQuery($type);
         if (! $request->filled('order')) {
             $data->orderBy(match ($type) { 'costing' => 'a.id', 'so' => 'so.id', default => 'bm.id' });
@@ -179,7 +361,13 @@ class Marketing_ApprovalCenterController extends Controller
         ]);
 
         return $this->respond(function () use ($validated, $type) {
-            $result = $this->approvals->decide($type, $validated['ids'], $validated['action'], $validated['note'] ?? null);
+            if (self::nds($type)) {
+                $result = $this->ndsApprovals()->decide($type, $validated['ids'], $validated['action'], $validated['note'] ?? null);
+            } elseif ($type === 'so') {
+                throw new \InvalidArgumentException('Approval SO hanya tersedia di DB baru.');
+            } else {
+                $result = $this->approvals->decide($type, $validated['ids'], $validated['action'], $validated['note'] ?? null);
+            }
             $message = "{$result['processed']} data diproses.";
             if ($result['skipped'] > 0) {
                 $message .= " {$result['skipped']} data dilewati karena tidak berstatus Awaiting Approval"
@@ -197,7 +385,9 @@ class Marketing_ApprovalCenterController extends Controller
             'ids.*' => ['integer'],
         ]);
 
-        return $this->respond(fn () => $this->approvals->unlock($validated['type'], $validated['ids']) . ' data berhasil di-unlock.');
+        return $this->respond(fn () => (self::nds($validated['type'])
+            ? $this->ndsApprovals()->unlock($validated['type'], $validated['ids'])
+            : $this->approvals->unlock($validated['type'], $validated['ids'])) . ' data berhasil di-unlock.');
     }
 
     public function requestUnlock(Request $request)
@@ -209,7 +399,10 @@ class Marketing_ApprovalCenterController extends Controller
         ]);
 
         return $this->respond(function () use ($validated) {
-            $this->approvals->requestUnlock($validated['type'], (int) $validated['id'], trim($validated['reason']));
+            self::nds($validated['type'])
+                ? $this->ndsApprovals()->requestUnlock($validated['type'], (int) $validated['id'], trim($validated['reason']))
+                : $this->approvals->requestUnlock($validated['type'], (int) $validated['id'], trim($validated['reason']));
+
             return 'Request unlock terkirim dan menunggu di Approval Center.';
         });
     }

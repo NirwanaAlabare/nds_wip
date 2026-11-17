@@ -381,6 +381,10 @@ class Marketing_SOController extends Controller
             ->orderBy('product_item', 'asc')
             ->get();
 
+        if ($request->boolean('for_costing')) {
+            $items = app(\App\Services\MarketingNdsCostingService::class)->limitOptions($items, 'id', 'master_product_items', 'product_item_code', $request->keep_item, null, 'PRD-');
+        }
+
         return response()->json($items);
     }
 
@@ -2282,8 +2286,7 @@ class Marketing_SOController extends Controller
                     (int) $id_cost,
                     'so',
                     'created',
-                    "Sales Order {$kode['so_no']} dibuat untuk Purchase Order {$no_po}.",
-                    (int) $id_so
+                    "Sales Order {$kode['so_no']} dibuat untuk Purchase Order {$no_po}."
                 );
 
                 $bom_items = $mysql_sb->select("
@@ -2542,7 +2545,7 @@ class Marketing_SOController extends Controller
                     }, $user->name);
                     $this->logSo($idSo);
                     $this->logAllSoDet($idSo);
-                    app(MarketingHistoryService::class)->soCreated((int) $costingId, (int) $idSo, (string) $codes['so_no']);
+                    app(MarketingHistoryService::class)->soCreated((int) $costingId, (string) $codes['so_no']);
                 }
 
                 app(MarketingBomService::class)->refreshColorsSizes($bom->id);
@@ -5908,7 +5911,7 @@ class Marketing_SOController extends Controller
                     app(MarketingBomService::class)->refreshColorsSizes((int) $so->id_bom);
                 }
 
-                app(MarketingHistoryService::class)->soUpdated((int) $so->id_cost, (int) $so->id, (string) $so->so_no, [
+                app(MarketingHistoryService::class)->soUpdated((int) $so->id_cost, (string) $so->so_no, [
                     'updated' => $updates->count(),
                     'added' => $adds->count(),
                     'deleted' => $deletes->count(),

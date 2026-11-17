@@ -666,9 +666,9 @@
     <form id="form-create-so" action="{{ route('so-store') }}" method="POST" enctype="multipart/form-data" novalidate>
         @csrf
         <div class="card-body so-create-body{{ ($viewOnly ?? false) ? ' so-view' : '' }}">
-            {{-- <div class="so-breadcrumb">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <a href="{{ route('master-marketing-so') }}">Sales Order</a> &nbsp;›&nbsp; <strong>Create Sales Order</strong></div>
+            {{-- <div class="so-breadcrumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; Proses &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Costing</a> &nbsp;›&nbsp; <a href="{{ route('master-marketing-so') }}">Sales Order</a> &nbsp;›&nbsp; <strong>Create Sales Order</strong></div>
              --}}
-            <div class="so-breadcrumb">Marketing &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Proses</a>  &nbsp;›&nbsp; Sales Order &nbsp;›&nbsp; <strong>{{ ($viewOnly ?? false) ? 'Detail Sales Order' : 'Create Sales Order' }}</strong></div>
+            <div class="so-breadcrumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a>  &nbsp;›&nbsp; Sales Order &nbsp;›&nbsp; <strong>{{ ($viewOnly ?? false) ? 'Detail Sales Order' : 'Create Sales Order' }}</strong></div>
             <div class="so-page-heading">
                 <div>
                     @if ($viewOnly ?? false)

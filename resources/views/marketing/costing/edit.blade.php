@@ -116,6 +116,21 @@
         .costing-picture-thumb.is-pending::after { content: 'Belum disimpan'; position: absolute; left: 0; right: 0; bottom: 0; padding: 1px 0; background: rgba(249, 115, 22, .9); color: #fff; font-size: 7px; font-weight: 600; text-align: center; }
         .costing-picture-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .costing-picture-remove { position: absolute; top: 2px; right: 2px; z-index: 1; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%; background: rgba(220, 53, 69, .92); color: #fff; font-size: 10px; line-height: 18px; }
+        /* Upload Image ala mockup: dropzone, thumbnail, dan tombol Clear dalam satu kartu. */
+        .costing-upload-box .costing-picture-thumbnails { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; min-height: 92px; margin-top: 10px; padding: 8px; border: 1px dashed #8b5cf6; border-radius: 6px; }
+        .costing-upload-box .costing-picture-thumb { position: relative; width: 72px; height: 72px; padding: 0; border: 2px solid transparent; border-radius: 4px; overflow: hidden; background: #f1f3f5; cursor: pointer; }
+        .costing-upload-box .costing-picture-thumb.active { border-color: #3085d6; }
+        .costing-upload-box .costing-picture-thumb.is-pending { border: 2px dashed #f97316; }
+        .costing-upload-box .costing-picture-thumb.is-pending::after { content: none; }
+        .costing-upload-box .costing-picture-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .costing-upload-box .costing-picture-remove { position: absolute; top: 4px; left: 50%; z-index: 2; width: 20px; height: 20px; padding: 0; border: 1.5px solid #fff; border-radius: 50%; background: rgba(0, 0, 0, .35); color: #fff; font-size: 10px; line-height: 17px; transform: translateX(-50%); }
+        .costing-upload-box .costing-picture-remove:hover { background: #dc3545; border-color: #dc3545; }
+        .costing-upload-box .costing-picture-check { position: absolute; top: 50%; left: 50%; z-index: 1; display: grid; place-items: center; width: 22px; height: 22px; border: 1.5px solid #fff; border-radius: 50%; color: #fff; font-size: 10px; transform: translate(-50%, -50%); pointer-events: none; }
+        .costing-upload-box .costing-picture-meta { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 3px 2px; background: linear-gradient(transparent, rgba(0, 0, 0, .7)); color: #fff; font-size: 8px; line-height: 1.25; text-align: center; pointer-events: none; }
+        .costing-upload-box .costing-picture-meta span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .costing-upload-box .costing-picture-thumb.is-pending .costing-picture-meta .is-unsaved { color: #fdba74; font-weight: 700; }
+        .costing-picture-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+        .costing-upload-box .costing-picture-clear { margin-top: 0 !important; padding: 3px 18px; border-radius: 14px; }
 
         /* ---- tab kategori ---- */
         /* Tab dibagi rata selebar baris (tanpa scroll); font maks 25px dan mengecil di layar sempit supaya tetap muat. */
@@ -173,12 +188,45 @@
         #ga_percent { width: 70px !important; height: 24px; padding: 0 6px; font-size: 11px; display: inline-block; }
 
         /* ---- sel inline (Excel-like): teks biasa, editor dibuat saat sel diedit ---- */
+        /* Card CM Price (header) + baris CMT tersembunyi di Manufacturing. */
+        #cmt-guide { display: none !important; }
+        /* Urutan Product & Order Information (mode nds): Product Item, Unit, Marketing Order | CM Price | Status, Notes. */
+        .product-order-fields > .costing-field:has(#product_items) { order: 1; }
+        .product-order-fields > .costing-field:has(#unit) { order: 2; }
+        .product-order-fields > .costing-field:has(#marketing_order) { order: 3; }
+        .product-order-fields > #cm-card { order: 4; grid-column: 1 / -1; }
+        .product-order-fields > .costing-field:has(#status) { order: 5; }
+        .product-order-fields > .costing-field:has(#notes) { order: 6; }
+        #cm-card:empty { display: none; }
+        .cm-grid { display: grid; grid-template-columns: repeat(var(--n, 1), minmax(0, 1fr)); column-gap: 12px; }
+        @media (max-width: 575.98px) { .cm-grid { grid-template-columns: minmax(0, 1fr); } }
+        /* CM Price di header: field tampilan (disabled), satu per set. */
+        .cm-inline .form-control:disabled { background: #f1f4f8; color: #1e293b; font-weight: 600; text-align: right; }
+        .cm-inline .cm-hint { display: block; margin-top: 3px; color: #94a3b8; font-size: 10px; }
+        .cm-card-rows { display: grid; gap: 8px; }
+        .cm-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 12px; align-items: end; }
+        .cm-row .cm-item { grid-column: 1 / -1; margin-bottom: 2px; color: #284a63; font-size: 11px; font-weight: 600; }
+        .cm-row label { display: block; margin-bottom: 4px; color: #1e293b; font-size: 10px; font-weight: 500; }
+        .cm-row .cm-total { min-height: 34px; padding: 6px 10px; border-radius: 6px; background: #f1f4f8; color: #1e293b; font-weight: 700; text-align: right; }
+        .cm-row .form-control.is-invalid { border-color: #dc3545; }
+        .cm-row.is-empty .form-control, .cm-row.is-empty .cm-total { background: #f1f4f8; color: #94a3b8; }
+        .cm-card-hint { grid-column: 1 / -1; color: #94a3b8; font-size: 10px; }
         .costing-tab-panel table tbody td.xl-cell { min-width: 54px; height: 29px; padding: 4px 6px; cursor: cell; white-space: nowrap; outline: none; }
+        /* Lebar kolom ikut isi; teks panjang (content, shell/part, description, supplier) turun baris, angka tetap satu baris. */
+        /* Set / Shell / Part tetap satu baris; Content cukup lebar (min 220px) lalu turun baris di spasi; Description & Supplier boleh turun baris. Kata tidak dipotong. */
+        .costing-tab-panel table tbody td.item-name { white-space: normal !important; min-width: 220px; max-width: 320px; overflow-wrap: normal; word-break: normal; }
+        .costing-tab-panel table tbody td.desc-td,
+        .costing-tab-panel table tbody td.xl-cell[data-field="supplier"] { white-space: normal !important; max-width: 320px; overflow-wrap: break-word; word-break: normal; }
+        .costing-tab-panel table tbody td.set-td,
+        .costing-tab-panel table tbody td.shell-td,
+        .costing-tab-panel table tbody td.part-td { white-space: nowrap !important; }
         .costing-tab-panel table tbody td.xl-cell[data-field="set"],
         .costing-tab-panel table tbody td.xl-cell[data-field="unit"],
         .costing-tab-panel table tbody td.xl-cell[data-field="supplier"] { min-width: 110px; }
         .costing-tab-panel table tbody td.xl-cell.xl-invalid { background: #ffe4e6 !important; box-shadow: inset 0 0 0 2px #dc3545; }
         /* Sel hasil paste: biru muda sebentar (lihat handler paste). */
+        /* Kolom Auto: abu-abu seperti legend "Auto", tidak bisa diedit. */
+        .costing-tab-panel table tbody td.xl-cell.xl-auto { background: #f1f4f8; color: #475569; cursor: not-allowed; }
         .costing-tab-panel table tbody td.xl-cell.xl-pasted { background: #dbeafe !important; transition: background-color .4s ease; }
         /* Legend di bawah tabel: Editable / Auto-calculated / Just Pasted / Error. */
         .xl-cell-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin: -6px 5px 16px; padding: 0 12px; color: #94a3b8; font-family: Inter, sans-serif; font-size: 11px; }
@@ -245,6 +293,20 @@
             width: 8px; height: 8px; background: #1a73e8; border: 1px solid #fff; cursor: crosshair;
         }
         tr.xl-hidden { display: none !important; }
+        /* Muat ulang tabel tanpa reload halaman: tabel memudar sebentar, baris baru muncul dengan sorotan lembut. */
+        .costing-tab-panel .table-responsive { transition: opacity .25s ease, filter .25s ease; }
+        .costing-tab-panel .table-responsive.xl-refreshing { opacity: .45; filter: blur(.6px); pointer-events: none; }
+        tr.row-costing.xl-row-new > td { animation: xl-row-in 2.2s ease-out; }
+        @keyframes xl-row-in {
+            0% { background-color: #fff3c4; opacity: 0; transform: translateY(-4px); }
+            15% { opacity: 1; transform: none; }
+            60% { background-color: #fff3c4; }
+            100% { background-color: transparent; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .costing-tab-panel .table-responsive { transition: none; }
+            tr.row-costing.xl-row-new > td { animation: none; }
+        }
         tr.row-costing.xl-row-selected > td { background: #eef6ff !important; }
         tr.row-costing.xl-row-error > td { background: #fdecea !important; }
         tr.row-costing.xl-saving .row-number::after { content: '\2022'; color: #e0a800; margin-left: 2px; }
@@ -307,7 +369,12 @@
         .costing-page-subtitle { margin: 2px 0 18px; color: #475569; font-size: 10px; }
         #form-header .costing-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; }
         #form-header .costing-layout .span-full { grid-column: 1 / -1; }
-        #form-header .costing-top { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 18px; grid-column: 1 / -1; }
+        #form-header .costing-top { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 18px; grid-column: 1 / -1; align-items: stretch; }
+        /* Upload Image setinggi kolom kiri: bawah kartunya sejajar dengan bawah Product & Order Information. */
+        #form-header .costing-top > .costing-head-section { display: flex; flex-direction: column; }
+        #form-header .costing-top > .costing-head-section > .costing-head-body { display: flex; flex: 1; flex-direction: column; }
+        #form-header .costing-top > .costing-head-section .costing-upload-box { display: flex; flex: 1; flex-direction: column; }
+        #form-header .costing-top > .costing-head-section .costing-picture-thumbnails { flex: 1; }
         #form-header .costing-head-section { margin-bottom: 16px; }
         #form-header .costing-head-title { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; margin: 0 0 8px; padding: 6px 12px; border: 1px solid #94a3b8; border-radius: 6px; background: #fff; color: #284a63; font-size: 15px; font-weight: 500; }
         #form-header .costing-head-title .required-mark { color: #dc3545; margin-left: 2px; margin-right: auto; }
@@ -412,6 +479,10 @@
         #form-header .costing-fields.four-columns { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         #form-header .costing-fields.price-columns { grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); }
         #form-header .costing-field.span-2 { grid-column: span 2; }
+        /* Product & Order Information: Notes 2 kolom (nds) atau satu baris penuh (mode lama). */
+        #form-header .costing-field.span-all { grid-column: 1 / -1; }
+        #form-header .costing-head-title { border-color: #284a63; }
+        @media (max-width: 767.98px) { #form-header .costing-fields .costing-field.span-2 { grid-column: 1 / -1; } }
         #form-header .costing-field label { min-height: 0; margin-bottom: 4px; color: #1e293b; font-size: 10px; font-weight: 500 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #form-header .costing-field .form-control,
         #form-header .costing-field .select2-container--bootstrap4 .select2-selection { min-height: 34px; height: 34px; border-radius: 6px; font-size: 10px; font-weight: 400; box-shadow: 0 1px 3px rgba(30, 41, 59, .08); }
@@ -576,28 +647,49 @@
             .unlock-badges, .unlock-actions { flex-wrap: wrap; margin-left: 0; }
         }
         .costing-fields.three-columns { display: flex !important; flex-wrap: wrap; gap: 16px; }
+        /* Baris satu deret (Product & Type, Parameter Costing): field yang tampil membagi rata lebar card, jadi tidak ada kolom kosong
+           walau ada field yang disembunyikan. Di bawah 1200px tetap memakai grid 2 / 1 kolom. */
+        @media (min-width: 1200px) {
+            .costing-fields.fill-row { display: flex !important; gap: 0 12px; }
+            .costing-fields.fill-row > .costing-field { flex: 1 1 0; min-width: 0; }
+        }
         .costing-fields.three-columns > .costing-field-md { flex: 1 1 calc((100% - 32px) / 3); min-width: 0; }
         @media (max-width: 991.98px) { .costing-fields.three-columns > .costing-field-md { flex-basis: calc((100% - 16px) / 2); max-width: none; } }
         @media (max-width: 575.98px) { .costing-fields.three-columns > .costing-field-md { flex-basis: 100%; } }
 
-        /* ===== Fabric: Content -> Shell -> Part. Baris lanjutan grup tidak mengulang nama content/shell. ===== */
-        #tbody-fabric td.item-name, #tbody-fabric td.shell-td { white-space: nowrap; }
+        /* ===== Fabric: Content -> Set -> Shell -> Part. Baris lanjutan grup tidak mengulang nama content/shell. ===== */
+        #tbody-fabric td.item-name, #tbody-fabric td.set-td, #tbody-fabric td.shell-td { white-space: nowrap; }
         #tbody-fabric .fb-name { vertical-align: middle; }
         #tbody-fabric .fb-add { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; margin-left: 8px; padding: 0; border: 0; border-radius: 3px; background: #284a63; color: #fff; font-size: 9px; vertical-align: middle; cursor: pointer; }
         #tbody-fabric .fb-add:hover { background: #1d3a4f; }
         #tbody-fabric td.fb-merged { display: none; }
-        #tbody-fabric td.row-number[rowspan], #tbody-fabric td.item-name[rowspan], #tbody-fabric td.shell-td[rowspan] { vertical-align: middle; }
+        #tbody-fabric td.row-number[rowspan], #tbody-fabric td.item-name[rowspan], #tbody-fabric td.set-td[rowspan], #tbody-fabric td.shell-td[rowspan] { vertical-align: middle; }
         #tbody-fabric td[rowspan]:not([rowspan="1"]) { background: #fff; border-right: 1px solid #e2e8f0; }
         .costing-create-page.is-readonly #tbody-fabric .fb-add { display: none; }
-        .fb-modal { max-width: 420px; }
+        /* Modal Add Shell / Add Part sesuai Figma. */
+        .fb-modal { max-width: 410px; }
         .fb-modal .modal-content { border: 0; border-radius: 12px; }
-        .fb-modal .modal-header { justify-content: center; border-bottom: 1px solid #e2e8f0; }
-        .fb-modal .modal-title { color: #284a63; font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 600; }
-        .fb-modal .fb-modal-card { padding: 14px; border-radius: 10px; box-shadow: 0 3px 10px rgba(15, 23, 42, .10); }
-        .fb-modal .fb-modal-label { display: block; margin-bottom: 8px; color: #1e293b; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; }
-        .fb-modal .select2-container--bootstrap4 .select2-selection--multiple { min-height: 46px; border: 1px solid #d6d6d6; border-radius: 10px; }
-        .fb-modal .modal-footer { justify-content: flex-end; gap: 10px; border-top: 0; }
+        .fb-modal .modal-header { justify-content: center; margin: 0 6px; padding: 20px 16px 14px; border-bottom: 1px solid #ababab; }
+        .fb-modal .modal-title { color: #284a63; font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 600; }
+        .fb-modal .modal-body { padding: 20px 22px 8px; }
+        .fb-modal .fb-modal-card { padding: 16px 16px 16px; border-radius: 8px; background: #fff; box-shadow: 0 4px 14px rgba(76, 78, 160, .14); }
+        .fb-modal .fb-modal-label { display: block; margin-bottom: 10px; color: #2b2b2b; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 500; }
+        .fb-modal .select2-container--bootstrap4 .select2-selection--multiple { position: relative; min-height: 50px; padding: 6px 40px 6px 10px; border: 1px solid #d6d6d6; border-radius: 12px; }
+        .fb-modal .select2-container--bootstrap4 .select2-selection--multiple::after { content: ''; position: absolute; top: 50%; right: 18px; width: 9px; height: 9px; border: solid #333; border-width: 0 1.5px 1.5px 0; transform: translateY(-75%) rotate(45deg); pointer-events: none; }
+        .fb-modal .select2-container--bootstrap4.select2-container--open .select2-selection--multiple::after { transform: translateY(-25%) rotate(-135deg); }
+        .fb-modal .select2-selection--multiple .select2-search__field::placeholder,
+        .fb-modal .select2-selection--multiple .select2-selection__placeholder { color: #aaa; font-family: 'Poppins', sans-serif; font-size: 13px; }
+        .fb-modal .modal-footer { justify-content: flex-end; gap: 14px; padding: 18px 22px 22px; border-top: 0; }
+        .fb-modal .modal-footer .mkt-btn { min-width: 130px; height: 46px; border: 0; border-radius: 23px; color: #fff; font-family: 'SF Pro Rounded', ui-rounded, 'MKT Rounded', sans-serif; font-size: 18px; font-weight: 700; box-shadow: 0 8px 16px rgba(76, 78, 160, .22); }
+        .fb-modal .modal-footer .mkt-btn--red { background: #ff0000; }
+        .fb-modal .modal-footer .mkt-btn--green { background: #16803c; }
+        .fb-modal .modal-footer .mkt-btn:disabled { opacity: .6; box-shadow: none; }
         .fb-modal .select2-selection--multiple .select2-selection__rendered { max-height: 120px; overflow-y: auto; }
+        /* Placeholder & pilihan Shell / Part rata tengah vertikal di kotak 50px (bawaan select2 multiple menempel di atas). */
+        .fb-modal .select2-container--bootstrap4 .select2-selection--multiple { display: flex; align-items: center; }
+        .fb-modal .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__rendered { display: flex; flex-wrap: wrap; align-items: center; width: 100%; margin: 0; padding: 0; line-height: 1.4; }
+        .fb-modal .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__placeholder { float: none; margin: 0; padding: 0 0 0 4px; line-height: 1.4; }
+        .fb-modal .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice { margin-top: 3px; margin-bottom: 3px; }
         .fb-check-dropdown { border: 0 !important; border-radius: 8px !important; box-shadow: 0 4px 14px rgba(15, 23, 42, .15); overflow: hidden; }
         .fb-check-dropdown .select2-search--dropdown { padding: 10px 10px 4px; }
         .fb-check-dropdown .select2-search__field { height: 30px; padding: 4px 8px; border: 1px solid #d6d6d6 !important; border-radius: 4px; font-size: 13px; }
@@ -627,7 +719,29 @@
             .xl-pager .xl-page-btn.active { font-weight: 700; }
             .xl-cell-legend { font-family: Inter, sans-serif; font-size: 14px; font-weight: 400; }
         }
-    </style>
+            .costing-guide { display: flex; align-items: center; gap: 14px; border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; font-size: 15px; line-height: 1.5; border: 1px solid; }
+        .costing-guide[hidden] { display: none; }
+        .costing-guide.is-warning { background: #fff8e1; border-color: #f5c451; color: #6b4e00; }
+        .costing-guide.is-info { background: #eef5ff; border-color: #b6d4fe; color: #143d73; }
+        .costing-guide-icon { font-size: 26px; flex-shrink: 0; }
+        .costing-guide-body { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+        .costing-guide-body strong { font-size: 16px; }
+        .costing-guide-ws { display: flex; flex-wrap: wrap; gap: 6px; }
+        .costing-guide-chip { background: #fff; border: 1px solid #b6d4fe; border-radius: 6px; padding: 2px 10px; font-weight: 700; font-size: 15px; }
+        .costing-guide-chip small { font-weight: 600; color: #5a6b85; margin-left: 4px; }
+        .costing-guide-btn { flex-shrink: 0; font-size: 15px; padding: 8px 16px; }
+        @media (max-width: 768px) { .costing-guide { flex-direction: column; align-items: stretch; } }
+        @keyframes cmtPulse { 0%, 100% { box-shadow: inset 0 0 0 2px #f0ad4e; } 50% { box-shadow: inset 0 0 0 4px #f0ad4e; } }
+        tr.row-costing.cmt-focus > td { background: #fff3cd !important; animation: cmtPulse 1.2s ease-in-out 4; }
+        /* Pilihan Product Item (multiple) tampil sebagai chip: nama item + badge set (TOP/BOTTOM), tombol hapus di kanan. */
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__rendered { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 0; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice { display: inline-flex; align-items: center; gap: 8px; float: none; margin: 0; padding: 6px 8px 6px 12px; border: 1px solid #c9d6e3; border-radius: 999px; background: #eef4fa; color: #1e3a52; font-size: 14px; font-weight: 600; line-height: 1.2; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove { order: 2; float: none; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin: 0; border-radius: 50%; background: #d5e0eb; color: #284a63; font-size: 15px; font-weight: 700; line-height: 1; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove:hover { background: #c8161d; color: #fff; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-search--inline { float: none; flex: 1 1 80px; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-search--inline .select2-search__field { width: 100% !important; margin: 0; }
+        .pi-chip-set { padding: 2px 7px; border-radius: 6px; background: #284a63; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+</style>
 @endsection
 
 @section('content')
@@ -635,7 +749,7 @@
 <div class="costing-create-page{{ $unlock['can_edit'] && !$viewOnly ? '' : ' is-readonly' }}{{ $unlock['state'] === 'unlocked' ? ' is-unlocked' : '' }}{{ $viewOnly ? ' is-view' : '' }}">
     <div class="card costing-create-card">
         <div class="card-body">
-            <div class="costing-crumb"><a href="{{ route('master-costing') }}">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing</a> &nbsp;›&nbsp; <b>{{ $viewOnly ? 'Detail Costing' : 'Edit Costing' }}</b></div>
+            <div class="costing-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; Costing &nbsp;›&nbsp; <b>{{ $viewOnly ? 'Detail Costing' : 'Edit Costing' }}</b></div>
             @if ($viewOnly)
             <div class="costing-view-head">
                 <div>
@@ -730,11 +844,15 @@
                             @csrf
                             <button type="submit" class="mkt-btn mkt-btn--gray mkt-btn--sm">Cancel editing</button>
                         </form>
-                        <button type="button" class="mkt-btn mkt-btn--green mkt-btn--sm" id="btn-save-and-lock">Save and lock</button>
                     </span>
                     @endif
                 </div>
-                <p class="unlock-note mb-0">After saving, the Costing locks and waits for manager approval again.</p>
+                <p class="unlock-note mb-0">After you click Update, the Costing locks and waits for manager approval again.</p>
+            </div>
+            @elseif ($unlockState === 'submitted')
+            {{-- Revisi setelah unlock sudah di-Save and lock: masih bisa diedit, Add SO menunggu approval ulang. --}}
+            <div class="costing-lock-alert" role="alert">
+                <span><i class="far fa-clock"></i> Revisi Costing ini menunggu approval Marketing Manager. Costing masih bisa diubah, tapi SO baru bisa dibuat setelah di-approve lagi.</span>
             </div>
             @endif
 
@@ -742,9 +860,38 @@
                 @include('marketing.costing.unlock_request_modal')
             @endif
 
+            @if (!empty($ndsTrial) && empty($viewOnly))
+            <div class="costing-guide is-warning" id="cmt-guide" @if (empty($cmtIssues)) hidden @endif>
+                <i class="fas fa-exclamation-triangle costing-guide-icon"></i>
+                <div class="costing-guide-body">
+                    <strong>Harga CMT Belum Lengkap</strong>
+                    <span id="cmt-guide-text">{{ implode(' ', $cmtIssues ?? []) }}</span>
+                    <span>Sales order dapat dibuat setelah seluruh product item memiliki harga CMT.</span>
+                </div>
+                <button type="button" class="mkt-btn mkt-btn--navy costing-guide-btn" id="btn-go-cmt"><i class="fas fa-plus"></i> Add CMT Price</button>
+            </div>
+            @endif
+            @if (!empty($soInfo))
+            <div class="costing-guide is-info">
+                <i class="fas fa-info-circle costing-guide-icon"></i>
+                <div class="costing-guide-body">
+                    <strong>Costing ini sudah punya Sales Order {{ $soInfo['so_no'] }} ({{ count($soInfo['worksheets']) }} WS)</strong>
+                    <span class="costing-guide-ws">
+                        @foreach ($soInfo['worksheets'] as $ws)
+                        <span class="costing-guide-chip">{{ $ws['no_ws'] }}</span>
+                        @endforeach
+                    </span>
+                    <span>Kalau qty, harga, atau CMT diubah di sini, cek lagi Sales Order-nya.</span>
+                </div>
+                @if (empty($viewOnly))
+                <a href="{{ route('so-nds-edit', $soInfo['id']) }}" class="mkt-btn mkt-btn--gray costing-guide-btn"><i class="fas fa-external-link-alt"></i> Buka Sales Order</a>
+                @endif
+            </div>
+            @endif
+
             <form action="{{ route('update-costing-header', $costing->id) }}" method="POST" id="form-header" enctype="multipart/form-data">
                 @csrf @method('PUT')
-                <input type="hidden" name="lock_after_save" id="lock_after_save" value="0">
+                <input type="hidden" name="lock_after_save" id="lock_after_save" value="{{ ($unlockState ?? null) === 'unlocked' ? 1 : 0 }}">
                 <div class="costing-layout">
                     <div class="costing-top">
                         <div>
@@ -789,9 +936,31 @@
                             </section>
 
                             <section class="costing-head-section">
-                                <h2 class="costing-head-title">Product & Type<span class="required-mark">*</span></h2>
+                                <h2 class="costing-head-title">Product & Order Information<span class="required-mark">*</span></h2>
                                 <div class="costing-head-body">
-                                    <div class="costing-fields">
+                                    <div class="costing-fields product-order-fields">
+                                        @if (!empty($ndsTrial))
+                                        <div class="costing-field">
+                                            <label for="product_items">Product Item</label>
+                                            <select name="product_items[]" id="product_items" class="form-control select2bs4" data-placeholder="Choose Product Item" multiple required>
+                                                @foreach ($product_items as $item)
+                                                    <option value="{{ $item->id }}" data-set="{{ $item->product_set }}" {{ in_array((int) $item->id, $costing->product_items, true) ? 'selected' : '' }}>{{ $item->product_item }}{{ $item->product_set ? ' (' . $item->product_set . ')' : '' }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        {{-- CM Price per set (TOP / BOTTOM): hanya tampilan, nilainya total CMT setelah allowance di tab Manufacturing. Diisi JS. --}}
+                                        <div class="cm-inline" id="cm-card"></div>
+                                        <select name="type" id="type" hidden>
+                                            <option value="single" {{ $costing->type == 'single' ? 'selected' : '' }}>SINGLE</option>
+                                            <option value="multiple" {{ $costing->type == 'multiple' ? 'selected' : '' }}>MULTIPLE</option>
+                                        </select>
+                                        <select id="product_set" name="product_set[]" multiple hidden>
+                                            @php $saved_sets = array_map('trim', explode(',', (string) $costing->product_set)); @endphp
+                                            @foreach ($master_set as $m_set)
+                                                <option value="{{ $m_set->id }}" {{ in_array((string) $m_set->id, $saved_sets, true) ? 'selected' : '' }}>{{ $m_set->nama ?? $m_set->id }}</option>
+                                            @endforeach
+                                        </select>
+                                        @else
                                         <div class="costing-field">
                                             <label for="product_group">Product Group</label>
                                             <select name="product_group" id="product_group" class="form-control select2bs4" required>
@@ -824,6 +993,8 @@
                                                 @endforeach
                                             </select>
                                         </div>
+                                        @endif
+                                        @if (empty($ndsTrial))
                                         <div class="costing-field">
                                             <label for="tipe_ws">WS Type</label>
                                             <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
@@ -834,14 +1005,69 @@
                                                 <option value="DTH" {{ $costing->tipe_ws == 'DTH' ? 'selected' : '' }}>DTH</option> --}}
                                             </select>
                                         </div>
+                                        @endif
                                         <div class="costing-field">
                                             <label for="unit">Unit</label>
                                             <select name="unit" id="unit" class="form-control select2bs4" required>
                                                 <option value="">Choose Unit</option>
-                                                @foreach ($units as $u)
-                                                    <option value="{{ $u->nama_pilihan }}" {{ ($costing->unit ?? 'PCS') == $u->nama_pilihan ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
+                                                @foreach ($header_units ?? $units as $u)
+                                                    <option value="{{ $u->nama_pilihan }}" {{ ($costing->unit ?? 'PCS') == $u->nama_pilihan ? 'selected' : '' }}>{{ $u->label ?? $u->nama_pilihan }}</option>
                                                 @endforeach
                                             </select>
+                                        </div>
+                                        @if (empty($ndsTrial))
+                                        <div class="costing-field">
+                                            <label for="ship_mode">Ship Mode</label>
+                                            <select name="ship_mode" id="ship_mode" class="form-control select2bs4" required>
+                                                <option value="">Choose Ship Mode</option>
+                                                @foreach ($shipmodes as $sm)
+                                                <option value="{{ $sm->id }}" {{ $costing->ship_mode == $sm->id ? 'selected' : '' }}> {{ $sm->shipmode }}
+                                                </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        @endif
+                                        @if (empty($ndsTrial))
+                                        <div class="costing-field">
+                                            <label for="shipment_type">Shipment Type</label>
+                                            <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
+                                                <option value="local" {{ $costing->shipment_type == 'local' ? 'selected' : '' }}>LOCAL</option>
+                                                <option value="export" {{ $costing->shipment_type == 'export' ? 'selected' : '' }}>EXPORT</option>
+                                            </select>
+                                        </div>
+                                        @else
+                                        <input type="hidden" id="shipment_type" value="">
+                                        @endif
+                                        @if (empty($ndsTrial))
+                                        <div class="costing-field">
+                                            <label for="deldate">Delivery Date</label>
+                                            <input type="date" name="deldate" id="deldate" class="form-control" value="{{ $costing->deldate }}" required>
+                                        </div>
+                                        @endif
+                                        <div class="costing-field">
+                                            <label for="marketing_order">Marketing Order</label>
+                                            <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
+                                                <option value="">Choose Marketing Order</option>
+                                                @foreach ($marketing_orders as $mo)
+                                                <option value="{{ $mo->id }}" {{ $costing->marketing_order == $mo->id ? 'selected' : '' }}> {{ $mo->mkt_order }}
+                                                </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="status">Status</label>
+                                            <select name="status" id="status" class="form-control select2bs4" required>
+                                                <option value="">Choose Status</option>
+                                                <option value="CONFIRM" {{ $costing->status == 'CONFIRM' ? 'selected' : '' }}>CONFIRM</option>
+                                                <option value="CANCEL" {{ $costing->status == 'CANCEL' ? 'selected' : '' }}>CANCEL</option>
+                                                <option value="SAMPLE" {{ $costing->status == 'SAMPLE' ? 'selected' : '' }}>SAMPLE</option>
+                                            </select>
+                                        </div>
+                                        <input type="hidden" name="main_dest" value="{{ $costing->main_dest }}">
+                                        <input type="hidden" name="market" value="{{ $costing->market }}">
+                                        <div class="costing-field {{ empty($ndsTrial) ? 'span-all' : 'span-2' }}">
+                                            <label for="notes">Notes</label>
+                                            <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Notes">{{ $costing->notes }}</textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -857,12 +1083,11 @@
                                         <i class="fas fa-file-alt"></i>
                                         <span>Drag n Drop here Or <b>Browse</b></span>
                                     </div>
+                                    <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Costing image previews"></div>
+                                    <div class="costing-picture-actions">
+                                        <button type="button" id="clear-pictures" class="mkt-btn mkt-btn--red mkt-btn--sm costing-picture-clear" disabled>Clear</button>
+                                    </div>
                                 </div>
-
-                                <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Costing image previews"></div>
-                                <button type="button" id="clear-pictures" class="mkt-btn mkt-btn--red mkt-btn--sm costing-picture-clear" disabled>
-                                    <i class="fas fa-trash-alt"></i> Clear All
-                                </button>
 
                                 <div class="costing-picture-carousel">
                                     <div class="d-flex align-items-center justify-content-between w-100">
@@ -888,72 +1113,24 @@
                         </section>
                     </div>
 
-                    <section class="costing-head-section span-full">
-                        <h2 class="costing-head-title">Shipping & Destinations<span class="required-mark">*</span></h2>
-                        <div class="costing-head-body">
-                            <div class="costing-fields three-columns">
-                                <div class="costing-field costing-field-md">
-                                    <label for="ship_mode">Ship Mode</label>
-                                    <select name="ship_mode" id="ship_mode" class="form-control select2bs4" required>
-                                        <option value="">Choose Ship Mode</option>
-                                        @foreach ($shipmodes as $sm)
-                                        <option value="{{ $sm->id }}" {{ $costing->ship_mode == $sm->id ? 'selected' : '' }}> {{ $sm->shipmode }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="costing-field costing-field-md">
-                                    <label for="shipment_type">Shipment Type</label>
-                                    <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
-                                        <option value="local" {{ $costing->shipment_type == 'local' ? 'selected' : '' }}>LOCAL</option>
-                                        <option value="export" {{ $costing->shipment_type == 'export' ? 'selected' : '' }}>EXPORT</option>
-                                    </select>
-                                </div>
-                                <div class="costing-field costing-field-md">
-                                    <label for="deldate">Delivery Date</label>
-                                    <input type="date" name="deldate" id="deldate" class="form-control" value="{{ $costing->deldate }}" required>
-                                </div>
-                                <div class="costing-field costing-field-md">
-                                    <label for="marketing_order">Marketing Order</label>
-                                    <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
-                                        <option value="">Choose Marketing Order</option>
-                                        @foreach ($marketing_orders as $mo)
-                                        <option value="{{ $mo->id }}" {{ $costing->marketing_order == $mo->id ? 'selected' : '' }}> {{ $mo->mkt_order }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="costing-field costing-field-md">
-                                    <label for="status">Status</label>
-                                    <select name="status" id="status" class="form-control select2bs4" required>
-                                        <option value="">Choose Status</option>
-                                        <option value="CONFIRM" {{ $costing->status == 'CONFIRM' ? 'selected' : '' }}>CONFIRM</option>
-                                        <option value="CANCEL" {{ $costing->status == 'CANCEL' ? 'selected' : '' }}>CANCEL</option>
-                                        <option value="SAMPLE" {{ $costing->status == 'SAMPLE' ? 'selected' : '' }}>SAMPLE</option>
-                                    </select>
-                                </div>
-                                <input type="hidden" name="main_dest" value="{{ $costing->main_dest }}">
-                                <input type="hidden" name="market" value="{{ $costing->market }}">
-                                <div class="costing-field costing-field-md">
-                                    <label for="notes">Notes</label>
-                                    <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Notes">{{ $costing->notes }}</textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+
 
                     <section class="costing-head-section">
                         <h2 class="costing-head-title">Parameter Costing<span class="required-mark">*</span></h2>
                         <div class="costing-head-body">
-                            <div class="costing-fields four-columns">
+                            <div class="costing-fields four-columns fill-row">
                                 <div class="costing-field">
                                     <label for="qty_planned">QTY Planned (PCS)</label>
                                     <input type="text" name="qty_planned" id="qty_planned" class="form-control input-decimal" placeholder="QTY Planned (PCS)" value="{{ isset($costing->qty_planned) ? number_format($costing->qty_planned, 0, '', '') : '' }}" required>
                                 </div>
+                                @if (empty($ndsTrial))
                                 <div class="costing-field">
                                     <label for="qty">QTY (PCS)</label>
                                     <input type="text" name="qty" id="qty" class="form-control input-decimal" placeholder="QTY (PCS)" value="{{ number_format($costing->qty, 0, '', '') }}" required>
                                 </div>
+                                @else
+                                <input type="hidden" id="qty" value="{{ $costing->qty_planned }}">
+                                @endif
                                 <div class="costing-field">
                                     <label for="smv">SMV (Min)</label>
                                     <input type="text" name="smv" id="smv" class="form-control input-money" inputmode="decimal" data-max-decimals="3" placeholder="SMV (Min)" value="{{ number_format($costing->smv, 3, ',', '.') }}" required>
@@ -997,9 +1174,6 @@
                     </section>
                 </div>
 
-                <div class="costing-form-actions">
-                    <button type="submit" class="mkt-btn mkt-btn--green">Save</button>
-                </div>
             </form>
 
             <div class="costing-category-tabs" role="tablist" aria-label="Costing item categories">
@@ -1112,7 +1286,7 @@
                                                 <select id="txt_unit" class="form-control form-control-sm select2bs4" style="width: 100%;">
                                                     <option value="">-- Unit --</option>
                                                     @foreach ($units as $u)
-                                                    <option value="{{ $u->nama_pilihan }}">{{ $u->nama_pilihan }}</option>
+                                                    <option value="{{ $u->nama_pilihan }}">{{ $u->label ?? $u->nama_pilihan }}</option>
                                                     @endforeach
                                                 </select>
                                             </td>
@@ -1162,10 +1336,12 @@
                                                 <th width="3%">NO</th>
                                                 <th width="14%"><span class="xl-dot is-input"></span>CONTENT</th>
                                                 @if($cat['key'] === 'Fabric')
+                                                <th width="7%"><span class="xl-dot is-input"></span>SET</th>
                                                 <th width="7%"><span class="xl-dot is-input"></span>SHELL</th>
                                                 <th width="7%"><span class="xl-dot is-input"></span>PART</th>
-                                                @endif
+                                                @else
                                                 <th width="7%"><span class="xl-dot is-input"></span>SET<i class="fas fa-pencil-alt xl-th-pen"></i></th>
+                                                @endif
                                                 <th class="costing-desc-column"><span class="xl-dot is-input"></span>DESCRIPTION<i class="fas fa-pencil-alt xl-th-pen"></i></th>
                                                 <th width="10%"><span class="xl-dot is-input"></span>SUPPLIER<i class="fas fa-pencil-alt xl-th-pen"></i></th>
                                                 <th width="5%"><span class="xl-dot is-input"></span>CURR<i class="fas fa-pencil-alt xl-th-pen"></i></th>
@@ -1184,7 +1360,7 @@
                                             </tr>
                                         </thead>
                                         <tbody id="{{ $cat['tbody'] }}">
-                                            @if(isset($details[$cat['key']])) @php $sorted_details = collect($details[$cat['key']])->sortBy(function ($item) use ($master_set) { $set_id = $item->set ?? ''; $found = collect($master_set)->firstWhere('id', $set_id); /* urutan set, lalu content -> shell -> part supaya baris satu content berdekatan */ return sprintf('%05d|%012d|%s|%s|%s|%012d', $found ? $found->urutan :
+                                            @if(isset($details[$cat['key']])) @php $sortByContent = $cat['key'] === 'Fabric' || !empty($ndsTrial); $cmtFirst = (int) ($cmtContentId ?? 0); $sorted_details = collect($details[$cat['key']])->sortBy(function ($item) use ($master_set, $sortByContent, $cmtFirst) { $set_id = $item->set ?? ''; $found = collect($master_set)->firstWhere('id', $set_id); /* Fabric dan semua kategori di DB baru: content -> set -> shell -> part. Lainnya: urutan set, lalu content. */ if ($sortByContent) return sprintf('%d|%012d|%05d|%s|%s|%012d', $cmtFirst && (int) $item->id_item === $cmtFirst ? 0 : 1, $item->id_item, $found ? $found->urutan : 999, $item->shell_name ?? '', $item->part_name ?? '', $item->id); return sprintf('%05d|%012d|%s|%s|%s|%012d', $found ? $found->urutan :
                                             999, $item->id_item, $set_id, $item->shell_name ?? '', $item->part_name ?? '', $item->id); })->values()->all(); $isFabric = $cat['key'] === 'Fabric'; @endphp @foreach($sorted_details as $det) @php $allow = $det->allowance > 0 ? $det->allowance : 0; $qty_bom = ceil((1 + ($allow / 100)) * $order_qty * $det->cons); $tot_val = $qty_bom
                                             * $det->price_px_idr; @endphp
                                             <tr class="row-costing" data-category="{{ $cat['key'] }}" data-item="{{ $det->item_id }}" data-set="{{ $det->set }}" data-desc="{{ $det->item_desc }}" data-supplier="{{ $det->supplier_id }}" data-curr="{{ $det->curr }}" data-price="{{ $det->price }}"
@@ -1195,20 +1371,22 @@
                                                 </td>
                                                 <td class="text-center fw-bold row-number">{{ $loop->iteration }}</td>
                                                 @if($isFabric)
-                                                <td class="item-name"><span class="fb-name">{{ $det->nama_item }}</span><button type="button" class="fb-add" data-type="shell" data-id="{{ $det->id }}" title="Add Shell"><i class="fas fa-plus"></i></button></td>
+                                                @php $fabricSetLabel = $det->nama_set ?: ($costing->type === 'multiple' ? '' : 'SINGLE'); @endphp
+                                                <td class="item-name"><span class="fb-name">{{ $det->nama_item }}</span></td>
+                                                <td class="set-td"><span class="fb-name">{{ $fabricSetLabel }}</span>@if($fabricSetLabel)<button type="button" class="fb-add" data-type="shell" data-id="{{ $det->id }}" title="Add Shell"><i class="fas fa-plus"></i></button>@endif</td>
                                                 <td class="shell-td"><span class="fb-name">{{ $det->shell_name }}</span>@if($det->id_panel)<button type="button" class="fb-add" data-type="part" data-id="{{ $det->id }}" title="Add Part"><i class="fas fa-plus"></i></button>@endif</td>
                                                 <td class="part-td">{{ $det->part_name }}</td>
                                                 @else
                                                 <td class="item-name">{{ $det->nama_item }}</td>
-                                                @endif
                                                 <td class="set-td">{{ $det->nama_set }}</td>
+                                                @endif
                                                 <td class="desc-td">{{ $det->item_desc }}</td>
                                                 <td class="supplier-td">{{ $det->nama_supplier }}</td>
                                                 <td class="text-center curr-td">{{ $det->curr }}</td>
                                                 <td class="text-right price-td" data-val="{{ $det->price }}">{{ number_format($det->price, 2, ',', '.') }}</td>
                                                 <td class="text-right px-idr-td" data-val="{{ $det->price_px_idr }}">{{ number_format($det->price_px_idr, 2, ',', '.') }}</td>
-                                                <td class="text-right px-usd-td" data-val="{{ $det->price_px_usd }}">{{ number_format($det->price_px_usd, 4, ',', '.') }}</td>
-                                                <td class="text-center cons-td" data-val="{{ $det->cons }}">{{ number_format($det->cons, 4, ',', '.') }}</td>
+                                                <td class="text-right px-usd-td" data-val="{{ $det->price_px_usd }}">{{ number_format($det->price_px_usd, 2, ',', '.') }}</td>
+                                                <td class="text-center cons-td" data-val="{{ $det->cons }}">{{ number_format($det->cons, 3, ',', '.') }}</td>
                                                 <td class="text-center unit-td">{{ $det->unit }}</td>
                                                 <td class="text-center allow-td" data-val="{{ $det->allowance }}">{{ number_format($det->allowance, 2, ',', '.') . '%' }}</td>
                                                 <td class="text-right val-idr-td fw-bold" data-val="{{ $det->value_idr }}">{{ number_format($det->value_idr, 2, ',', '.') }}</td>
@@ -1218,7 +1396,7 @@
                                                 <td class="text-right tot-val-td fw-bold" data-val="{{ $tot_val }}">{{ number_format($tot_val, 2, ',', '.') }}</td>
                                                 <td class="text-center align-middle">
                                                     {{-- <button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-edit"></i></button> --}}
-                                                    <button type="button" class="mkt-ico mkt-ico--delete" title="Delete" data-tip="Delete" onclick="removeRow(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-trash"></i></button>
+                                                    <button type="button" class="mkt-ico mkt-ico--delete" data-tip="Delete" onclick="removeRow(this, {{ $det->id }}, '{{ $cat['key'] }}')"><i class="fas fa-trash"></i></button>
                                                 </td>
                                             </tr>
                                             @endforeach @endif
@@ -1264,7 +1442,7 @@
                                                 <td class="text-center pct-td fw-bold">0%</td>
                                                 <td class="text-center align-middle">
                                                     {{-- <button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-edit"></i></button> --}}
-                                                    <button type="button" class="mkt-ico mkt-ico--delete" title="Delete" data-tip="Delete" onclick="removeRow(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-trash"></i></button>
+                                                    <button type="button" class="mkt-ico mkt-ico--delete" data-tip="Delete" onclick="removeRow(this, {{ $det->id }}, 'Other Cost')"><i class="fas fa-trash"></i></button>
                                                 </td>
                                             </tr>
                                             @endforeach @endif
@@ -1429,7 +1607,7 @@
                         <label class="fw-bold">Unit</label>
                         <select id="m_unit" class="form-control select2modal" style="width: 100%;">
                             @foreach ($units as $u)
-                            <option value="{{ $u->nama_pilihan }}">{{ $u->nama_pilihan }}</option>
+                            <option value="{{ $u->nama_pilihan }}">{{ $u->label ?? $u->nama_pilihan }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -1502,7 +1680,6 @@
         }
     }
 
-    // Injeksi data urutan set dari PHP ke Javascript
     const masterSetOrder = @json(collect($master_set)->pluck('urutan', 'nama')->mapWithKeys(function ($item, $key) {
         return [strtoupper(trim($key)) => $item];
     }));
@@ -1511,6 +1688,13 @@
     function sortTbody(tbody_selector) {
         let rows = $(tbody_selector).find('tr.row-costing').get();
         rows.sort(function(a, b) {
+            if (tbody_selector === '#tbody-fabric' || COSTING_NDS_TRIAL) {
+                const isCmt = row => CMT_CONTENT_ID && Number($(row).attr('data-item')) === CMT_CONTENT_ID ? 0 : 1;
+                const cmtFirst = isCmt(a) - isCmt(b);
+                if (cmtFirst) return cmtFirst;
+                const byContent = Number($(a).attr('data-item')) - Number($(b).attr('data-item'));
+                if (byContent) return byContent;
+            }
             let $setA = $(a).find('.set-td select');
             let $setB = $(b).find('.set-td select');
             let setA = ($setA.length ? $setA.find('option:selected').text() : $(a).find('.set-td').text()).toUpperCase().trim();
@@ -1533,6 +1717,8 @@
         let formData = new FormData(form[0]);
 
         formData.append('ga_percent', $('#ga_percent').val());
+        // Autosave tidak pernah mengunci Costing; kunci + kirim ulang ke approval hanya lewat tombol Update.
+        formData.set('lock_after_save', '0');
 
         $.ajax({
             url: form.attr('action'),
@@ -1564,6 +1750,149 @@
     }
 
 
+    const COSTING_NDS_TRIAL = @json(!empty($ndsTrial));
+    const CMT_CONTENT_ID = @json((int) ($cmtContentId ?? 0));
+    // No costing untuk mengisi teks alert katalog ({costing}, {doc}).
+    const COSTING_NO = @json($costing->cost_no) || 'Costing ini';
+    // Nama content/item di baris tabel (Fabric memakai rowspan, jadi nama bisa ada di baris sebelumnya).
+    function costingRowName(row) {
+        const $tr = $(row).closest('tr');
+        const own = $.trim($tr.find('.item-name').first().text());
+        return own || $.trim($tr.prevAll().filter(function () { return $(this).find('.item-name').length; }).first().find('.item-name').first().text()) || 'Item ini';
+    }
+    // Pesan di bawah field; select2 memicu change (bukan input), jadi pesan dibersihkan saat pilihan berubah.
+    function costingFieldError(selector, text) {
+        const el = $(selector)[0];
+        if (!el) { mktToast('warn', 'Data belum lengkap', text); return; }
+        mktFieldError(el, text);
+        $(el).one('change', function () { el.dispatchEvent(new Event('input')); });
+    }
+
+    // Muat ulang halaman dan kembali ke tab kategori yang sedang dibuka.
+    /**
+     * Muat ulang tabel satu kategori saja (tanpa reload halaman): halaman Edit diambil ulang di belakang layar,
+     * tabel panel kategori itu diganti dengan transisi halus, baris baru disorot. Urutan & angka tetap dari server.
+     * Gagal mengambil data -> kembali ke reload halaman supaya data tetap benar.
+     */
+    function refreshCostingPanel(category) {
+        const $panel = $('#costing-category-content .costing-tab-panel').filter(function () { return $(this).attr('data-panel-category') === category; });
+        if (!$panel.length) {
+            reloadCostingTab(category);
+            return $.Deferred().resolve().promise();
+        }
+        const $wrap = $panel.find('.table-responsive').first();
+        const oldIds = new Set($panel.find('tr.row-costing').map(function () { return this.id; }).get());
+        if (XL_EDIT.$td) xlCloseEditor(false);
+        xlClear();
+        $wrap.addClass('xl-refreshing');
+
+        return $.ajax({ url: window.location.href, type: 'GET', cache: false, dataType: 'html' }).then(function (html) {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const fresh = Array.from(doc.querySelectorAll('#costing-category-content .costing-tab-panel'))
+                .find(el => el.getAttribute('data-panel-category') === category);
+            const freshTable = fresh && fresh.querySelector('.table-responsive table');
+            if (!freshTable) throw new Error('panel not found');
+
+            $wrap.find('table').first().replaceWith(document.importNode(freshTable, true));
+            $panel.find('tr.row-costing').each(function () { initializeCostingInlineRow($(this)); });
+            XL.$tbody = null;
+            calculate_summary();
+
+            // Tampilkan halaman tabel tempat baris baru berada, lalu sorot baris itu.
+            const $rows = $panel.find('tbody').first().children('tr.row-costing');
+            const $new = $rows.filter(function () { return !oldIds.has(this.id); });
+            const perPage = parseInt($panel.data('perPage'), 10) || 0;
+            if ($new.length && perPage > 0) {
+                $panel.data('page', Math.floor($rows.index($new.first()) / perPage) + 1);
+            }
+            xlPaginate($panel);
+            xlUpdateSubmitButton();
+            $new.addClass('xl-row-new');
+            setTimeout(function () { $new.removeClass('xl-row-new'); }, 2200);
+            requestAnimationFrame(function () { $wrap.removeClass('xl-refreshing'); });
+        }).catch(function () {
+            reloadCostingTab(category);
+        });
+    }
+
+    function reloadCostingTab(category) {
+        try {
+            sessionStorage.setItem('costing-tab-{{ $costing->id }}', category);
+        } catch (error) {
+            // Tanpa sessionStorage halaman tetap dimuat ulang, hanya kembali ke tab awal.
+        }
+        window.location.reload();
+    }
+
+
+    // Unit SET hanya bisa dipilih kalau Product Item lebih dari 1; satu item -> SET dimatikan dan unit kembali ke PCS.
+    function syncUnitSet() {
+        const single = ($('#product_items').val() || []).length < 2;
+        const $unit = $('#unit');
+        const $set = $unit.find('option').filter((i, o) => String(o.value).toUpperCase() === 'SET');
+        if (!$set.length) return;
+        $set.prop('disabled', single);
+        if (single && String($unit.val()).toUpperCase() === 'SET') $unit.val($unit.find('option').filter((i, o) => String(o.value).toUpperCase() === 'PCS').val() || '');
+        $unit.trigger('change.select2');
+    }
+    $(document).on('change change.select2', '#product_items', () => setTimeout(syncUnitSet, 0));
+    $(syncUnitSet);
+    // Percobaan DB baru: Product Item menentukan set Costing. Penghapusan item yang masih dipakai ditolak server.
+    let savedProductItems = $('#product_items').val() || [];
+
+    $('#product_items').on('change', function () {
+        const selected = $(this).val() || [];
+        if (!selected.length) return;
+        const revert = (message) => {
+            mktAlert('REV-02', { detail: message || 'Product Item belum bisa diubah. Coba lagi.' });
+            $(this).val(savedProductItems).trigger('change.select2');
+        };
+        const save = () => {
+            const formData = new FormData($('#form-header')[0]);
+            formData.append('ga_percent', $('#ga_percent').val());
+            $.ajax({
+                url: $('#form-header').attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: (res) => (res.status === 200 ? window.location.reload() : revert(res.message)),
+                error: (xhr) => revert((xhr.responseJSON && xhr.responseJSON.message) || 'Lengkapi data header dulu.'),
+            });
+        };
+
+        const labelsOf = (ids) => ids.map((id) => $(`#product_items option[value="${id}"]`).data('set')).filter(Boolean);
+        const labels = labelsOf(selected);
+        const shared = labels.find((label, index) => labels.indexOf(label) !== index);
+        if (!shared || labelsOf(savedProductItems).filter((label) => label === shared).length > 1) {
+            save();
+            return;
+        }
+        const names = $('#product_items option:selected').get()
+            .filter((option) => option.dataset.set === shared)
+            .map((option) => option.text.replace(/\s*\([^()]*\)$/, ''));
+        Swal.fire({
+            icon: 'warning',
+            title: 'Ada item dengan tipe sama',
+            text: `${names.join(' dan ')} sama-sama ${shared}. Costing ini akan menjadi ${selected.length} set dan ${selected.length} WS. Simpan tetap seperti ini?`,
+            showCancelButton: true,
+            confirmButtonText: 'Save',
+            cancelButtonText: 'Cancel',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                save();
+            } else {
+                $(this).val(savedProductItems).trigger('change.select2');
+            }
+        });
+    });
+
+    // Qty order belum punya kolom di DB baru: perhitungan memakai Qty Planned.
+    $('#qty_planned').on('input change', function () {
+        $('#qty').val($(this).val());
+        if (typeof calculate_summary === 'function') calculate_summary();
+    });
+
     $('#product_set').on('select2:unselect', function (e) {
         let removedSetId = e.params.data.id;
         let removedSetText = e.params.data.text.toUpperCase().trim();
@@ -1575,12 +1904,7 @@
         });
 
         if (foundCount > 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Gagal Menghapus Set!',
-                html: `Masih ada <b>${foundCount} baris</b> detail yang memakai Set <b>${removedSetText}</b>.<br>Hapus baris tersebut terlebih dahulu.`,
-                confirmButtonColor: '#3085d6',
-            });
+            mktAlert('DEL-04', { detail: `Set ${removedSetText} masih dipakai ${foundCount} baris detail. Hapus baris tersebut dulu, lalu hapus set-nya.` });
 
             let currentValues = $(this).val() || [];
             currentValues.push(removedSetId);
@@ -1602,15 +1926,24 @@
         // Header: allowClear = tanda X untuk menghapus pilihan (state 2); hanya select header yang punya opsi kosong / multiple.
         // Dropdown nama (buyer, brand, season, product, supplier, content) tampil Title Case; singkatan (PT, CV, LTD) tetap kapital.
         // Hanya teks tampilan select2 — <option> & value yang dikirim tetap data asli.
-        window.COSTING_TC_SELECTS = ['buyer', 'brand', 'season_id', 'product_group', 'product_item', 'shipment_type', 'marketing_order', 'txt_item', 'txt_supplier', 'm_item', 'm_supplier'];
-        window.costingTcOpts = el => (window.mktTitleCaseSelect2 && COSTING_TC_SELECTS.includes(el.id || el.name)) ? window.mktTitleCaseSelect2() : {};
-        $('.select2bs4').each(function () {
+        window.COSTING_TC_SELECTS = ['buyer', 'brand', 'season_id', 'product_group', 'product_item', 'product_items', 'shipment_type', 'marketing_order', 'txt_supplier', 'm_supplier'];
+        // Unit: daftar tampil "kode - nama", yang terpilih cukup kodenya (value option).
+        window.costingTcOpts = el => ['unit', 'txt_unit', 'm_unit'].includes(el.id) ? { templateSelection: d => d.id || d.text }
+            : (window.mktTitleCaseSelect2 && COSTING_TC_SELECTS.includes(el.id || el.name)) ? window.mktTitleCaseSelect2() : {};
+        // Chip Product Item: nama (Title Case) + badge set dari data-set option; teks dalam kurung di akhir sudah diwakili badge.
+        const productItemChip = item => {
+            if (!item.id || !item.element) return item.text;
+            const set = item.element.dataset.set || '';
+            const name = String(item.text).replace(/\s*\([^()]*\)$/, '');
+            const $chip = $('<span>').text(window.mktTitleCase ? window.mktTitleCase(name) : name);
+            return set ? $chip.add($('<span class="pi-chip-set">').text(set)) : $chip;
+        };        $('.select2bs4').each(function () {
             const clearable = $(this).closest('#form-header').length > 0
                 && ($(this).prop('multiple') || $(this).find('option[value=""]').length > 0);
             $(this).select2(Object.assign({ theme: 'bootstrap4', width: '100%' }, clearable ? {
                 allowClear: true,
                 placeholder: $(this).data('placeholder') || $(this).find('option[value=""]').first().text() || 'Choose'
-            } : {}, costingTcOpts(this)));
+            } : {}, costingTcOpts(this), this.id === 'product_items' ? { templateSelection: productItemChip } : {}));
         });
 
         // State 5 (error): field wajib yang kosong saat Save diberi .is-invalid (label, border, teks merah + "Required")
@@ -1699,14 +2032,7 @@
         });
 
         $('#btn-save-and-lock').on('click', function() {
-            Swal.fire({
-                title: 'Save and lock?',
-                text: 'Costing akan disimpan, dikunci lagi dan menunggu approval manager.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Save and lock',
-                cancelButtonText: 'Batal'
-            }).then(function(result) {
+            mktAlert('SV-02', { costing: COSTING_NO }).then(function(result) {
                 if (!result.isConfirmed) return;
                 $('#lock_after_save').val('1');
                 const form = document.getElementById('form-header');
@@ -1722,12 +2048,12 @@
             if (this.dataset.confirmed) return;
             event.preventDefault();
             Swal.fire({
-                title: 'Cancel editing?',
-                text: 'Perubahan header yang belum disimpan dibuang dan Costing dikunci lagi.',
+                title: 'Batalkan edit costing?',
+                text: `Perubahan header yang belum disimpan dibuang dan ${COSTING_NO} dikunci lagi.`,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Ya, kunci lagi',
-                cancelButtonText: 'Batal'
+                confirmButtonText: 'Cancel',
+                cancelButtonText: 'Back'
             }).then(result => {
                 if (!result.isConfirmed) return;
                 this.dataset.confirmed = '1';
@@ -1735,10 +2061,65 @@
             });
         });
 
+        // Bawa user langsung ke baris CMT: buka panel Manufacturing, gulir ke sana, dan tandai baris yang harganya belum diisi.
+        function focusCmtRows() {
+            const $panel = $('.costing-tab-panel[data-panel-category="Manufacturing"]').removeClass('is-collapsed');
+            if (!$panel.length) return;
+            // Panel kategori lain tersembunyi (tab), jadi pindah dulu ke tab Manufacturing kecuali sedang "View All Items".
+            if (!$('#costing-category-content').hasClass('is-all-items')) {
+                $('.costing-category-tab[data-category="Manufacturing"]').trigger('click');
+            }
+            const $rows = $('#tbody-manufacturing tr.row-costing').filter(function () {
+                return CMT_CONTENT_ID && Number(this.dataset.item) === CMT_CONTENT_ID;
+            });
+            const $empty = $rows.filter(function () { return !(Number($(this).find('.price-td').attr('data-val')) > 0); });
+            ($empty.length ? $empty : $rows).addClass('cmt-focus');
+            setTimeout(() => $rows.removeClass('cmt-focus'), 6000);
+            // Ditunda sebentar supaya tab yang baru dibuka sudah tampil sebelum digulir.
+            setTimeout(() => ($empty.first()[0] || $rows.first()[0] || $panel[0]).scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+        }
+        $('#btn-go-cmt').on('click', focusCmtRows);
+
+        // Pengingat CMT dicek ulang setelah setiap simpan di halaman ini, jadi hilang sendiri begitu harga sudah lengkap.
+        @if (!empty($ndsTrial) && empty($viewOnly))
+        let cmtGuideTimer = null;
+        const CMT_CHECK_URL = @json(route('so-nds-cmt-check', $costing->id));
+        $(document).ajaxComplete(function (event, xhr, settings) {
+            if (!settings || settings.url === CMT_CHECK_URL || String(settings.type || 'GET').toUpperCase() === 'GET') return;
+            clearTimeout(cmtGuideTimer);
+            cmtGuideTimer = setTimeout(() => $.get(CMT_CHECK_URL).done(res => {
+                const issues = res.issues || [];
+                $('#cmt-guide-text').text(issues.join(' '));
+                $('#cmt-guide').prop('hidden', issues.length === 0);
+            }), 400);
+        });
+        @endif
+
         @if (session('success'))
-            Swal.fire({ icon: 'success', title: @json(session('success')), timer: 2000, showConfirmButton: false });
+            (function (message) {
+                // Pesan sukses dari server dipetakan ke teks katalog alert.
+                if (message === 'Costing berhasil dibuat' || message === 'Costing disimpan dan menunggu approval manager lagi.') {
+                    mktAlert('CST-01', { costing: COSTING_NO });
+                } else if (message === 'Data berhasil di update') {
+                    mktAlert('UPD-02', { subject: COSTING_NO });
+                } else if (message.indexOf('Costing berhasil dicopy') === 0) {
+                    mktToast('ok', 'Costing disalin', `Salinan tersimpan sebagai ${COSTING_NO}.`);
+                } else if (message === 'Request unlock dibatalkan.') {
+                    mktToast('info', 'Request unlock dibatalkan', `${COSTING_NO} tetap terkunci.`);
+                } else if (message === 'Edit dibatalkan, Costing dikunci lagi.') {
+                    mktToast('info', 'Edit dibatalkan', `${COSTING_NO} dikunci lagi.`);
+                } else {
+                    mktToast('ok', 'Data tersimpan', message);
+                }
+            })(@json(session('success')));
         @elseif (session('error') || session('warning'))
-            Swal.fire('Gagal', @json(session('error') ?? session('warning')), 'error');
+            if (window.location.hash === '#cmt') {
+                Swal.fire({ icon: 'warning', title: 'Harga CMT belum diisi', text: @json(session('error') ?? session('warning')), confirmButtonText: 'Tunjukkan CMT' }).then(focusCmtRows);
+            } else {
+                Swal.fire({ icon: 'error', title: 'Perubahan belum tersimpan', text: @json(session('error') ?? session('warning')) });
+            }
+        @else
+            if (window.location.hash === '#cmt') setTimeout(focusCmtRows, 300);
         @endif
 
         $(document).on('click keydown', '.costing-panel-heading', function(event) {
@@ -1760,7 +2141,6 @@
             $(this).val(val);
         });
 
-        // Confirm Price / Rate / SMV: format Indonesia (1.234.567,89); titik dari keyboard dianggap koma desimal.
         $(document).on('input', '.input-money', function (e) {
             let text = this.value;
             if (e.originalEvent && e.originalEvent.data === '.' && this.selectionStart > 0) {
@@ -1778,8 +2158,31 @@
 
         calculate_summary();
 
-        $('#form-header').on('submit', function() {
+        $('#form-header').on('submit', function(event) {
             $('#type').prop('disabled', false);
+            // Klik kedua selama form terkirim diabaikan. Dicek setelah semua handler submit lain, karena salah satunya bisa membatalkan kiriman.
+            const $buttons = $(this).find('button[type="submit"]');
+            if (this.dataset.submitting === '1') {
+                event.preventDefault();
+                return;
+            }
+            setTimeout(() => {
+                if (event.isDefaultPrevented()) return;
+                this.dataset.submitting = '1';
+                $buttons.prop('disabled', true).each(function () {
+                    this.dataset.label = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+                });
+            }, 0);
+        });
+        // Halaman yang dibuka lagi lewat tombol Back browser tidak boleh membawa tombol yang masih terkunci.
+        window.addEventListener('pageshow', () => {
+            const form = document.getElementById('form-header');
+            if (!form || form.dataset.submitting !== '1') return;
+            form.dataset.submitting = '';
+            $(form).find('button[type="submit"]').prop('disabled', false).each(function () {
+                if (this.dataset.label) this.innerHTML = this.dataset.label;
+            });
         });
 
         $('input[name="qty"], input[name="vat"]').on('input change', function() {
@@ -1836,7 +2239,7 @@
         function loadProductItems(selected_grup) {
             let select_item = $('#product_item');
             if(selected_grup) {
-                $.post("{{ route('get-product-items') }}", { _token: "{{ csrf_token() }}", product_group: selected_grup }, function(res) {
+                $.post("{{ route('get-product-items') }}", { _token: "{{ csrf_token() }}", for_costing: 1, keep_item: "{{ $costing->product_item }}", product_group: selected_grup }, function(res) {
                     select_item.empty().append('<option value="">Pilih Product Item</option>');
                     $.each(res, function(key, value) {
                         let is_selected = (value.id == saved_product_item) ? 'selected' : '';
@@ -1914,6 +2317,7 @@
                 $.ajax({
                     url: "{{ route('get-item-contents') }}",
                     type: "GET",
+                    cache: false,
                     data: { kategori: cat_query },
                     success: function(res) {
                         if (select_item.data("select2")) {
@@ -1922,7 +2326,7 @@
                         select_item.html(res);
                         select_item.select2(Object.assign({ theme: 'bootstrap4', width: '100%' }, costingTcOpts(select_item[0])));
                     },
-                    error: function() { alert('Gagal mengambil data item dari server.'); }
+                    error: function() { mktToast('err', 'Daftar item belum termuat', 'Koneksi ke server terputus. Pilih kategori lagi untuk memuat ulang.'); }
                 });
             }
         });
@@ -1949,6 +2353,15 @@
         });
 
         $('#category').val('Fabric').trigger('change');
+        try {
+            const savedTab = sessionStorage.getItem('costing-tab-{{ $costing->id }}');
+            sessionStorage.removeItem('costing-tab-{{ $costing->id }}');
+            if (savedTab) {
+                $('.costing-category-tab').filter(function () { return $(this).attr('data-category') === savedTab; }).trigger('click');
+            }
+        } catch (error) {
+            // Tanpa sessionStorage halaman tetap di tab awal.
+        }
         $('#costing-category-content .row-costing').each(function() {
             initializeCostingInlineRow($(this));
         });
@@ -1964,13 +2377,7 @@
             let curr_count = curr_val ? curr_val.length : 0;
 
             if (curr_count > 1 && prev_dest_count <= 1) {
-                Swal.fire({
-                    title: 'Perhatian!',
-                    text: 'Anda memilih lebih dari 1 Destination. Ingat untuk menggabungkan WS jika diperlukan!',
-                    icon: 'info',
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, Mengerti'
-                });
+                mktToast('info', 'Lebih dari 1 destination dipilih', 'Gabungkan WS nanti bila diperlukan.');
             }
             prev_dest_count = curr_count;
         });
@@ -2048,7 +2455,7 @@
             let val_usd = px_usd * cons * allow;
 
             $('#txt_px_idr').val(px_idr.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', px_idr);
-            $('#txt_px_usd').val(px_usd.toLocaleString('id-ID', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', px_usd);
+            $('#txt_px_usd').val(px_usd.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', px_usd);
             $('#txt_val_idr').val(val_idr.toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})).data('raw', val_idr);
             $('#txt_val_usd').val(val_usd.toLocaleString('id-ID', {minimumFractionDigits: 4, maximumFractionDigits: 4})).data('raw', val_usd);
         }
@@ -2157,13 +2564,23 @@
         },
         other: { allowance: '.allow-td', value_idr: '.val-idr-td-other', value_usd: '.val-usd-td-other' }
     };
+    // Kolom hasil hitung (header "Auto"): tetap bisa dipilih & di-copy, tapi tidak bisa diketik, paste, fill, atau dihapus (catatan QA).
+    const XL_AUTO_FIELDS = {
+        material: ['price_px_idr', 'price_px_usd', 'value_idr', 'value_usd'],
+        other: ['value_usd']
+    };
+    function xlIsAuto($td) { return $td.hasClass('xl-auto'); }
 
     function initializeCostingInlineRow($row) {
         if ($row.data('inline-ready')) return;
-        const cells = XL_CELLS[$row.attr('data-category') === 'Other Cost' ? 'other' : 'material'];
+        const kind = $row.attr('data-category') === 'Other Cost' ? 'other' : 'material';
+        const cells = XL_CELLS[kind];
+        const fabricSetFixed = COSTING_NDS_TRIAL || ($row.attr('data-category') === 'Fabric' && ($row.attr('data-set') || $('#type').val() !== 'multiple'));
         $.each(cells, function (field, selector) {
+            // Set Fabric dibuat otomatis saat Add Content; hanya baris lama yang set-nya kosong yang masih bisa dipilih.
+            if (field === 'set' && fabricSetFixed) return;
             const $td = $row.find(selector).first();
-            $td.addClass('xl-cell').attr({ 'data-field': field, tabindex: -1 });
+            $td.addClass('xl-cell').toggleClass('xl-auto', XL_AUTO_FIELDS[kind].indexOf(field) !== -1).attr({ 'data-field': field, tabindex: -1 });
             xlRenderCell($td);
         });
         $row.data('inline-ready', true);
@@ -2171,15 +2588,27 @@
 
     function costingActionButtons(id, cat) {
         // return `<button type="button" class="btn btn-sm btn-info py-0 px-2 mr-1" title="Edit" onclick="editRowModal(this, ${id}, '${cat}')"><i class="fas fa-edit"></i></button>` +
-         return `<button type="button" class="mkt-ico mkt-ico--delete" title="Delete" data-tip="Delete" onclick="removeRow(this, ${id}, '${cat}')"><i class="fas fa-trash"></i></button>`;
+         return `<button type="button" class="mkt-ico mkt-ico--delete" data-tip="Delete" onclick="removeRow(this, ${id}, '${cat}')"><i class="fas fa-trash"></i></button>`;
     }
 
-    // Fabric: kolom CONTENT (+ Add Shell), SHELL (+ Add Part), PART. Kategori lain hanya CONTENT.
-    function costingLeadCells(cat, idDetail, itemHtml, shellName, partName, hasShell) {
-        if (cat !== 'Fabric') return `<td class="item-name">${itemHtml}</td>`;
+    function fabricSetLabel(setVal) {
+        if (!setVal) {
+            if ($('#type').val() === 'multiple') return '';
+            // Costing satu set: tulis nama set-nya (TOP/BOTTOM) seperti badge Product Item.
+            const $only = $('#product_set option').filter(function () { return this.value !== ''; });
+            return $only.length === 1 ? $only.text().toUpperCase().trim() : 'SINGLE';
+        }
+        return $('#product_set option').filter(function () { return String(this.value) === String(setVal); }).text().toUpperCase().trim();
+    }
+
+    // Fabric: kolom CONTENT, SET (+ Add Shell), SHELL (+ Add Part), PART. Kategori lain CONTENT dan SET.
+    function costingLeadCells(cat, idDetail, itemHtml, shellName, partName, hasShell, setVal) {
+        if (cat !== 'Fabric') return `<td class="item-name">${itemHtml}</td><td class="set-td"></td>`;
         const esc = v => $('<span>').text(v == null ? '' : v).html();
         const add = (type, title) => `<button type="button" class="fb-add" data-type="${type}" data-id="${idDetail}" title="${title}"><i class="fas fa-plus"></i></button>`;
-        return `<td class="item-name"><span class="fb-name">${itemHtml}</span>${add('shell', 'Add Shell')}</td>`
+        const setLabel = fabricSetLabel(setVal);
+        return `<td class="item-name"><span class="fb-name">${itemHtml}</span></td>`
+            + `<td class="set-td"><span class="fb-name">${esc(setLabel)}</span>${setLabel ? add('shell', 'Add Shell') : ''}</td>`
             + `
             <td class="shell-td"><span class="fb-name">${esc(shellName)}</span>${hasShell ? add('part', 'Add Part') : ''}</td>
             <td class="part-td">${esc(partName)}</td>`;
@@ -2202,8 +2631,7 @@
         return `<tr ${attrs}>
                     ${check}
                     <td class="text-center fw-bold row-number">${no}</td>
-                    ${costingLeadCells(cat, idDetail, esc(d.item_text), d.shell_name, d.part_name, !!d.panel)}
-                    <td class="set-td"></td>
+                    ${costingLeadCells(cat, idDetail, esc(d.item_text), d.shell_name, d.part_name, !!d.panel, d.set_val)}
                     <td class="desc-td"></td>
                     <td class="supplier-td"></td>
                     <td class="text-center curr-td"></td>
@@ -2225,11 +2653,11 @@
         const category = $('#category').val();
         const itemId = $('#txt_item').val();
         if (!category || !itemId) {
-            Swal.fire('Peringatan', 'Pilih item terlebih dahulu.', 'warning');
+            costingFieldError('#txt_item', 'Pilih item dulu.');
             return;
         }
-        if (check_duplicate(category, itemId, '', null)) {
-            Swal.fire('Peringatan', 'Item tersebut sudah ada di kategori ini.', 'warning');
+        if (category !== 'Fabric' && check_duplicate(category, itemId, '', null)) {
+            mktToast('warn', 'Item sudah ada', `Item ini sudah ada di ${category}. Ubah baris yang ada atau pilih item lain.`);
             return;
         }
 
@@ -2248,6 +2676,10 @@
             price_px_idr: 0, price_px_usd: 0, allowance: 0, set: '',
             value_idr: 0, value_usd: 0
         };
+        if (category === 'Fabric' || (COSTING_NDS_TRIAL && category !== 'Other Cost' && $('#type').val() === 'multiple')) {
+            saveContentPerSet(category, itemId, defaults);
+            return;
+        }
         const $button = $('#toggle-add-costing-item').prop('disabled', true);
         $.ajax({
             url: "{{ route('store-costing-detail') }}",
@@ -2261,7 +2693,7 @@
             },
             success: function(response) {
                 if (response.status !== 200) {
-                    Swal.fire('Gagal menambahkan item', response.message || 'Item tidak tersimpan.', 'error');
+                    Swal.fire({ icon: 'error', title: 'Item belum ditambahkan', text: response.message || 'Item belum tersimpan. Coba tambah lagi.' });
                     return;
                 }
                 const rowId = costingRowSelector(category, response.insert_id).substring(1);
@@ -2282,7 +2714,7 @@
                         <td class="xl-check-td"><input type="checkbox" class="xl-row-check"></td>
                         <td class="text-center fw-bold row-number">${count}</td>
                         ${costingLeadCells(category, response.insert_id, itemText, '', '', false)}
-                        <td class="set-td"></td><td class="desc-td"></td>
+                        <td class="desc-td"></td>
                         <td class="supplier-td"></td><td class="text-center curr-td"></td><td class="text-right price-td" data-val="0"></td>
                         <td class="text-right px-idr-td" data-val="0"></td><td class="text-right px-usd-td" data-val="0"></td>
                         <td class="text-center cons-td" data-val="0"></td><td class="text-center unit-td"></td>
@@ -2306,12 +2738,66 @@
             },
             error: function(xhr) {
                 const message = xhr.responseJSON && xhr.responseJSON.message;
-                Swal.fire('Gagal menambahkan item', message || 'Item tidak tersimpan.', 'error');
+                Swal.fire({ icon: 'error', title: 'Item belum ditambahkan', text: message || 'Koneksi ke server terputus. Coba tambah lagi.' });
             },
             complete: function() {
                 $button.prop('disabled', false);
             }
         });
+    }
+
+    // Satu content langsung dapat satu baris per set (Top dan Bottom). Single cukup satu baris.
+    // Memilih content yang sudah ada hanya menambahkan set yang belum punya baris.
+    function saveContentPerSet(category, itemId, defaults) {
+        const isMultiple = $('#type').val() === 'multiple';
+        const setIds = isMultiple
+            ? $('#product_set option:selected').get().sort(function (a, b) {
+                const order = o => { const v = masterSetOrder[$(o).text().toUpperCase().trim()]; return v !== undefined ? Number(v) : 999; };
+                return order(a) - order(b);
+            }).map(o => o.value)
+            : [''];
+        if (isMultiple && !setIds.length) {
+            costingFieldError('#product_set', 'Pilih Product Type dulu, misalnya Top dan Bottom.');
+            return;
+        }
+        const missing = setIds.filter(setId => !check_duplicate(category, itemId, setId, null));
+        if (!missing.length) {
+            mktToast('warn', 'Content sudah ada', `Content ini sudah ada di tabel ${category}. Ubah baris yang ada atau pilih content lain.`);
+            return;
+        }
+        const $button = $('#toggle-add-costing-item').prop('disabled', true);
+        const failed = message => {
+            $button.prop('disabled', false);
+            Swal.fire({ icon: 'error', title: 'Content belum ditambahkan', text: message || 'Content belum tersimpan. Halaman dimuat ulang, lalu coba tambah lagi.' }).then(() => window.location.reload());
+        };
+        const postNext = index => {
+            if (index >= missing.length) {
+                // Baris baru dibuat di server; tabel kategori ini dimuat ulang (tanpa reload halaman) supaya urutan & perhitungan ikut server.
+                refreshCostingPanel(category).always(function () {
+                    $button.prop('disabled', false);
+                    $('#txt_item').val('').trigger('change');
+                });
+                return;
+            }
+            $.post("{{ route('store-costing-detail') }}", {
+                _token: "{{ csrf_token() }}",
+                id_costing: '{{ $costing->id }}',
+                category: category,
+                item: itemId,
+                ...defaults,
+                set: missing[index]
+            }).done(function (response) {
+                if (response.status !== 200) {
+                    failed(response.message);
+                    return;
+                }
+                postNext(index + 1);
+            }).fail(function (xhr) {
+                failed(xhr.responseJSON && xhr.responseJSON.message);
+            });
+        };
+        // Editan baris yang belum di-Update disimpan dulu otomatis, baru content ditambahkan.
+        xlSaveDirtyRows().done(function () { postNext(0); }).fail(function () { $button.prop('disabled', false); });
     }
 
     function saveDetailLegacy() {
@@ -2344,18 +2830,18 @@
         let tot_val_js = qty_bom_js * px_idr_raw;
 
         if (!cat) {
-            Swal.fire('Peringatan', 'Silakan Pilih Kategori di atas!', 'warning');
+            costingFieldError('#category', 'Pilih kategori dulu.');
             return;
         }
 
         if (!item_id) {
-            Swal.fire('Peringatan', 'Silakan Pilih Item pada form!', 'warning');
+            costingFieldError('#txt_item', 'Pilih item dulu.');
             return;
         }
 
         let header_type = $('#type').val();
         if (cat !== 'Other Cost' && header_type === 'multiple' && set_val === '') {
-            Swal.fire('Peringatan', 'Tipe Costing MULTIPLE, silakan Pilih Set terlebih dahulu!', 'warning');
+            costingFieldError('#txt_set', 'Costing tipe Multiple perlu set. Pilih set dulu.');
             return;
         }
 
@@ -2414,7 +2900,7 @@
                                 <td class="text-right val-usd-td-other fw-bold" data-val="${val_usd_raw}">${val_usd_text}</td>
                                 <td class="text-center pct-td fw-bold">0%</td>
                                 <td class="text-center align-middle">
-                                    <button type="button" class="mkt-ico mkt-ico--delete" title="Delete" data-tip="Delete" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
+                                    <button type="button" class="mkt-ico mkt-ico--delete" data-tip="Delete" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -2436,7 +2922,7 @@
                                 <td class="text-right qty-bom-td fw-bold" data-val="${qty_bom_js}">${qty_bom_text}</td>
                                 <td class="text-right tot-val-td fw-bold" data-val="${tot_val_js}">${tot_val_text}</td>
                                 <td class="text-center align-middle">
-                                    <button type="button" class="mkt-ico mkt-ico--delete" title="Delete" data-tip="Delete" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
+                                    <button type="button" class="mkt-ico mkt-ico--delete" data-tip="Delete" onclick="removeRow(this, ${res.insert_id}, '${cat}')"><i class="fas fa-trash"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -2461,7 +2947,7 @@
                     calculate_template();
                     calculate_summary();
                 } else {
-                    Swal.fire('Error', res.message, 'error');
+                    Swal.fire({ icon: 'error', title: 'Item belum ditambahkan', text: res.message || 'Item belum tersimpan. Coba tambah lagi.' });
                 }
             }
         });
@@ -2484,6 +2970,7 @@
                 $.ajax({
                     url: "{{ route('get-item-contents') }}",
                     type: "GET",
+                    cache: false,
                     data: { kategori: cat_for_query },
                     success: function(htmlOptions) {
                         Swal.close();
@@ -2502,7 +2989,7 @@
                         $('#m_supplier').val(d.supplier_id || d.supplier).trigger('change');
                         $('#m_curr').val(d.curr || 'IDR');
                         $('#m_price').val(fmtId(d.price || 0, 0, 7));
-                        $('#m_cons').val(fmtId(d.cons || 0, 0, 7));
+                        $('#m_cons').val(fmtId(d.cons || 0, 0, 3));
                         $('#m_unit').val(d.unit).trigger('change');
                         $('#m_allowance').val(fmtId(d.allowance || 0, 0, 7));
                         $('#m_set').val(d.set).trigger('change');
@@ -2521,17 +3008,17 @@
                     },
                     error: function() {
                         Swal.close();
-                        Swal.fire('Error', 'Gagal mengambil list item', 'error');
+                        Swal.fire({ icon: 'error', title: 'Daftar item belum termuat', text: 'Koneksi ke server terputus. Klik edit baris ini lagi.' });
                     }
                 });
 
             } else {
                 Swal.close();
-                Swal.fire('Error', 'Data detail tidak ditemukan.', 'error');
+                Swal.fire({ icon: 'error', title: 'Baris tidak ditemukan', text: 'Baris ini mungkin sudah dihapus. Muat ulang halaman untuk melihat data terbaru.' });
             }
         }).fail(function() {
             Swal.close();
-            Swal.fire('Error', 'Gagal menghubungi server (404/500)', 'error');
+            Swal.fire({ icon: 'error', title: 'Data baris belum termuat', text: 'Koneksi ke server terputus. Klik edit baris ini lagi.' });
         });
     }
 
@@ -2562,11 +3049,11 @@
         let qty_bom_js = Math.ceil((1 + (allow / 100)) * order_qty * cons);
         let tot_val_js = qty_bom_js * px_idr_raw;
 
-        if (!item_id) { Swal.fire('Peringatan', 'Pilih Item terlebih dahulu!', 'warning'); return; }
+        if (!item_id) { costingFieldError('#m_item', 'Pilih item dulu.'); return; }
 
         let header_type = $('#type').val();
         if (cat !== 'Other Cost' && header_type === 'multiple' && set_val === '') {
-            Swal.fire('Peringatan', 'Tipe Costing MULTIPLE, silakan Pilih Set terlebih dahulu!', 'warning');
+            costingFieldError('#m_set', 'Costing tipe Multiple perlu set. Pilih set dulu.');
             return;
         }
 
@@ -2603,7 +3090,7 @@
                     let val_idr_text_other = fmtId(val_idr_raw, 2);
                     let val_usd_text = fmtId(val_usd_raw, 4);
                     let px_idr_text = fmtId(px_idr_raw, 2);
-                    let px_usd_text = fmtId(px_usd_raw, 4);
+                    let px_usd_text = fmtId(px_usd_raw, 2);
 
                     let qty_bom_text = fmtId(qty_bom_js, 0);
                     let tot_val_text = fmtId(tot_val_js, 2);
@@ -2634,37 +3121,50 @@
                     }
 
                     calculate_summary();
-                } else { Swal.fire('Error', res.message, 'error'); }
+                } else { mktAlert('REV-02', { detail: res.message || 'Baris ini belum bisa diubah. Coba simpan lagi.' }); }
             }
         });
     }
 
     function removeRow(btn, id, cat) {
-        Swal.fire({
-            title: 'Hapus Item?',
-            text: "Data akan dihapus secara permanen dari sistem!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
+        mktAlert('DEL-03', { row: costingRowName(btn), doc: COSTING_NO }).then((result) => {
             if (result.isConfirmed) {
                 Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
                 let deleteUrl = "{{ route('delete-costing-detail', ':id') }}".replace(':id', id);
 
-                $.ajax({
+                const send = (wholeContent) => $.ajax({
                     url: deleteUrl,
                     type: "POST",
                     data: {
                         _method: "DELETE",
                         _token: "{{ csrf_token() }}",
                         category: cat,
-                        id_costing: '{{ $costing->id }}'
+                        id_costing: '{{ $costing->id }}',
+                        whole_content: wholeContent ? 1 : 0
                     },
                     success: function(res) {
+                        // Fabric: baris terakhir satu set hanya dikosongkan shell-nya; muat ulang supaya tabel ikut server.
+                        if (res.kept || res.reload) {
+                            reloadCostingTab(cat);
+                            return;
+                        }
+                        if (res.confirm_whole) {
+                            Swal.fire({
+                                title: 'Hapus content ini?',
+                                text: res.message,
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonText: 'Delete',
+                                cancelButtonText: 'Cancel'
+                            }).then((answer) => {
+                                if (answer.isConfirmed) {
+                                    Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                                    send(true);
+                                }
+                            });
+                            return;
+                        }
                         if(res.status == 200) {
                             Swal.close();
                             let tbody = $(btn).closest('tbody');
@@ -2676,13 +3176,19 @@
 
                             calculate_summary();
                         } else {
-                            Swal.fire('Error', res.message || 'Gagal menghapus data', 'error');
+                            mktAlert('DEL-04', { detail: res.message || 'Baris ini belum bisa dihapus. Muat ulang halaman lalu coba lagi.' });
                         }
                     },
                     error: function(xhr) {
-                        Swal.fire('Error', 'Terjadi kesalahan pada server.', 'error');
+                        const message = xhr.responseJSON && xhr.responseJSON.message;
+                        if (message) {
+                            mktAlert('DEL-04', { detail: message });
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Baris belum terhapus', text: 'Koneksi ke server terputus. Coba hapus lagi.' });
+                        }
                     }
                 });
+                send(false);
             }
         });
     }
@@ -2771,6 +3277,12 @@
                 title: image.saved ? image.name : 'Belum disimpan, klik Save untuk menyimpan',
                 'aria-label': `Show image ${index + 1}`
             }).append($('<img>', { src: image.url, alt: '' }))
+                .append(index === selectedCostingImage ? '<span class="costing-picture-check"><i class="fas fa-check"></i></span>' : '')
+                .append($('<div class="costing-picture-meta">')
+                    .append($('<span>').text(image.name || ''))
+                    .append(image.saved
+                        ? $('<span>').text(formatCostingFileSize(image.file && image.file.size))
+                        : $('<span class="is-unsaved">').text('Belum disimpan')))
                 .on('click', function() {
                     selectedCostingImage = index;
                     renderCostingImageCarousel();
@@ -2786,6 +3298,11 @@
             }).appendTo($thumbnail);
             $thumbnail.appendTo($thumbnails);
         });
+    }
+
+    function formatCostingFileSize(bytes) {
+        if (!bytes) return '';
+        return bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
     }
 
     function removeCostingImage(index) {
@@ -2825,7 +3342,7 @@
         const invalidFile = selectedFiles.find(file => !file.type.startsWith('image/'));
         if (invalidFile) {
             $('#upload_foto').val('');
-            Swal.fire('File tidak valid', `${invalidFile.name} bukan file gambar.`, 'error');
+            mktToast('warn', 'File bukan gambar', `${invalidFile.name} tidak bisa dipakai. Pilih file gambar, misalnya JPG atau PNG.`);
             return;
         }
 
@@ -3233,12 +3750,15 @@
 
     function xlCellText($td) {
         const field = xlField($td), v = xlCellVal($td);
-        if (xlIsSelect(field)) return v === '' ? '' : (xlOptions(field).labels[v] || '');
+        // Unit di sel cukup kodenya (labelnya "kode - nama").
+        if (xlIsSelect(field)) return v === '' ? '' : (field === 'unit' ? v : (xlOptions(field).labels[v] || ''));
         return v;
     }
 
     // Desimal minimum per kolom (sama dengan tampilan awal Blade); maksimum 7 supaya presisi tidak hilang.
-    const XL_MIN_DP = { price: 2, price_px_idr: 2, price_px_usd: 4, cons: 4, allowance: 2, value_idr: 2, value_usd: 4 };
+    // Price (semua) 2 desimal, cons 3 desimal: input dibulatkan ke sini dan disimpan dengan presisi yang sama.
+    const XL_MIN_DP = { price: 2, price_px_idr: 2, price_px_usd: 2, cons: 3, allowance: 2, value_idr: 2, value_usd: 4 };
+    const XL_MAX_DP = { price: 2, price_px_idr: 2, price_px_usd: 2, cons: 3 };
     const XL_MIN_DP_OTHER = { allowance: 2, value_idr: 2, value_usd: 4 };
     // Kolom uang: IDR 2 desimal, USD 4 desimal (tampilan saja; data-val tetap presisi penuh).
     const XL_MONEY_FIELDS = ['price', 'price_px_idr', 'price_px_usd', 'value_idr', 'value_usd'];
@@ -3248,7 +3768,7 @@
         const n = Number(v);
         if (!Number.isFinite(n)) return v;
         const dp = (isOther ? XL_MIN_DP_OTHER : XL_MIN_DP)[field] || 0;
-        return fmtId(n, dp, XL_MONEY_FIELDS.includes(field) ? dp : Math.max(dp, 7));
+        return fmtId(n, dp, XL_MAX_DP[field] !== undefined ? XL_MAX_DP[field] : (XL_MONEY_FIELDS.includes(field) ? dp : Math.max(dp, 7)));
     }
     function xlIsOtherTd($td) { return $td.closest('tr').attr('data-category') === 'Other Cost'; }
     // Nilai sumber untuk fill (drag / Ctrl+D): angka dikirim sebagai Number agar tidak di-parse ulang.
@@ -3288,9 +3808,13 @@
     /* ---------- set nilai sel (auto hitung + save) ---------- */
     function xlSetCell($td, val) {
         if (xlReadonly() || $td.closest('.costing-tab-panel').hasClass('xl-submit-running')) return false;
+        // Kolom Auto hanya berubah lewat xlRecalc; ketik / paste / fill / Delete diabaikan.
+        if (xlIsAuto($td)) return true;
         const field = xlField($td);
-        const value = xlNormalize(field, val);
+        let value = xlNormalize(field, val);
         if (value === null) { $td.addClass('xl-invalid'); return false; }
+        // Cons 3 desimal, price 2 desimal (sama dengan yang disimpan server).
+        if (typeof value === 'number' && XL_MAX_DP[field] !== undefined) value = Number(value.toFixed(XL_MAX_DP[field]));
         $td.removeClass('xl-invalid');
         if (String(value) === xlCellVal($td)) return true;
         if (xlIsNumber(field) && xlCellVal($td) !== '' && Number(xlCellVal($td)) === value) return true;
@@ -3316,7 +3840,7 @@
     const xlReadonly = () => $('.costing-create-page').hasClass('is-readonly');
 
     function xlOpenEditor($td, initial) {
-        if (!xlHasCtrl($td) || xlReadonly() || $td.closest('.costing-tab-panel').hasClass('xl-submit-running')) return;
+        if (!xlHasCtrl($td) || xlIsAuto($td) || xlReadonly() || $td.closest('.costing-tab-panel').hasClass('xl-submit-running')) return;
         xlCloseEditor(true);
         const field = xlField($td);
         XL_EDIT.$td = $td;
@@ -3328,7 +3852,7 @@
             $td.prepend($select);
             XL_EDIT.$input = $select;
             // select2 memicu close sebelum select; Esc tidak mengubah nilai, jadi close = simpan nilai terpilih.
-            $select.select2({ theme: 'bootstrap4', width: '100%', dropdownAutoWidth: true })
+            $select.select2({ theme: 'bootstrap4', width: '100%', dropdownAutoWidth: true, templateSelection: d => field === 'unit' ? (d.id || d.text) : d.text })
                 .on('select2:close', function () {
                     setTimeout(function () { if (XL_EDIT.$td && XL_EDIT.$td.is($td)) { xlCloseEditor(true); xlFocus($td); } }, 0);
                 });
@@ -3393,7 +3917,7 @@
             }
         }
         const $last = xlTdAt($tb, r1, c1);
-        if (xlHasCtrl($last)) $last.append('<span class="xl-fill-handle" title="Drag untuk copy ke atas/bawah"></span>');
+        if (xlHasCtrl($last) && !xlIsAuto($last)) $last.append('<span class="xl-fill-handle" title="Drag untuk copy ke atas/bawah"></span>');
     }
 
     function xlIsMulti() { return !!XL.rect && (XL.rect.r1 > XL.rect.r0 || XL.rect.c1 > XL.rect.c0); }
@@ -3582,27 +4106,49 @@
         const count = $('#costing-category-content tbody tr.row-costing.xl-dirty').length;
         const $button = $('#xl-submit-all');
         const isRunning = $('#costing-category-content').hasClass('xl-submit-running');
-        $button.prop('disabled', count === 0 || isRunning);
+        $button.prop('disabled', isRunning);
         $button.find('.xl-submit-label').text(isRunning ? 'Updating...' : 'Update');
+    }
+
+    /** Simpan header lewat form biasa; server mengembalikan ke listing (Costing yang di-unlock sekaligus dikunci & dikirim ke approval). */
+    function xlSubmitHeader() {
+        const form = document.getElementById('form-header');
+        if (!form) return;
+        if (!form.reportValidity()) {
+            $('html, body').animate({ scrollTop: $(form).offset().top - 80 }, 200);
+            return;
+        }
+        $('#form-header').trigger('submit');
     }
 
     function xlSubmitAll() {
         const $content = $('#costing-category-content');
         if (xlReadonly() || $content.hasClass('xl-submit-running')) return;
+        // Harga CMT tiap set di tab Manufacturing wajib terisi sebelum Update.
+        const cmtId = @json(!empty($ndsTrial) ? app(\App\Services\MarketingNdsCostingService::class)->cmtContentId() : null);
+        const $cmtEmpty = cmtId ? $content.find('tr.row-costing').filter(function () { return String($(this).attr('data-item')) === String(cmtId) && !(parseFloat($(this).attr('data-price')) > 0); }) : $();
+        if ($cmtEmpty.length) {
+            mktToast('warn', 'Harga CMT belum diisi', 'Isi Price CMT setiap product item di tab Manufacturing, lalu klik Update lagi.');
+            $('.costing-category-tab[data-category="Manufacturing"]').trigger('click');
+            const $cell = $cmtEmpty.first().find('.xl-cell[data-field="price"]');
+            if ($cell.length) xlOpenEditor($cell);
+            return;
+        }
         if (XL_EDIT.$td) {
             if (!xlCloseEditor(true)) return;
         }
         const $invalid = $content.find('td.xl-invalid').first();
         if ($invalid.length) {
-            Swal.fire('Periksa input', 'Perbaiki nilai yang ditandai sebelum menyimpan.', 'warning');
+            mktToast('warn', 'Ada nilai yang belum valid', 'Perbaiki sel yang ditandai, lalu klik Update lagi.');
             const category = $invalid.closest('.costing-tab-panel').data('panel-category');
             $('.costing-category-tab[data-category="' + category + '"]').trigger('click');
             xlOpenEditor($invalid);
             return;
         }
         const rows = $content.find('tbody tr.row-costing.xl-dirty').toArray().map(function (row) { return $(row); });
+        // Update = simpan baris yang diubah (kalau ada), lalu simpan header dan kembali ke listing.
         if (!rows.length) {
-            Swal.fire('Tidak ada perubahan', 'Tidak ada perubahan untuk disimpan.', 'info');
+            xlSubmitHeader();
             return;
         }
 
@@ -3625,9 +4171,9 @@
                 }
                 xlUpdateSubmitButton();
                 if (failures.length) {
-                    Swal.fire('Sebagian perubahan gagal disimpan', failures.join('; '), 'error');
+                    Swal.fire({ icon: 'error', title: 'Sebagian perubahan belum tersimpan', text: failures.join('; ') + '. Periksa baris tersebut, lalu klik Update lagi.' });
                 } else {
-                    Swal.fire('Berhasil', 'Semua perubahan berhasil disimpan.', 'success');
+                    xlSubmitHeader();
                 }
                 return;
             }
@@ -3642,6 +4188,56 @@
             }).always(saveNext);
         }
         saveNext();
+    }
+
+    /**
+     * Simpan diam-diam semua baris yang sudah diedit tapi belum di-Update (dipakai sebelum Add Content / Add Shell / Part),
+     * supaya user tidak perlu klik Update dulu dan editannya tidak hilang saat tabel dimuat ulang.
+     * Resolve bila semua tersimpan (atau tidak ada), reject bila ada sel tidak valid / gagal simpan (pesan sudah ditampilkan).
+     */
+    function xlSaveDirtyRows() {
+        const done = $.Deferred();
+        const $content = $('#costing-category-content');
+        if (XL_EDIT.$td && !xlCloseEditor(true)) return done.reject().promise();
+        const $invalid = $content.find('td.xl-invalid').first();
+        if ($invalid.length) {
+            mktToast('warn', 'Ada nilai yang belum valid', 'Perbaiki sel yang ditandai merah dulu, lalu coba lagi.');
+            const category = $invalid.closest('.costing-tab-panel').data('panel-category');
+            $('.costing-category-tab[data-category="' + category + '"]').trigger('click');
+            xlOpenEditor($invalid);
+            return done.reject().promise();
+        }
+        const rows = $content.find('tbody tr.row-costing.xl-dirty').toArray().map(function (row) { return $(row); });
+        if (!rows.length) return done.resolve().promise();
+
+        const failures = [];
+        const resortedBodies = new Set();
+        let index = 0;
+        (function saveNext() {
+            if (index >= rows.length) {
+                resortedBodies.forEach(function (tbodyId) { sortTbody('#' + tbodyId); });
+                if (resortedBodies.size) calculate_summary();
+                xlUpdateSubmitButton();
+                if (failures.length) {
+                    Swal.fire({ icon: 'error', title: 'Perubahan tabel belum tersimpan', text: failures.join('; ') + '. Periksa baris tersebut, lalu coba lagi.' });
+                    done.reject();
+                } else {
+                    done.resolve();
+                }
+                return;
+            }
+            const $row = rows[index++];
+            xlSaveRow($row).done(function () {
+                if ($row.data('xlResort')) {
+                    resortedBodies.add($row.closest('tbody').attr('id'));
+                    $row.data('xlResort', false);
+                }
+            }).fail(function (error) {
+                failures.push($.trim($row.find('.item-name').text()) + ': ' + error.message);
+            }).always(saveNext);
+        })();
+
+        return done.promise();
     }
 
     function xlScheduleSort($tbody) {
@@ -3691,22 +4287,24 @@
     });
     $(document).on('click', '#fb-breakdown-save', saveFabricBreakdown);
 
-    // NO + CONTENT di-merge (rowspan) sepanjang baris content yang sama, SHELL sepanjang shell yang sama.
+    // NO + CONTENT di-merge (rowspan) sepanjang baris content yang sama, SET sepanjang set yang sama, SHELL sepanjang shell yang sama.
     // Sel yang tertutup merge cuma disembunyikan (tetap di DOM) supaya index kolom grid tidak bergeser.
     function paintFabricGroups() {
-        let no = 0, prevContent = null, prevShell = null, prevVisible = false;
-        let $contentHead = null, $shellHead = null;
+        let no = 0, prevContent = null, prevSet = null, prevShell = null, prevVisible = false;
+        let $contentHead = null, $setHead = null, $shellHead = null;
         $('#tbody-fabric > tr.row-costing').each(function () {
             const $row = $(this);
             const visible = !$row.hasClass('xl-hidden');
-            const content = $row.attr('data-item') + '|' + ($row.attr('data-set') || '');
-            const shell = content + '|' + ($row.attr('data-panel') || '');
+            const content = $row.attr('data-item');
+            const set = content + '|' + ($row.attr('data-set') || '');
+            const shell = set + '|' + ($row.attr('data-panel') || '');
             const newContent = content !== prevContent;
             if (newContent) no++;
             const pageStart = visible && !prevVisible;
             const $lead = $row.children('td.row-number, td.item-name');
+            const $setTd = $row.children('td.set-td');
             const $shellTd = $row.children('td.shell-td');
-            $lead.add($shellTd).attr('rowspan', 1).removeClass('fb-merged');
+            $lead.add($setTd).add($shellTd).attr('rowspan', 1).removeClass('fb-merged');
             $row.toggleClass('fb-group-start', newContent);
             $row.find('.row-number').text(no);
 
@@ -3717,6 +4315,12 @@
                     $contentHead.attr('rowspan', +$contentHead.attr('rowspan') + 1);
                     $lead.addClass('fb-merged');
                 }
+                if (set !== prevSet || pageStart) {
+                    $setHead = $setTd;
+                } else {
+                    $setHead.attr('rowspan', +$setHead.attr('rowspan') + 1);
+                    $setTd.addClass('fb-merged');
+                }
                 if (shell !== prevShell || pageStart || !$row.attr('data-panel')) {
                     $shellHead = $shellTd;
                 } else {
@@ -3725,6 +4329,7 @@
                 }
             }
             prevContent = content;
+            prevSet = set;
             prevShell = shell;
             prevVisible = visible;
         });
@@ -3800,29 +4405,30 @@
         const ids = $('#fb-breakdown-select').val() || [];
         const isShell = $modal.data('type') === 'shell';
         if (!ids.length) {
-            Swal.fire('Peringatan', isShell ? 'Pilih minimal satu shell.' : 'Pilih minimal satu part.', 'warning');
-            return;
-        }
-        if ($('#costing-category-content .row-costing.xl-dirty').length) {
-            Swal.fire('Peringatan', 'Masih ada perubahan tabel yang belum tersimpan. Tunggu tersimpan dulu, lalu coba lagi.', 'warning');
+            costingFieldError('#fb-breakdown-select', isShell ? 'Pilih minimal satu shell.' : 'Pilih minimal satu part.');
             return;
         }
         const $save = $('#fb-breakdown-save').prop('disabled', true);
+        // Editan baris lain yang belum di-Update disimpan dulu otomatis, baru shell / part ditambahkan.
+        xlSaveDirtyRows().done(postBreakdown).fail(function () { $save.prop('disabled', false); });
+
+        function postBreakdown() {
         $.post("{{ route('store-costing-fabric-breakdown') }}", {
             _token: "{{ csrf_token() }}", id_costing: '{{ $costing->id }}', id_detail: $modal.data('id'), type: $modal.data('type'), ids: ids
         }).done(function (res) {
             if (res.status !== 200) {
-                Swal.fire('Gagal', res.message || 'Data tidak tersimpan.', 'error');
+                Swal.fire({ icon: 'error', title: isShell ? 'Shell belum tersimpan' : 'Part belum tersimpan', text: res.message || 'Coba simpan lagi.' });
                 return;
             }
-            // Baris baru dibuat di server; muat ulang supaya urutan & perhitungan ikut server (tab Fabric memang tab awal).
+            // Baris baru dibuat di server; tabel Fabric dimuat ulang (tanpa reload halaman) supaya urutan & perhitungan ikut server.
             $modal.modal('hide');
-            Swal.fire({ icon: 'success', title: res.message, timer: 1200, showConfirmButton: false });
-            setTimeout(function () { window.location.reload(); }, 600);
+            mktAlert('SV-06', { subject: isShell ? 'Shell' : 'Part' });
+            refreshCostingPanel('Fabric');
         }).fail(function (xhr) {
             const errors = xhr.responseJSON && xhr.responseJSON.errors;
-            Swal.fire('Gagal', errors ? Object.values(errors)[0][0] : ((xhr.responseJSON && xhr.responseJSON.message) || 'Data tidak tersimpan.'), 'error');
+            Swal.fire({ icon: 'error', title: isShell ? 'Shell belum tersimpan' : 'Part belum tersimpan', text: errors ? Object.values(errors)[0][0] : ((xhr.responseJSON && xhr.responseJSON.message) || 'Koneksi ke server terputus. Coba simpan lagi.') });
         }).always(function () { $save.prop('disabled', false); });
+        }
     }
     function xlPaginateAll() {
         $('#costing-category-content .costing-tab-panel').each(function () { xlPaginate($(this)); });
@@ -3885,36 +4491,63 @@
     function xlBulkDelete() {
         const list = $('#costing-category-content .xl-row-check:checked').closest('tr.row-costing').get();
         if (!list.length) return;
-        Swal.fire({
-            title: 'Hapus ' + list.length + ' item?',
-            text: 'Data akan dihapus secara permanen dari sistem!',
-            icon: 'warning', showCancelButton: true,
-            confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, Hapus!', cancelButtonText: 'Batal'
-        }).then(function (result) {
+        mktAlert('DEL-03', { row: list.length === 1 ? costingRowName(list[0]) : list.length + ' baris', doc: COSTING_NO }).then(function (result) {
             if (!result.isConfirmed) return;
             Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: function () { Swal.showLoading(); } });
             let failed = 0;
+            const failMessages = [];
+            let skippedSets = 0;
+            let needReload = false;
+            // Percobaan DB baru: kalau semua baris satu content dicentang, content itu dihapus dari semua set sekaligus.
+            const lastCategory = $(list[0]).attr('data-category');
+            const wholeItems = {};
+            const contentKey = (row) => $(row).attr('data-category') + '|' + $(row).attr('data-item');
+            const perSetRows = COSTING_NDS_TRIAL ? list.filter((row) => $(row).attr('data-category') !== 'Other Cost') : [];
+            perSetRows.forEach((row) => {
+                if (wholeItems[contentKey(row)] !== undefined) return;
+                const all = $(row).closest('tbody').find(`tr.row-costing[data-item="${$(row).attr('data-item')}"]`).get();
+                wholeItems[contentKey(row)] = all.every((candidate) => list.includes(candidate)) ? row : null;
+            });
+            for (let i = list.length - 1; i >= 0; i--) {
+                const whole = wholeItems[contentKey(list[i])];
+                if (whole && whole !== list[i]) {
+                    list.splice(i, 1);
+                }
+            }
             const next = function () {
                 if (!list.length) {
+                    if (needReload) {
+                        reloadCostingTab(lastCategory);
+                        return;
+                    }
+                    if (skippedSets && !failed) {
+                        xlClear();
+                        xlUpdateBulk();
+                        Swal.fire({ icon: 'warning', title: 'Set tidak ikut terhapus', text: 'Set tidak bisa dihapus sendiri. Centang semua baris content untuk menghapus content dari semua set.' });
+                        return;
+                    }
                     xlClear();
                     $('#costing-category-content tbody').each(function () {
                         $(this).children('tr.row-costing').each(function (i) { $(this).find('.row-number').text(i + 1); });
                     });
                     calculate_summary();
                     xlUpdateBulk();
-                    if (failed) Swal.fire('Sebagian gagal', failed + ' item gagal dihapus.', 'error'); else Swal.close();
+                    if (failed) Swal.fire({ icon: 'error', title: 'Sebagian baris belum terhapus', text: failed + ' baris belum bisa dihapus. ' + (failMessages.length ? [...new Set(failMessages)].join(' ') : 'Muat ulang halaman, lalu coba hapus lagi.') }); else Swal.close();
                     return;
                 }
                 const $tr = $(list.shift());
                 const id = ($tr.attr('id') || '').match(/(\d+)$/)[1];
+                const wholeContent = wholeItems[contentKey($tr[0])] === $tr[0];
                 $.ajax({
                     url: "{{ route('delete-costing-detail', ':id') }}".replace(':id', id),
                     type: 'POST',
-                    data: { _method: 'DELETE', _token: "{{ csrf_token() }}", category: $tr.attr('data-category'), id_costing: '{{ $costing->id }}' }
+                    data: { _method: 'DELETE', _token: "{{ csrf_token() }}", category: $tr.attr('data-category'), id_costing: '{{ $costing->id }}', whole_content: wholeContent ? 1 : 0 }
                 }).done(function (res) {
-                    if (res.status == 200) $tr.remove(); else failed++;
-                }).fail(function () { failed++; }).always(next);
+                    if (res.kept || res.reload) needReload = true;
+                    else if (res.confirm_whole) skippedSets++;
+                    else if (res.status == 200) $tr.remove();
+                    else { failed++; if (res.message) failMessages.push(res.message); }
+                }).fail(function (xhr) { failed++; if (xhr.responseJSON && xhr.responseJSON.message) failMessages.push(xhr.responseJSON.message); }).always(next);
             };
             next();
         });
@@ -3957,6 +4590,39 @@
         });
         $('#xl-bulk-delete').on('click', xlBulkDelete);
         $('#xl-submit-all').on('click', xlSubmitAll);
+
+        // ===== CM Price di header: satu field per set (TOP / BOTTOM), disabled. Nilai = total CMT setelah allowance
+        // (value IDR / USD mengikuti currency header) dari baris CMT di tab Manufacturing; ikut berubah saat CMT diedit.
+        const CMT_ID = @json(!empty($ndsTrial) ? app(\App\Services\MarketingNdsCostingService::class)->cmtContentId() : null);
+        if (CMT_ID && $('#cm-card').length) {
+            const cmEsc = v => $('<span>').text(v == null ? '' : v).html();
+            const cmRows = () => $('#costing-category-content tr.row-costing').filter(function () { return String($(this).attr('data-item')) === String(CMT_ID); });
+            // Nama set (TOP / BOTTOM) dari data set Costing; baris tanpa id set di Costing satu set = set satu-satunya.
+            const CM_SETS = @json(!empty($ndsTrial) ? app(\App\Services\MarketingNdsCostingService::class)->costingSets((int) $costing->id)['sets']->pluck('set_type', 'id') : []);
+            const cmSetName = id => {
+                const names = Object.values(CM_SETS || {});
+                return (CM_SETS || {})[id] || (names.length === 1 ? names[0] : '')
+                    || $('#txt_set option').filter(function () { return this.value !== '' && String(this.value) === String(id); }).first().text().trim() || 'Product Item';
+            };
+            window.cmRender = function () {
+                const cur = $('#curr option:selected').text().trim().toUpperCase();
+                const valueAttr = cur === 'USD' ? 'data-value-usd' : 'data-value-idr';
+                const html = cmRows().map(function () {
+                    const $r = $(this), v = parseFloat($r.attr(valueAttr)) || 0;
+                    return `<div class="costing-field"><label>CM Price ${cmEsc(cmSetName($r.attr('data-set')))}${cur ? ' (' + cmEsc(cur) + ')' : ''}</label>
+                        <input type="text" class="form-control" value="${fmtId(v, 2)}" disabled title="Total CMT setelah allowance dari tab Manufacturing"></div>`;
+                }).get().join('');
+                const count = cmRows().length;
+                const wrapped = count ? `<div class="cm-grid" style="--n:${count}">${html}</div>` : '';
+                if ($('#cm-card').data('html') !== wrapped) $('#cm-card').data('html', wrapped).html(wrapped);
+            };
+            $(document).on('change', '#curr', () => window.cmRender());
+            // Baris CMT diedit / tabel dimuat ulang: perbarui nilai CM Price di header.
+            let cmTimer = null;
+            new MutationObserver(() => { clearTimeout(cmTimer); cmTimer = setTimeout(window.cmRender, 60); })
+                .observe(document.getElementById('costing-category-content'), { childList: true, subtree: true, attributes: true, attributeFilter: ['data-value-idr', 'data-value-usd', 'data-set'] });
+            window.cmRender();
+        }
 
         // dobel klik / F2 / langsung ketik = edit sel
         $(document).on('dblclick', '#costing-category-content td.xl-cell', function (e) {
@@ -4107,7 +4773,7 @@
             if (!isGrid) {
                 for (let r = R.r0; r <= R.r1; r++) for (let c = R.c0; c <= R.c1; c++) {
                     const $td = xlTdAt($tb, r, c);
-                    if (xlHasCtrl($td)) { xlSetCell($td, clean); markPasted($td); }
+                    if (xlHasCtrl($td) && !xlIsAuto($td)) { xlSetCell($td, clean); markPasted($td); }
                 }
                 return;
             }
@@ -4117,7 +4783,7 @@
                 maxC = Math.max(maxC, cols.length);
                 cols.forEach(function (v, j) {
                     const $td = xlTdAt($tb, R.r0 + i, R.c0 + j);
-                    if ($td.length && xlHasCtrl($td)) { xlSetCell($td, v); markPasted($td); }
+                    if ($td.length && xlHasCtrl($td) && !xlIsAuto($td)) { xlSetCell($td, v); markPasted($td); }
                 });
             });
             const lastR = Math.min(xlRows($tb).length - 1, R.r0 + data.length - 1);

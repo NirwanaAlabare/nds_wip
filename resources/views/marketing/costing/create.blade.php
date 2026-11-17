@@ -23,9 +23,36 @@
 
         .costing-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; }
         .costing-layout .span-full { grid-column: 1 / -1; }
-        .costing-top { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 18px; grid-column: 1 / -1; }
+        .costing-top { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 18px; grid-column: 1 / -1; align-items: stretch; }
+        /* Upload Image setinggi kolom kiri: bawah kartunya sejajar dengan bawah Product & Order Information. */
+        .costing-top > .costing-section { display: flex; flex-direction: column; }
+        .costing-top > .costing-section > .costing-section-body { display: flex; flex: 1; flex-direction: column; }
+        .costing-top > .costing-section .costing-upload-box { display: flex; flex: 1; flex-direction: column; }
+        .costing-top > .costing-section .costing-picture-thumbnails { flex: 1; }
 
         .costing-section { margin-bottom: 16px; }
+        /* Card CM Price */
+        /* Urutan Product & Order Information (mode nds): Product Item, Unit, Marketing Order | CM Price | Status, Notes. */
+        .product-order-fields > .costing-field:has(#product_items) { order: 1; }
+        .product-order-fields > .costing-field:has(#unit) { order: 2; }
+        .product-order-fields > .costing-field:has(#marketing_order) { order: 3; }
+        .product-order-fields > #cm-card { order: 4; grid-column: 1 / -1; }
+        .product-order-fields > .costing-field:has(#status) { order: 5; }
+        .product-order-fields > .costing-field:has(#notes) { order: 6; }
+        #cm-card:empty { display: none; }
+        .cm-grid { display: grid; grid-template-columns: repeat(var(--n, 1), minmax(0, 1fr)); column-gap: 12px; }
+        @media (max-width: 575.98px) { .cm-grid { grid-template-columns: minmax(0, 1fr); } }
+        /* CM Price di header: field tampilan (disabled), satu per set. */
+        .cm-inline .form-control:disabled { background: #f1f4f8; color: #1e293b; font-weight: 600; text-align: right; }
+        .cm-inline .cm-hint { display: block; margin-top: 3px; color: #94a3b8; font-size: 10px; }
+        .cm-card-rows { display: grid; gap: 8px; }
+        .cm-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 12px; align-items: end; }
+        .cm-row .cm-item { grid-column: 1 / -1; margin-bottom: 2px; color: #284a63; font-size: 11px; font-weight: 600; }
+        .cm-row label { display: block; margin-bottom: 4px; color: #1e293b; font-size: 10px; font-weight: 500; }
+        .cm-row .cm-total { min-height: 34px; padding: 6px 10px; border-radius: 6px; background: #f1f4f8; color: #1e293b; font-weight: 700; text-align: right; }
+        .cm-row .form-control.is-invalid { border-color: #dc3545; }
+        .cm-row.is-empty .form-control, .cm-row.is-empty .cm-total { background: #f1f4f8; color: #94a3b8; }
+        .cm-card-hint { grid-column: 1 / -1; color: #94a3b8; font-size: 10px; }
         .costing-section-title {
             display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;
             margin: 0 0 8px; padding: 6px 12px; border: 1px solid #94a3b8; border-radius: 6px;
@@ -71,6 +98,21 @@
         .costing-picture-dropzone.dragging { background: #eff7ff; }
         .costing-picture-thumbnails { display: flex; flex-wrap: wrap; gap: 8px; min-height: 70px; margin-top: 10px; padding: 8px; border: 1px dashed #8b5cf6; border-radius: 6px; }
         .costing-picture-clear { margin-top: 6px; }
+        /* Upload Image ala mockup: dropzone, thumbnail, dan tombol Clear dalam satu kartu. */
+        .costing-upload-box .costing-picture-thumbnails { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; min-height: 92px; margin-top: 10px; padding: 8px; border: 1px dashed #8b5cf6; border-radius: 6px; }
+        .costing-upload-box .costing-picture-thumb { position: relative; width: 72px; height: 72px; padding: 0; border: 2px solid transparent; border-radius: 4px; overflow: hidden; background: #f1f3f5; cursor: pointer; }
+        .costing-upload-box .costing-picture-thumb.active { border-color: #3085d6; }
+        .costing-upload-box .costing-picture-thumb.is-pending { border: 2px dashed #f97316; }
+        .costing-upload-box .costing-picture-thumb.is-pending::after { content: none; }
+        .costing-upload-box .costing-picture-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .costing-upload-box .costing-picture-remove { position: absolute; top: 4px; left: 50%; z-index: 2; width: 20px; height: 20px; padding: 0; border: 1.5px solid #fff; border-radius: 50%; background: rgba(0, 0, 0, .35); color: #fff; font-size: 10px; line-height: 17px; transform: translateX(-50%); }
+        .costing-upload-box .costing-picture-remove:hover { background: #dc3545; border-color: #dc3545; }
+        .costing-upload-box .costing-picture-check { position: absolute; top: 50%; left: 50%; z-index: 1; display: grid; place-items: center; width: 22px; height: 22px; border: 1.5px solid #fff; border-radius: 50%; color: #fff; font-size: 10px; transform: translate(-50%, -50%); pointer-events: none; }
+        .costing-upload-box .costing-picture-meta { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 3px 2px; background: linear-gradient(transparent, rgba(0, 0, 0, .7)); color: #fff; font-size: 8px; line-height: 1.25; text-align: center; pointer-events: none; }
+        .costing-upload-box .costing-picture-meta span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .costing-upload-box .costing-picture-thumb.is-pending .costing-picture-meta .is-unsaved { color: #fdba74; font-weight: 700; }
+        .costing-picture-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+        .costing-upload-box .costing-picture-clear { margin-top: 0 !important; padding: 3px 18px; border-radius: 14px; }
         .costing-picture-carousel { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; margin-top: 14px; }
         .costing-picture-main { max-width: 100%; max-height: 200px; object-fit: contain; }
         .costing-picture-nav { flex: 0 0 auto; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: #f1f3f5; color: #53687a; box-shadow: 0 2px 4px rgba(0, 0, 0, .1); }
@@ -207,12 +249,30 @@
             .costing-crumb { font-size: 13px; }
             .costing-no-image { font-size: 13px; }
         }
+        /* Product & Order Information: grid 3 kolom; Notes 2 kolom (nds) atau satu baris penuh (mode lama). */
+        .costing-field.span-all { grid-column: 1 / -1; }
+        .costing-section-title { border-color: #284a63; }
+        @media (max-width: 767.98px) { .costing-fields .costing-field.span-2 { grid-column: 1 / -1; } }
         .costing-fields.three-columns { display: flex !important; flex-wrap: wrap; gap: 16px; }
+        /* Baris satu deret (Product & Type, Parameter Costing): field yang tampil membagi rata lebar card, jadi tidak ada kolom kosong
+           walau ada field yang disembunyikan. Di bawah 1200px tetap memakai grid 2 / 1 kolom. */
+        @media (min-width: 1200px) {
+            .costing-fields.fill-row { display: flex !important; gap: 0 12px; }
+            .costing-fields.fill-row > .costing-field { flex: 1 1 0; min-width: 0; }
+        }
         .costing-fields.three-columns > .costing-field-md { flex: 1 1 calc((100% - 32px) / 3); min-width: 0; }
         @media (max-width: 991.98px) { .costing-fields.three-columns > .costing-field-md { flex-basis: calc((100% - 16px) / 2); max-width: none; } }
         @media (max-width: 575.98px) { .costing-fields.three-columns > .costing-field-md { flex-basis: 100%; } }
 
-    </style>
+            /* Pilihan Product Item (multiple) tampil sebagai chip: nama item + badge set (TOP/BOTTOM), tombol hapus di kanan. */
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__rendered { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 0; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice { display: inline-flex; align-items: center; gap: 8px; float: none; margin: 0; padding: 6px 8px 6px 12px; border: 1px solid #c9d6e3; border-radius: 999px; background: #eef4fa; color: #1e3a52; font-size: 14px; font-weight: 600; line-height: 1.2; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove { order: 2; float: none; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin: 0; border-radius: 50%; background: #d5e0eb; color: #284a63; font-size: 15px; font-weight: 700; line-height: 1; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice__remove:hover { background: #c8161d; color: #fff; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-search--inline { float: none; flex: 1 1 80px; }
+        .costing-field .select2-container--bootstrap4 .select2-selection--multiple .select2-search--inline .select2-search__field { width: 100% !important; margin: 0; }
+        .pi-chip-set { padding: 2px 7px; border-radius: 6px; background: #284a63; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+</style>
 @endsection
 
 @section('content')
@@ -221,7 +281,7 @@
         <form action="{{ route('store-costing') }}" method="POST" id="form-costing" enctype="multipart/form-data">
             @csrf
             <div class="card-body">
-                <div class="costing-crumb"><a href="{{ route('master-costing') }}">Marketing &nbsp;›&nbsp; Proses &nbsp;›&nbsp; Costing</a> &nbsp;›&nbsp; <b>Create Costing</b></div>
+                <div class="costing-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; Costing &nbsp;›&nbsp; <b>Create Costing</b></div>
                 <h1 class="costing-page-title">Create Costing <i class="fas fa-info-circle"></i></h1>
                 <p class="costing-page-subtitle"><i class="fas fa-database"></i> Untuk Menambah Data Costing</p>
                 <div class="costing-error-alert" id="costing-error-alert" role="alert" hidden>
@@ -283,9 +343,21 @@
                             </section>
 
                             <section class="costing-section">
-                                <h2 class="costing-section-title">Product & Type<span class="required-mark">*</span></h2>
+                                <h2 class="costing-section-title">Product & Order Information<span class="required-mark">*</span></h2>
                                 <div class="costing-section-body">
-                                    <div class="costing-fields">
+                                    <div class="costing-fields product-order-fields">
+                                        @if (!empty($ndsTrial))
+                                        <div class="costing-field">
+                                            <label for="product_items">Product Item</label>
+                                            <select name="product_items[]" id="product_items" class="form-control select2bs4" data-placeholder="Choose Product Item" multiple required>
+                                                @foreach ($product_items as $item)
+                                                    <option value="{{ $item->id }}" data-set="{{ $item->product_set }}">{{ $item->product_item }}{{ $item->product_set ? ' (' . $item->product_set . ')' : '' }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        {{-- CM Price per set (TOP / BOTTOM): hanya tampilan, nilainya total CMT setelah allowance di tab Manufacturing. Diisi JS. --}}
+                                        <div class="cm-inline" id="cm-card"></div>
+                                        @else
                                         <div class="costing-field">
                                             <label for="product_group">Product Group</label>
                                             <select name="product_group" id="product_group" class="form-control select2bs4" required>
@@ -317,6 +389,8 @@
                                                 @endforeach
                                             </select>
                                         </div>
+                                        @endif
+                                        @if (empty($ndsTrial))
                                         <div class="costing-field">
                                             <label for="tipe_ws">WS Type</label>
                                             <select name="tipe_ws" id="tipe_ws" class="form-control select2bs4" required>
@@ -325,14 +399,68 @@
                                                 <option value="STD">STANDAR</option>
                                             </select>
                                         </div>
+                                        @endif
                                         <div class="costing-field">
                                             <label for="unit">Unit</label>
                                             <select name="unit" id="unit" class="form-control select2bs4" required>
                                                 <option value="">Choose Unit</option>
-                                                @foreach ($units as $u)
-                                                    <option value="{{ $u->nama_pilihan }}" {{ $u->nama_pilihan == 'PCS' ? 'selected' : '' }}>{{ $u->nama_pilihan }}</option>
+                                                @foreach ($header_units ?? $units as $u)
+                                                    <option value="{{ $u->nama_pilihan }}" {{ $u->nama_pilihan == 'PCS' ? 'selected' : '' }}>{{ $u->label ?? $u->nama_pilihan }}</option>
                                                 @endforeach
                                             </select>
+                                        </div>
+                                        @if (empty($ndsTrial))
+                                        <div class="costing-field">
+                                            <label for="ship_mode">Ship Mode</label>
+                                            <select name="ship_mode" id="ship_mode" class="form-control select2bs4" required>
+                                                <option value="">Choose Ship Mode</option>
+                                                @foreach ($shipmodes as $sm)
+                                                    <option value="{{ $sm->id }}">{{ $sm->shipmode }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        @endif
+                                        @if (empty($ndsTrial))
+                                        <div class="costing-field">
+                                            <label for="shipment_type">Shipment Type</label>
+                                            <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
+                                                <option value="">Choose Shipment Type</option>
+                                                <option value="local">LOCAL</option>
+                                                <option value="export">EXPORT</option>
+                                            </select>
+                                        </div>
+                                        @else
+                                        <input type="hidden" id="shipment_type" value="">
+                                        @endif
+                                        @if (empty($ndsTrial))
+                                        <div class="costing-field">
+                                            <label for="deldate">Delivery Date</label>
+                                            <input type="date" name="deldate" id="deldate" class="form-control" required>
+                                        </div>
+                                        @endif
+                                        <div class="costing-field">
+                                            <label for="marketing_order">Marketing Order</label>
+                                            <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
+                                                <option value="">Choose Marketing Order</option>
+                                                @foreach ($marketing_orders as $mo)
+                                                    <option value="{{ $mo->id }}">{{ $mo->mkt_order }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="costing-field">
+                                            <label for="status">Status</label>
+                                            <select name="status" id="status" class="form-control select2bs4" required>
+                                                <option value="">Choose Status</option>
+                                                <option value="CONFIRM">CONFIRM</option>
+                                                <option value="CANCEL">CANCEL</option>
+                                                <option value="SAMPLE">SAMPLE</option>
+                                            </select>
+                                        </div>
+                                        <input type="hidden" name="main_dest" value="">
+                                        <input type="hidden" name="market" value="">
+                                        <div class="costing-field {{ empty($ndsTrial) ? 'span-all' : 'span-2' }}">
+                                            <label for="notes">Notes</label>
+                                            <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Notes"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -348,12 +476,11 @@
                                         <i class="fas fa-file-alt"></i>
                                         <span>Drag n Drop here Or <b>Browse</b></span>
                                     </div>
+                                    <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Selected image previews"></div>
+                                    <div class="costing-picture-actions">
+                                        <button type="button" id="clear-pictures" class="mkt-btn mkt-btn--red mkt-btn--sm costing-picture-clear" disabled>Clear</button>
+                                    </div>
                                 </div>
-
-                                <div id="picture-thumbnails" class="costing-picture-thumbnails" aria-label="Selected image previews"></div>
-                                <button type="button" id="clear-pictures" class="mkt-btn mkt-btn--red mkt-btn--sm costing-picture-clear" disabled>
-                                    <i class="fas fa-trash-alt"></i> Clear All
-                                </button>
 
                                 <div class="costing-picture-carousel">
                                     <div class="d-flex align-items-center justify-content-between w-100">
@@ -372,71 +499,22 @@
                         </section>
                     </div>
 
-                    <section class="costing-section span-full">
-                        <h2 class="costing-section-title">Shipping & Destinations<span class="required-mark">*</span></h2>
-                        <div class="costing-section-body">
-                            <div class="costing-fields three-columns">
-                                <div class="costing-field costing-field-md">
-                                    <label for="ship_mode">Ship Mode</label>
-                                    <select name="ship_mode" id="ship_mode" class="form-control select2bs4" required>
-                                        <option value="">Choose Ship Mode</option>
-                                        @foreach ($shipmodes as $sm)
-                                            <option value="{{ $sm->id }}">{{ $sm->shipmode }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="costing-field costing-field-md">
-                                    <label for="shipment_type">Shipment Type</label>
-                                    <select name="shipment_type" id="shipment_type" class="form-control select2bs4" required>
-                                        <option value="">Choose Shipment Type</option>
-                                        <option value="local">LOCAL</option>
-                                        <option value="export">EXPORT</option>
-                                    </select>
-                                </div>
-                                <div class="costing-field costing-field-md">
-                                    <label for="deldate">Delivery Date</label>
-                                    <input type="date" name="deldate" id="deldate" class="form-control" required>
-                                </div>
-                                <div class="costing-field costing-field-md">
-                                    <label for="marketing_order">Marketing Order</label>
-                                    <select name="marketing_order" id="marketing_order" class="form-control select2bs4" required>
-                                        <option value="">Choose Marketing Order</option>
-                                        @foreach ($marketing_orders as $mo)
-                                            <option value="{{ $mo->id }}">{{ $mo->mkt_order }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="costing-field costing-field-md">
-                                    <label for="status">Status</label>
-                                    <select name="status" id="status" class="form-control select2bs4" required>
-                                        <option value="">Choose Status</option>
-                                        <option value="CONFIRM">CONFIRM</option>
-                                        <option value="CANCEL">CANCEL</option>
-                                        <option value="SAMPLE">SAMPLE</option>
-                                    </select>
-                                </div>
-                                <input type="hidden" name="main_dest" value="">
-                                <input type="hidden" name="market" value="">
-                                <div class="costing-field costing-field-md">
-                                    <label for="notes">Notes</label>
-                                    <textarea id="notes" name="notes" rows="1" class="form-control" placeholder="Notes"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+
 
                     <section class="costing-section">
                         <h2 class="costing-section-title">Parameter Costing<span class="required-mark">*</span></h2>
                         <div class="costing-section-body">
-                            <div class="costing-fields four-columns">
+                            <div class="costing-fields four-columns fill-row">
                                 <div class="costing-field">
                                     <label for="qty_planned">QTY Planned (PCS)</label>
                                     <input type="text" name="qty_planned" id="qty_planned" class="form-control input-decimal" placeholder="QTY Planned (PCS)" required>
                                 </div>
+                                @if (empty($ndsTrial))
                                 <div class="costing-field">
                                     <label>QTY (PCS)</label>
                                     <input type="text" name="qty" class="form-control input-decimal" placeholder="QTY (PCS)" required>
                                 </div>
+                                @endif
                                 <div class="costing-field">
                                     <label for="smv">SMV (Min)</label>
                                     <input type="text" name="smv" id="smv" class="form-control input-money" inputmode="decimal" data-max-decimals="3" placeholder="SMV (Min)" required>
@@ -510,14 +588,23 @@
         // allowClear = tanda X untuk menghapus pilihan (state 2); hanya untuk select yang punya opsi kosong / multiple.
         // Dropdown nama (buyer, brand, season, product, supplier, content) tampil Title Case; singkatan (PT, CV, LTD) tetap kapital.
         // Hanya teks tampilan select2 — <option> & value yang dikirim tetap data asli.
-        const COSTING_TC_SELECTS = ['buyer', 'brand', 'season_id', 'product_group', 'product_item', 'shipment_type', 'marketing_order', 'txt_item', 'txt_supplier', 'm_item', 'm_supplier'];
-        const costingTcOpts = el => (window.mktTitleCaseSelect2 && COSTING_TC_SELECTS.includes(el.id || el.name)) ? window.mktTitleCaseSelect2() : {};
-        $('.select2bs4').each(function () {
+        const COSTING_TC_SELECTS = ['buyer', 'brand', 'season_id', 'product_group', 'product_item', 'product_items', 'shipment_type', 'marketing_order', 'txt_supplier', 'm_supplier'];
+        // Unit: daftar tampil "kode - nama", yang terpilih cukup kodenya.
+        const costingTcOpts = el => el.id === 'unit' ? { templateSelection: d => d.id || d.text }
+            : (window.mktTitleCaseSelect2 && COSTING_TC_SELECTS.includes(el.id || el.name)) ? window.mktTitleCaseSelect2() : {};
+        // Chip Product Item: nama (Title Case) + badge set dari data-set option; teks dalam kurung di akhir sudah diwakili badge.
+        const productItemChip = item => {
+            if (!item.id || !item.element) return item.text;
+            const set = item.element.dataset.set || '';
+            const name = String(item.text).replace(/\s*\([^()]*\)$/, '');
+            const $chip = $('<span>').text(window.mktTitleCase ? window.mktTitleCase(name) : name);
+            return set ? $chip.add($('<span class="pi-chip-set">').text(set)) : $chip;
+        };        $('.select2bs4').each(function () {
             const clearable = $(this).prop('multiple') || $(this).find('option[value=""]').length > 0;
             $(this).select2(Object.assign({ theme: 'bootstrap4' }, clearable ? {
                 allowClear: true,
                 placeholder: $(this).data('placeholder') || $(this).find('option[value=""]').first().text() || 'Choose'
-            } : {}, costingTcOpts(this)));
+            } : {}, costingTcOpts(this), this.id === 'product_items' ? { templateSelection: productItemChip } : {}));
         });
 
         // State 5 (error): field wajib yang kosong saat Save diberi .is-invalid (label, border, teks merah + "Required")
@@ -657,27 +744,30 @@
             paintCoverflowDots($dots, costingImageUrls.length, activeCostingImage, goTo);
 
             costingImageUrls.forEach((image, index) => {
-                let thumb = $('<div>', {
-                    class: `costing-picture-thumb`,
-                    style: `position: relative; width: 60px; height: 60px; cursor: pointer; border-radius: 4px; overflow: hidden; border: ${index === activeCostingImage ? '2px solid #3085d6' : '1px solid #dce4ec'};`
-                });
+                const thumb = $('<div>', {
+                    class: `costing-picture-thumb${index === activeCostingImage ? ' active' : ''}`,
+                    title: image.name,
+                }).append($('<img>', { src: image.url, alt: '' }));
 
-                thumb.append($('<img>', { src: image.url, style: 'width: 100%; height: 100%; object-fit: cover; opacity: 0.8;' }));
+                if (index === activeCostingImage) thumb.append('<span class="costing-picture-check"><i class="fas fa-check"></i></span>');
+                thumb.append($('<div class="costing-picture-meta">')
+                    .append($('<span>').text(image.name))
+                    .append($('<span>').text(formatCostingFileSize(image.file && image.file.size))));
 
-                if (index !== activeCostingImage) {
-                    let closeBtn = $('<div>', {
-                        style: 'position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.7); color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 9px;'
-                    }).append('<i class="fas fa-times"></i>');
-
-                    closeBtn.on('click', function(e) {
+                $('<button>', { type: 'button', class: 'costing-picture-remove', title: 'Hapus gambar', 'aria-label': `Remove image ${index + 1}` })
+                    .append('<i class="fas fa-times"></i>')
+                    .on('click', function(e) {
                         e.stopPropagation();
+                        URL.revokeObjectURL(image.url);
                         costingImageUrls.splice(index, 1);
-                        if (activeCostingImage >= index && activeCostingImage > 0) activeCostingImage--;
-                        if (costingImageUrls.length === 0) activeCostingImage = 0;
+                        // File yang dihapus ikut keluar dari input supaya tidak ikut ter-upload saat Save.
+                        const transfer = new DataTransfer();
+                        costingImageUrls.forEach(item => transfer.items.add(item.file));
+                        $('#upload_foto')[0].files = transfer.files;
+                        if (activeCostingImage > index || activeCostingImage >= costingImageUrls.length) activeCostingImage = Math.max(0, activeCostingImage - 1);
                         renderCostingImages();
-                    });
-                    thumb.append(closeBtn);
-                }
+                    })
+                    .appendTo(thumb);
 
                 thumb.on('click', function() {
                     activeCostingImage = index;
@@ -688,6 +778,11 @@
             });
         }
 
+        function formatCostingFileSize(bytes) {
+            if (!bytes) return '';
+            return bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+        }
+
         renderCostingImages();
 
         function setCostingFiles(files) {
@@ -695,7 +790,7 @@
             const invalidFile = selectedFiles.find(file => !file.type.startsWith('image/'));
             if (invalidFile) {
                 $('#upload_foto').val('');
-                Swal.fire('File tidak valid', `${invalidFile.name} bukan file gambar.`, 'error');
+                mktToast('warn', 'File bukan gambar', `${invalidFile.name} tidak bisa dipakai. Pilih file gambar, misalnya JPG atau PNG.`);
                 return;
             }
 
@@ -803,13 +898,7 @@
             let curr_val = $(this).val();
             let curr_count = curr_val ? curr_val.length : 0;
             if (curr_count > 1) {
-                Swal.fire({
-                    title: 'Perhatian!',
-                    text: 'Anda memilih lebih dari 1 Destination. Ingat untuk menggabungkan WS jika diperlukan!',
-                    icon: 'info',
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, Mengerti'
-                });
+                mktToast('info', 'Lebih dari 1 destination dipilih', 'Gabungkan WS nanti bila diperlukan.');
             }
         });
 
@@ -817,7 +906,7 @@
             let selected_grup = $(this).val();
             let select_item = $('#product_item');
             if(selected_grup) {
-                $.post("{{ route('get-product-items') }}", { _token: "{{ csrf_token() }}", product_group: selected_grup }, function(res) {
+                $.post("{{ route('get-product-items') }}", { _token: "{{ csrf_token() }}", for_costing: 1, product_group: selected_grup }, function(res) {
                     select_item.empty().append('<option value="">Pilih Product Item</option>');
                     $.each(res, function(key, value) { select_item.append(`<option value="${value.id}">${value.product_item}</option>`); });
                     select_item.trigger('change');
@@ -831,20 +920,14 @@
             e.preventDefault();
             let form = this;
 
-            Swal.fire({
-                title: 'Simpan Data Costing?',
-                text: "Pastikan semua data Header sudah terisi dengan benar!",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#198754',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Simpan!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
+
+            // Peringatan dua item satu tipe ditampilkan sebagai catatan di bawah dialog; teks utama tetap persis katalog SV-02.
+            const setNote = sameSetWarning();
+            mktAlert('SV-02', { costing: 'Costing baru' }, setNote ? { footer: $('<span>').text(setNote).html() } : {}).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        title: 'Menyimpan...',
-                        text: 'Mohon tunggu sebentar',
+                        title: 'Menyimpan costing...',
+                        text: 'Tunggu sebentar, halaman akan pindah sendiri.',
                         allowOutsideClick: false,
                         showConfirmButton: false,
                         didOpen: () => {
@@ -856,6 +939,46 @@
             });
         });
     });
+
+    // ===== CM Price di header: satu field per product item terpilih, disabled. Nilainya baru ada setelah Costing dibuat
+    // dan harga CMT diisi di tab Manufacturing (total setelah allowance).
+    function cmRenderCreate() {
+        const esc = v => $('<span>').text(v == null ? '' : v).html();
+        const cur = $('#curr option:selected').text().trim();
+        const curLabel = cur && !/choose/i.test(cur) ? ' (' + esc(cur) + ')' : '';
+        const items = $('#product_items option:selected').get();
+        $('#cm-card').html(!items.length ? '' : `<div class="cm-grid" style="--n:${items.length}">` + items.map(option => `<div class="costing-field"><label>CM Price ${esc(option.dataset.set || option.text.replace(/\s*\([^()]*\)$/, ''))}${curLabel}</label>
+            <input type="text" class="form-control" value="0,00" disabled><small class="cm-hint">Diisi dari CMT di tab Manufacturing</small></div>`).join('') + '</div>');
+    }
+    $(document).on('change', '#product_items, #curr', cmRenderCreate);
+    $(cmRenderCreate);
+
+    // Unit SET hanya bisa dipilih kalau Product Item lebih dari 1; satu item -> SET dimatikan dan unit kembali ke PCS.
+    function syncUnitSet() {
+        const single = ($('#product_items').val() || []).length < 2;
+        const $unit = $('#unit');
+        const $set = $unit.find('option').filter((i, o) => String(o.value).toUpperCase() === 'SET');
+        if (!$set.length) return;
+        $set.prop('disabled', single);
+        if (single && String($unit.val()).toUpperCase() === 'SET') $unit.val($unit.find('option').filter((i, o) => String(o.value).toUpperCase() === 'PCS').val() || '');
+        $unit.trigger('change.select2');
+    }
+    $(document).on('change change.select2', '#product_items', () => setTimeout(syncUnitSet, 0));
+    $(syncUnitSet);
+
+    // Dua item dengan tipe sama (mis. T-SHIRT dan POLO SHIRT sama-sama TOP) boleh, tapi user diingatkan.
+    function sameSetWarning() {
+        const selected = $('#product_items option:selected').get();
+        const byLabel = {};
+        selected.forEach((option) => {
+            const label = option.dataset.set || '';
+            if (label) (byLabel[label] = byLabel[label] || []).push(option.text.replace(/\s*\([^()]*\)$/, ''));
+        });
+        const shared = Object.keys(byLabel).find((label) => byLabel[label].length > 1);
+        return shared
+            ? `${byLabel[shared].join(' dan ')} sama-sama ${shared}. Costing ini akan menjadi ${selected.length} set dan ${selected.length} WS. Lanjutkan?`
+            : '';
+    }
 
     function toggleSetHeader() {
         let type = $('#type').val();
