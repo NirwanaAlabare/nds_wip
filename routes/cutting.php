@@ -59,12 +59,16 @@ Route::middleware('auth')->group(function () {
     Route::controller(PenerimaanCuttingController::class)->prefix("penerimaan-cutting")->middleware("role:cutting")->group(function () {
         Route::get('/', 'index')->name('penerimaan-cutting');
         Route::get('/create', 'create')->name('create-penerimaan-cutting');
+        Route::get('/create-lama', 'createOld')->name('create-old-penerimaan-cutting');
         Route::post('/store', 'store')->name('store-penerimaan-cutting');
         Route::get('/edit/{id?}', 'edit')->name('edit-penerimaan-cutting');
         Route::put('/update', 'update')->name('update-penerimaan-cutting');
         Route::delete('/destroy/{id?}', 'destroy')->name('destroy-penerimaan-cutting')->middleware("role:superadmin");
         Route::post('/export', 'exportPenerimaanCutting')->name('export-penerimaan-cutting');
         Route::get('/get-scanned-item/{id?}', 'getBarcodeFabric')->name('get-scanned-penerimaan-cutting');
+        Route::get('/scan-barcode/{id?}', 'scanBarcode')->name('scan-barcode-penerimaan-cutting');
+        Route::post('/store-scan', 'storeScan')->name('store-scan-penerimaan-cutting');
+        Route::get('/summary', 'summary')->name('summary-penerimaan-cutting');
     });
 
     // CUTTING :
@@ -385,6 +389,9 @@ Route::middleware('auth')->group(function () {
             Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
             Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
             Route::post('/cutting/recalculate-form/{id?}', 'recalculateForm')->name('recalculate-spreading-form');
+            Route::post('/cutting/reorder-roll', 'reorderRoll')->name('reorder-spreading-roll');
+            Route::get('/cutting/insert-time', 'getInsertTime')->name('get-insert-time-spreading-roll');
+            Route::post('/cutting/store-roll', 'storeAddedRoll')->name('store-added-spreading-roll');
             Route::get('/check-stocker-form', 'checkStockerForm')->name('check-stocker-form');
         });
 

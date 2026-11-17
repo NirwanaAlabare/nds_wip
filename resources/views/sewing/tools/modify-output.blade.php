@@ -550,6 +550,7 @@
             document.getElementById("loading").classList.remove("d-none");
 
             outputs = [];
+            togglePoContainer();
             document.getElementById("rft").innerText = 0;
             document.getElementById("defect").innerText = 0;
             document.getElementById("rework").innerText = 0;
@@ -616,39 +617,53 @@
                     totalRft += Number(item.rft);
                 });
 
-                // PO Conditional
-                if (document.getElementById("dept").value == '_packing_po') {
-                    let poList = objectValues(objectGroupBy(currentOutputs, ({ po }) => po)).filter(item => item[0].po != 'undefined' && item[0].po != null && item[0].po != '' && item[0].po != '-');
-
-                    let totalRftPo = 0;
-                    let selectPoContainer = document.getElementById("rft-po-container");
-                    let selectPo = document.getElementById("rft_po");
-                    if (poList && poList.length > 0) {
-                        selectPoContainer.classList.remove("d-none");
-                        selectPo.innerHTML = "<option value=''>Gudang Stok</option>";
-                        poList.forEach(item => {
-                            let option = document.createElement("option");
-                            option.value = item[0].po;
-                            option.innerText = item[0].po;
-
-                            selectPo.appendChild(option);
-
-                            totalRftPo += Number(item.rft);
-                        });
-
-                    } else {
-                        selectPoContainer.classList.add("d-none");
-                    }
-
-                    document.getElementById("rft_total").value = totalRftPo;
-
-                    let selectModPoContainer =  document.getElementById("rft-mod-po-container");
-                    selectModPoContainer.classList.remove("d-none");
-                } else {
-                    document.getElementById("rft_total").value = totalRft;
-                }
-
+                document.getElementById("rft_total").value = totalRft;
             }
+
+            // PO Conditional (Packing PO)
+            togglePoContainer();
+            if (isPackingPo()) {
+                updateRftPoList();
+            }
+        }
+
+        function isPackingPo() {
+            return document.getElementById("dept").value == "_packing_po";
+        }
+
+        // Pilihan PO hanya tampil saat departemen PACKING
+        function togglePoContainer() {
+            document.getElementById("rft-po-container").classList.toggle("d-none", !isPackingPo());
+            document.getElementById("rft-mod-po-container").classList.toggle("d-none", !isPackingPo());
+        }
+
+        // Daftar PO asal berdasarkan size yang dipilih (PO null = alokasi, kosong = tanpa PO & alokasi)
+        function updateRftPoList() {
+            let currentVal = $("#rft_po").val();
+            let selectedSize = $("#rft_size").val();
+
+            let poOutputs = outputs.filter(item => Number(item.rft) > 0 && (!selectedSize || item.so_det_id == selectedSize));
+
+            let poTotals = {};
+            poOutputs.forEach(item => {
+                let po = (item.po && item.po != "-") ? item.po : "";
+                poTotals[po] = (poTotals[po] || 0) + Number(item.rft);
+            });
+
+            let selectPo = document.getElementById("rft_po");
+            selectPo.innerHTML = "";
+
+            Object.keys(poTotals).sort((a, b) => a == "" ? -1 : (b == "" ? 1 : a.localeCompare(b))).forEach(po => {
+                let option = document.createElement("option");
+                option.value = po;
+                // PO null -> alokasi (dari backend), kosong = tanpa PO & alokasi
+                option.innerText = (po ? po : "Tanpa PO / Alokasi")+" ("+poTotals[po]+")";
+
+                selectPo.appendChild(option);
+            });
+
+            let poKeys = Object.keys(poTotals);
+            $("#rft_po").val(poKeys.includes(currentVal) ? currentVal : (poKeys.length > 0 ? poKeys[0] : null)).trigger("change");
         }
 
         // Defect
@@ -834,7 +849,9 @@
         });
 
         $("#rft_mod_size").on("change", () => {
-            updatePoList("rft_mod_")
+            if (isPackingPo()) {
+                updatePoList("rft_mod_")
+            }
         });
 
         // DEFECT
@@ -909,8 +926,9 @@
                         let latestVal = null;
                         for(let i = 0; i < res.length; i++) {
                             let option = document.createElement("option");
-                            option.setAttribute("value", res[i].id);
-                            option.innerHTML = res[i].po;
+                            // GUDANG_STOK (id null) -> value kosong
+                            option.setAttribute("value", res[i].id ? res[i].id : "");
+                            option.innerHTML = res[i].id ? res[i].po : "Gudang Stok";
                             option.setAttribute("po", res[i].po);
                             select.appendChild(option);
                         }
@@ -926,7 +944,12 @@
 
         // RFT
         $("#rft_size").on("change", () => {
-            updateTotalQty("rft_");
+            if (isPackingPo()) {
+                // PO mengikuti size, total dihitung ulang saat PO berubah
+                updateRftPoList();
+            } else {
+                updateTotalQty("rft_");
+            }
         })
 
         $("#rft_po").on("change", () => {
@@ -950,9 +973,14 @@
 
         function updateTotalQty(prefix) {
             let currentOutputs = [];
-            if ($('#'+prefix+'size').val() || $('#dept').val() == "_packing_po") {
+            // Filter PO hanya untuk RFT departemen PACKING (PO kosong = Gudang Stok)
+            let filterPo = isPackingPo() && document.getElementById(prefix+'po');
+
+            if ($('#'+prefix+'size').val() || filterPo) {
                 currentOutputs = outputs.filter((item) => {
-                    return ((item.so_det_id == $('#'+prefix+'size').val() || !$('#'+prefix+'size').val()) && ($('#dept').val() != "_packing_po" || ($('#dept').val() == "_packing_po" && item.po == $('#'+prefix+'po').val())));
+                    let itemPo = (item.po && item.po != "-") ? item.po : "";
+
+                    return ((item.so_det_id == $('#'+prefix+'size').val() || !$('#'+prefix+'size').val()) && (!filterPo || itemPo == ($('#'+prefix+'po').val() || "")));
                 });
             } else {
                 currentOutputs = outputs;

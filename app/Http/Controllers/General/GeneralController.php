@@ -1080,8 +1080,16 @@ class GeneralController extends Controller
         }
 
         // When pemakaian
-        if ($request->form_cut_detail_id) {
-            $currentFormCutDetail = FormCutInputDetail::where("id", $request->form_cut_detail_id)->first();
+        // atau ketika roll akan disisipkan di waktu tertentu (tambah roll di completed form)
+        if ($request->form_cut_detail_id || $request->at_time) {
+            $currentFormCutDetail = $request->form_cut_detail_id ? FormCutInputDetail::where("id", $request->form_cut_detail_id)->first() : null;
+
+            if (!$currentFormCutDetail && $request->at_time && strtotime($request->at_time)) {
+                $currentFormCutDetail = (object) [
+                    "id_roll" => null,
+                    "created_at" => date("Y-m-d H:i:s", strtotime($request->at_time)),
+                ];
+            }
 
             if ($currentFormCutDetail) {
                 if (!empty($id) && $currentFormCutDetail->id_roll != $id) {
@@ -2155,8 +2163,8 @@ class GeneralController extends Controller
                     SUM(CASE WHEN status = 'rejected' OR status = 'mati' THEN 1 ELSE 0 END) reject
                 FROM
                 (
-                    SELECT output.*, act_costing.id as id_ws, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, so_det.dest, userpassword.username as sewing_line ".($request->department == "_packing_po" ? ', ppic_master_so.po ' : '')." FROM (
-                        select master_plan_id, so_det_id, created_by, ".($request->department == "_packing_po" ? ' po_id, created_by_username, created_by_line, ' : '')." kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts".$request->department." as output_rfts WHERE status = 'NORMAL' and master_plan_id = '".$request->id."'
+                    SELECT output.*, act_costing.id as id_ws, act_costing.kpno as ws, act_costing.styleno style, so_det.color, so_det.size, so_det.dest, userpassword.username as sewing_line ".($request->department == "_packing_po" ? ", COALESCE(ppic_master_so.po, UPPER(NULLIF(output.alokasi, ''))) as po " : '')." FROM (
+                        select master_plan_id, so_det_id, created_by, ".($request->department == "_packing_po" ? ' po_id, created_by_username, created_by_line, alokasi, ' : '')." kode_numbering, id, created_at, updated_at, 'RFT' as status, '-' as defect, '-' as allocation from output_rfts".$request->department." as output_rfts WHERE status = 'NORMAL' and master_plan_id = '".$request->id."'
                         ".
                         (
                             $request->department != "_packing_po" ?
@@ -2171,7 +2179,7 @@ class GeneralController extends Controller
                                 $request->department == "_packing_po" ?
                                 "
                                 UNION
-                                select output_rejects.master_plan_id, output_rejects.so_det_id, output_rejects.po_id, output_rejects.created_by, created_by_username, created_by_line, output_rejects.kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, 'mati' as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rfts".$request->department." as output_rejects
+                                select output_rejects.master_plan_id, output_rejects.so_det_id, output_rejects.created_by, output_rejects.po_id, created_by_username, created_by_line, output_rejects.alokasi, output_rejects.kode_numbering, output_rejects.id, output_rejects.created_at, output_rejects.updated_at, 'mati' as status, output_defect_types.defect_type as defect, output_defect_types.allocation from output_rfts".$request->department." as output_rejects
                                 LEFT JOIN output_rejects orj ON orj.id = output_rejects.reject_id and output_rejects.department = 'qc'
                                 LEFT JOIN output_rejects_packing orp ON orp.id = output_rejects.reject_id and output_rejects.department = 'packing'
                                 left join output_defect_types on output_defect_types.id = COALESCE(orj.reject_type_id, orp.reject_type_id)
@@ -2219,6 +2227,7 @@ class GeneralController extends Controller
                         $request->department == "_packing_po" ?
                             "
                                 po_id,
+                                po,
                             "
                         :
                             ""

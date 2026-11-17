@@ -4,6 +4,181 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    <style>
+        /* -Summary: drag & drop roll- */
+        #scannedItemTable tbody tr {
+            cursor: pointer;
+        }
+
+        #scannedItemTable tbody tr:hover > td {
+            background: #f4f8fd;
+        }
+
+        #scannedItemTable tbody tr.selected > td {
+            background: #e3efff;
+        }
+
+        #scannedItemTable .roll-drag-handle {
+            cursor: grab;
+            color: #adb5bd;
+            padding: 6px 4px;
+            border-radius: 4px;
+            transition: color .15s, background .15s;
+        }
+
+        #scannedItemTable tr:hover .roll-drag-handle {
+            color: #3c8dbc;
+            background: #e9f2ff;
+        }
+
+        #scannedItemTable .roll-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        #scannedItemTable .roll-sort-placeholder td {
+            background: #e9f2ff;
+            border: 2px dashed #3c8dbc !important;
+            height: 44px;
+        }
+
+        #scannedItemTable tr.roll-continuation > td:first-child {
+            border-left: 3px solid #17a2b8;
+        }
+
+        #scannedItemTable .roll-link-icon {
+            color: #17a2b8;
+            font-size: 12px;
+        }
+
+        .summary-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-toolbar .summary-hint {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .summary-toolbar .summary-hint i {
+            color: #3c8dbc;
+        }
+
+        /* -Spreading: mode tambah roll & roll sambungan- */
+        .add-roll-banner {
+            display: flex;
+            gap: .75rem;
+            align-items: flex-start;
+            justify-content: space-between;
+            border-left: 4px solid #17a2b8;
+            background: #eef9fb;
+            border-radius: 6px;
+            padding: .75rem 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .add-roll-banner .add-roll-title {
+            font-weight: 700;
+            color: #117a8b;
+        }
+
+        .add-roll-banner .add-roll-meta {
+            font-size: 12px;
+            color: #495057;
+        }
+
+        .ext-card {
+            border: 1px solid #b8e3ea;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .ext-card .ext-card-header {
+            background: #eef9fb;
+            border-bottom: 1px solid #b8e3ea;
+            padding: .6rem 1rem;
+        }
+
+        .ext-card .ext-card-header .ext-card-title {
+            font-weight: 700;
+            color: #117a8b;
+        }
+
+        .ext-card .ext-card-header small {
+            color: #6c757d;
+        }
+
+        .ext-card .ext-card-body {
+            padding: 1rem;
+        }
+
+        .ext-step {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: 13px;
+            font-weight: 700;
+            color: #495057;
+            margin-bottom: .5rem;
+        }
+
+        .ext-step .ext-step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #17a2b8;
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .ext-step-hint {
+            font-weight: 400;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .ext-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            margin-top: .25rem;
+        }
+
+        .ext-summary .ext-summary-item {
+            flex: 1 1 140px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: .5rem .75rem;
+        }
+
+        .ext-summary .ext-summary-item small {
+            display: block;
+            color: #6c757d;
+            font-size: 11px;
+        }
+
+        .ext-summary .ext-summary-item input {
+            border: 0;
+            background: transparent;
+            padding: 0;
+            font-weight: 700;
+            font-size: 15px;
+            width: 100%;
+            box-shadow: none;
+        }
+
+        .ext-summary .ext-summary-item.is-negative input {
+            color: #dc3545;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -469,10 +644,21 @@
                 <div class="card-body" style="display: block;">
                     <div class="row">
                         <div class="col-md-12">
+                            <div class="summary-toolbar">
+                                <span class="summary-hint">
+                                    <i class="fa-solid fa-grip-vertical"></i> Geser untuk mengatur urutan roll
+                                    &nbsp;&middot;&nbsp;
+                                    <i class="fa-solid fa-link"></i> bagian dari sambungan
+                                    &nbsp;&middot;&nbsp;
+                                    Klik baris untuk edit
+                                </span>
+                                <button type="button" class="btn btn-success btn-sm" onclick="startAddRoll()"><i class="fa fa-plus"></i> Tambah Roll</button>
+                            </div>
                             <div class="w-100 table-responsive my-3">
                                 <table class="table table-bordered table" id="scannedItemTable">
                                     <thead>
                                         <tr>
+                                            <th title="Drag untuk atur urutan roll"><i class="fa-solid fa-up-down"></i></th>
                                             <th>No.</th>
                                             <th>Group</th>
                                             <th>Group Number</th>
@@ -505,7 +691,7 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="8" class="text-center">Total</th>
+                                            <th colspan="9" class="text-center">Total</th>
                                             <th id="total-qty"></th>
                                             <th id="total-unit"></th>
                                             <th id="total-sisa-gelaran"></th>
@@ -628,6 +814,25 @@
                     <form action="#" method="post" id="spreading-form">
                         <div class="row">
                             <input type="hidden" class="form-control" id="current_id" name="current_id">
+                            <input type="hidden" id="current_created_at_ori">
+                            <input type="hidden" id="current_has_extension">
+                            <input type="hidden" id="current_ext_child_roll">
+                            <input type="hidden" id="current_ext_parent_roll">
+                            <input type="hidden" id="add_roll_insert_after">
+                            <input type="hidden" id="add_roll_insert_at">
+                            <div class="col-12 d-none" id="add-roll-banner">
+                                <div class="add-roll-banner">
+                                    <div>
+                                        <div class="add-roll-title"><i class="fa fa-plus-circle"></i> Mode Tambah Roll</div>
+                                        <div>Roll baru disisipkan <b id="add-roll-position-text"></b>.</div>
+                                        <div class="add-roll-meta">
+                                            <i class="fa-regular fa-clock"></i> Waktu gelar: <span id="add-roll-time-text"></span>
+                                            &nbsp;&middot;&nbsp; Scan ID Roll lalu klik <b>Get</b>. Isi <b>Sisa Gelaran</b> jika roll ini disambung.
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" onclick="cancelAddRoll()"><i class="fa fa-times"></i> Batal</button>
+                                </div>
+                            </div>
                             <div class="col-3">
                                 <div class="mb-3">
                                     <label class="form-label small" id="current_id_roll_label">Id Roll</label>
@@ -977,6 +1182,183 @@
                                     </div>
                                 </div>
                             </div>
+                            {{-- Roll Sambungan (tambah roll / edit menjadi need extension, muncul jika sisa gelaran > 0) --}}
+                            <div class="col-12 d-none" id="add-roll-ext-section">
+                                <div class="ext-card">
+                                    <div class="ext-card-header">
+                                        <div class="ext-card-title"><i class="fa-solid fa-link"></i> Roll Sambungan</div>
+                                        <small>Roll ini punya sisa gelaran, jadi perlu roll lain untuk menyambung lembar terakhirnya.</small>
+                                    </div>
+                                    <div class="ext-card-body">
+                                        <input type="hidden" id="ext_detail_item" name="ext_detail_item">
+                                        <input type="hidden" id="ext_roll" name="ext_roll">
+
+                                        {{-- 1. Scan roll sambungan --}}
+                                        <div class="ext-step">
+                                            <span class="ext-step-number">1</span> Scan roll sambungan
+                                            <span class="ext-step-hint">&mdash; unit harus sama dengan roll lain (yard otomatis dikonversi ke meter)</span>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Id Roll</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" class="form-control" id="ext_id_roll" name="ext_id_roll" placeholder="Scan / ketik ID roll">
+                                                        <button class="btn btn-success text-light" type="button" onclick="fetchExtScan()">Get</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Id Item</label>
+                                                    <input type="text" class="form-control form-control-sm" id="ext_id_item" name="ext_id_item" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Lot</label>
+                                                    <input type="text" class="form-control form-control-sm" id="ext_lot" name="ext_lot" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Roll Buyer</label>
+                                                    <input type="text" class="form-control form-control-sm" id="ext_roll_buyer" name="ext_roll_buyer" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small">Qty</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" class="form-control" id="ext_qty_real" name="ext_qty_real" readonly>
+                                                        <input type="text" class="form-control" style="max-width: 80px" id="ext_unit" name="ext_unit" readonly>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small label-calc">Qty Konversi</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" class="form-control border-calc" id="ext_qty" name="ext_qty" readonly>
+                                                        <span class="input-group-text ext-unit-suffix"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- 2. Bagian yang menyambung --}}
+                                        <div class="ext-step mt-1">
+                                            <span class="ext-step-number">2</span> Bagian yang menyambung
+                                            <span class="ext-step-hint">&mdash; panjang sambungan = panjang amparan &minus; sisa gelaran</span>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small label-calc">Panjang Sambungan</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" class="form-control border-calc" id="ext_sambungan" readonly>
+                                                        <span class="input-group-text ext-unit-suffix"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small label-input">Lembar Sambungan</label>
+                                                    <input type="number" class="form-control form-control-sm border-input ext-calc" id="ext_lembar_sambungan" name="ext_lembar_sambungan" value="1" step="1" min="1">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- 3. Sisa roll sambungan yang lanjut digelar --}}
+                                        <div class="ext-step mt-1">
+                                            <span class="ext-step-number">3</span> Sisa roll yang lanjut digelar
+                                            <span class="ext-step-hint">&mdash; isi 0 jika tidak ada</span>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small label-input">Lembar Gelaran</label>
+                                                    <input type="number" class="form-control form-control-sm border-input ext-calc" id="ext_lembar_gelaran" name="ext_lembar_gelaran" value="0" step="1" min="0">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-6 d-none" id="ext_berat_amparan_col">
+                                                <div class="mb-3">
+                                                    <label class="form-label small label-input">Berat 1 Amparan</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" class="form-control border-input ext-calc" id="ext_berat_amparan" name="ext_berat_amparan" value="0" step=".01" min="0">
+                                                        <span class="input-group-text">KG</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small label-input">Kepala Kain</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" class="form-control border-input ext-calc" id="ext_kepala_kain" name="ext_kepala_kain" value="0" step=".01" min="0">
+                                                        <span class="input-group-text ext-unit-suffix"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small label-input">Sisa Tidak Bisa</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" class="form-control border-input ext-calc" id="ext_sisa_tidak_bisa" name="ext_sisa_tidak_bisa" value="0" step=".01" min="0">
+                                                        <span class="input-group-text ext-unit-suffix"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small label-input">Reject</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" class="form-control border-input ext-calc" id="ext_reject" name="ext_reject" value="0" step=".01" min="0">
+                                                        <span class="input-group-text ext-unit-suffix"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small label-input">Piping</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" class="form-control border-input ext-calc" id="ext_piping" name="ext_piping" value="0" step=".01" min="0">
+                                                        <span class="input-group-text ext-unit-suffix"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3 col-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label small label-input">Sisa Kain</label>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" class="form-control border-input ext-calc" id="ext_sisa_kain" name="ext_sisa_kain" value="0" step=".01" min="0">
+                                                        <span class="input-group-text ext-unit-suffix"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Ringkasan --}}
+                                        <div class="ext-summary">
+                                            <div class="ext-summary-item">
+                                                <small>Qty Roll</small>
+                                                <input type="text" id="ext_summary_qty" readonly tabindex="-1">
+                                            </div>
+                                            <div class="ext-summary-item">
+                                                <small>Dipakai Menyambung</small>
+                                                <input type="text" id="ext_usage" readonly tabindex="-1">
+                                            </div>
+                                            <div class="ext-summary-item" id="ext_rest_qty_item">
+                                                <small>Sisa Roll (setelah menyambung)</small>
+                                                <input type="number" id="ext_rest_qty" readonly tabindex="-1">
+                                            </div>
+                                            <div class="ext-summary-item" id="ext_short_roll_item">
+                                                <small>Short Roll +/-</small>
+                                                <input type="number" id="ext_short_roll" readonly tabindex="-1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="col-12 d-none">
                                 <div class="mb-3">
                                     <label class="form-label small label-calc">Last Status</label>
@@ -995,7 +1377,7 @@
                                 <div class="row justify-content-between">
                                     <div class="col-md-4">
                                         @role("superadmin")
-                                            <button type="button" class="btn btn-no btn-sm btn-block my-3 fw-bold" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> HAPUS</button>
+                                            <button type="button" class="btn btn-no btn-sm btn-block my-3 fw-bold btn-delete-roll" id="stopLapButton" onclick="deleteTimeRecord()"><i class="fa fa-trash"></i> HAPUS</button>
                                         @endrole
                                     </div>
                                     <div class="col-md-4">
@@ -1113,14 +1495,27 @@
                     type: 'get',
                     dataType: 'json',
                     data: {
-                        "form_cut_detail_id": document.getElementById("current_id").value
+                        "form_cut_detail_id": document.getElementById("current_id").value,
+                        "at_time": isAddRollMode() ? document.getElementById("add_roll_insert_at").value : ""
                     },
                     success: function(res) {
                         document.getElementById("loading").classList.add("d-none");
 
                         console.log(res);
 
-                        if (res && res.qty > 0) {
+                        // unit roll harus sesuai dengan roll lain di form
+                        let unitMessage = res && res.qty > 0 ? rollUnitMismatchMessage(id, res.unit, formRollUnit(document.getElementById("current_id").value)) : null;
+
+                        if (unitMessage) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Unit roll tidak sesuai',
+                                html: unitMessage,
+                                confirmButtonText: 'Mengerti',
+                            });
+
+                            document.getElementById("current_id_roll").value = document.getElementById("current_id_roll_ori").value;
+                        } else if (res && res.qty > 0) {
                             setSpreadingForm(res, true, null, true);
                         } else {
                             let message = res && res.message ? res.message : 'Roll tidak tersedia atau sudah habis.';
@@ -1307,6 +1702,579 @@
         var latestUnit = "";
         var latestBerat = 0;
         var latestEst = 0;
+        var currentRollHeadId = null;
+        var latestRollId = null;
+
+        // -Reorder Roll (drag & drop)-
+        $(summaryItemTableTbody).sortable({
+            items: '> tr.roll-head',
+            handle: '.roll-drag-handle',
+            axis: 'y',
+            cursor: 'move',
+            placeholder: 'roll-sort-placeholder',
+            helper: function(e, tr) {
+                // jaga lebar kolom saat di-drag
+                let originals = tr.children();
+                let helper = tr.clone();
+                helper.children().each(function(index) {
+                    $(this).width(originals.eq(index).outerWidth());
+                });
+                return helper;
+            },
+            start: function(e, ui) {
+                ui.placeholder.html('<td colspan="' + ui.item.children().length + '">&nbsp;</td>');
+                // sembunyikan baris lanjutan sambungan selama drag
+                $(summaryItemTableTbody).children('tr.roll-continuation[data-head="' + ui.item.data('id') + '"]').hide();
+            },
+            stop: function(e, ui) {
+                normalizeRollRows();
+                $(summaryItemTableTbody).children('tr.roll-continuation').show();
+            },
+            update: function(e, ui) {
+                saveRollOrder();
+            }
+        });
+
+        // Pastikan baris lanjutan sambungan selalu tepat di bawah baris kepalanya
+        function normalizeRollRows() {
+            let tbody = $(summaryItemTableTbody);
+            let heads = tbody.children('tr.roll-head').toArray();
+            let continuations = tbody.children('tr.roll-continuation').toArray();
+
+            heads.forEach((head) => {
+                tbody.append(head);
+                continuations.filter((row) => row.dataset.head == head.dataset.id).forEach((row) => tbody.append(row));
+            });
+        }
+
+        async function saveRollOrder() {
+            let order = $(summaryItemTableTbody).children('tr.roll-head').toArray().map((row) => row.dataset.id);
+
+            // Konfirmasi bypass stocker (sama seperti simpan / hapus roll)
+            let proceed = await checkStockerForm();
+            if (!proceed) {
+                location.reload();
+                return;
+            }
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Simpan urutan roll?',
+                text: 'Urutan roll (created_at) akan diubah dan form akan di-recalculate.',
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    location.reload();
+                    return;
+                }
+
+                document.getElementById("loading").classList.remove("d-none");
+
+                $.ajax({
+                    url: '{{ route('reorder-spreading-roll') }}',
+                    type: 'post',
+                    dataType: 'json',
+                    data: {
+                        id: document.getElementById("id").value,
+                        order: order,
+                    },
+                    success: function(res) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        Swal.fire({
+                            icon: res && res.status == 200 ? 'success' : 'info',
+                            title: res && res.status == 200 ? 'Berhasil' : 'Info',
+                            text: res ? res.message : 'Terjadi Kesalahan.',
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        }).then(() => {
+                            location.reload();
+                        });
+                    },
+                    error: function(jqXHR) {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: ajaxErrorMessage(jqXHR, 'Gagal menyimpan urutan roll.'),
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                        }).then(() => {
+                            location.reload();
+                        });
+                    }
+                });
+            });
+        }
+
+        // -Unit Roll-
+        // kelompok unit: METER/YARD (yard dikonversi ke meter) atau KG
+        function rollUnitGroup(unit) {
+            unit = (unit ?? '').toString().trim().toUpperCase();
+
+            if (['KGM', 'KG'].includes(unit)) {
+                return 'KG';
+            }
+
+            if (['METER', 'M', 'MTR', 'YARD', 'YRD', 'YD'].includes(unit)) {
+                return 'METER';
+            }
+
+            return unit;
+        }
+
+        // unit roll lain di form (selain roll yang sedang diedit)
+        function formRollUnit(excludeId = '') {
+            let row = (summaryData ?? []).find((item) => item.id != excludeId && item.unit);
+
+            return row ? row.unit : null;
+        }
+
+        // pesan jika unit roll tidak sekelompok dengan unit form, null jika sesuai
+        function rollUnitMismatchMessage(idRoll, unit, formUnit) {
+            if (!formUnit || !unit || rollUnitGroup(unit) == rollUnitGroup(formUnit)) {
+                return null;
+            }
+
+            return 'Roll <b>' + (idRoll || '-') + '</b> memakai unit <b>' + unit.toUpperCase() + '</b>, sedangkan roll lain di form ini memakai unit <b>' + formUnit.toUpperCase() + '</b>.' +
+                '<br><br>' + (rollUnitGroup(formUnit) == 'KG'
+                    ? 'Form ini hanya bisa memakai roll <b>KG</b>.'
+                    : 'Form ini hanya bisa memakai roll <b>METER</b> atau <b>YARD</b> (yard otomatis dikonversi ke meter). Roll <b>KG</b> tidak bisa dipakai.');
+        }
+
+        // -Tambah Roll-
+        function isAddRollMode() {
+            return document.getElementById("add_roll_insert_at").value != "";
+        }
+
+        function setAddRollMode(active, insertAfter = "", insertAt = "", positionText = "") {
+            document.getElementById("add_roll_insert_after").value = active ? insertAfter : "";
+            document.getElementById("add_roll_insert_at").value = active ? insertAt : "";
+            document.getElementById("add-roll-position-text").innerText = active ? positionText : "";
+            document.getElementById("add-roll-time-text").innerText = active ? insertAt : "";
+            document.getElementById("add-roll-banner").classList.toggle("d-none", !active);
+
+            let deleteButton = document.querySelector(".btn-delete-roll");
+            if (deleteButton) {
+                deleteButton.classList.toggle("d-none", active);
+            }
+
+            if (!active) {
+                clearExtSection();
+            }
+            toggleExtSection();
+        }
+
+        function applyAddRollLocks() {
+            // roll pertama boleh punya sisa gelaran (-> roll sambungan), tapi bukan sambungan
+            if (document.getElementById("current_sisa_gelaran").value === "") {
+                document.getElementById("current_sisa_gelaran").value = 0;
+            }
+            document.getElementById("current_sambungan").value = 0;
+            document.getElementById("current_sisa_gelaran").removeAttribute("readonly");
+            document.getElementById("current_sambungan").setAttribute("readonly", true);
+            document.getElementById("current_lembar_gelaran").removeAttribute("readonly");
+
+            toggleExtSection();
+        }
+
+        // -Tambah Roll: Roll Sambungan-
+        // Bagian Roll Sambungan dipakai jika roll punya sisa gelaran tapi belum punya roll sambungan:
+        // - tambah roll, atau
+        // - edit roll (bukan baris sambungan) yang diubah menjadi need extension
+        function hasAddRollExtension() {
+            if (Number(document.getElementById("current_sisa_gelaran").value) <= 0) {
+                return false;
+            }
+
+            if (isAddRollMode()) {
+                return true;
+            }
+
+            return document.getElementById("current_id").value != "" &&
+                Number(document.getElementById("current_sambungan").value) <= 0 &&
+                document.getElementById("current_has_extension").value != "1";
+        }
+
+        // waktu acuan qty roll sambungan
+        function extAtTime() {
+            return isAddRollMode() ? document.getElementById("add_roll_insert_at").value : document.getElementById("current_created_at_ori").value;
+        }
+
+        // validasi bagian roll sambungan, mengembalikan Swal jika tidak valid
+        function validateExtSection() {
+            if (!hasAddRollExtension()) {
+                return null;
+            }
+
+            let extIdRoll = document.getElementById("ext_id_roll").value;
+            if (!extIdRoll || extIdRoll == '-' || !document.getElementById("ext_unit").value) {
+                return Swal.fire({
+                    icon: 'info',
+                    title: 'Info',
+                    text: 'Roll punya sisa gelaran. Harap isi ID Roll Sambungan lalu klik "Get" terlebih dahulu.',
+                    confirmButtonText: 'Oke',
+                });
+            }
+
+            if (Number(document.getElementById("ext_sambungan").value) <= 0) {
+                return Swal.fire({
+                    icon: 'info',
+                    title: 'Info',
+                    text: 'Sisa gelaran tidak boleh lebih besar atau sama dengan panjang amparan.',
+                    confirmButtonText: 'Oke',
+                });
+            }
+
+            if (Number(document.getElementById("ext_sisa_kain").value) > Number(document.getElementById("ext_rest_qty").value)) {
+                return Swal.fire({
+                    icon: 'info',
+                    title: 'Info',
+                    text: 'Sisa kain roll sambungan tidak bisa lebih besar dari sisa roll.',
+                    confirmButtonText: 'Oke',
+                });
+            }
+
+            return null;
+        }
+
+        function toggleExtSection() {
+            document.getElementById("add-roll-ext-section").classList.toggle("d-none", !hasAddRollExtension());
+            calculateExt();
+        }
+
+        function clearExtSection() {
+            ["ext_id_roll", "ext_id_item", "ext_detail_item", "ext_lot", "ext_roll", "ext_roll_buyer", "ext_qty", "ext_qty_real", "ext_unit", "ext_sambungan", "ext_rest_qty", "ext_short_roll", "ext_summary_qty", "ext_usage"].forEach((id) => {
+                document.getElementById(id).value = "";
+            });
+            document.getElementById("ext_rest_qty_item").classList.remove("is-negative");
+            document.getElementById("ext_short_roll_item").classList.remove("is-negative");
+            document.querySelectorAll(".ext-unit-suffix").forEach((element) => element.innerText = "");
+            ["ext_lembar_gelaran", "ext_kepala_kain", "ext_sisa_tidak_bisa", "ext_reject", "ext_piping", "ext_sisa_kain", "ext_berat_amparan"].forEach((id) => {
+                document.getElementById(id).value = 0;
+            });
+            document.getElementById("ext_lembar_sambungan").value = 1;
+            document.getElementById("ext_berat_amparan_col").classList.add("d-none");
+        }
+
+        function formPAct() {
+            return Number(document.getElementById("p_act").value) + (Number(document.getElementById("comma_act").value) / 100);
+        }
+
+        // sama dengan perhitungan di backend (storeAddedRoll / recalculateForm)
+        function calculateExt() {
+            if (!hasAddRollExtension()) {
+                return;
+            }
+
+            let pAct = formPAct();
+            let firstBerat = Number(document.getElementById("current_berat_amparan").value);
+            if (document.getElementById("current_unit").value == "KGM" && firstBerat > 0) {
+                pAct = firstBerat;
+            }
+
+            let sambungan = pAct - Number(document.getElementById("current_sisa_gelaran").value);
+            document.getElementById("ext_sambungan").value = Number(sambungan).round(2);
+
+            let extQty = Number(document.getElementById("ext_unit").value == "KGM" ? document.getElementById("ext_qty_real").value : document.getElementById("ext_qty").value);
+            let extPAct = formPAct();
+            let extBerat = Number(document.getElementById("ext_berat_amparan").value);
+            if (document.getElementById("ext_unit").value == "KGM" && extBerat > 0) {
+                extPAct = extBerat;
+            }
+
+            let restQty = extQty - (sambungan * Number(document.getElementById("ext_lembar_sambungan").value));
+            let restUsage = (extPAct * Number(document.getElementById("ext_lembar_gelaran").value)) +
+                Number(document.getElementById("ext_kepala_kain").value) +
+                Number(document.getElementById("ext_sisa_tidak_bisa").value) +
+                Number(document.getElementById("ext_reject").value) +
+                Number(document.getElementById("ext_piping").value);
+
+            let shortRoll = restUsage + Number(document.getElementById("ext_sisa_kain").value) - restQty;
+            let usage = sambungan * Number(document.getElementById("ext_lembar_sambungan").value);
+            let unitLabel = document.getElementById("ext_unit").value == "KGM" ? "KG" : "M";
+            let hasRoll = document.getElementById("ext_unit").value != "";
+
+            document.getElementById("ext_rest_qty").value = hasRoll ? Number(restQty).round(2) : "";
+            document.getElementById("ext_short_roll").value = hasRoll ? Number(shortRoll).round(2) : "";
+            document.getElementById("ext_summary_qty").value = hasRoll ? Number(extQty).round(2) + " " + unitLabel : "-";
+            document.getElementById("ext_usage").value = hasRoll ? Number(usage).round(2) + " " + unitLabel : "-";
+
+            document.getElementById("ext_rest_qty_item").classList.toggle("is-negative", hasRoll && restQty < 0);
+            document.getElementById("ext_short_roll_item").classList.toggle("is-negative", hasRoll && shortRoll < 0);
+
+            document.querySelectorAll(".ext-unit-suffix").forEach((element) => {
+                element.innerText = hasRoll ? unitLabel : "";
+            });
+        }
+
+        function fetchExtScan() {
+            let extIdRoll = document.getElementById("ext_id_roll").value;
+
+            if (!extIdRoll || extIdRoll == '-') {
+                return;
+            }
+
+            if (extIdRoll == document.getElementById("current_id_roll").value) {
+                return Swal.fire({
+                    icon: 'info',
+                    title: 'Info',
+                    text: 'Roll sambungan harus berbeda dengan roll pertama.',
+                    confirmButtonText: 'Oke',
+                });
+            }
+
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                url: '{{ route('get-scanned-form-cut-input') }}/' + extIdRoll,
+                type: 'get',
+                dataType: 'json',
+                data: {
+                    "at_time": extAtTime()
+                },
+                success: function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    // unit roll sambungan harus sesuai dengan roll yang disambung
+                    let compareUnit = document.getElementById("current_unit").value || formRollUnit(document.getElementById("current_id").value);
+                    let unitMessage = res && res.qty > 0 ? rollUnitMismatchMessage(extIdRoll, res.unit, compareUnit) : null;
+
+                    if (unitMessage) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Unit roll tidak sesuai',
+                            html: unitMessage,
+                            confirmButtonText: 'Mengerti',
+                        });
+
+                        document.getElementById("ext_id_roll").value = "";
+                    } else if (res && res.qty > 0) {
+                        document.getElementById("ext_id_item").value = res.id_item ?? "";
+                        document.getElementById("ext_detail_item").value = res.detail_item ?? "";
+                        document.getElementById("ext_lot").value = res.lot ?? "";
+                        document.getElementById("ext_roll").value = res.roll ?? "";
+                        document.getElementById("ext_roll_buyer").value = res.roll_buyer ?? "";
+                        document.getElementById("ext_qty_real").value = res.qty;
+                        document.getElementById("ext_unit").value = res.unit ?? "";
+                        document.getElementById("ext_qty").value = rollQtyConversion(res.qty, res.unit);
+                        document.getElementById("ext_berat_amparan_col").classList.toggle("d-none", !(res.unit == "KGM" || res.unit == "KG"));
+
+                        calculateExt();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: res && res.message ? res.message : 'Roll tidak tersedia atau sudah habis.',
+                            confirmButtonText: 'Oke',
+                        });
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: ajaxErrorMessage(jqXHR, 'Roll tidak tersedia atau sudah habis.'),
+                        confirmButtonText: 'Oke',
+                    });
+                }
+            });
+        }
+
+        document.getElementById("ext_id_roll").addEventListener("keyup", (event) => {
+            if (event.keyCode === 13) {
+                fetchExtScan();
+            }
+        });
+
+        document.querySelectorAll(".ext-calc").forEach((element) => {
+            element.addEventListener("input", calculateExt);
+        });
+
+        ["current_sisa_gelaran", "current_berat_amparan"].forEach((id) => {
+            document.getElementById(id).addEventListener("input", toggleExtSection);
+        });
+
+        async function startAddRoll() {
+            let positions = new Map();
+            positions.set("_start", "Di awal (sebelum roll pertama)");
+            $(summaryItemTableTbody).children('tr.roll-head').each(function() {
+                positions.set(this.dataset.id, "Setelah " + this.dataset.label);
+            });
+
+            let lastHead = $(summaryItemTableTbody).children('tr.roll-head').last();
+
+            const result = await Swal.fire({
+                icon: 'question',
+                title: 'Tambah Roll',
+                text: 'Sisipkan roll baru di posisi:',
+                input: 'select',
+                inputOptions: positions,
+                inputValue: lastHead.length > 0 ? lastHead.data('id') : '_start',
+                showCancelButton: true,
+                confirmButtonText: 'Lanjut',
+                cancelButtonText: 'Batal',
+            });
+
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            let insertAfter = result.value;
+
+            document.getElementById("loading").classList.remove("d-none");
+
+            $.ajax({
+                url: '{{ route('get-insert-time-spreading-roll') }}',
+                type: 'get',
+                dataType: 'json',
+                data: {
+                    id: document.getElementById("id").value,
+                    insert_after: insertAfter,
+                },
+                success: function(res) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    if (!res || res.status != 200) {
+                        Swal.fire({
+                            icon: res && res.title ? 'warning' : 'info',
+                            title: res && res.title ? res.title : 'Info',
+                            html: res ? res.message : 'Terjadi Kesalahan.',
+                            confirmButtonText: 'Oke',
+                        });
+
+                        return;
+                    }
+
+                    clearSpreadingForm();
+
+                    // lepas referensi roll yang sedang diedit
+                    document.getElementById("current_id").value = "";
+                    document.getElementById("current_qty_ori").value = "";
+                    document.getElementById("current_unit_ori").value = "";
+                    document.getElementById("current_sisa_kain_ori").value = "";
+
+                    for (let i = 0; i < summaryItemTableTbody.children.length; i++) {
+                        summaryItemTableTbody.children[i].classList.remove('selected');
+                    }
+
+                    setAddRollMode(true, insertAfter, res.insert_at, positions.get(insertAfter).replace(/^Setelah /, 'setelah ').replace(/^Di awal/, 'di awal'));
+
+                    // default group mengikuti roll sebelumnya
+                    let beforeData = summaryData ? summaryData.find((item) => item.id == insertAfter) : null;
+                    if (beforeData && beforeData.group_roll) {
+                        document.getElementById("current_group").value = beforeData.group_roll;
+                    }
+
+                    openItemSpreading();
+                    applyAddRollLocks();
+
+                    location.href = '#spreading-form-card';
+                    document.getElementById("current_id_roll").focus();
+                },
+                error: function(jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: ajaxErrorMessage(jqXHR, 'Gagal menentukan posisi roll.'),
+                        confirmButtonText: 'Oke',
+                    });
+                }
+            });
+        }
+
+        function cancelAddRoll() {
+            clearSpreadingForm();
+        }
+
+        async function storeAddedRoll() {
+            let idRoll = document.getElementById("current_id_roll").value;
+            if (!idRoll || idRoll == '-' || !document.getElementById("current_unit").value) {
+                return Swal.fire({
+                    icon: 'info',
+                    title: 'Info',
+                    text: 'Harap isi ID Roll lalu klik "Get" terlebih dahulu.',
+                    confirmButtonText: 'Oke',
+                });
+            }
+
+            let extIdRoll = document.getElementById("ext_id_roll").value;
+            let extInvalid = validateExtSection();
+            if (extInvalid) {
+                return extInvalid;
+            }
+
+            let proceed = await checkStockerForm();
+            if (!proceed) {
+                return;
+            }
+
+            const confirmResult = await Swal.fire({
+                icon: 'question',
+                title: 'Tambah roll?',
+                html: 'Roll <b>' + idRoll + '</b>' + (hasAddRollExtension() ? ' + roll sambungan <b>' + extIdRoll + '</b>' : '') +
+                    ' akan disisipkan ' + document.getElementById("add-roll-position-text").innerText +
+                    '.<br><br><small>Qty roll (dan pemakaian roll ini di form lain setelahnya) akan dihitung ulang sesuai urutan waktu.</small>',
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal',
+            });
+
+            if (!confirmResult.isConfirmed) {
+                return;
+            }
+
+            document.getElementById("loading").classList.remove("d-none");
+
+            let dataObj = {
+                "id": $("#id").val(),
+                "insert_after": document.getElementById("add_roll_insert_after").value,
+            };
+
+            new FormData(document.getElementById("spreading-form")).forEach((value, key) => dataObj[key] = value);
+
+            $.ajax({
+                url: '{{ route('store-added-spreading-roll') }}',
+                type: 'post',
+                dataType: 'json',
+                data: dataObj,
+                success: async function(res) {
+                    if (res && res.status == 200) {
+                        await clearSpreadingForm();
+
+                        await getSummary(true);
+
+                        await finishProcess();
+                    } else {
+                        document.getElementById("loading").classList.add("d-none");
+
+                        Swal.fire({
+                            icon: res && res.title ? 'warning' : 'info',
+                            title: res && res.title ? res.title : 'Info',
+                            html: res ? res.message : 'Terjadi Kesalahan.',
+                            confirmButtonText: 'Oke',
+                        });
+                    }
+                },
+                error: function(jqXHR) {
+                    document.getElementById("loading").classList.add("d-none");
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        html: ajaxErrorMessage(jqXHR, 'Gagal menambah roll.'),
+                        confirmButtonText: 'Oke',
+                    });
+                }
+            });
+        }
 
         function appendSummaryItem(data) {
             totalLembar += Number(data.lembar_gelaran);
@@ -1340,6 +2308,24 @@
             let td23 = document.createElement('td');
             let td24 = document.createElement('td');
             let td25 = document.createElement('td');
+
+            // Drag handle (baris lanjutan sambungan ikut baris kepalanya)
+            let tdHandle = document.createElement('td');
+            tdHandle.classList.add('text-center', 'align-middle');
+            tr.dataset.id = data.id;
+            let isRollContinuation = latestStatus == 'need extension' || (latestStatus == 'extension complete' && data.id_roll && data.id_roll == latestRollId);
+            if (!isRollContinuation) {
+                currentRollHeadId = data.id;
+                tr.classList.add('roll-head');
+                tr.dataset.label = (totalScannedItem + 1) + '. ' + (data.id_roll ? data.id_roll : '-') + ' (Group ' + (data.group_roll ? data.group_roll : '-') + ')';
+                tdHandle.innerHTML = '<i class="fa-solid fa-grip-vertical roll-drag-handle" title="Drag untuk atur urutan roll"></i>';
+            } else {
+                tr.classList.add('roll-continuation');
+                tdHandle.innerHTML = '<i class="fa-solid fa-link roll-link-icon" title="Bagian dari sambungan, ikut pindah bersama roll di atasnya"></i>';
+            }
+            tr.dataset.head = currentRollHeadId;
+            tdHandle.onclick = (e) => e.stopPropagation();
+            tr.appendChild(tdHandle);
 
             if (latestStatus != 'need extension') {
                 td1.innerHTML = (latestStatus != 'need extension' ? totalScannedItem + 1 : '');
@@ -1489,6 +2475,7 @@
 
             let currentLatestStatus = latestStatus;
             latestStatus = data.status;
+            latestRollId = data.id_roll;
             latestQty = Number(data.qty);
             latestUnit = data.unit;
             latestEst = data.est_amparan ? data.est_amparan : 0;
@@ -1539,6 +2526,29 @@
                 data.qty ? document.getElementById("current_qty_ori").value = data.qty : '';
                 data.unit ? document.getElementById("current_unit_ori").value = data.unit : '';
                 data.sisa_kain ? document.getElementById("current_sisa_kain_ori").value = data.sisa_kain : '';
+                document.getElementById("current_created_at_ori").value = data.created_at ?? '';
+
+                // apakah roll ini sudah punya roll sambungan (baris berikutnya 'extension complete')
+                let summaryIndex = summaryData ? summaryData.findIndex((item) => item.id == data.id) : -1;
+                let nextSummary = summaryIndex > -1 ? summaryData[summaryIndex + 1] : null;
+                let hasExtension = data.status == 'need extension' && nextSummary && nextSummary.status == 'extension complete';
+                document.getElementById("current_has_extension").value = hasExtension ? '1' : '';
+                document.getElementById("current_ext_child_roll").value = hasExtension ? (nextSummary.id_roll ?? '-') : '';
+
+                // apakah roll ini bagian dari roll sambungan ('extension complete' / sisa roll sambungan)
+                let prevSummary = summaryIndex > 0 ? summaryData[summaryIndex - 1] : null;
+                let isExtensionChild = data.status == 'extension complete' ||
+                    (prevSummary && prevSummary.status == 'extension complete' && data.id_roll && prevSummary.id_roll == data.id_roll);
+                let parentRoll = '';
+                if (isExtensionChild) {
+                    for (let i = summaryIndex - 1; i >= 0; i--) {
+                        if (summaryData[i].status == 'need extension') {
+                            parentRoll = summaryData[i].id_roll ?? '-';
+                            break;
+                        }
+                    }
+                }
+                document.getElementById("current_ext_parent_roll").value = isExtensionChild ? (parentRoll || '-') : '';
             }
             data.id_roll ? document.getElementById("current_id_roll").value = data.id_roll : '';
             data.group_roll ? document.getElementById("current_group").value = data.group_roll : '';
@@ -1605,11 +2615,26 @@
 
             // lock qty input
             checkLockQtyInput(latestStatus);
+
+            // tambah roll: tanpa sisa gelaran / sambungan
+            if (isAddRollMode()) {
+                applyAddRollLocks();
+            }
+
+            // roll sambungan (tambah roll / edit menjadi need extension)
+            toggleExtSection();
         }
 
         // -Clear Spreading Form-
         function clearSpreadingForm() {
             lockItemSpreading();
+
+            document.getElementById("current_created_at_ori").value = "";
+            document.getElementById("current_has_extension").value = "";
+            document.getElementById("current_ext_child_roll").value = "";
+            document.getElementById("current_ext_parent_roll").value = "";
+
+            setAddRollMode(false);
 
             document.getElementById("current_group").value = "";
             document.getElementById("current_group_stocker").value = "";
@@ -1644,6 +2669,8 @@
             for (var i = 0; i < inputGroupUnit.length; i++) {
                 inputGroupUnit[i].innerText = "";
             }
+
+            toggleExtSection();
         }
 
         // -Calculate P. Actual + Comma Actual-
@@ -2297,6 +3324,8 @@
                                         icon: 'info',
                                         title: 'Info',
                                         text: response.message
+                                    }).then(() => {
+                                        resolve(false);
                                     });
                                 }else{
                                     Swal.fire({
@@ -2345,6 +3374,58 @@
 
         // -Store Time Record Transaction-
         async function storeTimeRecord() {
+            if (isAddRollMode()) {
+                return storeAddedRoll();
+            }
+
+            // edit roll menjadi need extension -> roll sambungan wajib lengkap
+            let extInvalid = validateExtSection();
+            if (extInvalid) {
+                return extInvalid;
+            }
+
+            if (hasAddRollExtension()) {
+                const extConfirm = await Swal.fire({
+                    icon: 'question',
+                    title: 'Ubah menjadi need extension?',
+                    html: 'Roll sambungan <b>' + document.getElementById("ext_id_roll").value + '</b> akan disisipkan tepat setelah roll ini.' +
+                        '<br><br><small>Qty roll sambungan (dan pemakaiannya di form lain setelahnya) akan dihitung ulang sesuai urutan waktu.</small>',
+                    showCancelButton: true,
+                    confirmButtonText: 'Lanjut',
+                    cancelButtonText: 'Batal',
+                });
+
+                if (!extConfirm.isConfirmed) {
+                    return;
+                }
+            }
+
+            // lepas sambungan: roll need extension yang sisa gelarannya dikosongkan
+            if (document.getElementById("current_has_extension").value == '1' && Number(document.getElementById("current_sisa_gelaran").value) <= 0) {
+                let parentRoll = document.getElementById("current_id_roll").value || '-';
+                let childRoll = document.getElementById("current_ext_child_roll").value || '-';
+
+                const releaseConfirm = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Lepas sambungan?',
+                    html: 'Sisa Gelaran roll <b>' + parentRoll + '</b> dikosongkan, sehingga sambungannya akan <b>dilepas</b>:' +
+                        '<ul class="text-start mt-2">' +
+                            '<li>Baris roll sambungan <b>' + childRoll + '</b> (sambungan &amp; sisa roll) akan <b>dihapus</b> dari form ini.</li>' +
+                            '<li>Qty roll <b>' + childRoll + '</b> dikembalikan dan dihitung ulang.</li>' +
+                            '<li>Roll <b>' + parentRoll + '</b> menjadi <b>complete</b>.</li>' +
+                        '</ul>' +
+                        '<small>Periksa kembali lembar, sisa tidak bisa, dan sisa kain roll <b>' + parentRoll + '</b> sebelum melanjutkan.</small>',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, lepas sambungan',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#fa4456',
+                });
+
+                if (!releaseConfirm.isConfirmed) {
+                    return;
+                }
+            }
+
             let proceed = await checkStockerForm();
 
             if (proceed) {
@@ -2381,6 +3462,16 @@
                     success: async function(res) {
                         if (res) {
                             if (res.status == 200) {
+                                // notifikasi perubahan sambungan (tambah / lepas)
+                                if (res.message && res.message != 'alright') {
+                                    iziToast.success({
+                                        title: 'Berhasil',
+                                        message: res.message,
+                                        position: 'topCenter',
+                                        timeout: 8000,
+                                    });
+                                }
+
                                 await clearSpreadingForm();
 
                                 await getSummary(true);
@@ -2389,7 +3480,8 @@
                             } else {
                                 Swal.fire({
                                     icon: 'error',
-                                    title: res.message ?? 'Terjadi Kesalahan',
+                                    title: res.title ?? 'Gagal',
+                                    html: res.message ?? 'Terjadi Kesalahan',
                                     showConfirmButton: true,
                                     confirmButtonText: 'Oke',
                                     confirmButtonColor: "#6531a0",
@@ -2520,26 +3612,31 @@
         }
 
         async function deleteTimeRecord() {
-            let currentLatestStatus = document.getElementById('current_latest_status').value;
+            let currentIdRoll = document.getElementById('current_id_roll_ori').value || document.getElementById('current_id_roll').value || '-';
+            let extParentRoll = document.getElementById('current_ext_parent_roll').value;
+            let extChildRoll = document.getElementById('current_ext_child_roll').value;
 
-            if (currentLatestStatus === 'extension complete') {
-                const result = await Swal.fire({
-                    icon: 'error',
-                    title: 'Hapus roll?',
-                    html: '<span>Data ini terkait dengan roll sambungan, menghapus roll ini sama dengan <b>menghapus roll sambungan beserta dengan roll yang membutuhkan sambungannya</b>.',
-                    showCancelButton: true,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Hapus',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#fa4456',
+            // Baris roll sambungan tidak bisa dihapus langsung
+            if (extParentRoll) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Roll sambungan tidak bisa dihapus',
+                    html: 'Roll <b>' + currentIdRoll + '</b> adalah roll sambungan untuk roll <b>' + extParentRoll + '</b>.' +
+                        '<br><br>Untuk melepas sambungan: buka roll <b>' + extParentRoll + '</b>, kosongkan <b>Sisa Gelaran</b>, lalu simpan. ' +
+                        'Baris roll sambungan akan terhapus otomatis.',
+                    confirmButtonText: 'Mengerti',
                 });
+            }
 
-                if (!result.isConfirmed) {
-                    return Swal.fire({
-                        icon: 'info',
-                        title: 'Dibatalkan'
-                    });
-                }
+            // Roll yang masih punya sambungan tidak bisa dihapus
+            if (document.getElementById('current_has_extension').value == '1') {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Roll masih memiliki sambungan',
+                    html: 'Roll <b>' + currentIdRoll + '</b> masih disambung oleh roll <b>' + extChildRoll + '</b>.' +
+                        '<br><br>Lepas sambungan terlebih dahulu: kosongkan <b>Sisa Gelaran</b> roll ini lalu simpan. Setelah itu roll ini bisa dihapus.',
+                    confirmButtonText: 'Mengerti',
+                });
             }
 
             let proceed = await checkStockerForm();
@@ -2593,11 +3690,21 @@
                                     document.getElementById("loading").classList.add("d-none");
 
                                     if (res.status == 400) {
-                                        iziToast.error({
-                                            title: 'Error',
-                                            message: res.message,
-                                            position: 'topCenter'
-                                        });
+                                        if (res.title) {
+                                            // penolakan terkait sambungan
+                                            Swal.fire({
+                                                icon: 'warning',
+                                                title: res.title,
+                                                html: res.message,
+                                                confirmButtonText: 'Mengerti',
+                                            });
+                                        } else {
+                                            iziToast.error({
+                                                title: 'Error',
+                                                message: res.message,
+                                                position: 'topCenter'
+                                            });
+                                        }
                                     }
                                 }
                             },
