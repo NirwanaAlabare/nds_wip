@@ -404,7 +404,26 @@ class MarkerController extends Controller
                 // Create Marker Details
                 $timestamp = Carbon::now();
                 $markerId = $markerStore->id;
+
+                // Check canceled so_det on signalbit_erp
+                $soDetIds = array_slice((array) $request["so_det_id"], 0, intval($request['jumlah_so_det']));
+                $canceledSoDet = DB::connection('mysql_sb')->table('so_det')->
+                    whereIn('id', $soDetIds)->
+                    where('cancel', 'Y')->
+                    pluck('size');
+
+                if ($canceledSoDet->count() > 0) {
+                    DB::rollBack();
+
+                    return array(
+                        "status" => 400,
+                        "message" => "Transaksi dibatalkan. SO Det sudah cancel (Size : " . $canceledSoDet->implode(', ') . ")",
+                        "additional" => [],
+                    );
+                }
+
                 for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
+
                     MarkerDetail::create([
                         "marker_id" => $markerId,
                         "so_det_id" => $request["so_det_id"][$i],
@@ -918,6 +937,22 @@ class MarkerController extends Controller
 
         $updateMarkerPanel = false;
         if ($totalQty > 0) {
+
+            // Check canceled so_det on signalbit_erp
+            $soDetIds = array_slice((array) $request["so_det_id"], 0, intval($request['jumlah_so_det']));
+            $canceledSoDet = DB::connection('mysql_sb')->table('so_det')->
+                whereIn('id', $soDetIds)->
+                where('cancel', 'Y')->
+                pluck('size');
+
+            if ($canceledSoDet->count() > 0) {
+                return array(
+                    "status" => 400,
+                    "message" => "Transaksi dibatalkan. SO Det sudah cancel (Size : " . $canceledSoDet->implode(', ') . ")",
+                    "redirect" => route('marker'),
+                    "additional" => [],
+                );
+            }
 
             // Marker Panel Additional Validation
             $markerPartForm = Marker::select("marker_input.id", "form_cut_input.id", "form_cut_input.no_form")->
