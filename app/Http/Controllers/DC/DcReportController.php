@@ -423,49 +423,68 @@ class DcReportController extends Controller
 
     public function buildQueryMutasiWipDcSet($dateFrom, $dateTo){
 
-        // Modul DC Set mulai tanggal ini: saldo awal = 0,
-        // setelahnya saldo awal = SUM(masuk - loading + adjustment) dari tanggal ini s/d sehari sebelum tanggal awal
-        $awalModul = '2026-10-01';
+        // Saldo awal DC Set diambil dari saldo tersimpan (saldo_mutasi_dc_set),
+        // tanggal awal laporan minimal tanggal ini
+        $awalSaldo = '2026-11-01';
 
-        if ($dateFrom < $awalModul) {
-            $mutasi = $this->queryMutasiWipDcSetPeriode($dateFrom, $dateTo);
-        } else {
-            $mutasi = "
-                    SELECT
-                        ws,
-                        buyer,
-                        style,
-                        color,
-                        size,
-                        0 current_saldo_awal_adjustment,
-                        qty_in,
-                        loading,
-                        adjustment
-                    FROM (
-                        ".$this->queryMutasiWipDcSetRingan($dateFrom, $dateTo)."
-                    ) periode
+        if ($dateFrom < $awalSaldo) {
+            $dateFrom = $awalSaldo;
+        }
+
+        // Snapshot saldo terakhir yang <= tanggal awal
+        $tglSaldo = DB::table('saldo_mutasi_dc_set')->where('tgl_saldo', '<=', $dateFrom)->max('tgl_saldo') ?? $awalSaldo;
+
+        // Saldo awal = saldo tersimpan pada tgl_saldo + SUM(masuk - loading + adjustment) dari tgl_saldo s/d sehari sebelum tanggal awal
+        $mutasi = "
+                SELECT
+                    ws,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    0 current_saldo_awal_adjustment,
+                    qty_in,
+                    loading,
+                    adjustment
+                FROM (
+                    ".$this->queryMutasiWipDcSetRingan($dateFrom, $dateTo)."
+                ) periode
+                UNION ALL
+                SELECT
+                    ws,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    qty current_saldo_awal_adjustment,
+                    0 qty_in,
+                    0 loading,
+                    0 adjustment
+                FROM
+                    saldo_mutasi_dc_set
+                WHERE
+                    tgl_saldo = '".$tglSaldo."'
+        ";
+
+        if ($dateFrom > $tglSaldo) {
+            $sebelum = date('Y-m-d', strtotime($dateFrom . ' -1 day'));
+
+            $mutasi .= "
+                UNION ALL
+                SELECT
+                    ws,
+                    buyer,
+                    style,
+                    color,
+                    size,
+                    qty_in - loading + adjustment current_saldo_awal_adjustment,
+                    0 qty_in,
+                    0 loading,
+                    0 adjustment
+                FROM (
+                    ".$this->queryMutasiWipDcSetRingan($tglSaldo, $sebelum)."
+                ) sebelum
             ";
-
-            if ($dateFrom > $awalModul) {
-                $sebelum = date('Y-m-d', strtotime($dateFrom . ' -1 day'));
-
-                $mutasi .= "
-                    UNION ALL
-                    SELECT
-                        ws,
-                        buyer,
-                        style,
-                        color,
-                        size,
-                        qty_in - loading + adjustment current_saldo_awal_adjustment,
-                        0 qty_in,
-                        0 loading,
-                        0 adjustment
-                    FROM (
-                        ".$this->queryMutasiWipDcSetRingan($awalModul, $sebelum)."
-                    ) sebelum
-                ";
-            }
         }
 
         return "
@@ -669,131 +688,6 @@ class DcReportController extends Controller
                 wip_adjustment
             WHERE
                 tgl_saldo between '".$dateFrom."' and '".$dateTo."' and
-                type_report = 'DC_SET' and
-                status = 'Y'
-            GROUP BY
-                no_ws,
-                buyer,
-                style,
-                color,
-                size
-        ";
-    }
-
-    // Mutasi DC Set 1 periode (belum digabung): baris data DC (MAX per panel) + baris adjustment DC_SET
-    private function queryMutasiWipDcSetPeriode($dateFrom, $dateTo){
-
-        $dcQuery = $this->buildQuery($dateFrom, $dateTo);
-
-        // Adjustment DC (per panel) hanya berlaku sebelum tanggal ini, setelahnya pakai adjustment DC_SET
-        $batasAdjustmentDc = '2026-10-01';
-
-        // Adjustment DC mulai batas tanggal dikeluarkan dengan baris minus per panel & part
-        // (pakai UNION ALL + GROUP BY, bukan JOIN ke hasil dcQuery yang tidak punya index).
-        // Periode sebelum batas tanggal tidak perlu bagian ini.
-        $keluarkanAdjustmentDc = $dateTo < $batasAdjustmentDc ? "" : "
-            UNION ALL
-            SELECT
-                no_ws ws,
-                NULL buyer,
-                NULL style,
-                color,
-                size,
-                COALESCE(panel, '-') panel,
-                COALESCE(NULLIF(part, ''), '-') nama_part,
-                -SUM(IF(tgl_saldo < '".$dateFrom."', qty, 0)) current_saldo_awal_adjustment,
-                0 qty_in,
-                0 loading_qty,
-                -SUM(IF(tgl_saldo >= '".$dateFrom."', qty, 0)) adjustment,
-                0 is_dc
-            FROM
-                wip_adjustment
-            WHERE
-                tgl_saldo >= '".$batasAdjustmentDc."' and
-                tgl_saldo <= '".$dateTo."' and
-                type_report = 'DC' and
-                status = 'Y'
-            GROUP BY
-                no_ws,
-                color,
-                size,
-                COALESCE(panel, '-'),
-                COALESCE(NULLIF(part, ''), '-')
-        ";
-
-        return "
-            SELECT
-                ws,
-                buyer,
-                style,
-                color,
-                size,
-                COALESCE(MAX(current_saldo_awal_adjustment), 0) current_saldo_awal_adjustment,
-                COALESCE(MAX(qty_in), 0) qty_in,
-                COALESCE(MAX(loading_qty), 0) loading,
-                COALESCE(MAX(adjustment), 0) adjustment
-            FROM (
-                -- Total per panel & part (data DC dikurangi adjustment DC mulai batas tanggal)
-                SELECT
-                    ws,
-                    MAX(buyer) buyer,
-                    MAX(style) style,
-                    color,
-                    size,
-                    SUM(current_saldo_awal_adjustment) current_saldo_awal_adjustment,
-                    SUM(qty_in) qty_in,
-                    SUM(loading_qty) loading_qty,
-                    SUM(adjustment) adjustment
-                FROM (
-                    SELECT
-                        ws,
-                        buyer,
-                        style,
-                        color,
-                        size,
-                        COALESCE(panel, '-') panel,
-                        nama_part,
-                        current_saldo_awal_adjustment,
-                        qty_in,
-                        loading_qty,
-                        adjustment,
-                        1 is_dc
-                    FROM (
-                        ".$dcQuery."
-                    ) mutasi_dc
-                    ".$keluarkanAdjustmentDc."
-                ) dc_panel
-                GROUP BY
-                    ws,
-                    color,
-                    size,
-                    panel,
-                    nama_part
-                -- Panel yang hanya ada di adjustment (tidak ada di data DC) tidak dihitung
-                HAVING
-                    MAX(is_dc) = 1
-            ) dc_set
-            GROUP BY
-                ws,
-                buyer,
-                style,
-                color,
-                size
-            UNION ALL
-            SELECT
-                no_ws ws,
-                buyer,
-                style,
-                color,
-                size,
-                SUM(IF(tgl_saldo < '".$dateFrom."', qty, 0)) current_saldo_awal_adjustment,
-                0 qty_in,
-                0 loading,
-                SUM(IF(tgl_saldo >= '".$dateFrom."', qty, 0)) adjustment
-            FROM
-                wip_adjustment
-            WHERE
-                tgl_saldo <= '".$dateTo."' and
                 type_report = 'DC_SET' and
                 status = 'Y'
             GROUP BY
