@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cutting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cutting\PenerimaanCutting;
+use App\Models\Cutting\FormCutInputDetail;
 use Carbon\Carbon;
 use DB;
 use Excel;
@@ -236,6 +237,7 @@ class PenerimaanCuttingController extends Controller
             ->table('laravel_nds.penerimaan_cutting')
             ->select(
                 'penerimaan_cutting.id',
+                'penerimaan_cutting.created_at',
                 'penerimaan_cutting.tanggal_terima',
                 'penerimaan_cutting.id_roll AS barcode',
                 'penerimaan_cutting.whs_bppb_det_id',
@@ -283,7 +285,40 @@ class PenerimaanCuttingController extends Controller
             ->orderBy('penerimaan_cutting.id', 'DESC')
             ->first();
 
-        return view("cutting.penerimaan-cutting.edit-penerimaan-cutting", ["data" => $data, "page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting", "containerFluid" => true]);
+        // Info acuan tanggal untuk user: pemakaian pertama & penerimaan lain paling awal di roll yang sama
+        $firstPemakaian = null;
+        $firstPenerimaanLain = null;
+        $penerimaanRoll = collect();
+        if ($data) {
+            // Semua penerimaan dengan barcode/id_roll yang sama (termasuk yang sedang diedit)
+            $penerimaanRoll = DB::connection("mysql_sb")
+                ->table('laravel_nds.penerimaan_cutting')
+                ->select(
+                    'penerimaan_cutting.id',
+                    'penerimaan_cutting.tanggal_terima',
+                    'penerimaan_cutting.created_at',
+                    'penerimaan_cutting.qty_konv',
+                    'penerimaan_cutting.unit_konv',
+                    'penerimaan_cutting.edited_notes',
+                    'whs_bppb_det.no_bppb'
+                )
+                ->leftJoin('whs_bppb_det', 'penerimaan_cutting.whs_bppb_det_id', '=', 'whs_bppb_det.id')
+                ->where('penerimaan_cutting.id_roll', $data->barcode)
+                ->orderBy('penerimaan_cutting.created_at')
+                ->orderBy('penerimaan_cutting.id')
+                ->get();
+
+            $firstPemakaian = FormCutInputDetail::where('id_roll', $data->barcode)
+                ->whereNotNull('created_at')
+                ->min('created_at');
+
+            $firstPenerimaanLain = PenerimaanCutting::where('id_roll', $data->barcode)
+                ->where('id', '!=', $data->id)
+                ->whereNotNull('created_at')
+                ->min('created_at');
+        }
+
+        return view("cutting.penerimaan-cutting.edit-penerimaan-cutting", ["data" => $data, "firstPemakaian" => $firstPemakaian, "firstPenerimaanLain" => $firstPenerimaanLain, "penerimaanRoll" => $penerimaanRoll, "page" => "dashboard-cutting", "subPageGroup" => "proses-cutting", "subPage" => "penerimaan-cutting", "containerFluid" => true]);
     }
 
     /**
@@ -304,8 +339,8 @@ class PenerimaanCuttingController extends Controller
             'tgl_terima' => 'required|date',
         ], [
             'id.required'         => 'ID Penerimaan tidak ditemukan.',
-            'tgl_terima.required' => 'Tanggal terima wajib diisi.',
-            'tgl_terima.date'     => 'Format tanggal terima tidak valid.',
+            'tgl_terima.required' => 'Tanggal dan waktu terima wajib diisi.',
+            'tgl_terima.date'     => 'Format tanggal dan waktu terima tidak valid.',
         ]);
 
         if ($validator->fails()) {
@@ -318,7 +353,11 @@ class PenerimaanCuttingController extends Controller
 
         $user = Auth::user();
         $now  = Carbon::now();
-        $tglTerimaBaru = $request->tgl_terima;
+
+        // Parse input datetime-local (contoh: 2026-11-17T10:11) menggunakan Carbon
+        $parsedTglTerima  = Carbon::parse($request->tgl_terima);
+        $tanggalSaja      = $parsedTglTerima->format('Y-m-d');
+        $tanggalDanWaktu  = $parsedTglTerima->format('Y-m-d H:i:s');
 
         // 2. Cari Data Penerimaan Cutting
         $penerimaanCutting = PenerimaanCutting::where('id', $request->id)
@@ -336,7 +375,6 @@ class PenerimaanCuttingController extends Controller
         $idRoll = $request->id_roll ?? $penerimaanCutting->id_roll;
         // $firstUsage = $cuttingService->isRollUsed($idRoll, true);
         // if (checkClosingDate($firstUsage)) {
-
         //     return response()->json([
         //         'status'     => 400,
         //         'message'    => 'Periode pemakaian sudah closing.',
@@ -345,17 +383,41 @@ class PenerimaanCuttingController extends Controller
         //     ], 400);
         // }
 
+        // Cek tanggal pemakaian pertama tidak boleh lebih duluan dari penerimaan pertama
+        $firstPemakaian = FormCutInputDetail::where('id_roll', $penerimaanCutting->id_roll)
+            ->whereNotNull('created_at')
+            ->min('created_at');
+
+        if ($firstPemakaian) {
+            // Penerimaan pertama setelah diedit (penerimaan lain + tanggal baru dari request)
+            $firstPenerimaanLain = PenerimaanCutting::where('id_roll', $penerimaanCutting->id_roll)
+                ->where('id', '!=', $penerimaanCutting->id)
+                ->whereNotNull('created_at')
+                ->min('created_at');
+
+            $firstPenerimaan = ($firstPenerimaanLain && strtotime($firstPenerimaanLain) < strtotime($tanggalDanWaktu))
+                ? $firstPenerimaanLain
+                : $tanggalDanWaktu;
+
+            if (strtotime($firstPemakaian) < strtotime($firstPenerimaan)) {
+                return response()->json([
+                    'status'  => 400,
+                    'message' => 'Tanggal penerimaan pertama (' . date('Y-m-d H:i:s', strtotime($firstPenerimaan)) . ') tidak boleh melewati tanggal pemakaian pertama (' . date('Y-m-d H:i:s', strtotime($firstPemakaian)) . ').',
+                ], 400);
+            }
+        }
+
         // 3. Cek perubahan & susun catatan perubahan (notes)
-        $tglTerimaLama = $penerimaanCutting->tanggal_terima;
+        $tglWaktuLama = date('Y-m-d', strtotime($penerimaanCutting->tanggal_terima)) . ' ' . date('H:i:s', strtotime($penerimaanCutting->created_at));
         $message = "Edit Penerimaan";
 
-        if ($tglTerimaLama != $tglTerimaBaru) {
-            $message .= " Dari " . $tglTerimaLama . " ke " . $tglTerimaBaru;
+        if ($tglWaktuLama != $tanggalDanWaktu) {
+            $message .= " Dari " . $tglWaktuLama . " ke " . $tanggalDanWaktu;
         }
 
         // 4. Update Data Model
-        $penerimaanCutting->tanggal_terima = $tglTerimaBaru;
-        $penerimaanCutting->created_at     = $tglTerimaBaru." 00:00:00";
+        $penerimaanCutting->tanggal_terima = $tanggalSaja;
+        $penerimaanCutting->created_at     = $tanggalDanWaktu;
         $penerimaanCutting->edited_notes   = $message;
         $penerimaanCutting->edited_by      = $user->id;
         $penerimaanCutting->edited_at      = $now;
@@ -371,7 +433,7 @@ class PenerimaanCuttingController extends Controller
 
             return response()->json([
                 'status'     => 200,
-                'message'    => 'Data Penerimaan Fabric Cutting berhasil diperbarui.'.($checkClosing ? "<br>Ada pemakaian yang masuk ke periode yang sudah ditutup." : ""),
+                'message'    => 'Data Penerimaan Fabric Cutting berhasil diperbarui.' . ($checkClosing ? "<br>Ada pemakaian yang masuk ke periode yang sudah ditutup." : ""),
                 'table'      => 'datatable',
                 'data'       => $penerimaanCutting
             ], 200);
