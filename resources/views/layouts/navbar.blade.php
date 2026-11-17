@@ -736,11 +736,11 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
-                            class="nav-link dropdown-toggle {{ $subPageGroup == 'finish_good_penerimaan' ? 'active' : '' }}">Penerimaan</a>
+                            class="nav-link dropdown-toggle {{ in_array($subPageGroup, ['finish_good_penerimaan', 'pemasukan_barang_jadi_so']) ? 'active' : '' }}">Penerimaan</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('finish_good_penerimaan') }}"
-                                    class="dropdown-item {{ $subPage == 'finish_good_penerimaan' ? 'active' : '' }}">
+                                <a href="{{ route('pemasukan_barang_jadi_so') }}"
+                                    class="dropdown-item {{ $subPage == 'pemasukan_barang_jadi_so' ? 'active' : '' }}">
                                     <i class="fas fa-arrow-circle-left fa-sm" style="color: green;"></i>
                                     Penerimaan Finish Good
                                 </a>
