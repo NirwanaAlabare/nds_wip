@@ -34,7 +34,8 @@ class PackingOutScanController extends Controller
             SELECT
                 MIN(ppic_master_so.id) isi,
                 ppic_master_so.po,
-                ppic_master_so.dest
+                ppic_master_so.dest,
+                DATE_FORMAT(MAX(ppic_master_so.tgl_shipment), '%d-%m-%Y') tgl_shipment
             FROM ppic_master_so
             WHERE ppic_master_so.tgl_shipment >= ?
                 AND ppic_master_so.po IS NOT NULL AND ppic_master_so.po != ''

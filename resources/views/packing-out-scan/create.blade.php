@@ -110,7 +110,7 @@
 
         .ps-po-row {
             display: grid;
-            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
             gap: 10px;
             margin-top: 10px;
         }
@@ -137,6 +137,16 @@
             font-weight: 800;
             color: var(--muted);
             letter-spacing: .04em;
+        }
+
+        .ps-po-in .ps-po-val {
+            flex: 1;
+            min-width: 0;
+            font-size: 16px;
+            font-weight: 900;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .ps-po-in .select2-container {
@@ -1002,6 +1012,12 @@
                             {{-- Diisi dari JS sesuai PO terpilih; value = id ppic_master_so --}}
                             <select class="form-control form-control-sm select2bs4" id="destSelect" style="width: 100%;"></select>
                         </label>
+
+                        <label class="ps-po-in">
+                            <span>TGL SHIPMENT</span>
+                            {{-- Diisi dari JS sesuai PO + dest terpilih --}}
+                            <b id="tglShipment" class="ps-po-val">-</b>
+                        </label>
                     </div>
 
                     <div class="ps-scan-box">
@@ -1728,6 +1744,9 @@
             theme: 'bootstrap4',
             width: 'resolve'
         }).on('change', function () {
+            const x = PO_DEST.find(r => String(r.isi) === String(this.value));
+            $('#tglShipment').text(x && x.tgl_shipment ? x.tgl_shipment : '-');
+
             if (this.value) loadPO(this.value);
             else applyPO(null);
         });
