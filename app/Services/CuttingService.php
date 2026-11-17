@@ -674,6 +674,28 @@ class CuttingService
         return false;
     }
 
+    /**
+     * Langkah lanjutan setelah detail (roll) form berubah: tambah / atur urutan.
+     *
+     * @param  mixed  $formId
+     * @param  array  $rolls  [id_roll => firstId|null] roll yang rantai qty-nya perlu dibetulkan
+     */
+    public function afterFormDetailChanged($formId, array $rolls = [])
+    {
+        // Rantai qty roll (lintas form / piping) + scanned_item
+        foreach ($rolls as $idRoll => $firstId) {
+            if (!empty($idRoll)) {
+                $this->fixChainedQty($idRoll, $firstId);
+            }
+        }
+
+        // Group stocker, sambungan & perhitungan form
+        $this->recalculateForm($formId);
+
+        // Form cut output
+        $this->generateFormCutInputDetailOutput($formId);
+    }
+
     public function recalculateForm($formId)
     {
         ini_set('max_execution_time', 360000);
@@ -1610,13 +1632,21 @@ class CuttingService
             $currentQty = null;
             $createdBefore = null;
             foreach ($pemakaian as $index => $detail) {
+                // Ambil batas bawah dari iterasi sebelumnya, lalu langsung update di awal
+                // supaya tidak terlewat ketika iterasi kena `continue`
+                $prevCreatedAt = $createdBefore;
+                $currentCreatedAt = $detail->created_at;
+                if ($currentCreatedAt) {
+                    $createdBefore = $currentCreatedAt;
+                }
+
                 // Check Penerimaan
                 $penerimaan = null;
                 if ($index == 0) {
-                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
+                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->when($currentCreatedAt, fn ($q) => $q->where("created_at", "<=", $currentCreatedAt))->whereNotIn("id", $currentPenerimaan)->get();
 
-                    if ($penerimaan->count() < 1) {
-                        $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->orderBy("created_at", "asc")->limit(1)->get();
+                    if ($penerimaan->count() < 1 && $currentCreatedAt) {
+                        $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $currentCreatedAt)->whereNotIn("id", $currentPenerimaan)->orderBy("created_at", "asc")->limit(1)->get();
                     }
 
                     // when there is no penerimaan on first roll
@@ -1624,7 +1654,10 @@ class CuttingService
                         $currentQty = $firstFormCutDetail ? $firstFormCutDetail->qty : null;
                     }
                 } else {
-                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->where("created_at", ">", $createdBefore)->where("created_at", "<=", $detail->created_at)->whereNotIn("id", $currentPenerimaan)->get();
+                    $penerimaan = DB::table("penerimaan_cutting")->where("id_roll", $detail->id_roll)->
+                        when($prevCreatedAt, fn ($q) => $q->where("created_at", ">", $prevCreatedAt))->
+                        when($currentCreatedAt, fn ($q) => $q->where("created_at", "<=", $currentCreatedAt))->
+                        whereNotIn("id", $currentPenerimaan)->get();
                 }
 
                 $retur = DB::connection("mysql_sb")->table("whs_lokasi_inmaterial")->
@@ -1633,8 +1666,8 @@ class CuttingService
                         where("whs_lokasi_inmaterial.no_dok", "LIKE", "GK/RI%")->
                         where("supplier", "LIKE", "Production - Cutting")->
                         where("whs_lokasi_inmaterial.no_barcode", $detail->id_roll)->
-                        where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($createdBefore)))->
-                        where("whs_inmaterial_fabric.tgl_dok", "<=", date("Y-m-d", strtotime($detail->created_at)))->
+                        when($prevCreatedAt, fn ($q) => $q->where("whs_inmaterial_fabric.tgl_dok", ">", date("Y-m-d", strtotime($prevCreatedAt))))->
+                        when($currentCreatedAt, fn ($q) => $q->where("whs_inmaterial_fabric.tgl_dok", "<=", date("Y-m-d", strtotime($currentCreatedAt))))->
                         get();
 
                 $qtyPenerimaan = 0;
@@ -1755,8 +1788,6 @@ class CuttingService
                         }
                     }
                 }
-
-                $createdBefore = $detail->created_at;
             }
 
             // Fix Scanned Item

@@ -390,6 +390,8 @@ Route::middleware('auth')->group(function () {
             Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
             Route::post('/cutting/recalculate-form/{id?}', 'recalculateForm')->name('recalculate-spreading-form');
             Route::post('/cutting/reorder-roll', 'reorderRoll')->name('reorder-spreading-roll');
+            Route::get('/cutting/insert-time', 'getInsertTime')->name('get-insert-time-spreading-roll');
+            Route::post('/cutting/store-roll', 'storeAddedRoll')->name('store-added-spreading-roll');
             Route::get('/check-stocker-form', 'checkStockerForm')->name('check-stocker-form');
         });
 

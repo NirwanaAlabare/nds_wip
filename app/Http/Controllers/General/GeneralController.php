@@ -1080,8 +1080,16 @@ class GeneralController extends Controller
         }
 
         // When pemakaian
-        if ($request->form_cut_detail_id) {
-            $currentFormCutDetail = FormCutInputDetail::where("id", $request->form_cut_detail_id)->first();
+        // atau ketika roll akan disisipkan di waktu tertentu (tambah roll di completed form)
+        if ($request->form_cut_detail_id || $request->at_time) {
+            $currentFormCutDetail = $request->form_cut_detail_id ? FormCutInputDetail::where("id", $request->form_cut_detail_id)->first() : null;
+
+            if (!$currentFormCutDetail && $request->at_time && strtotime($request->at_time)) {
+                $currentFormCutDetail = (object) [
+                    "id_roll" => null,
+                    "created_at" => date("Y-m-d H:i:s", strtotime($request->at_time)),
+                ];
+            }
 
             if ($currentFormCutDetail) {
                 if (!empty($id) && $currentFormCutDetail->id_roll != $id) {
