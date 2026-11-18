@@ -923,45 +923,48 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
         $dest = $request->dest;
 
         $data_det_poacking_list = DB::select("SELECT
-a.po,
-a.dest,
-m.styleno,
-m.ws,
-a.no_carton,
-a.qty,
-coalesce(b.qty_scan,0) qty_scan,
-coalesce(c.qty_fg_in,0) qty_fg_in,
-coalesce(d.qty_fg_out,0) qty_fg_out,
-tipe_pack,
-p.barcode,
-m.color,
-m.size,
-CASE
-        WHEN a.qty = COALESCE(b.qty_scan, 0) THEN 'Pass'
-        WHEN a.qty > COALESCE(b.qty_scan, 0) THEN 'Selisih Kurang'
-        WHEN a.qty < COALESCE(b.qty_scan, 0) THEN 'Selisih Lebih'
-END AS stat
-from packing_master_packing_list a
-left join ppic_master_so p on a.id_ppic_master_so = p.id
-left join master_sb_ws m on p.id_so_det = m.id_so_det
-left join master_size_new msn on a.size = msn.size
-left join (
-select po, barcode, dest, no_carton, count(barcode) qty_scan from packing_packing_out_scan
-where po = '$po' and dest = '$dest'
-group by po, barcode, dest, no_carton
-) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
-left join
-(
-select po, barcode, dest, no_carton, sum(qty) qty_fg_in from fg_fg_in f where po = '$po' and dest = '$dest' and f.status = 'NORMAL' GROUP BY po, barcode, dest, no_carton
-) c on a.po = c.po and a.barcode = c.barcode and a.dest = c.dest and a.no_carton = c.no_carton
-left join
-(
-select po, barcode, dest, no_carton, sum(qty) qty_fg_out from fg_fg_out g where po = '$po' and dest = '$dest' and g.status = 'NORMAL' GROUP BY po, barcode, dest, no_carton
-) d on a.po = d.po and a.barcode = d.barcode and a.dest = d.dest and a.no_carton = d.no_carton
-where a.po = '$po' and a.dest = '$dest'
-order by no_carton asc, color asc, urutan asc
-
-                    ");
+            a.po,
+            a.dest,
+            m.styleno,
+            m.ws,
+            a.no_carton,
+            a.qty,
+            coalesce(b.qty_scan,0) qty_scan,
+            coalesce(c.qty_fg_in,0) qty_fg_in,
+            p.id_so_det,
+            concat(coalesce(p.id_so_det,''), '|', coalesce(c.qty_fg_in,0)) fg_in_key,
+            coalesce(d.qty_fg_out,0) qty_fg_out,
+            tipe_pack,
+            p.barcode,
+            m.color,
+            m.size,
+            CASE
+                    WHEN a.qty = COALESCE(b.qty_scan, 0) THEN 'Pass'
+                    WHEN a.qty > COALESCE(b.qty_scan, 0) THEN 'Selisih Kurang'
+                    WHEN a.qty < COALESCE(b.qty_scan, 0) THEN 'Selisih Lebih'
+            END AS stat
+            from packing_master_packing_list a
+            left join ppic_master_so p on a.id_ppic_master_so = p.id
+            left join master_sb_ws m on p.id_so_det = m.id_so_det
+            left join master_size_new msn on a.size = msn.size
+            left join (
+            select po, barcode, dest, no_carton, count(barcode) qty_scan from packing_packing_out_scan
+            where po = '$po' and dest = '$dest'
+            group by po, barcode, dest, no_carton
+            ) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
+            left join
+            (
+            -- Qty FG IN dari BPB FG (signalbit_erp.bpb), global per PO + id_so_det (tanpa karton)
+            select id_so_det, sum(qty) qty_fg_in from signalbit_erp.bpb where po_fg = '$po' and bpbno like 'FG%' GROUP BY id_so_det
+            ) c on p.id_so_det = c.id_so_det
+            left join
+            (
+            select po, barcode, dest, no_carton, sum(qty) qty_fg_out from fg_fg_out g where po = '$po' and dest = '$dest' and g.status = 'NORMAL' GROUP BY po, barcode, dest, no_carton
+            ) d on a.po = d.po and a.barcode = d.barcode and a.dest = d.dest and a.no_carton = d.no_carton
+            where a.po = '$po' and a.dest = '$dest'
+            order by m.color asc, msn.urutan asc, p.id_so_det asc, cast(a.no_carton as unsigned) asc
+        ");
+        
         return DataTables::of($data_det_poacking_list)->toJson();
     }
 

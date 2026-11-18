@@ -15,6 +15,76 @@ class PemasukanService
     {
     }
 
+    // Kategori "Sparepart & Mesin" = Item General (bpb GEN) dengan kategori mapping berikut,
+    // sama seperti Detail Pemasukan "Item General" di signalbit. Kolom kategori di laporan:
+    // spareparts -> SPAREPART, aset mesin & sewa mesin -> MESIN
+    private const KATEGORI_SPAREPART = 'PERSEDIAAN SPAREPARTS - FACTORY SUPPLIES';
+    private const KATEGORI_MESIN = ['ASET TETAP - MESIN', 'SEWA MESIN'];
+
+    /**
+     * Query pemasukan untuk kategori barang "Sparepart & Mesin" dan "Scrap" (ikut juga di "Semua Kategori").
+     * Sumber data sama dengan Detail Pemasukan signalbit: Sparepart & Mesin = bpb GEN dengan kategori di atas,
+     * Scrap = bpb SCR. Barang-barang ini tidak punya id content, jadi kode barangnya = id_item masteritem.
+     *
+     * $syaratDok : filter tambahan per jenis BC, mis. "AND a.jenis_dok = 'BC 4.0'" (kosong = rekap semua)
+     * $currDulu  : urutan kolom harus sama dengan query lain di UNION yang sama - rekap memakai
+     *              (nilai_barang, curr), laporan per BC memakai (curr, nilai_barang)
+     */
+    private function queryKategoriTambahan($kategori, $fromDate, $toDate, $syaratDok = '', $currDulu = false)
+    {
+        // [ekspresi kolom kategori, syarat]
+        $daftar = [];
+        if (in_array($kategori, ['all', 'sparepart_mesin'])) {
+            $mesin = "'" . implode("', '", self::KATEGORI_MESIN) . "'";
+            $daftar[] = [
+                "IF(m.description = '" . self::KATEGORI_SPAREPART . "', 'SPAREPART', 'MESIN')",
+                "a.bpbno_int LIKE '%GEN%' AND m.description IN ('" . self::KATEGORI_SPAREPART . "', $mesin)",
+            ];
+        }
+        if (in_array($kategori, ['all', 'scrap'])) {
+            $daftar[] = ["'SCRAP'", "a.bpbno_int LIKE 'SCR%'"];
+        }
+
+        $nilai = "SUM(ROUND(IFNULL(a.price, 0) * IFNULL(a.qty, 0), 2)) as nilai_barang";
+        $kolomUang = $currDulu ? "a.curr,\n                    $nilai" : "$nilai,\n                    a.curr";
+
+        $queries = [];
+        foreach ($daftar as [$label, $syarat]) {
+            $queries[] = "
+                SELECT
+                    a.jenis_dok as jenis_dokumen,
+                    LPAD(a.bcno, 6, '0') as bcno,
+                    IF(a.bcdate IS NULL OR a.bcdate = '0000-00-00', a.bpbdate, a.bcdate) as bcdate,
+                    a.bpbno_int as trans_no,
+                    a.bpbdate,
+                    d.supplier,
+                    s.goods_code as kode_brg,
+                    s.itemdesc as itemdesc,
+                    a.unit,
+                    SUM(IFNULL(a.qty, 0)) as qty,
+                    $kolomUang,
+                    SUM(a.berat_bersih) as berat_bersih,
+                    SUM(a.berat_kotor) as berat_kotor,
+                    RIGHT(a.nomor_aju, 6) as nomor_aju,
+                    a.tujuan,
+                    s.id_item as id_item,
+                    $label as matclass,
+                    a.id_so_det
+                FROM bpb a
+                INNER JOIN masteritem s ON a.id_item = s.id_item
+                LEFT JOIN mapping_category m ON s.n_code_category = m.n_id
+                LEFT JOIN mastersupplier d ON a.id_supplier = d.id_supplier
+                WHERE a.cancel = 'N'
+                AND $syarat
+                AND a.bpbdate BETWEEN '$fromDate' AND '$toDate'
+                $syaratDok
+                GROUP BY a.bpbno_int, a.unit, s.id_item
+            ";
+        }
+
+        return $queries;
+    }
+
     // public function getDataRekap($fromDate, $toDate, $filterBy, $jenis, $kategoriBarang)
     // {
     //     $dateField = 'a.bpbdate';
@@ -338,9 +408,11 @@ class PemasukanService
         if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
             $queries[] = "
                 SELECT
-                    wh.type_bc as jenis_dokumen,
+                    -- jenis kosong di header gudang -> ambil dari bpb dokumen yang sama (seperti signalbit);
+                    -- tanggal pabean = tanggal daftar (dulu tanggal BPB), tanggal BPB hanya bila tanggal daftar kosong
+                    COALESCE(NULLIF(TRIM(wh.type_bc), ''), (SELECT MAX(NULLIF(TRIM(b.jenis_dok), '')) FROM bpb b WHERE b.bpbno_int = wh.no_dok)) as jenis_dokumen,
                     wh.no_daftar as bcno,
-                    wh.tgl_dok as bcdate,
+                    COALESCE(NULLIF(wh.tgl_daftar, '0000-00-00'), wh.tgl_dok) as bcdate,
                     wh.no_dok as trans_no,
                     wh.tgl_dok as bpbdate,
                     wh.supplier as supplier,
@@ -367,6 +439,8 @@ class PemasukanService
                 INNER JOIN masterwidth swd ON sl.id_width = swd.id
                 INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
                 WHERE wd.no_dok NOT LIKE 'FG%'
+                AND IFNULL(wd.status, '') != 'N'
+                AND IFNULL(wh.status, '') != 'cancel'
                 AND wd.tgl_dok BETWEEN '$fromDate' AND '$toDate'
                 AND s.matclass = 'FABRIC'
                 GROUP BY wh.no_dok, wd.unit, mcnt.id
@@ -491,6 +565,9 @@ class PemasukanService
             ";
         }
 
+        // Sparepart & Mesin, Scrap
+        $queries = array_merge($queries, $this->queryKategoriTambahan($kategori, $fromDate, $toDate));
+
         if (empty($queries)) {
             return collect([]);
         }
@@ -579,7 +656,7 @@ class PemasukanService
                     a.unit,
                     SUM(IFNULL(a.qty, 0)) as qty,
                     a.curr,
-                    SUM(a.price * a.qty, 2) as nilai_barang,
+                    SUM(ROUND(a.price * a.qty, 2)) as nilai_barang,
                     SUM(a.berat_bersih) as berat_bersih,
                     SUM(a.berat_kotor) as berat_kotor,
                     RIGHT(a.nomor_aju, 6) as nomor_aju,
@@ -613,9 +690,11 @@ class PemasukanService
         if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
             $queries[] = "
                 SELECT
-                    wh.type_bc as jenis_dokumen,
+                    -- jenis kosong di header gudang -> ambil dari bpb dokumen yang sama (seperti signalbit);
+                    -- tanggal pabean = tanggal daftar (dulu tanggal BPB), tanggal BPB hanya bila tanggal daftar kosong
+                    COALESCE(NULLIF(TRIM(wh.type_bc), ''), (SELECT MAX(NULLIF(TRIM(b.jenis_dok), '')) FROM bpb b WHERE b.bpbno_int = wh.no_dok)) as jenis_dokumen,
                     wh.no_daftar as bcno,
-                    wh.tgl_dok as bcdate,
+                    COALESCE(NULLIF(wh.tgl_daftar, '0000-00-00'), wh.tgl_dok) as bcdate,
                     wh.no_dok as trans_no,
                     wh.tgl_dok as bpbdate,
                     wh.supplier as supplier,
@@ -642,6 +721,8 @@ class PemasukanService
                 INNER JOIN masterwidth swd ON sl.id_width = swd.id
                 INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
                 WHERE wd.no_dok NOT LIKE 'FG%'
+                AND IFNULL(wd.status, '') != 'N'
+                AND IFNULL(wh.status, '') != 'cancel'
                 AND wh.type_bc = 'BC 2.3'
                 AND wd.tgl_dok BETWEEN '$fromDate' AND '$toDate'
                 AND s.matclass = 'FABRIC'
@@ -690,6 +771,10 @@ class PemasukanService
                 GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
         }
+
+        // Sparepart & Mesin, Scrap
+        $queries = array_merge($queries, $this->queryKategoriTambahan($kategori, $fromDate, $toDate,
+            "AND a.jenis_dok = 'BC 2.3' AND a.invno NOT LIKE '%PJT%' AND a.invno NOT LIKE '%PIB%' AND a.invno NOT LIKE '%PIBK%'", true));
 
         if (empty($queries)) {
             return collect([]);
@@ -810,9 +895,11 @@ class PemasukanService
         if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
             $queries[] = "
                 SELECT
-                    wh.type_bc as jenis_dokumen,
+                    -- jenis kosong di header gudang -> ambil dari bpb dokumen yang sama (seperti signalbit);
+                    -- tanggal pabean = tanggal daftar (dulu tanggal BPB), tanggal BPB hanya bila tanggal daftar kosong
+                    COALESCE(NULLIF(TRIM(wh.type_bc), ''), (SELECT MAX(NULLIF(TRIM(b.jenis_dok), '')) FROM bpb b WHERE b.bpbno_int = wh.no_dok)) as jenis_dokumen,
                     wh.no_daftar as bcno,
-                    wh.tgl_dok as bcdate,
+                    COALESCE(NULLIF(wh.tgl_daftar, '0000-00-00'), wh.tgl_dok) as bcdate,
                     wh.no_dok as trans_no,
                     wh.tgl_dok as bpbdate,
                     wh.supplier as supplier,
@@ -839,6 +926,8 @@ class PemasukanService
                 INNER JOIN masterwidth swd ON sl.id_width = swd.id
                 INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
                 WHERE wd.no_dok NOT LIKE 'FG%'
+                AND IFNULL(wd.status, '') != 'N'
+                AND IFNULL(wh.status, '') != 'cancel'
                 AND wh.type_bc = 'BC 2.6.2'
                 AND wd.tgl_dok BETWEEN '$fromDate' AND '$toDate'
                 AND s.matclass = 'FABRIC'
@@ -887,6 +976,10 @@ class PemasukanService
                 GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
         }
+
+        // Sparepart & Mesin, Scrap
+        $queries = array_merge($queries, $this->queryKategoriTambahan($kategori, $fromDate, $toDate,
+            "AND a.jenis_dok = 'BC 2.6.2'", true));
 
         if (empty($queries)) {
             return collect([]);
@@ -1007,9 +1100,11 @@ class PemasukanService
         if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
             $queries[] = "
                 SELECT
-                    wh.type_bc as jenis_dokumen,
+                    -- jenis kosong di header gudang -> ambil dari bpb dokumen yang sama (seperti signalbit);
+                    -- tanggal pabean = tanggal daftar (dulu tanggal BPB), tanggal BPB hanya bila tanggal daftar kosong
+                    COALESCE(NULLIF(TRIM(wh.type_bc), ''), (SELECT MAX(NULLIF(TRIM(b.jenis_dok), '')) FROM bpb b WHERE b.bpbno_int = wh.no_dok)) as jenis_dokumen,
                     wh.no_daftar as bcno,
-                    wh.tgl_dok as bcdate,
+                    COALESCE(NULLIF(wh.tgl_daftar, '0000-00-00'), wh.tgl_dok) as bcdate,
                     wh.no_dok as trans_no,
                     wh.tgl_dok as bpbdate,
                     wh.supplier as supplier,
@@ -1036,6 +1131,8 @@ class PemasukanService
                 INNER JOIN masterwidth swd ON sl.id_width = swd.id
                 INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
                 WHERE wd.no_dok NOT LIKE 'FG%'
+                AND IFNULL(wd.status, '') != 'N'
+                AND IFNULL(wh.status, '') != 'cancel'
                 AND wh.type_bc = 'BC 4.0'
                 AND wd.tgl_dok BETWEEN '$fromDate' AND '$toDate'
                 AND s.matclass = 'FABRIC'
@@ -1084,6 +1181,10 @@ class PemasukanService
                 GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
         }
+
+        // Sparepart & Mesin, Scrap
+        $queries = array_merge($queries, $this->queryKategoriTambahan($kategori, $fromDate, $toDate,
+            "AND a.jenis_dok = 'BC 4.0'", true));
 
         if (empty($queries)) {
             return collect([]);
@@ -1204,9 +1305,11 @@ class PemasukanService
         if (in_array($kategori, ['all', 'fabric', 'bahan baku', 'bahan_baku'])) {
             $queries[] = "
                 SELECT
-                    wh.type_bc as jenis_dokumen,
+                    -- jenis kosong di header gudang -> ambil dari bpb dokumen yang sama (seperti signalbit);
+                    -- tanggal pabean = tanggal daftar (dulu tanggal BPB), tanggal BPB hanya bila tanggal daftar kosong
+                    COALESCE(NULLIF(TRIM(wh.type_bc), ''), (SELECT MAX(NULLIF(TRIM(b.jenis_dok), '')) FROM bpb b WHERE b.bpbno_int = wh.no_dok)) as jenis_dokumen,
                     wh.no_daftar as bcno,
-                    wh.tgl_dok as bcdate,
+                    COALESCE(NULLIF(wh.tgl_daftar, '0000-00-00'), wh.tgl_dok) as bcdate,
                     wh.no_dok as trans_no,
                     wh.tgl_dok as bpbdate,
                     wh.supplier as supplier,
@@ -1233,6 +1336,8 @@ class PemasukanService
                 INNER JOIN masterwidth swd ON sl.id_width = swd.id
                 INNER JOIN mastercontents mcnt ON swd.id_contents = mcnt.id
                 WHERE wd.no_dok NOT LIKE 'FG%'
+                AND IFNULL(wd.status, '') != 'N'
+                AND IFNULL(wh.status, '') != 'cancel'
                 AND wh.type_bc = 'BC 2.7'
                 AND wd.tgl_dok BETWEEN '$fromDate' AND '$toDate'
                 AND s.matclass = 'FABRIC'
@@ -1281,6 +1386,10 @@ class PemasukanService
                 GROUP BY ac.kpno, a.bpbno_int, a.unit
             ";
         }
+
+        // Sparepart & Mesin, Scrap
+        $queries = array_merge($queries, $this->queryKategoriTambahan($kategori, $fromDate, $toDate,
+            "AND a.jenis_dok = 'BC 2.7'", true));
 
         if (empty($queries)) {
             return collect([]);
@@ -1643,8 +1752,8 @@ class PemasukanService
             $rows = [
                 $no++,
                 $row->jenis_dokumen ?? '-',
-                $row->nomor_daftar ?? '-',
-                ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '-',
+                ReportBcDokumen::nomor($row),
+                ReportBcDokumen::tanggal($row),
                 $row->nomor_bpb ?? '-',
                 ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '-',
                 $row->nama_pengirim ?? '-',

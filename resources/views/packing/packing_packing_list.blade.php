@@ -1220,12 +1220,14 @@
                         return intVal(a) + intVal(b);
                     }, 0);
 
-                var sumTotalT = api
-                    .column(11)
-                    .data()
-                    .reduce(function(a, b) {
-                        return intVal(a) + intVal(b);
-                    }, 0);
+                // Qty FG IN global per id_so_det, jadi dijumlah sekali per id_so_det (bukan per karton)
+                var fgInPerSoDet = {};
+                api.rows().data().each(function(r) {
+                    fgInPerSoDet[r.id_so_det] = intVal(r.qty_fg_in);
+                });
+                var sumTotalT = Object.values(fgInPerSoDet).reduce(function(a, b) {
+                    return a + b;
+                }, 0);
 
                 var sumTotalU = api
                     .column(12)
@@ -1295,7 +1297,10 @@
                     data: 'qty_scan'
                 },
                 {
-                    data: 'qty_fg_in'
+                    data: 'fg_in_key',
+                    render: function(data, type, row) {
+                        return row.qty_fg_in;
+                    }
                 },
                 {
                     data: 'qty_fg_out'
@@ -1309,7 +1314,7 @@
                 "targets": "_all"
             }, ],
             rowsGroup: [
-                7
+                11
             ],
             createdRow: function(row, data, dataIndex) {
 
