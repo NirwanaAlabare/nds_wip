@@ -219,7 +219,8 @@ class PemasukanBarangJadiSoController extends Controller
 
         // Satu baris per PO + so_det (tanpa karton), qty global:
         // qty_pl = total packing_master_packing_list.qty, qty_scan = jumlah scan packing out,
-        // qty_masuk = total BPB FG status_input nds per so_det + PO (po_fg), selain nds = 0
+        // qty_masuk = total BPB FG status_input nds per so_det + PO (po_fg), selain nds = 0,
+        //             dikurangi retur FG (bppb FG/RO, remark RETUR) per so_det + PO
         $rows = DB::select("
             select pl.po,
                 pl.id_so_det,
@@ -232,7 +233,7 @@ class PemasukanBarangJadiSoController extends Controller
                 m.curr,
                 sum(pl.qty_pl) as qty_pl,
                 coalesce(sum(pos.qty_scan), 0) as qty_scan,
-                coalesce(max(fgin.qty_in), 0) as qty_masuk
+                coalesce(max(fgin.qty_in), 0) - coalesce(max(fgret.qty_retur), 0) as qty_masuk
             from (
                 select id_ppic_master_so, po, id_so_det, sum(qty) as qty_pl
                 from packing_master_packing_list
@@ -261,6 +262,25 @@ class PemasukanBarangJadiSoController extends Controller
                 group by id_so_det, po_fg
             ) fgin on fgin.id_so_det = pl.id_so_det
                 and fgin.po_fg = pl.po
+            left join (
+                -- Retur FG (modul finish_good_retur): bppb FG/RO, remark RETUR, status_retur Y.
+                -- bppb tidak menyimpan PO, jadi PO diambil dari fg_fg_out (no_sb = bppbno_int, status RETUR).
+                select b.id_so_det, o.po, sum(b.qty) as qty_retur
+                from signalbit_erp.bppb b
+                inner join (
+                    select distinct no_sb, id_so_det, po
+                    from fg_fg_out
+                    where status = 'RETUR'
+                        and id_so_det in (select id_so_det from master_sb_ws where id_act_cost in ($idCost))
+                ) o on o.no_sb = b.bppbno_int
+                    and o.id_so_det = b.id_so_det
+                where b.bppbno_int like 'FG/RO%'
+                    and b.remark = 'RETUR'
+                    and b.status_retur = 'Y'
+                    and b.id_so_det in (select id_so_det from master_sb_ws where id_act_cost in ($idCost))
+                group by b.id_so_det, o.po
+            ) fgret on fgret.id_so_det = pl.id_so_det
+                and fgret.po = pl.po
             where m.id_act_cost in ($idCost)
             group by pl.po, pl.id_so_det, m.id_act_cost, m.ws, m.styleno, m.color, m.size, m.price, m.curr
             order by pl.po, m.ws, m.color, pl.id_so_det
