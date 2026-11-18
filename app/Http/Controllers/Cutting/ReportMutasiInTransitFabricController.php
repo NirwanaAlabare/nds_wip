@@ -220,9 +220,9 @@ class ReportMutasiInTransitFabricController extends Controller
                 ->orderBy('id_roll');
 
             return DataTables::of($query)
-                ->with('totals', function ($filteredQuery) {
-                    // Total footer mengikuti filter, tanpa paging
-                    $unpaged = $filteredQuery->cloneWithout(['limit', 'offset', 'orders']);
+                ->with('totals', function () use ($query) {
+                    // Clone $query tanpa limit, offset, dan orders untuk menghitung total keseluruhan filter
+                    $unpaged = (clone $query)->cloneWithout(['limit', 'offset', 'orders']);
 
                     return DB::query()->fromSub($unpaged, 'filtered')->selectRaw('
                         ROUND(SUM(saldo_awal), 2) saldo_awal,
@@ -231,7 +231,7 @@ class ReportMutasiInTransitFabricController extends Controller
                         ROUND(SUM(saldo_akhir), 2) saldo_akhir,
                         ROUND(SUM(saldo_awal_konv), 2) saldo_awal_konv,
                         ROUND(SUM(qty_out_konv), 2) qty_out_konv,
-                        ROUND(SUM(qty_in_konv), 2) qty_in_konv,
+                        ROUND(SUM(qty_in_konv), 2) saldo_in_konv,
                         ROUND(SUM(saldo_akhir_konv), 2) saldo_akhir_konv
                     ')->first();
                 })
