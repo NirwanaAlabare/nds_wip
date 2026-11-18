@@ -75,6 +75,15 @@
                     </a>
                 </div>
                 <div class="col-md-4">
+                    <a href="{{ route('switch-so-det') }}" class="home-item" target="_blank">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-right-left"></i> Switch Transaction SO Det</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
                     <a href="{{ route('lock') }}" class="home-item" target="_blank">
                         <div class="card">
                             <div class="card-body">
