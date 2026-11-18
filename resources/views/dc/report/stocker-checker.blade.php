@@ -51,7 +51,6 @@
 @section('content')
     <div class="d-flex justify-content-between mb-3">
         <h5 class="fw-bold text-sb"><i class="fa-solid fa-magnifying-glass"></i> Stocker Checker</h5>
-        <a href="{{ route('dc-tools') }}" class="btn btn-primary btn-sm px-1 py-1"><i class="fas fa-reply"></i> Kembali ke Tools</a>
     </div>
 
     <div class="card card-sb mb-3">
@@ -217,7 +216,7 @@
 
             try {
                 if (type === 'ws') {
-                    const res = await scGet('{{ route('dc-tools-stocker-checker-by-ws') }}', { ws: input });
+                    const res = await scGet('{{ route('dc-report-stocker-checker-by-ws') }}', { ws: input });
                     if (res.panelUsed) {
                         $('#sc-info').text('Menampilkan data berdasarkan panel utama: "' + res.panelUsed + '"').removeClass('d-none');
                     }
@@ -226,7 +225,7 @@
                     let targetQrs = '';
 
                     if (type === 'form') {
-                        const resForm = await scGet('{{ route('dc-tools-stocker-checker-by-form') }}', { no_form: input });
+                        const resForm = await scGet('{{ route('dc-report-stocker-checker-by-form') }}', { no_form: input });
                         if (!resForm.data || resForm.data.length === 0) {
                             scResults = [];
                             scRender();
@@ -237,7 +236,7 @@
                         targetQrs = input;
                     }
 
-                    const resStocker = await scGet('{{ route('dc-tools-stocker-checker-data') }}', { id_qr_stocker: targetQrs });
+                    const resStocker = await scGet('{{ route('dc-report-stocker-checker-data') }}', { id_qr_stocker: targetQrs });
                     scResults = resStocker.data || [];
                 }
 

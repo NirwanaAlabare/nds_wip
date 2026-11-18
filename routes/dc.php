@@ -282,12 +282,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/check-orphan-transaction', 'checkOrphanTransaction')->name('check-orphan-transaction');
         Route::post('/check-orphan-transaction-list', 'checkOrphanTransactionList')->name('check-orphan-transaction-list');
         Route::delete('/delete-orphan-transaction', 'deleteOrphanTransaction')->name('delete-orphan-transaction');
-
-        // Stocker Checker
-        Route::get('/stocker-checker', 'stockerChecker')->name('dc-tools-stocker-checker');
-        Route::get('/stocker-checker/by-form', 'stockerCheckerByForm')->name('dc-tools-stocker-checker-by-form');
-        Route::get('/stocker-checker/data', 'stockerCheckerData')->name('dc-tools-stocker-checker-data');
-        Route::get('/stocker-checker/by-ws', 'stockerCheckerByWs')->name('dc-tools-stocker-checker-by-ws');
     });
 
     // DC report
@@ -312,6 +306,12 @@ Route::middleware('auth')->group(function () {
         // Route untuk cancel data
         Route::post('/secondary-luar/cancel', 'cancelTerimaSecLuar')->name('terima.secondary.luar.cancel');
         Route::post('/secondary-luar/check-all', 'checkAllTerimaSecondaryLuar')->name('terima.secondary.luar.check-all');
+
+        // Stocker Checker
+        Route::get('/stocker-checker', 'stockerChecker')->name('dc-report-stocker-checker');
+        Route::get('/stocker-checker/by-form', 'stockerCheckerByForm')->name('dc-report-stocker-checker-by-form');
+        Route::get('/stocker-checker/data', 'stockerCheckerData')->name('dc-report-stocker-checker-data');
+        Route::get('/stocker-checker/by-ws', 'stockerCheckerByWs')->name('dc-report-stocker-checker-by-ws');
     });
 
     // Stocker Process
