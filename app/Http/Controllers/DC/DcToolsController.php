@@ -670,4 +670,279 @@ class DcToolsController extends Controller
 
         return ['status' => 200, 'message' => $count . ' data orphan transaction berhasil dihapus.'];
     }
+
+    // ================= STOCKER CHECKER =================
+    // Alur disamakan dengan modul opname /stocker-checker
+
+    public function stockerChecker()
+    {
+        return view('dc.tools.stocker-checker', [
+            'page' => 'dashboard-dc',
+        ]);
+    }
+
+    // BY Nomor Form -> daftar id_qr_stocker
+    public function stockerCheckerByForm(Request $request)
+    {
+        $noForm = trim((string) $request->input('no_form', ''));
+
+        if ($noForm === '') {
+            return ['success' => true, 'data' => []];
+        }
+
+        $rows = DB::select("
+            SELECT a.id_qr_stocker
+            FROM stocker_input a
+            LEFT JOIN form_cut_input b ON a.form_cut_id = b.id
+            WHERE b.no_form = ?
+        ", [$noForm]);
+
+        return ['success' => true, 'data' => collect($rows)->pluck('id_qr_stocker')->values()];
+    }
+
+    // BY Stocker (QR ID), bisa banyak dipisah koma
+    public function stockerCheckerData(Request $request)
+    {
+        $qrList = collect(explode(',', (string) $request->input('id_qr_stocker', '')))
+            ->map(fn ($item) => trim($item))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (count($qrList) === 0) {
+            return ['success' => true, 'data' => []];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($qrList), '?'));
+
+        $rows = DB::select("
+            SELECT
+                COALESCE(dc_in_input.tgl_trans, '-') AS tgl_trans,
+                stocker_input.id_qr_stocker,
+                CASE
+                    WHEN stocker_input.qty_ply_mod IS NOT NULL
+                        THEN stocker_input.qty_ply_mod
+                    ELSE stocker_input.qty_ply
+                END AS qty_awal_stocker,
+                master_sb_ws.ws,
+                master_sb_ws.styleno,
+                master_sb_ws.color,
+                master_sb_ws.size,
+                master_sb_ws.buyer,
+                COALESCE(dc_in_input.qty_awal, 0) AS qty_awal,
+                COALESCE(dc_in_input.qty_reject, 0) AS qty_reject,
+                COALESCE(dc_in_input.qty_replace, 0) AS qty_replace,
+                COALESCE((dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace), 0) AS qty_in,
+                COALESCE(GROUP_CONCAT(DISTINCT multi_master_secondary.tujuan SEPARATOR ', '), master_secondary.tujuan, dc_in_input.tujuan, '-') AS tujuan,
+                COALESCE(dc_in_input.lokasi, '-') AS lokasi,
+                secondary_inhouse_in_input.created_at AS sec_inhouse_in,
+                secondary_inhouse_input.created_at AS sec_inhouse_out,
+                secondary_in_input.created_at AS sec_in,
+                CONCAT(COALESCE(trolley.nama_trolley,'-'), ' (', COALESCE(trolley_stocker.created_at, '-'), ')') AS trolley,
+                CONCAT(COALESCE(loading_line.nama_line,'-'), ' (', COALESCE(loading_line.created_at, '-'), ')') AS line,
+                COALESCE(form_cut_input.no_form, '-') AS no_form,
+                form_cut_input.no_cut AS no_cut_form_cut,
+                form_cut_input.waktu_selesai AS waktu_selesai_form_cut,
+                stocker_input.panel AS stocker_panel,
+                stocker_input.created_at AS stocker_created_at,
+                secondary_inhouse_in_input.qty_in AS qty_sec_inhouse_in,
+                secondary_inhouse_input.qty_awal AS qty_sec_inhouse_awal,
+                secondary_inhouse_input.qty_reject AS qty_sec_inhouse_reject,
+                secondary_inhouse_input.qty_replace AS qty_sec_inhouse_replace,
+                secondary_inhouse_input.qty_in AS qty_sec_inhouse_out,
+                secondary_in_input.qty_awal AS qty_sec_in_awal,
+                secondary_in_input.qty_reject AS qty_sec_in_reject,
+                secondary_in_input.qty_replace AS qty_sec_in_replace,
+                secondary_in_input.qty_in AS qty_sec_in_out,
+                (
+                    SELECT GROUP_CONCAT(b.proses SEPARATOR ', ')
+                    FROM part_detail_secondary a
+                    LEFT JOIN master_secondary b ON a.master_secondary_id = b.id
+                    WHERE a.part_detail_id = stocker_input.part_detail_id
+                ) AS proses_secondary,
+                CONCAT(
+                    stocker_input.range_awal, ' - ', stocker_input.range_akhir,
+                    (CASE
+                        WHEN dc_in_input.qty_reject IS NOT NULL AND dc_in_input.qty_replace IS NOT NULL
+                        THEN CONCAT(' (', (COALESCE(dc_in_input.qty_replace, 0) + COALESCE(secondary_in_input.qty_replace, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0)), ') ')
+                        ELSE ' (0)'
+                    END)
+                ) AS stocker_range,
+                COALESCE(part_detail.tujuan, '-') AS part_tujuan,
+                COALESCE(master_part.nama_part, '-') AS nama_part,
+                COALESCE(master_secondary.proses, '-') AS nama_secondary,
+
+                COALESCE(
+                    CASE WHEN loading_line.id IS NOT NULL THEN 'LINE' END,
+                    CASE WHEN trolley_stocker.id IS NOT NULL THEN 'TROLLEY' END,
+                    CASE WHEN COALESCE(mx_sec_in.id_qr_stocker, secondary_in_input.id) IS NOT NULL
+                        THEN CONCAT(COALESCE(mms_in.proses, mx_sec_in.proses, master_secondary.proses), ' (SECONDARY-IN)') END,
+                    CASE WHEN COALESCE(mx_sec_inhouse.id_qr_stocker, secondary_inhouse_input.id) IS NOT NULL
+                        THEN CONCAT(COALESCE(mms_inhouse.proses, mx_sec_inhouse.proses, master_secondary.proses), ' (SECONDARY-INHOUSE)') END,
+                    CASE WHEN dc_in_input.id IS NOT NULL THEN 'DC IN' END,
+                    'BELUM MASUK DC'
+                ) AS proses_terakhir,
+
+                COALESCE(
+                    CASE WHEN loading_line.id IS NOT NULL
+                        THEN CONCAT(DATE(loading_line.tanggal_loading), ' ', TIME(loading_line.created_at)) END,
+                    CASE WHEN trolley_stocker.id IS NOT NULL
+                        THEN trolley_stocker.created_at END,
+                    CASE WHEN COALESCE(mx_sec_in.id_qr_stocker, secondary_in_input.id) IS NOT NULL
+                        THEN CONCAT(DATE(secondary_in_input.tgl_trans), ' ', TIME(secondary_in_input.created_at)) END,
+                    CASE WHEN COALESCE(mx_sec_inhouse.id_qr_stocker, secondary_inhouse_input.id) IS NOT NULL
+                        THEN CONCAT(DATE(secondary_inhouse_input.tgl_trans), ' ', TIME(secondary_inhouse_input.created_at)) END,
+                    CASE WHEN dc_in_input.id IS NOT NULL
+                        THEN CONCAT(DATE(dc_in_input.tgl_trans), ' ', TIME(dc_in_input.created_at)) END,
+                    NULL
+                ) AS tanggal_proses_terakhir
+
+            FROM stocker_input
+            LEFT JOIN form_cut_input ON form_cut_input.id = stocker_input.form_cut_id
+            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+            LEFT JOIN secondary_inhouse_in_input ON secondary_inhouse_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN trolley_stocker ON trolley_stocker.stocker_id = stocker_input.id
+            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+            LEFT JOIN loading_line ON loading_line.stocker_id = stocker_input.id
+
+            LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
+            LEFT JOIN master_part ON master_part.id = part_detail.master_part_id
+            LEFT JOIN master_secondary ON master_secondary.id = part_detail.master_secondary_id
+            LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = part_detail.id
+            LEFT JOIN master_secondary multi_master_secondary ON multi_master_secondary.id = part_detail_secondary.master_secondary_id
+
+            LEFT JOIN (
+                SELECT
+                    secondary_inhouse_input.id_qr_stocker,
+                    MAX(secondary_inhouse_input.urutan) AS max_urutan,
+                    GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') AS proses
+                FROM secondary_inhouse_input
+                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_inhouse_input.id_qr_stocker
+                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
+                    AND part_detail_secondary.urutan = secondary_inhouse_input.urutan
+                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                GROUP BY secondary_inhouse_input.id_qr_stocker
+            ) mx_sec_inhouse ON mx_sec_inhouse.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN part_detail_secondary pds_inhouse
+                ON pds_inhouse.urutan = mx_sec_inhouse.max_urutan
+                AND pds_inhouse.part_detail_id = stocker_input.part_detail_id
+            LEFT JOIN master_secondary mms_inhouse ON mms_inhouse.id = pds_inhouse.master_secondary_id
+
+            LEFT JOIN (
+                SELECT
+                    secondary_in_input.id_qr_stocker,
+                    MAX(secondary_in_input.urutan) AS max_urutan,
+                    GROUP_CONCAT(master_secondary.proses SEPARATOR ' | ') AS proses
+                FROM secondary_in_input
+                LEFT JOIN stocker_input ON stocker_input.id_qr_stocker = secondary_in_input.id_qr_stocker
+                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
+                    AND part_detail_secondary.urutan = secondary_in_input.urutan
+                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
+                GROUP BY secondary_in_input.id_qr_stocker
+            ) mx_sec_in ON mx_sec_in.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN part_detail_secondary pds_in
+                ON pds_in.urutan = mx_sec_in.max_urutan
+                AND pds_in.part_detail_id = stocker_input.part_detail_id
+            LEFT JOIN master_secondary mms_in ON mms_in.id = pds_in.master_secondary_id
+
+            WHERE stocker_input.id_qr_stocker IN (" . $placeholders . ")
+            GROUP BY stocker_input.id
+            ORDER BY stocker_input.id_qr_stocker ASC
+        ", $qrList);
+
+        return ['success' => true, 'data' => $rows];
+    }
+
+    // BY Nomor WS
+    public function stockerCheckerByWs(Request $request)
+    {
+        $ws = trim((string) $request->input('ws', ''));
+
+        if ($ws === '') {
+            return ['success' => true, 'data' => []];
+        }
+
+        // Step 1: daftar panel unik untuk WS ini
+        $panelRows = DB::select("
+            SELECT DISTINCT b.panel
+            FROM form_cut_input a
+            LEFT JOIN marker_input b ON a.marker_id = b.id
+            WHERE b.act_costing_ws = ?
+        ", [$ws]);
+
+        if (count($panelRows) === 0) {
+            return ['success' => true, 'data' => []];
+        }
+
+        // Step 2: panel utama berdasarkan prioritas (BODY, PANTS, SHELL)
+        $selectedPanel = $panelRows[0]->panel;
+        foreach (['BODY', 'PANTS', 'SHELL'] as $keyword) {
+            $match = collect($panelRows)->first(fn ($row) => str_contains(strtoupper((string) $row->panel), $keyword));
+            if ($match) {
+                $selectedPanel = $match->panel;
+                break;
+            }
+        }
+
+        // Step 3: data stocker + logistik DC
+        $rows = DB::select("
+            SELECT
+                COALESCE(dc_in_input.tgl_trans, '-') AS tgl_trans,
+                stocker_input.id_qr_stocker,
+                master_sb_ws.ws,
+                master_sb_ws.styleno,
+                master_sb_ws.color,
+                master_sb_ws.size,
+                master_sb_ws.buyer,
+                COALESCE(dc_in_input.qty_awal, 0) AS qty_awal,
+                COALESCE(dc_in_input.qty_reject, 0) AS qty_reject,
+                COALESCE(dc_in_input.qty_replace, 0) AS qty_replace,
+                COALESCE((dc_in_input.qty_awal - dc_in_input.qty_reject + dc_in_input.qty_replace), 0) AS qty_in,
+                COALESCE(dc_in_input.tujuan, '-') AS tujuan,
+                COALESCE(dc_in_input.lokasi, '-') AS lokasi,
+                secondary_inhouse_in_input.created_at AS sec_inhouse_in,
+                secondary_inhouse_input.created_at AS sec_inhouse_out,
+                secondary_in_input.created_at AS sec_in,
+                CONCAT(COALESCE(trolley.nama_trolley,'-'), ' (', COALESCE(trolley_stocker.created_at, '-'), ')') AS trolley,
+                CONCAT(COALESCE(loading_line.nama_line,'-'), ' (', COALESCE(loading_line.created_at, '-'), ')') AS line,
+                form_cut_input.no_form,
+                form_cut_input.waktu_selesai AS waktu_selesai_form_cut,
+                stocker_input.panel AS stocker_panel,
+                stocker_input.created_at AS stocker_created_at,
+                secondary_inhouse_in_input.qty_in AS qty_sec_inhouse_in,
+                secondary_inhouse_input.qty_awal AS qty_sec_inhouse_awal,
+                secondary_inhouse_input.qty_reject AS qty_sec_inhouse_reject,
+                secondary_inhouse_input.qty_replace AS qty_sec_inhouse_replace,
+                secondary_inhouse_input.qty_in AS qty_sec_inhouse_out,
+                secondary_in_input.qty_awal AS qty_sec_in_awal,
+                secondary_in_input.qty_reject AS qty_sec_in_reject,
+                secondary_in_input.qty_replace AS qty_sec_in_replace,
+                secondary_in_input.qty_in AS qty_sec_in_out,
+                COALESCE(part_detail.tujuan, '-') AS part_tujuan,
+                COALESCE(master_part.nama_part, '-') AS nama_part,
+                COALESCE(master_secondary.proses, '-') AS nama_secondary
+            FROM stocker_input
+            LEFT JOIN form_cut_input ON stocker_input.form_cut_id = form_cut_input.id
+            LEFT JOIN marker_input ON form_cut_input.marker_id = marker_input.id
+            LEFT JOIN dc_in_input ON dc_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN master_sb_ws ON master_sb_ws.id_so_det = stocker_input.so_det_id
+            LEFT JOIN secondary_inhouse_in_input ON secondary_inhouse_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN secondary_inhouse_input ON secondary_inhouse_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN secondary_in_input ON secondary_in_input.id_qr_stocker = stocker_input.id_qr_stocker
+            LEFT JOIN trolley_stocker ON trolley_stocker.stocker_id = stocker_input.id
+            LEFT JOIN trolley ON trolley.id = trolley_stocker.trolley_id
+            LEFT JOIN loading_line ON loading_line.stocker_id = stocker_input.id
+            LEFT JOIN part_detail ON stocker_input.part_detail_id = part_detail.id
+            LEFT JOIN master_part ON part_detail.master_part_id = master_part.id
+            LEFT JOIN master_secondary ON part_detail.master_secondary_id = master_secondary.id
+            WHERE stocker_input.act_costing_ws = ?
+            ORDER BY stocker_input.id_qr_stocker ASC
+        ", [$ws]);
+
+        return ['success' => true, 'data' => $rows, 'panelUsed' => $selectedPanel];
+    }
 }

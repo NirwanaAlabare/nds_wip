@@ -282,6 +282,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/check-orphan-transaction', 'checkOrphanTransaction')->name('check-orphan-transaction');
         Route::post('/check-orphan-transaction-list', 'checkOrphanTransactionList')->name('check-orphan-transaction-list');
         Route::delete('/delete-orphan-transaction', 'deleteOrphanTransaction')->name('delete-orphan-transaction');
+
+        // Stocker Checker
+        Route::get('/stocker-checker', 'stockerChecker')->name('dc-tools-stocker-checker');
+        Route::get('/stocker-checker/by-form', 'stockerCheckerByForm')->name('dc-tools-stocker-checker-by-form');
+        Route::get('/stocker-checker/data', 'stockerCheckerData')->name('dc-tools-stocker-checker-data');
+        Route::get('/stocker-checker/by-ws', 'stockerCheckerByWs')->name('dc-tools-stocker-checker-by-ws');
     });
 
     // DC report
