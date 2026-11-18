@@ -175,6 +175,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('report-mutasi-in-transit-fabric') }}"
+                        class="dropdown-item {{ $routeName == 'report-mutasi-in-transit-fabric' ? 'active' : '' }}">
+                        Mutasi In Transit Fabric <i class="fa fa-list"></i>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('roll_fabric_cutting_in') }}"
                         class="dropdown-item {{ $subPage == 'roll_fabric_cutting_in' ? 'active' : '' }}">
                         Pengeluaran Fabric ke Cutting <i class="fa-solid fa-box-open fa-sm"></i>
