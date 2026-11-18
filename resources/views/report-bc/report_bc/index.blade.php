@@ -504,6 +504,11 @@
                     $kategoriBarang.append(new Option('Fabric', 'fabric'));
                     $kategoriBarang.append(new Option('Accessories', 'accesories'));
                     $kategoriBarang.append(new Option('Barang Jadi', 'barang_jadi'));
+                    // Kategori tambahan (data Item General & Scrap) - baru tersedia untuk pemasukan
+                    if (jenis === 'pemasukan') {
+                        $kategoriBarang.append(new Option('Sparepart & Mesin', 'sparepart_mesin'));
+                        $kategoriBarang.append(new Option('Scrap', 'scrap'));
+                    }
                 }
 
                 // Refresh tampilan Select2 agar elemen yang di-hide/show langsung ter-update di UI
