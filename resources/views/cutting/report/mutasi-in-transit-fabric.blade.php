@@ -89,7 +89,9 @@
         ];
         const numericColumns = [4, 5, 6, 7, 9, 10, 11, 12];
 
-        const formatQtyInTransit = (value) => Number(value || 0).toLocaleString('id-ID', { maximumFractionDigits: 2 });
+        let totalsInTransit = {};
+
+        const formatQtyInTransit =(value) => Number(value || 0).toLocaleString('id-ID', { maximumFractionDigits: 2 });
 
         // Thead filter
         $('#datatable thead tr').first().clone(false).appendTo('#datatable thead');
@@ -101,10 +103,9 @@
 
         const datatable = $('#datatable').DataTable({
             processing: true,
-            serverSide: false,
+            serverSide: true,
             ordering: false,
             scrollX: true,
-            deferRender: true,
             pageLength: 50,
             ajax: {
                 url: '{{ route('report-mutasi-in-transit-fabric') }}',
@@ -112,7 +113,10 @@
                     data.dateFrom = $('#tgl-awal').val();
                     data.dateTo = $('#tgl-akhir').val();
                 },
-                dataSrc: 'data',
+                dataSrc: (json) => {
+                    totalsInTransit = json.totals || {};
+                    return json.data;
+                },
             },
             columns: columnKeys.map((key) => ({ data: key })),
             columnDefs: [
@@ -131,20 +135,24 @@
                 const api = this.api();
 
                 numericColumns.forEach((index) => {
-                    const total = api.column(index, { search: 'applied' }).data()
-                        .reduce((sum, value) => sum + Number(value || 0), 0);
+                    const total = totalsInTransit[columnKeys[index]];
 
                     $(api.column(index).footer()).html(formatQtyInTransit(total));
                 });
             },
         });
 
-        $('#datatable_wrapper').on('keyup change', '.dataTables_scrollHead thead tr:eq(1) input', function() {
+        // Debounce agar tidak request ke server setiap ketikan
+        $('#datatable_wrapper').on('change', '.dataTables_scrollHead thead tr:eq(1) input', function() {
             const columnIndex = Number(this.dataset.column);
+            const value = this.value;
 
-            if (datatable.column(columnIndex).search() !== this.value) {
-                datatable.column(columnIndex).search(this.value).draw();
-            }
+            clearTimeout(this.filterTimeout);
+            this.filterTimeout = setTimeout(() => {
+                if (datatable.column(columnIndex).search() !== value) {
+                    datatable.column(columnIndex).search(value).draw();
+                }
+            }, 500);
         });
 
         function dataTableReload() {

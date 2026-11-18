@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cutting;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
 use \avadim\FastExcelLaravel\Excel as FastExcel;
 
 /**
@@ -213,9 +214,28 @@ class ReportMutasiInTransitFabricController extends Controller
 
             [$sql, $bindings] = $this->buildQuery($dateFrom, $dateTo);
 
-            return response()->json([
-                'data' => DB::select($sql, $bindings),
-            ]);
+            $query = DB::query()
+                ->fromRaw('(' . $sql . ') mutasi_in_transit', $bindings)
+                ->orderBy('id_item')
+                ->orderBy('id_roll');
+
+            return DataTables::of($query)
+                ->with('totals', function ($filteredQuery) {
+                    // Total footer mengikuti filter, tanpa paging
+                    $unpaged = $filteredQuery->cloneWithout(['limit', 'offset', 'orders']);
+
+                    return DB::query()->fromSub($unpaged, 'filtered')->selectRaw('
+                        ROUND(SUM(saldo_awal), 2) saldo_awal,
+                        ROUND(SUM(qty_out), 2) qty_out,
+                        ROUND(SUM(qty_in), 2) qty_in,
+                        ROUND(SUM(saldo_akhir), 2) saldo_akhir,
+                        ROUND(SUM(saldo_awal_konv), 2) saldo_awal_konv,
+                        ROUND(SUM(qty_out_konv), 2) qty_out_konv,
+                        ROUND(SUM(qty_in_konv), 2) qty_in_konv,
+                        ROUND(SUM(saldo_akhir_konv), 2) saldo_akhir_konv
+                    ')->first();
+                })
+                ->toJson();
         }
 
         return view('cutting.report.mutasi-in-transit-fabric', [
