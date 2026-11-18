@@ -603,7 +603,12 @@ class PenerimaanCuttingController extends Controller
                 whs_bppb_h.no_req,
                 whs_bppb_h.tujuan,
                 whs_bppb_h.no_ws,
-                whs_bppb_h.no_ws_aktual AS no_ws_act,
+                (
+                    SELECT br.idws_act FROM bppb_req br
+                    WHERE br.bppbno = whs_bppb_h.no_req AND br.idws_act IS NOT NULL AND br.idws_act <> ''
+                    ORDER BY (br.id_item = whs_bppb_det.id_item AND br.id_jo = whs_bppb_det.id_jo) DESC
+                    LIMIT 1
+                ) AS no_ws_act,
                 whs_bppb_det.qty_out,
                 whs_bppb_det.satuan AS unit,
                 whs_bppb_det.no_lot,
@@ -797,6 +802,7 @@ class PenerimaanCuttingController extends Controller
         $carryStart = $start->copy()->subMonthsNoOverflow(self::CARRY_MONTHS);
 
         $rows = $this->pengeluaranCuttingQuery()
+            ->addSelect('masteritem.itemdesc AS nama_barang')
             ->whereBetween('whs_bppb_h.tgl_bppb', [$carryStart->format('Y-m-d'), $end->format('Y-m-d')])
             ->where(function ($query) use ($start) {
                 $query->where('whs_bppb_h.tgl_bppb', '>=', $start->format('Y-m-d'))
@@ -805,7 +811,7 @@ class PenerimaanCuttingController extends Controller
             ->orderBy('whs_bppb_h.tgl_bppb')
             ->orderBy('whs_bppb_det.id')
             ->get()
-            ->map(fn ($row) => $this->formatPengeluaran($row))
+            ->map(fn ($row) => $this->formatPengeluaran($row) + ['nama' => $row->nama_barang])
             ->values();
 
         // Total roll keluar per tanggal untuk bulan-bulan sebelumnya (baris yang sudah diterima tidak ikut di $rows)

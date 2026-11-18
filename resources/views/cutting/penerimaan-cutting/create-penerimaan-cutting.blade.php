@@ -326,6 +326,8 @@
         #pcModal th { position: sticky; top: 0; z-index: 1; background: var(--pc-soft); color: var(--pc-pri); font-size: 11px !important; letter-spacing: .6px; text-transform: uppercase; white-space: nowrap; }
         #pcModal td { white-space: nowrap; vertical-align: middle; }
         #pcModal td .s { color: var(--pc-muted); font-size: 12px; }
+        #pcModal td.dsc { white-space: normal; min-width: 220px; max-width: 320px; }
+        #pcModal td.dsc div.s { line-height: 1.3; margin-top: 2px; }
         #pcModal td.n { color: var(--pc-faint); width: 36px; }
         #pcModal .stt { font-size: 12.5px; font-weight: 600; }
         #pcModal .stt.ok { color: var(--pc-ok); }
@@ -527,7 +529,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="pc-mt">
-                    <input type="text" class="form-control form-control-sm" id="pcModalQ" placeholder="Cari barcode, BPPB, ID item, warna, lot…">
+                    <input type="text" class="form-control form-control-sm" id="pcModalQ" placeholder="Cari barcode, BPPB, WS aktual, ID item, deskripsi, warna, lot…">
                     <span id="pcModalF"></span>
                 </div>
                 <div class="modal-body p-0 pc-mbody">
@@ -937,7 +939,7 @@
                 if (moMode === 'got') w.sort((a, b) => (b.rcv.tgl + (b.rcv.jam || '')).localeCompare(a.rcv.tgl + (a.rcv.jam || '')) || b.tgl.localeCompare(a.tgl) || String(a.bc).localeCompare(String(b.bc)));
                 else w.sort((a, b) => a.tgl.localeCompare(b.tgl) || String(a.bppb).localeCompare(String(b.bppb)) || String(a.bc).localeCompare(String(b.bc)));
                 const tot = w.length, oo = byU(w), totQ = ukeys(oo).map(k => `${n2(oo[k].q)} ${esc(k)} (${oo[k].n} roll)`).join(' + ') || '0 m';
-                if (moQ) w = w.filter(r => [r.bc, r.bppb, r.ws, r.item, r.warna, r.lot, r.req].join(' ').toLowerCase().includes(moQ));
+                if (moQ) w = w.filter(r => [r.bc, r.bppb, r.ws, r.wsAct, r.item, r.warna, r.nama, r.lot, r.req].join(' ').toLowerCase().includes(moQ));
                 const CAP = 300, list = w.slice(0, CAP);
                 $id('pcModalLbl').textContent = M.lbl; $id('pcModalTitle').textContent = M.t;
                 const scopeTxt = moDate ? '· BPPB ' + fd(moDate)
@@ -946,7 +948,7 @@
                 $id('pcModalSub').innerHTML = `<b>${tot.toLocaleString('id-ID')} roll</b> · <b>${totQ}</b> ${scopeTxt} · ${M.urut}`;
                 $id('pcModalF').innerHTML = (moDate ? `<span class="pc-fchip">Tanggal: <b>${fd(moDate)}</b><button type="button" id="pcMoAll" title="Tampilkan semua tanggal">✕</button></span>` : '')
                     + (moScope && moMode === 'wait' ? ` <span class="pc-fchip">${moScope === 'carry' ? 'Hanya bulan sebelumnya' : 'Hanya ' + fmon(curMonth)}<button type="button" id="pcMoSc" title="Tampilkan semua pending">✕</button></span>` : '');
-                $id('pcModalH').innerHTML = `<th>#</th><th>Barcode</th><th>Tgl BPPB</th><th>${M.col}</th><th>No. BPPB · WS</th><th>ID Item · Warna</th><th>Lot · Roll</th><th class="text-end">Qty</th>`;
+                $id('pcModalH').innerHTML = `<th>#</th><th>Barcode</th><th>Tgl BPPB</th><th>${M.col}</th><th>No. BPPB · WS · WS Aktual</th><th>ID Item · Warna · Deskripsi</th><th>Lot · Roll</th><th class="text-end">Qty</th>`;
                 const third = r => {
                     const a = ago(r.tgl);
                     if (moMode === 'got') return `${fds(r.rcv.tgl)}${r.rcv.jam ? ' · ' + esc(r.rcv.jam) : ''}<div class="s">${esc(r.rcv.by)}</div>`;
@@ -958,8 +960,8 @@
                         <td><b class="mono">${esc(r.bc)}</b>${r.dari > 1 ? `<div class="s">keluar ke-${r.ke} dari ${r.dari}</div>` : ''}</td>
                         <td>${fd(r.tgl)}</td>
                         <td>${third(r)}</td>
-                        <td>${esc(r.bppb)}<div class="s">WS ${esc(r.ws)}</div></td>
-                        <td><b class="mono">${esc(r.item)}</b><div class="s">${esc(r.warna)}</div></td>
+                        <td>${esc(r.bppb)}<div class="s">WS ${esc(r.ws)}</div><div class="s">WS Aktual ${esc(r.wsAct || '-')}</div></td>
+                        <td class="dsc"><b class="mono">${esc(r.item)}</b> <span class="s">· ${esc(r.warna)}</span>${r.nama ? `<div class="s">${esc(r.nama)}</div>` : ''}</td>
                         <td>${esc(r.lot)}<div class="s">Roll ${esc(r.roll)}</div></td>
                         <td class="text-end"><b>${n2(r.qtyK)}</b> ${esc(u(r))}</td></tr>`).join('')
                     : `<tr><td colspan="8" class="pc-empty">${moQ ? 'Tidak ada yang cocok dengan pencarian' : M.empty}</td></tr>`;
