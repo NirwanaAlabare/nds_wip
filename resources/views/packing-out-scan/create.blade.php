@@ -845,6 +845,8 @@
             margin-top: 10px;
             padding: 3px;
             overflow: auto;
+            /* Jadi offsetParent tile, supaya hitungan scroll ke karton terpilih benar */
+            position: relative;
         }
 
         .ps-tile {
