@@ -2459,6 +2459,7 @@ class PartController extends Controller
             $header = array_map('strtolower', array_map('trim', $data[0]));
 
             // Mapping index kolom dari header
+            $colTglBerlaku = array_search('tanggal berlaku', $header);
             $colWs         = array_search('worksheet', $header);
             $colBuyer      = array_search('buyer', $header);
             $colStyle      = array_search('style', $header);
@@ -2469,13 +2470,15 @@ class PartController extends Controller
 
             // Validasi keberadaan kolom di header Excel
             if (
-                $colWs === false || $colBuyer === false || $colStyle === false || $colColor === false || $colPanel === false || $colPart === false || $colPartStatus === false
+                $colTglBerlaku === false || $colWs === false || $colBuyer === false || $colStyle === false || $colColor === false || $colPanel === false || $colPart === false || $colPartStatus === false
             ) {
                 return response()->json([
                     'status'  => 400,
-                    'message' => 'Format header Excel tidak sesuai. Wajib ada kolom: ws, buyer, style, color, panel, part, part_status'
+                    'message' => 'Format header Excel tidak sesuai. Wajib ada kolom: Tanggal berlaku, Worksheet, Buyer, Style, Color, Panel, Part, Part Status'
                 ], 400);
             }
+
+            $mappedCols = [$colTglBerlaku, $colWs, $colBuyer, $colStyle, $colColor, $colPanel, $colPart, $colPartStatus];
 
             $previewData = [];
             $errorRows = [];
@@ -2484,11 +2487,14 @@ class PartController extends Controller
             for ($i = 1; $i < count($data); $i++) {
                 $row = $data[$i];
 
-                // Abaikan jika baris kosong
-                if (empty(array_filter($row))) {
+                // Abaikan jika baris kosong (hanya cek kolom data, kolom keterangan di samping diabaikan)
+                $mappedValues = array_map(fn ($c) => trim((string) ($row[$c] ?? '')), $mappedCols);
+                if (empty(array_filter($mappedValues, fn ($v) => $v !== ''))) {
                     continue;
                 }
 
+                $tglBerlakuRaw = $row[$colTglBerlaku] ?? null;
+                $tglBerlaku = $this->parseImportDate($tglBerlakuRaw);
                 $ws         = trim($row[$colWs] ?? '');
                 $buyer      = trim($row[$colBuyer] ?? '');
                 $style      = trim($row[$colStyle] ?? '');
@@ -2498,8 +2504,18 @@ class PartController extends Controller
                 $partStatus = strtolower(trim($row[$colPartStatus] ?? ''));
 
                 // 1. Validasi Kelengkapan Data per Baris
-                if (empty($ws) || empty($buyer) || empty($style) || empty($color) || empty($panel) || empty($part) || empty($partStatus)) {
+                if (trim((string) $tglBerlakuRaw) === '' || empty($ws) || empty($buyer) || empty($style) || empty($color) || empty($panel) || empty($part) || empty($partStatus)) {
                     $errorRows[] = "Baris " . ($i + 1) . ": Ada kolom yang masih kosong.";
+                    continue;
+                }
+
+                if (!$tglBerlaku) {
+                    $errorRows[] = "Baris " . ($i + 1) . ": Format Tanggal berlaku '{$tglBerlakuRaw}' tidak valid.";
+                    continue;
+                }
+
+                if (!in_array($partStatus, ['regular', 'complement'])) {
+                    $errorRows[] = "Baris " . ($i + 1) . ": Part Status '{$partStatus}' tidak valid (regular / complement).";
                     continue;
                 }
 
@@ -2531,6 +2547,7 @@ class PartController extends Controller
                 // Push ke array preview jika semua data valid
                 $previewData[] = [
                     'row'             => $i + 1,
+                    'tanggal_berlaku' => $tglBerlaku,
                     'ws'              => $currentPart->act_costing_ws,
                     'buyer'           => $currentPart->buyer,
                     'style'           => $currentPart->style,
@@ -2584,6 +2601,7 @@ class PartController extends Controller
                     'color'               => $item['color'],
                     'part_status'         => strtolower($item['part_status'] ?? ''),
                     'set_part_status'     => strtolower($item['set_part_status'] ?? ''),
+                    'tanggal_berlaku'     => $this->parseImportDate($item['tanggal_berlaku'] ?? null),
                     'created_by'          => auth()->user()->id,
                     'created_by_username' => auth()->user()->username,
                 ]);
@@ -2605,5 +2623,41 @@ class PartController extends Controller
                 'message' => 'Gagal menyimpan data: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Ubah nilai tanggal dari Excel (serial number atau teks) ke format Y-m-d.
+     * Mengembalikan null jika tidak bisa dibaca.
+     */
+    private function parseImportDate($value)
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        // Cell bertipe tanggal di Excel terbaca sebagai serial number
+        if (is_numeric($value)) {
+            try {
+                return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $value)->format('Y-m-d');
+            } catch (\Throwable $e) {
+                return null;
+            }
+        }
+
+        $value = trim((string) $value);
+
+        // Urutan sesuai template (m/d/Y), lalu format umum lainnya
+        foreach (['Y-m-d', 'm/d/Y', 'd-m-Y', 'Y/m/d'] as $format) {
+            try {
+                $date = Carbon::createFromFormat('!' . $format, $value);
+                if ($date && $date->format($format) === $value) {
+                    return $date->format('Y-m-d');
+                }
+            } catch (\Throwable $e) {
+                // coba format berikutnya
+            }
+        }
+
+        return null;
     }
 }

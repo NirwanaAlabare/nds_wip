@@ -822,6 +822,7 @@
                                     <thead class="table-dark sticky-top">
                                         <tr class="text-center align-middle">
                                             <th>No</th>
+                                            <th>Tgl Berlaku</th>
                                             <th>No. WS</th>
                                             <th>Buyer</th>
                                             <th>Style</th>
@@ -834,7 +835,7 @@
                                     </thead>
                                     <tbody id="import-part-custom-preview" class="bg-white">
                                         <tr>
-                                            <td colspan="9" class="text-center text-muted py-4">
+                                            <td colspan="10" class="text-center text-muted py-4">
                                                 Silakan pilih file Excel di atas untuk menampilkan preview data.
                                             </td>
                                         </tr>
@@ -1050,7 +1051,7 @@
 
                 tbody.html(`
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-4">
+                        <td colspan="10" class="text-center text-muted py-4">
                             <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
                             Memproses & Membaca Data...
                         </td>
@@ -1072,6 +1073,7 @@
                                 html += `
                                     <tr>
                                         <td class="text-center fw-bold">${item.row}</td>
+                                        <td class="text-center text-nowrap">${item.tanggal_berlaku}</td>
                                         <td class="text-center">${item.ws}</td>
                                         <td>${item.buyer}</td>
                                         <td>${item.style}</td>
@@ -1095,7 +1097,7 @@
                         } else {
                             tbody.html(`
                                 <tr>
-                                    <td colspan="9" class="text-center text-warning py-4">
+                                    <td colspan="10" class="text-center text-warning py-4">
                                         Tidak ada data valid yang dapat ditampilkan.
                                     </td>
                                 </tr>
@@ -1121,7 +1123,7 @@
 
                         tbody.html(`
                             <tr>
-                                <td colspan="9" class="text-center text-danger py-4">
+                                <td colspan="10" class="text-center text-danger py-4">
                                     Gagal memuat preview data.
                                 </td>
                             </tr>
@@ -1145,7 +1147,7 @@
 
                 $('#import-part-custom-preview').html(`
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-4">
+                        <td colspan="10" class="text-center text-muted py-4">
                             Silakan pilih file Excel di atas untuk menampilkan preview data.
                         </td>
                     </tr>
