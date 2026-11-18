@@ -6,6 +6,13 @@
         </a>
         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
             <li>
+                <a href="{{ route('dashboard-master-data') }}"
+                    class="dropdown-item {{ (isset($subPage) && $subPage == 'dashboard') ? 'active' : '' }}">
+                    Dashboard <i class="fa-solid fa-gauge fa-sm"></i>
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
                 <a href="{{ route('master-data-customer') }}"
                     class="dropdown-item {{ (isset($subPage) && $subPage == 'master-customer') ? 'active' : '' }}">
                     Master Customer <i class="fa-solid fa-user-tie fa-sm"></i>
