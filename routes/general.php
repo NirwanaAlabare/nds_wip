@@ -8,6 +8,7 @@ use App\Http\Controllers\General\InjectAdjustmentController;
 use App\Http\Controllers\General\LockController;
 use App\Http\Controllers\General\LockTransactionController;
 use App\Http\Controllers\General\SwitchingController;
+use App\Http\Controllers\General\SwitchSoDetController;
 use App\Http\Controllers\General\TrackController;
 use App\Http\Controllers\General\WorksheetController;
 
@@ -220,5 +221,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/get-data-size', 'getDataSize')->name('get-data-size-switching');
         Route::post('/get-data-panel', 'getDataPanel')->name('get-data-panel-switching');
         Route::post('/get-data-part', 'getDataPart')->name('get-data-part-switching');
+    });
+
+    // Switch Transaction SO Det (pindah seluruh transaksi so_det ke so_det lain)
+    Route::controller(SwitchSoDetController::class)->prefix("switch-so-det")->middleware('role:superadmin')->group(function () {
+        Route::get('/', 'index')->name('switch-so-det');
+        Route::get('/get-so-det', 'getSoDet')->name('get-so-det-switch-so-det');
+        Route::post('/preview', 'preview')->name('preview-switch-so-det');
+        Route::post('/store', 'store')->name('store-switch-so-det');
+        Route::post('/get-data', 'getData')->name('get-data-switch-so-det');
+        Route::post('/undo-preview', 'undoPreview')->name('undo-preview-switch-so-det');
+        Route::post('/undo', 'undo')->name('undo-switch-so-det');
     });
 });

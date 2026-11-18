@@ -115,10 +115,80 @@ class MasterDataController extends Controller
         'Email'            => ['E-Mail', 50],
     ];
 
-    // Pintu masuk modul (kartu di home & logo navbar) - langsung ke daftar customer
+    // Pintu masuk modul (kartu di home & logo navbar): kartu ringkasan Customer, Supplier & Item General
     public function dashboard()
     {
-        return redirect()->route('master-data-customer');
+        $sb = DB::connection('mysql_sb');
+
+        // Customer / supplier: non_aktif '1' = tidak aktif; Blocked hanya terbaca kalau kolom baru sudah ada
+        $partner = function ($jenis) use ($sb) {
+            $blokir = $this->supplierBaru($jenis);
+            $row = $sb->table('mastersupplier')
+                ->where('tipe_sup', self::JENIS[$jenis]['tipe_sup'])
+                ->selectRaw("count(*) as total")
+                ->selectRaw("sum(case when coalesce(non_aktif, '') <> '1' then 1 else 0 end) as aktif")
+                ->selectRaw($blokir
+                    ? "sum(case when non_aktif = '1' and status_aktif = 'BLOCKED' then 1 else 0 end) as blokir"
+                    : "0 as blokir")
+                ->first();
+
+            $total = (int) $row->total;
+            $aktif = (int) $row->aktif;
+            $blok  = (int) $row->blokir;
+
+            return ['total' => $total, 'aktif' => $aktif, 'nonaktif' => $total - $aktif - $blok, 'blokir' => $blok, 'adaBlokir' => $blokir];
+        };
+
+        // Item General: masteritem mattype N / M, non_aktif 'Y' = tidak aktif (sama dengan daftar Item)
+        $item = $sb->table('masteritem')
+            ->whereIn('mattype', ['N', 'M'])
+            ->selectRaw("count(*) as total")
+            ->selectRaw("sum(case when coalesce(non_aktif, '') <> 'Y' then 1 else 0 end) as aktif")
+            ->first();
+
+        $kartu = [
+            [
+                'kunci' => 'customer',
+                'judul' => 'Customer',
+                'sub'   => 'Buyer data',
+                'ikon'  => 'fa-user-tie',
+                'rute'  => 'master-data-customer',
+                'buat'  => route('master-data-create', ['jenis' => 'customer']),
+                'angka' => $partner('customer'),
+            ],
+            [
+                'kunci' => 'supplier',
+                'judul' => 'Supplier',
+                'sub'   => 'Vendor data',
+                'ikon'  => 'fa-truck-field',
+                'rute'  => 'master-data-supplier',
+                'buat'  => route('master-data-create', ['jenis' => 'supplier']),
+                'angka' => $partner('supplier'),
+            ],
+            [
+                'kunci' => 'item',
+                'judul' => 'Item General',
+                'sub'   => 'General goods',
+                'ikon'  => 'fa-boxes-stacked',
+                'rute'  => 'master-data-item',
+                'buat'  => route('master-data-item-create'),
+                'angka' => [
+                    'total'     => (int) $item->total,
+                    'aktif'     => (int) $item->aktif,
+                    'nonaktif'  => (int) $item->total - (int) $item->aktif,
+                    'blokir'    => 0,
+                    'adaBlokir' => false,
+                ],
+            ],
+        ];
+
+        return view('master-data.dashboard', [
+            'kartu'        => $kartu,
+            'nama'         => Auth::user()->name ?? '',
+            'page'         => 'dashboard-master-data',
+            'subPageGroup' => 'master-data',
+            'subPage'      => 'dashboard',
+        ]);
     }
 
     public function customer()

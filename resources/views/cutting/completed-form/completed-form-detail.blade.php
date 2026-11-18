@@ -178,6 +178,97 @@
         .ext-summary .ext-summary-item.is-negative input {
             color: #dc3545;
         }
+
+        /* -Panduan- */
+        :root {
+            --cg-pri: var(--sb-color, #082149);
+            --cg-sec: var(--sb-secondary-color, #238380);
+            --cg-acc: #ff971f;
+            --cg-ink: #212529;
+            --cg-muted: #6c757d;
+            --cg-line: #e2e6ec;
+            --cg-soft: #f4f6f9;
+        }
+        .cg { padding: 0 20px 20px; color: var(--cg-ink); font-size: 13.5px; }
+        .cg-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 0; background: #fff; border-bottom: 1px solid var(--cg-line); margin-bottom: 4px; }
+        .cg-nav a { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--cg-soft); color: var(--cg-pri); text-decoration: none; border: 1px solid var(--cg-line); }
+        .cg-nav a:hover { background: var(--cg-pri); color: #fff; }
+        .cg section { padding-top: 16px; scroll-margin-top: 56px; }
+        .cg h6 { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: 700; color: var(--cg-pri); border-left: 4px solid var(--cg-sec); padding-left: 8px; margin-bottom: 10px; }
+        .cg ul { padding-left: 18px; margin-bottom: 0; }
+        .cg li { margin-bottom: 6px; line-height: 1.5; }
+        .cg kbd { font-size: 11px; padding: 1px 5px; }
+        .cg-note { font-size: 12.5px; color: var(--cg-muted); margin-bottom: 10px; }
+        .cg-show { border: 1px solid var(--cg-sec); background: #fff; color: var(--cg-sec); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 2px 10px; }
+        .cg-show:hover, .cg-show.pri { background: var(--cg-sec); color: #fff; }
+        .cg-show.pri:hover { filter: brightness(.92); }
+        .cg-flow { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .cg-flow > div { flex: 1; min-width: 140px; background: var(--cg-soft); border: 1px solid var(--cg-line); border-radius: .5rem; padding: 8px 12px; }
+        .cg-flow b { display: block; color: var(--cg-pri); } .cg-flow span { font-size: 12px; color: var(--cg-muted); }
+        .cg-flow > i { align-self: center; font-style: normal; font-weight: 700; color: var(--cg-sec); }
+        .cg-leg { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 2px 0 4px; font-size: 12.5px; }
+        .cg-leg span { display: inline-flex; align-items: center; gap: 6px; }
+        .cg-leg i { display: inline-block; width: 26px; height: 14px; border-radius: 3px; border: 2px solid; background: #fff; }
+        .cg-faq dt { color: var(--cg-pri); margin-top: 8px; } .cg-faq dd { margin: 2px 0 0; }
+        @media (max-width: 576px) { .cg-flow > i { display: none; } }
+        /* peta halaman */
+        .cg-map { background: var(--cg-soft); border: 1px solid var(--cg-line); border-radius: .6rem; padding: 14px; max-width: 760px; display: flex; flex-direction: column; gap: 10px; }
+        .cg-z { position: relative; cursor: pointer; transition: box-shadow .15s; }
+        .cg-z:hover { box-shadow: 0 0 0 2px var(--cg-acc); z-index: 6; }
+        .cg-n { position: absolute; top: -9px; left: -9px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; background: var(--cg-acc); color: #fff !important; font-size: 12px; font-weight: 700; display: grid; place-items: center; text-decoration: none; box-shadow: 0 0 0 2px #fff; }
+        .cg-n.sm { width: 18px; height: 18px; font-size: 10.5px; top: -7px; left: -7px; }
+        .cg-n:hover, .cg-n:focus-visible { background: var(--cg-pri); z-index: 5; }
+        .cg-tip { position: absolute; top: calc(100% + 8px); left: -4px; width: 230px; padding: 8px 10px; border-radius: .45rem; background: var(--cg-pri); color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45; text-align: left; box-shadow: 0 6px 18px rgba(8,33,73,.3); opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity .15s, transform .15s, visibility .15s; pointer-events: none; }
+        .cg-tip:before { content: ""; position: absolute; top: -5px; left: 10px; width: 10px; height: 10px; background: var(--cg-pri); transform: rotate(45deg); }
+        .cg-n.tip-l .cg-tip { left: auto; right: -4px; } .cg-n.tip-l .cg-tip:before { left: auto; right: 10px; }
+        .cg-tip b { display: block; font-size: 12.5px; margin-bottom: 2px; color: #9fd6d3; }
+        .cg-n:hover .cg-tip, .cg-n:focus-visible .cg-tip { opacity: 1; visibility: visible; transform: none; }
+        .cg-m-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .cg-m-head b { font-size: 12.5px; color: var(--cg-pri); }
+        .cg-m-head .r { display: flex; gap: 4px; padding: 4px; border-radius: .35rem; }
+        .cg-m-head .r i { width: 56px; height: 14px; border-radius: 3px; border: 1px solid var(--cg-sec); background: #fff; }
+        .cg-m-head .r i.p { background: var(--cg-sec); }
+        .cg-m-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+        .cg-card { background: #fff; border: 1px solid var(--cg-line); border-radius: .45rem; padding: 0 8px 8px; }
+        .cg-card .h { margin: 0 -8px 8px; padding: 4px 8px 4px 18px; font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; background: var(--cg-pri); color: #fff; border-radius: .45rem .45rem 0 0; }
+        .cg-card.min { padding-bottom: 0; } .cg-card.min .h { margin-bottom: 0; border-radius: .45rem; }
+        .cg-f { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 6px; }
+        .cg-f.c2 { grid-template-columns: repeat(2, 1fr); }
+        .cg-f i { height: 12px; border-radius: 3px; border: 1.5px solid #3169e4; }
+        .cg-f i.in { border-color: #9aa4b1; } .cg-f i.ca { border-color: #fa4456; }
+        .cg-sv { height: 12px; border-radius: 3px; background: var(--cg-sec); }
+        .cg-tbl { border: 1px solid var(--cg-line); border-radius: .3rem; overflow: hidden; }
+        .cg-tbl s { display: flex; align-items: center; gap: 6px; height: 14px; padding: 0 6px; border-top: 1px solid var(--cg-line); text-decoration: none; font-size: 9px; color: #adb5bd; }
+        .cg-tbl s:first-child { border-top: 0; background: #e9edf2; }
+        .cg-tbl s.sel { background: #e3efff; } .cg-tbl s.ct { border-left: 3px solid #17a2b8; }
+        .cg-tbl s em { flex: 1; height: 5px; border-radius: 3px; background: #e9edf2; }
+        .cg-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 9.5px; color: var(--cg-muted); }
+        .cg-bar u { text-decoration: none; font-size: 9.5px; color: #fff; background: #28a745; border-radius: .25rem; padding: 1px 6px; }
+        .cg-rc { height: 18px; border-radius: .3rem; background: #343a40; color: #fff; font-size: 10px; display: grid; place-items: center; }
+        .cg-ext { border: 1px dashed #17a2b8; background: #eef9fb; border-radius: .35rem; padding: 6px 8px; margin-bottom: 6px; }
+        .cg-ext em { font-style: normal; font-size: 9.5px; font-weight: 700; color: #117a8b; }
+        .cg-btns { display: flex; justify-content: space-between; } .cg-btns i { width: 30%; height: 12px; border-radius: 3px; background: #fa4456; } .cg-btns i + i { background: #2e8a57; }
+        @media (max-width: 576px) { .cg-m-grid { grid-template-columns: 1fr; } }
+        /* sorotan & tur */
+        .cg-spot { position: fixed; z-index: 2000; border-radius: .6rem; box-shadow: 0 0 0 9999px rgba(8,33,73,.6); outline: 3px solid #ff971f; outline-offset: 3px; pointer-events: none; animation: cgSpot 1.2s ease-in-out infinite; }
+        @keyframes cgSpot { 50% { outline-offset: 8px; outline-color: rgba(255,151,31,.6) } }
+        .cg-spot-cv { position: fixed; inset: 0; z-index: 1999; cursor: pointer; }
+        .cg-spot-l { position: fixed; z-index: 2001; background: #fff; color: #082149; font-size: 13px; padding: 10px 12px; border-radius: .5rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); width: 340px; max-width: calc(100vw - 16px); }
+        .cg-spot-l .st { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: #238380; margin-bottom: 4px; }
+        .cg-spot-l .dots { display: flex; gap: 4px; }
+        .cg-spot-l .dots i { width: 7px; height: 7px; border-radius: 50%; background: #e2e6ec; }
+        .cg-spot-l .dots i.done { background: #9fd6d3; }
+        .cg-spot-l .dots i.on { background: #ff971f; width: 16px; border-radius: 4px; }
+        .cg-spot-l > b { display: block; font-weight: 700; }
+        .cg-spot-l > span.d { display: block; color: #3d4450; font-size: 12.5px; line-height: 1.5; margin-top: 3px; }
+        .cg-spot-l > span.d b { color: #082149; }
+        .cg-spot-l .nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
+        .cg-spot-l .nav button { border: 1px solid #c5ccd6; background: #fff; color: #082149; font-size: 12.5px; font-weight: 600; border-radius: .35rem; padding: 4px 12px; }
+        .cg-spot-l .nav button:disabled { opacity: .4; }
+        .cg-spot-l .nav button.pri { background: #238380; border-color: #238380; color: #fff; }
+        .cg-spot-l small { display: block; color: #6c757d; font-size: 11.5px; margin-top: 6px; padding-top: 5px; border-top: 1px solid #e2e6ec; }
+        .cg-spot-l kbd { font-size: 10px; padding: 0 4px; }
+        @media (prefers-reduced-motion: reduce) { .cg-spot { animation: none; } }
     </style>
 @endsection
 
@@ -185,7 +276,10 @@
     <div class="row g-3 mb-3">
         <div class="d-flex gap-3 justify-content-between align-items-center">
             <h5 class="text-sb fw-bold mb-1">Form Cut / {{ $formCutInputData->no_form . " / ". strtoupper($formCutInputData->name) }}</h5>
-            <a href="{{ route('manage-cutting') }}" class="btn btn-sb-secondary btn-sm"><i class="fa fa-reply"></i> Kembali ke Completed Form</a>
+            <div class="d-flex gap-1" id="cf-head-r">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="cf-guide-btn"><i class="fa fa-book-open"></i> Panduan</button>
+                <a href="{{ route('manage-cutting') }}" class="btn btn-sb-secondary btn-sm"><i class="fa fa-reply"></i> Kembali ke Completed Form</a>
+            </div>
         </div>
         <div class="visually-hidden">
             <input type="checkbox" name="bypass" id="bypass" value="bypass">
@@ -628,7 +722,7 @@
             </div>
         </div>
         <div class="col-md-12">
-            <button class="btn btn-dark btn-block" onclick="recalculateForm()">Recalculate Form</button>
+            <button class="btn btn-dark btn-block" id="recalculate-btn" onclick="recalculateForm()">Recalculate Form</button>
         </div>
 
         {{-- Spreading Summary List PROCESS 3 --}}
@@ -907,7 +1001,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-6" id="sisa-gelaran-col">
                                 <div class="mb-3">
                                     <label class="form-label small label-input">Sisa Gelaran</label>
                                     <div class="d-flex mb-3">
@@ -1401,7 +1495,7 @@
 
     {{-- Update Form Status --}}
     @if (Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0)
-        <div class="card">
+        <div class="card" id="status-card">
             <div class="card-body">
                 <div class="mb-3">
                     <label class="form-label small">UBAH STATUS</label>
@@ -1419,6 +1513,177 @@
             </div>
         </div>
     @endif
+
+    {{-- Panduan --}}
+    @php $cgSuperadmin = Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0; @endphp
+    <div class="modal fade" id="cfGuide" tabindex="-1" aria-labelledby="cfGuideTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <div>
+                        <small class="d-block text-uppercase fw-bold" style="font-size: 11px; letter-spacing: .6px; opacity: .8">Panduan singkat</small>
+                        <h5 class="modal-title fw-bold" id="cfGuideTitle">Detail Completed Form</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body cg">
+                    <nav class="cg-nav">
+                        <a href="#cg-peta">Peta halaman</a><a href="#cg-alur">Alur & warna</a><a href="#cg-header">Header</a><a href="#cg-detail">Detail</a><a href="#cg-recalc">Loss Time & Recalculate</a>
+                        <a href="#cg-summary">Summary</a><a href="#cg-spread">Spreading</a><a href="#cg-ext">Roll sambungan</a>@if ($cgSuperadmin)<a href="#cg-status">Ubah status</a>@endif<a href="#cg-tips">Tips & FAQ</a>
+                    </nav>
+
+                    <section id="cg-peta">
+                        <h6><span>Peta halaman</span> <button type="button" class="cg-show pri" data-tour="0"><i class="fa fa-play"></i> Mulai tur</button></h6>
+                        <p class="cg-note">Klik <b>nomor</b> untuk membaca penjelasannya, atau klik <b>kotaknya</b> untuk melihat langsung di halaman.</p>
+                        <div class="cg-map">
+                            <div class="cg-m-head">
+                                <b>Form Cut / No. Form / Meja</b>
+                                <div class="cg-z r" data-spot="#cf-head-r"><i></i><i class="p"></i></div>
+                            </div>
+                            <div class="cg-m-grid">
+                                <div class="cg-z cg-card" data-spot="#header-data-card">
+                                    <a href="#cg-header" class="cg-n" aria-label="Header Data">1<span class="cg-tip" role="tooltip"><b>Header Data</b>Meja, jam Start/Finish dan QTY Cut Ply.</span></a>
+                                    <div class="h">Header Data</div>
+                                    <div class="cg-f"><i class="in"></i><i class="in"></i><i class="in"></i><i></i><i></i><i></i><i></i><i></i><i class="in"></i></div>
+                                    <div class="cg-sv"></div>
+                                </div>
+                                <div class="cg-z cg-card" data-spot="#detail-data-card">
+                                    <a href="#cg-detail" class="cg-n tip-l" aria-label="Detail Data">2<span class="cg-tip" role="tooltip"><b>Detail Data</b>Panjang, comma & lebar actual. Cons Ampar dihitung otomatis.</span></a>
+                                    <div class="h">Detail Data</div>
+                                    <div class="cg-f c2"><i></i><i class="in"></i><i></i><i class="in"></i><i></i><i class="ca"></i></div>
+                                    <div class="cg-sv"></div>
+                                </div>
+                            </div>
+                            <div class="cg-z cg-card min" data-spot="#lost-time-card">
+                                <a href="#cg-recalc" class="cg-n" aria-label="Loss Time">3<span class="cg-tip" role="tooltip"><b>Loss Time</b>Daftar waktu loss time saat pengerjaan (hanya lihat).</span></a>
+                                <div class="h">Loss Time</div>
+                            </div>
+                            <div class="cg-z" data-spot="#recalculate-btn">
+                                <a href="#cg-recalc" class="cg-n sm" aria-label="Recalculate Form">4<span class="cg-tip" role="tooltip"><b>Recalculate Form</b>Menghitung ulang seluruh form dari data roll.</span></a>
+                                <div class="cg-rc">Recalculate Form</div>
+                            </div>
+                            <div class="cg-z cg-card" data-spot="#summary-card">
+                                <a href="#cg-summary" class="cg-n" aria-label="Summary">5<span class="cg-tip" role="tooltip"><b>Summary</b>Daftar roll. Klik baris untuk edit, geser untuk ubah urutan, Tambah Roll untuk menyisipkan.</span></a>
+                                <div class="h">Summary</div>
+                                <div class="cg-bar"><span>⋮⋮ geser · 🔗 sambungan · klik baris</span><u>+ Tambah Roll</u></div>
+                                <div class="cg-tbl"><s></s><s>⋮⋮<em></em></s><s class="sel">⋮⋮<em></em></s><s class="ct">🔗<em></em></s><s>⋮⋮<em></em></s></div>
+                            </div>
+                            <div class="cg-z cg-card" data-spot="#spreading-form-card">
+                                <a href="#cg-spread" class="cg-n" aria-label="Spreading">6<span class="cg-tip" role="tooltip"><b>Spreading</b>Form edit roll terpilih: qty, lembar gelaran, sisa kain, dll. Lalu SIMPAN.</span></a>
+                                <div class="h">Spreading</div>
+                                <div class="cg-f"><i class="in"></i><i class="in"></i><i class="in"></i><i class="in"></i><i class="ca"></i><i class="in"></i></div>
+                                <div class="cg-z cg-ext" data-spot="#add-roll-ext-section:not(.d-none)|#sisa-gelaran-col">
+                                    <a href="#cg-ext" class="cg-n sm" aria-label="Roll sambungan">7<span class="cg-tip" role="tooltip"><b>Roll sambungan</b>Muncul bila Sisa Gelaran diisi: scan roll yang menyambung lembar terakhir.</span></a>
+                                    <em>🔗 ROLL SAMBUNGAN</em>
+                                </div>
+                                <div class="cg-btns"><i></i><i></i></div>
+                            </div>
+                            @if ($cgSuperadmin)
+                                <div class="cg-z cg-card min" data-spot="#status-card">
+                                    <a href="#cg-status" class="cg-n" aria-label="Ubah status">8<span class="cg-tip" role="tooltip"><b>Ubah status</b>Khusus superadmin: mengubah status form.</span></a>
+                                    <div class="h">Ubah Status</div>
+                                </div>
+                            @endif
+                        </div>
+                    </section>
+
+                    <section id="cg-alur">
+                        <h6>Alur singkat & arti warna</h6>
+                        <div class="cg-flow">
+                            <div><b>Isi Operator</b><span>di bawah tabel Summary</span></div><i>→</i>
+                            <div><b>Klik roll</b><span>di Summary</span></div><i>→</i>
+                            <div><b>Ubah di Spreading</b><span>angka hitungan ikut berubah</span></div><i>→</i>
+                            <div><b>SIMPAN</b><span>form dihitung ulang</span></div>
+                        </div>
+                        <div class="cg-leg">
+                            <span><i style="border-color:#3169e4"></i><b style="color:#3169e4">Biru</b> data dari marker/WS</span>
+                            <span><i style="border-color:#9aa4b1"></i><b>Hitam</b> diisi manual</span>
+                            <span><i style="border-color:#fa4456"></i><b style="color:#fa4456">Merah</b> hasil hitungan otomatis</span>
+                            <span><i style="border-color:#12be60"></i><b style="color:#0e8845">Hijau</b> data hasil scan roll</span>
+                        </div>
+                    </section>
+
+                    <section id="cg-header">
+                        <h6><span>1. Header Data</span> <button type="button" class="cg-show" data-spot="#header-data-card"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li>Yang bisa diubah: <b>Meja</b>, <b>Start</b>, <b>Finish</b>, dan <b>QTY Cut Ply</b>. Kolom biru lainnya hanya informasi.</li>
+                            <li>Tabel ratio menunjukkan qty per size. <b>Qty Output</b> = ratio × QTY Cut Ply.</li>
+                            <li>Tekan <b>SIMPAN</b> di kartu ini untuk menyimpan perubahan header.</li>
+                        </ul>
+                    </section>
+
+                    <section id="cg-detail">
+                        <h6><span>2. Detail Data</span> <button type="button" class="cg-show" data-spot="#detail-data-card"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li>Isi <b>Panjang Actual</b>, <b>Comma Actual</b>, dan <b>Lebar Actual</b> sesuai kondisi di meja.</li>
+                            <li><b>Cons Ampar</b>, <b>Est. Kebutuhan Kain</b> dan perhitungan roll ikut berubah otomatis.</li>
+                            <li>Tekan <b>SIMPAN</b> di kartu ini.</li>
+                        </ul>
+                    </section>
+
+                    <section id="cg-recalc">
+                        <h6><span>3–4. Loss Time & Recalculate Form</span> <button type="button" class="cg-show" data-spot="#recalculate-btn"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li><b>Loss Time</b> (tertutup, klik <i class="fas fa-plus"></i> untuk membuka): daftar loss time saat pengerjaan. Hanya untuk dilihat.</li>
+                            <li><b>Recalculate Form</b>: menghitung ulang total, cons actual, dan short roll dari semua roll. Pakai bila angka di Summary terlihat tidak sesuai. Halaman akan dimuat ulang.</li>
+                        </ul>
+                    </section>
+
+                    <section id="cg-summary">
+                        <h6><span>5. Summary</span> <button type="button" class="cg-show" data-spot="#summary-card"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li><b>Klik baris</b> roll untuk memuatnya ke form <b>Spreading</b> di bawah. Baris yang sedang diedit berwarna biru muda.</li>
+                            <li><b><i class="fa-solid fa-grip-vertical"></i> Geser</b> pegangan di kolom pertama untuk mengubah urutan roll. Setelah dikonfirmasi, urutan disimpan dan form dihitung ulang.</li>
+                            <li>Baris dengan <b><i class="fa-solid fa-link"></i></b> dan garis kiri biru adalah <b>roll sambungan</b>; ikut pindah bersama roll di atasnya.</li>
+                            <li><b><i class="fa fa-plus"></i> Tambah Roll</b>: pilih posisi sisip, lalu scan ID Roll di form Spreading dan simpan.</li>
+                            <li><b>Operator</b> dan <b>Cons. Actual</b> wajib terisi. Tanpa itu, simpan akan ditolak.</li>
+                        </ul>
+                    </section>
+
+                    <section id="cg-spread">
+                        <h6><span>6. Spreading</span> <button type="button" class="cg-show" data-spot="#spreading-form-card"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li>Ubah data roll terpilih: <b>Lembar Gelaran</b>, <b>Kepala Kain</b>, <b>Sisa Tidak Bisa</b>, <b>Reject</b>, <b>Piping</b>, <b>Sisa Kain</b>, <b>Group</b>.</li>
+                            <li>Kolom merah (<b>Pemakaian</b>, <b>Short Roll</b>) dihitung otomatis. Muncul peringatan bila Short Roll kurang dari <b>-2%</b>.</li>
+                            <li>Untuk mengganti roll, scan/ketik <b>Id Roll</b> lalu tekan <kbd>Enter</kbd> atau <b>Get</b>.</li>
+                            <li><b>SIMPAN</b> menyimpan roll. <b>HAPUS</b> hanya tersedia untuk superadmin.</li>
+                        </ul>
+                    </section>
+
+                    <section id="cg-ext">
+                        <h6><span>7. Roll sambungan</span> <button type="button" class="cg-show" data-spot="#add-roll-ext-section:not(.d-none)|#sisa-gelaran-col"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <ul>
+                            <li>Bila roll habis di tengah lembar, isi <b>Sisa Gelaran</b>. Kotak <b>Roll Sambungan</b> akan muncul.</li>
+                            <li>Ikuti 3 langkahnya: <b>scan roll sambungan</b> → isi <b>Lembar Sambungan</b> → isi sisa roll yang lanjut digelar (isi 0 bila tidak ada).</li>
+                            <li>Unit roll sambungan harus sama; yard otomatis dikonversi ke meter.</li>
+                            <li>Untuk melepas sambungan: buka roll pertama, kosongkan <b>Sisa Gelaran</b>, lalu simpan.</li>
+                        </ul>
+                    </section>
+
+                    @if ($cgSuperadmin)
+                        <section id="cg-status">
+                            <h6><span>8. Ubah status</span> <button type="button" class="cg-show" data-spot="#status-card"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                            <ul>
+                                <li>Khusus superadmin. Pilih status lalu tekan <i class="fa fa-save"></i>. Halaman pengerjaan form terbuka di tab baru.</li>
+                            </ul>
+                        </section>
+                    @endif
+
+                    <section id="cg-tips">
+                        <h6>Tips & FAQ</h6>
+                        <dl class="cg-faq">
+                            <dt>Muncul peringatan "WARNING" soal stocker saat simpan?</dt>
+                            <dd>Form ini sudah dibuatkan stocker, perubahan bisa memengaruhi stocker. Tekan <b>Lanjutkan</b> hanya bila memang perlu, selain itu <b>Batalkan</b>.</dd>
+                            <dt>Roll tidak bisa dihapus?</dt>
+                            <dd>Roll yang masih punya / menjadi sambungan harus dilepas dulu sambungannya (kosongkan Sisa Gelaran roll pertama lalu simpan).</dd>
+                            <dt>"Unit roll tidak sesuai"?</dt>
+                            <dd>Semua roll dalam satu form harus satuan yang sama (meter/yard atau kg).</dd>
+                        </dl>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('custom-script')
@@ -4279,5 +4544,124 @@
                 });
             }
         }
+
+        // -Panduan: sorot elemen asli + tur langkah demi langkah-
+        (function () {
+            const gEl = document.getElementById('cfGuide');
+            if (!gEl) return;
+            const gBs = bootstrap.Modal.getOrCreateInstance(gEl);
+            const gGo = (sel, smooth) => { const t = gEl.querySelector(sel); if (t) t.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }); };
+            // sel: beberapa selector dipisah "|" dipakai berurutan, yang pertama tampil yang disorot
+            const ALL_STEPS = [
+                { sel: '#cf-head-r', sec: 'cg-peta', lbl: 'Panduan & Kembali',
+                  d: '<b>Panduan</b> membuka halaman bantuan ini kapan saja · <b>Kembali ke Completed Form</b> ke daftar form.' },
+                { sel: '#header-data-card', sec: 'cg-header', lbl: '1. Header Data',
+                  d: 'Ubah <b>Meja</b>, <b>Start</b>, <b>Finish</b>, dan <b>QTY Cut Ply</b>, lalu tekan <b>SIMPAN</b> di kartu ini.' },
+                { sel: '#detail-data-card', sec: 'cg-detail', lbl: '2. Detail Data',
+                  d: 'Isi <b>Panjang</b>, <b>Comma</b>, dan <b>Lebar Actual</b>. Cons Ampar dihitung otomatis. Tekan <b>SIMPAN</b>.' },
+                { sel: '#lost-time-card', sec: 'cg-recalc', lbl: '3. Loss Time',
+                  d: 'Daftar loss time saat pengerjaan. Hanya untuk dilihat.' },
+                { sel: '#recalculate-btn', sec: 'cg-recalc', lbl: '4. Recalculate Form',
+                  d: 'Menghitung ulang seluruh form dari data roll. Pakai bila angka terlihat tidak sesuai.' },
+                { sel: '#summary-card', sec: 'cg-summary', lbl: '5. Summary',
+                  d: '<b>Klik baris</b> untuk edit roll · <b>geser</b> pegangan untuk ubah urutan · <b>Tambah Roll</b> untuk menyisipkan roll. <b>Operator</b> wajib diisi.' },
+                { sel: '#spreading-form-card', sec: 'cg-spread', lbl: '6. Spreading',
+                  d: 'Form roll terpilih. Ubah lembar gelaran, kepala kain, sisa kain, dll. Kolom merah dihitung otomatis. Tekan <b>SIMPAN</b>.' },
+                { sel: '#add-roll-ext-section:not(.d-none)|#sisa-gelaran-col', sec: 'cg-ext', lbl: '7. Roll sambungan',
+                  d: 'Isi <b>Sisa Gelaran</b> bila roll habis di tengah lembar. Kotak <b>Roll Sambungan</b> muncul: scan roll penyambungnya.' },
+                { sel: '#status-card', sec: 'cg-status', lbl: '8. Ubah status',
+                  d: 'Khusus superadmin: pilih status form lalu simpan.' },
+            ];
+            const findEl = sel => {
+                for (const s of sel.split('|')) {
+                    const el = [...document.querySelectorAll(s)].find(x => x.offsetParent !== null);
+                    if (el) return el;
+                }
+                return null;
+            };
+            let STEPS = ALL_STEPS, spotTok = 0, spotIdx = -1;
+
+            document.getElementById('cf-guide-btn').onclick = () => gBs.show();
+
+            function spotClear() {
+                spotTok++;
+                document.querySelectorAll('.cg-spot, .cg-spot-l, .cg-spot-cv').forEach(x => x.remove());
+                removeEventListener('scroll', spotOff, true); removeEventListener('resize', spotOff);
+            }
+            // tutup tur & kembali ke panduan di bagian langkah terakhir yang dilihat
+            function spotOff() {
+                const st = STEPS[spotIdx];
+                spotClear(); spotIdx = -1;
+                gEl.addEventListener('shown.bs.modal', () => { if (st) gGo('#' + st.sec); }, { once: true });
+                gBs.show();
+            }
+            function spotGo(i) {
+                if (i < 0 || i >= STEPS.length) return;
+                spotClear(); spotIdx = i;
+                const st = STEPS[i], n = STEPS.length;
+                const el = findEl(st.sel);
+                if (!el) { iziToast.info({ message: 'Bagian ini belum tampil di halaman', position: 'topCenter' }); spotOff(); return; }
+                const tok = spotTok;
+                el.scrollIntoView({ behavior: 'smooth', block: el.offsetHeight > innerHeight * .7 ? 'start' : 'center' });
+                // tunggu scroll berhenti (posisi elemen stabil beberapa frame), baru pasang sorotan
+                let last = null, still = 0;
+                const t0 = performance.now();
+                (function wait() {
+                    if (tok !== spotTok) return;
+                    const top = el.getBoundingClientRect().top;
+                    still = last !== null && Math.abs(top - last) < 0.5 ? still + 1 : 0;
+                    last = top;
+                    if (still >= 6 || performance.now() - t0 > 2000) draw(); else requestAnimationFrame(wait);
+                })();
+                function draw() {
+                    const r = el.getBoundingClientRect(), pad = 6;
+                    // elemen lebih tinggi dari layar: sorot bagian yang terlihat saja
+                    const top = Math.max(8, r.top - pad), bottom = Math.min(innerHeight - 8, r.bottom + pad);
+                    const cv = document.createElement('div'); cv.className = 'cg-spot-cv'; cv.onclick = spotOff;
+                    const s = document.createElement('div'); s.className = 'cg-spot';
+                    Object.assign(s.style, { left: r.left - pad + 'px', top: top + 'px', width: r.width + pad * 2 + 'px', height: Math.max(0, bottom - top) + 'px' });
+                    const l = document.createElement('div'); l.className = 'cg-spot-l';
+                    l.innerHTML = `<div class="st"><span>Langkah ${i + 1} dari ${n}</span><span class="dots">${STEPS.map((_, k) => `<i class="${k === i ? 'on' : k < i ? 'done' : ''}"></i>`).join('')}</span></div>
+                        <b>${st.lbl}</b><span class="d">${st.d}</span>
+                        <div class="nav"><button type="button" data-nav="prev" ${i ? '' : 'disabled'}>‹ Sebelumnya</button>
+                            <button type="button" data-nav="next" class="pri">${i === n - 1 ? 'Selesai ✓' : 'Berikutnya ›'}</button></div>
+                        <small><kbd>←</kbd><kbd>→</kbd> pindah langkah · <kbd>Esc</kbd>, scroll, atau klik area gelap untuk kembali ke panduan</small>`;
+                    l.onclick = e => {
+                        const b = e.target.closest('[data-nav]');
+                        if (!b) return;
+                        if (b.dataset.nav === 'prev') spotGo(i - 1); else if (i === n - 1) spotOff(); else spotGo(i + 1);
+                    };
+                    document.body.append(cv, s, l);
+                    const lh = l.offsetHeight, below = bottom + 16 + lh < innerHeight;
+                    l.style.left = Math.max(8, Math.min(innerWidth - l.offsetWidth - 8, r.left)) + 'px';
+                    l.style.top = (below ? bottom + 16 : Math.max(8, top - lh - 16)) + 'px';
+                    const nx = l.querySelector('[data-nav="next"]'); if (nx) nx.focus({ preventScroll: true });
+                    // mulai dengarkan scroll user setelah sorotan tampil
+                    setTimeout(() => {
+                        if (tok !== spotTok || !document.querySelector('.cg-spot')) return;
+                        addEventListener('scroll', spotOff, true); addEventListener('resize', spotOff);
+                    }, 250);
+                }
+            }
+
+            gEl.addEventListener('click', e => {
+                const a = e.target.closest('.cg-n, .cg-nav a');
+                if (a) { e.preventDefault(); e.stopPropagation(); gGo(a.getAttribute('href'), true); return; }
+                const b = e.target.closest('[data-spot], [data-tour]');
+                if (!b) return;
+                // langkah yang elemennya tidak ada di halaman (mis. khusus superadmin) dilewati
+                STEPS = ALL_STEPS.filter(x => x.sel.split('|').some(s => document.querySelector(s.replace(':not(.d-none)', ''))));
+                const idx = b.dataset.tour !== undefined ? 0 : Math.max(0, STEPS.findIndex(x => x.sel === b.dataset.spot));
+                gEl.addEventListener('hidden.bs.modal', () => spotGo(idx), { once: true });
+                gBs.hide();
+            });
+            document.addEventListener('keydown', e => {
+                if (spotIdx < 0) return;
+                if (e.key === 'Escape') { e.preventDefault(); spotOff(); return; }
+                if (!document.querySelector('.cg-spot')) return;
+                if (e.key === 'ArrowRight') { e.preventDefault(); spotIdx === STEPS.length - 1 ? spotOff() : spotGo(spotIdx + 1); }
+                else if (e.key === 'ArrowLeft') { e.preventDefault(); spotGo(spotIdx - 1); }
+            }, true);
+        })();
     </script>
 @endsection

@@ -801,6 +801,12 @@ class PenerimaanCuttingController extends Controller
         $end = $start->copy()->endOfMonth();
         $carryStart = $start->copy()->subMonthsNoOverflow(self::CARRY_MONTHS);
 
+        // Bulan sebelumnya tidak boleh mundur melewati bulan batas awal BPPB (Oktober 2026)
+        $minStart = Carbon::parse(self::MIN_TGL_BPPB)->startOfMonth();
+        if ($carryStart->lt($minStart)) {
+            $carryStart = $minStart->copy();
+        }
+
         $rows = $this->pengeluaranCuttingQuery()
             ->addSelect('masteritem.itemdesc AS nama_barang')
             ->whereBetween('whs_bppb_h.tgl_bppb', [$carryStart->format('Y-m-d'), $end->format('Y-m-d')])
@@ -877,13 +883,13 @@ class PenerimaanCuttingController extends Controller
 
         $data = PenerimaanCutting::selectRaw("
                 penerimaan_cutting.id,
-                DATE_FORMAT(penerimaan_cutting.tanggal_terima, '%d/%m/%Y') as tanggal_terima,
+                DATE(penerimaan_cutting.tanggal_terima) as tanggal_terima,
                 penerimaan_cutting.id_roll AS barcode,
                 penerimaan_cutting.created_by_username,
                 DATE_FORMAT(penerimaan_cutting.created_at, '%d/%m/%Y %H:%i:%s') as created_at_format,
                 whs_bppb_h.no_req,
                 whs_bppb_det.no_bppb,
-                whs_bppb_h.tgl_bppb AS tanggal_bppb,
+                DATE(whs_bppb_h.tgl_bppb) AS tanggal_bppb,
                 whs_bppb_h.tujuan,
                 whs_bppb_h.no_ws,
                 whs_bppb_h.no_ws_aktual AS no_ws_act,
@@ -946,7 +952,7 @@ class PenerimaanCuttingController extends Controller
         collect($data)->chunk(1000)->each(function ($rows) use ($sheet) {
             foreach ($rows as $row) {
                 $rowArr = [
-                    $row->tanggal_terima ?? "-",
+                    $row->tanggal_terima ?: null,
                     $row->barcode ?? "-",
                     (float) ($row->qty_out ?? 0),
                     $row->unit ?? "-",
@@ -954,7 +960,7 @@ class PenerimaanCuttingController extends Controller
                     $row->unit_konv ?? "-",
                     $row->no_req ?? "-",
                     $row->no_bppb ?? "-",
-                    $row->tanggal_bppb ?? "-",
+                    $row->tanggal_bppb ?: null,
                     $row->tujuan ?? "-",
                     $row->no_ws ?? "-",
                     $row->no_ws_act ?? "-",
@@ -968,7 +974,10 @@ class PenerimaanCuttingController extends Controller
                     $row->created_at_format ?? "-",
                 ];
 
-                $sheet->writeRow($rowArr)->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                $sheet->writeRow($rowArr, null, [
+                    'A' => ['format' => 'DD/MM/YYYY'], // Tanggal Terima
+                    'I' => ['format' => 'DD/MM/YYYY'], // Tgl. BPPB
+                ])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             }
         });
 

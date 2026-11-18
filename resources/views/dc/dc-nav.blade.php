@@ -212,6 +212,12 @@
                     Terima Secondary Luar  <i class="fa-solid fa-file"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('dc-report-stocker-checker') }}"
+                    class="dropdown-item {{ $routeName == 'dc-report-stocker-checker' ? 'active' : '' }}">
+                    Stocker Checker  <i class="fa-solid fa-file"></i>
+                </a>
+            </li>
         </ul>
     </li>
 @endrole
