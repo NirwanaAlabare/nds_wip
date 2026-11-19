@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ["containerFluid" => false])
 
 @section('custom-link')
     <!-- DataTables -->
@@ -8,21 +8,26 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+
+    @include('dc.trolley.stock-trolley.partials.stock-table-style')
+    @include('dc.trolley.stock-trolley.partials.page-guide-style')
 @endsection
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="text-sb fw-bold">{{ $trolley->nama_trolley }}</h5>
-        <div class="d-flex justify-content-end align-items-center gap-1">
+        <div class="d-flex justify-content-end align-items-center gap-1 st-head-r">
+            <button type="button" class="btn btn-outline-primary btn-sm" id="pg-guide-btn"><i class="fa fa-book-open"></i> Panduan</button>
+            <a href="{{ route('allocate-this-trolley-old')."/".$trolley->id }}" class="btn btn-outline-secondary btn-sm" id="pg-old-view-btn" title="Buka tampilan lama"><i class="fas fa-history"></i> Tampilan lama</a>
             <a href="{{ route('stock-trolley') }}" class="btn btn-primary btn-sm">
                 <i class="fas fa-reply"></i> Kembali
             </a>
             <a href="{{ route('send-trolley-stock')."/".$trolley->id }}" class="btn btn-sb-secondary btn-sm">
-                Kirim Stok Trolley <i class="fas fa-share"></i>
+                Kirim Stok Trolley ke Line <i class="fas fa-share"></i>
             </a>
         </div>
     </div>
-    <div class="card card-sb">
+    <div class="card card-sb" id="pg-card-stocker">
         <div class="card-header">
             <h5 class="card-title fw-bold">Alokasi Trolley</h5>
             <div class="card-tools">
@@ -106,29 +111,24 @@
                 </button>
             </div>
         </div>
-        <div class="card-body table-responsive" style="display: block">
-            <table class="table table-bordered table" id="trolley-stock-datatable">
-                <thead>
-                    <tr>
-                        <th>Act</th>
-                        <th>No. Stocker</th>
-                        <th>No. WS</th>
-                        <th>No. Cut</th>
-                        <th>Style</th>
-                        <th>Color</th>
-                        <th>Panel</th>
-                        <th>Part</th>
-                        <th>Size</th>
-                        <th>Qty</th>
-                        <th>Range</th>
-                        <th>By</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+        <div class="card-body" style="display: block">
+            @include('dc.trolley.stock-trolley.partials.stock-table-toolbar')
+            <div class="table-responsive">
+                @include('dc.trolley.stock-trolley.partials.stock-table-allocate')
+            </div>
+
+            @include('dc.trolley.stock-trolley.partials.stock-action-bar-allocate')
         </div>
     </div>
+
+    {{-- Modal Filter (opsi diisi otomatis dari data tabel) --}}
+    @include('dc.trolley.stock-trolley.partials.stock-filter-modal-allocate')
+
+    {{-- Modal Detail Transaksi Stocker (klik No. Stocker) --}}
+    @include('dc.trolley.stock-trolley.partials.stocker-detail-modal')
+
+    {{-- Panduan halaman --}}
+    @include('dc.trolley.stock-trolley.partials.guide-allocate', ['variant' => 'this'])
 @endsection
 
 @section('custom-script')
@@ -139,6 +139,9 @@
     <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+
+    @include('dc.trolley.stock-trolley.partials.stock-table-script')
+    @include('dc.trolley.stock-trolley.partials.page-guide-script')
 
     <script>
         // Select2 Autofocus
@@ -179,118 +182,17 @@
 
         var trolleyId = document.getElementById('trolley_id').value;
 
-        let trolleyStockDatatable = $("#trolley-stock-datatable").DataTable({
-            ordering: false,
-            processing: true,
-            serverSide: true,
+        // Tabel stok trolley : fungsi ada di partial 'stock-table-script'
+        let trolleyStockDatatable = createAllocateStockTable("#trolley-stock-datatable", {
             ajax: {
-                url: '{{ route('allocate-this-trolley') }}/'+trolleyId+' }}',
+                url: '{{ route('allocate-this-trolley') }}/' + trolleyId,
             },
-            columns: [
-                {
-                    data: 'id'
-                },
-                {
-                    data: 'id_qr_stocker',
-                },
-                {
-                    data: 'act_costing_ws',
-                },
-                {
-                    data: 'no_cut',
-                },
-                {
-                    data: 'style',
-                },
-                {
-                    data: 'color',
-                },
-                {
-                    data: 'panel',
-                },
-                {
-                    data: 'nama_part',
-                },
-                {
-                    data: 'size',
-                },
-                {
-                    data: 'qty',
-                },
-                {
-                    data: 'rangeAwalAkhir',
-                },
-                {
-                    data: 'user',
-                },
-            ],
-            columnDefs: [
-                {
-                    targets: [0],
-                    render: (data, type, row, meta) => {
-                        return `
-                            <div class='d-flex gap-1 justify-content-center'>
-                                <a class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route("destroy-trolley-stock") }}/`+row['id']+`' onclick='deleteData(this);'>
-                                    <i class='fa fa-trash'></i>
-                                </a>
-                            </div>
-                        `;
-                    }
-                },
-                {
-                    targets: [1],
-                    render: (data, type, row, meta) => {
-                        return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : '-') +`</span>`;
-                    }
-                },
-                {
-                    targets: [6],
-                    render: (data, type, row, meta) => {
-                        return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : '') +`</span>`;
-                    }
-                },
-                {
-                    targets: [7],
-                    render: (data, type, row, meta) => {
-                        return `<span class="text-nowrap">`+ (data ? data.replace(/,/g, ", <br>") : '') +`</span>`;
-                    }
-                },
-                {
-                    targets: [9],
-                    render: (data, type, row, meta) => {
-                        // return `<span class="text-nowrap">`+ (data + (row.diff_qty != null && row.diff_qty != 0 ? " (" + row.diff_qty + ")" : "")) +`</span>`;
-                        return `<span class="text-nowrap">`+ (data) +`</span>`;
-                    }
-                },
-                {
-                    targets: "_all",
-                    className: "text-nowrap"
-                },
-            ]
+            deleteUrl: '{{ route("destroy-trolley-stock") }}',
         });
 
         function trolleyStockDatatableReload() {
-            trolleyStockDatatable.ajax.reload();
+            trolleyStockDatatable.ajax.reload(null, false);
         }
-
-        $('#trolley-stock-datatable thead tr').clone(true).appendTo('#trolley-stock-datatable thead');
-        $('#trolley-stock-datatable thead tr:eq(1) th').each(function(i) {
-            if (i != 0) {
-                var title = $(this).text();
-                $(this).html('<input type="text" class="form-control form-control-sm"/>');
-
-                $('input', this).on('keyup change', function() {
-                    if (trolleyStockDatatable.column(i).search() !== this.value) {
-                        trolleyStockDatatable
-                            .column(i)
-                            .search(this.value)
-                            .draw();
-                    }
-                });
-            } else {
-                $(this).html('');
-            }
-        });
 
         // Scan QR Module :
             // Variable List :
@@ -425,4 +327,7 @@
                         document.getElementById("kode_stocker").value = "";
                     }
     </script>
+
+    {{-- Panduan halaman : langkah tur --}}
+    @include('dc.trolley.stock-trolley.partials.guide-allocate-script', ['variant' => 'this', 'tableVar' => 'trolleyStockDatatable'])
 @endsection
