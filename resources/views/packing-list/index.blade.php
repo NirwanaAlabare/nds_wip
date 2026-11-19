@@ -64,6 +64,12 @@
             color: #09244c;
         }
 
+        .pl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .pl-chip { border: 1px solid #dfe3ea; background: #fff; border-radius: 999px; padding: 4px 11px; font-size: 12px; font-weight: 800; color: #09244c; }
+        .pl-chip:hover { border-color: #b9c2d0; }
+        .pl-chip.on { background: #09244c; border-color: #09244c; color: #fff; }
+        .pl-chip .n { opacity: .55; margin-left: 3px; }
+
         .carton-grid-visual {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -569,9 +575,12 @@
                 <div class="modal-body">
                     <div class="preview-info" id="previewMeta"></div>
 
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-bold" style="font-size: 13px; color: #09244c;"><i class="fas fa-boxes"></i> Grid
-                            Karton Order:</span>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="fw-bold" style="font-size: 13px; color: #09244c;"><i class="fas fa-boxes"></i> Grid
+                                Karton Order:</span>
+                            <div class="pl-chips" id="cartonFilters"></div>
+                        </div>
                         <small class="text-primary">Klik salah satu kotak karton untuk melihat rincian isi &
                             kekurangan Qty</small>
                     </div>
@@ -989,6 +998,8 @@
             };
 
             previewCartons = [];
+            cartonFilter = 'all';
+            $('#cartonFilters').empty();
             renderMeta('-', buyer_s, style_s, parseInt(tot_carton_s) || 0);
             $('#cartonGrid').html(
                 `<div class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin"></i> Memuat data karton...</div>`);
@@ -1036,7 +1047,7 @@
                     };
 
                     let boxesHTML = previewCartons.map((c, idx) => `
-                        <div class="carton-box ${c.status === 'full' ? '' : c.status}" title="Detail CTN #${escHtml(c.no_carton)}"
+                        <div class="carton-box ${c.status === 'full' ? '' : c.status}" data-status="${c.status}" title="Detail CTN #${escHtml(c.no_carton)}"
                             onclick="show_preview_carton(${idx}, this)">
                             <div>
                                 <div class="carton-header">
@@ -1061,6 +1072,7 @@
 
                     $('#cartonGrid').html(boxesHTML ||
                         `<div class="text-center text-muted py-3">Tidak ada data karton.</div>`);
+                    render_carton_filters();
 
                     let cartonFull = previewCartons.filter(c => c.status === 'full').length;
                     let totQty = previewCartons.reduce((a, c) => a + c.qty, 0);
@@ -1072,6 +1084,26 @@
                         `<div class="text-center text-danger py-3">Gagal memuat data karton.</div>`);
                 }
             });
+        }
+
+        // filter grid karton: Semua / Pending / Proses / Full
+        let cartonFilter = 'all';
+
+        function render_carton_filters() {
+            let cnt = s => previewCartons.filter(c => c.status === s).length;
+            let fl = [['all', 'Semua', previewCartons.length], ['empty', 'Pending', cnt('empty')],
+                ['partial', 'Proses', cnt('partial')], ['full', 'Full', cnt('full')]];
+            $('#cartonFilters').html(fl.map(([k, l, n]) =>
+                `<button type="button" class="pl-chip ${cartonFilter === k ? 'on' : ''}" onclick="set_carton_filter('${k}')">${l}<span class="n">${n.toLocaleString()}</span></button>`
+            ).join(''));
+            $('#cartonGrid .carton-box').each(function() {
+                $(this).toggle(cartonFilter === 'all' || $(this).data('status') === cartonFilter);
+            });
+        }
+
+        function set_carton_filter(k) {
+            cartonFilter = k;
+            render_carton_filters();
         }
 
         // tipe isi karton: SOLID / MIX SIZE / MIX COLOR / MIX COLOR & SIZE
