@@ -1209,10 +1209,13 @@
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-sb text-light">
-                    <div>
+                    <div style="min-width: 0;">
                         <small class="text-uppercase fw-bold" style="letter-spacing: .6px; opacity: .75;">Qty Stok Packing Central</small>
-                        <h5 class="modal-title fw-bold" id="saldoPoTitle">-</h5>
-                        <small style="opacity: .85;">Dest : <b id="saldoPoDest">-</b></small>
+                        {{-- PO bisa panjang: font sedikit kecil & boleh turun baris --}}
+                        <h6 class="modal-title fw-bold mb-0" style="word-break: break-word;">
+                            <span id="saldoPoTitle">-</span>
+                            <small class="fw-normal" style="opacity: .85;">· Dest : <b id="saldoPoDest">-</b></small>
+                        </h6>
                     </div>
                     <small class="ms-auto me-3 d-none" id="saldoPoLoad"><span class="spinner-border spinner-border-sm"></span> Memuat…</small>
                     <button type="button" class="btn-close btn-close-white ms-0" data-bs-dismiss="modal" aria-label="Tutup"></button>
