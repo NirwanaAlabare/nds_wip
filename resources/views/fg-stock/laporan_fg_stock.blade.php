@@ -443,6 +443,8 @@
                     { data: 'size', title: 'Size' },
                     { data: 'qty', title: 'Qty', num: true },
                     { data: 'sumber_pemasukan', title: 'Sumber' },
+                    { data: 'created_by', title: 'User' },
+                    { data: 'created_at', title: 'Tanggal Input' },
                 ],
             },
             'Pengeluaran': {
@@ -467,6 +469,8 @@
                     { data: 'qty_out', title: 'Qty', num: true },
                     { data: 'tujuan', title: 'Tujuan' },
                     { data: 'tujuan_pengeluaran', title: 'Tujuan Pengeluaran' },
+                    { data: 'created_by', title: 'User' },
+                    { data: 'created_at', title: 'Tanggal Input' },
                 ],
             },
             'Mutasi': {
