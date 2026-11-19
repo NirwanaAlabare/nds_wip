@@ -309,6 +309,15 @@ class StockerProcessController extends Controller
 
         $data = DB::select($query);
 
+        // Qty terakhir per stocker, logika sama dengan qty alokasi / kirim trolley
+        // (accessor 'getCurrentQtyAttribute' di 'App/Models/Stocker/Stocker.php')
+        $currentQtys = Stocker::with(Stocker::CURRENT_QTY_RELATIONS)
+            ->whereIn('id_qr_stocker', $similarStockers)
+            ->get()
+            ->mapWithKeys(function ($stocker) {
+                return [$stocker->id_qr_stocker => $stocker->current_qty];
+            });
+
         // Decode JSON String dari MySQL menjadi Native Array PHP
         foreach ($data as$row) {
             $row->history_dc = json_decode($row->history_dc ?? '[]');
@@ -316,6 +325,7 @@ class StockerProcessController extends Controller
             $row->history_sec_inhouse = json_decode($row->history_sec_inhouse ?? '[]');
             $row->history_sec_in = json_decode($row->history_sec_in ?? '[]');
             $row->history_sec_update = json_decode($row->history_sec_update ?? '[]');
+            $row->current_qty = $currentQtys->get($row->id_qr_stocker);
         }
 
         return response()->json([

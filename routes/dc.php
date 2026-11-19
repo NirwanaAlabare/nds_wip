@@ -194,6 +194,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/send-trolley-stock/{id?}', 'send')->name('send-trolley-stock');
         Route::post('/submit-send-trolley-stock', 'submitSend')->name('submit-send-trolley-stock');
 
+        // tampilan lama (qty tetap memakai perhitungan terbaru)
+        Route::get('/allocate-old', 'allocateOld')->name('allocate-trolley-old');
+        Route::get('/allocate-this-old/{id?}', 'allocateThisOld')->name('allocate-this-trolley-old');
+        Route::get('/send-trolley-stock-old/{id?}', 'sendOld')->name('send-trolley-stock-old');
+
         // get data
         Route::get('/get-stocker-data/{id?}', 'getStockerData')->name('get-stocker-data-trolley-stock');
     });

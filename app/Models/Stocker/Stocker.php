@@ -150,4 +150,58 @@ class Stocker extends Model
 
         return $qty;
     }
+
+    /**
+     * Semua secondary in stocker (satu baris per urutan pada multi secondary).
+     */
+    public function secondaryIns()
+    {
+        return $this->hasMany(SecondaryIn::class, 'id_qr_stocker', 'id_qr_stocker');
+    }
+
+    /**
+     * Relasi yang dibutuhkan getCurrentQtyAttribute, untuk eager loading.
+     */
+    public const CURRENT_QTY_RELATIONS = [
+        'partDetail.secondaries.secondary',
+        'secondaryIns.secondaryInUpdate',
+        'dcIn',
+        'secondaryIn.secondaryInUpdate',
+        'secondaryInhouse',
+    ];
+
+    /**
+     * Qty stocker saat ini (posisi proses terakhir), dipakai untuk tampilan & alokasi loading line.
+     *
+     * - Multi secondary, proses terakhir SECONDARY     : secondary in urutan terakhir (qty_in - reject + replace update)
+     * - Multi secondary, proses terakhir NON SECONDARY : dc in (qty_awal - reject + replace)
+     * - Selain itu / data belum ada / hasil < 1        : qty_adjusted
+     */
+    public function getCurrentQtyAttribute()
+    {
+        $qty = null;
+
+        $secondaries = $this->partDetail ? $this->partDetail->secondaries : null;
+        $lastSecondary = $secondaries ? $secondaries->sortByDesc('urutan')->first() : null;
+
+        if ($lastSecondary && $lastSecondary->secondary) {
+            if ($lastSecondary->secondary->tujuan != 'NON SECONDARY') {
+                $secondaryIn = $this->secondaryIns->firstWhere('urutan', $lastSecondary->urutan);
+
+                if ($secondaryIn) {
+                    $updates = $secondaryIn->secondaryInUpdate;
+                    $qty = $secondaryIn->qty_in - $updates->sum('reject') + $updates->sum('replace');
+                }
+            } else if ($this->dcIn) {
+                $qty = $this->dcIn->qty_awal - $this->dcIn->qty_reject + $this->dcIn->qty_replace;
+            }
+        }
+
+        // Fallback, sekaligus mencegah qty nol pada stocker reject
+        if ($qty === null || $qty < 1) {
+            $qty = $this->qty_adjusted;
+        }
+
+        return $qty;
+    }
 }
