@@ -46,14 +46,21 @@ class PackingListController extends Controller
                 max(m.ws) ws,
                 max(m.buyer) buyer,
                 max(m.styleno) styleno,
-                max(p.tgl_shipment) tgl_shipment,
+                max(f0.tgl_shipment) tgl_shipment,
                 sum(a.qty) qty,
                 sum(coalesce(b.qty_scan,0)) qty_scan,
                 min(case when coalesce(b.qty_scan,0) >= a.qty then 1 else 0 end) is_full,
                 max(a.created_at) created_at,
                 max(a.created_by) created_by
                 from packing_master_packing_list a
+                -- tanggal hanya untuk memilih po & dest; karton & qty dihitung dari semua baris po & dest (sama dengan modal preview)
+                inner join (
+                select a.po, a.dest, max(p.tgl_shipment) tgl_shipment
+                from packing_master_packing_list a
                 inner join ppic_master_so p on a.id_ppic_master_so = p.id
+                where p.tgl_shipment >= ? and p.tgl_shipment <= ?
+                group by a.po, a.dest
+                ) f0 on a.po = f0.po and a.dest = f0.dest
                 left join master_sb_ws m on a.id_so_det = m.id_so_det
                 left join (
                 select o.po, o.dest, o.no_carton, coalesce(k1.id_so_det, k2.id_so_det) id_so_det, sum(o.qty_scan) qty_scan
@@ -72,19 +79,26 @@ class PackingListController extends Controller
                 left join (
                 select distinct a.po, a.dest, a.no_carton, a.id_so_det
                 from packing_master_packing_list a
+                inner join (
+                select distinct a.po, a.dest
+                from packing_master_packing_list a
                 inner join ppic_master_so p on a.id_ppic_master_so = p.id
                 where p.tgl_shipment >= ? and p.tgl_shipment <= ?
+                ) fk1 on a.po = fk1.po and a.dest = fk1.dest
                 ) k1 on o.po = k1.po and o.dest = k1.dest and o.no_carton = k1.no_carton and o.id_so_det = k1.id_so_det
                 left join (
                 select a.po, a.dest, a.no_carton, a.barcode, min(a.id_so_det) id_so_det
                 from packing_master_packing_list a
+                inner join (
+                select distinct a.po, a.dest
+                from packing_master_packing_list a
                 inner join ppic_master_so p on a.id_ppic_master_so = p.id
                 where p.tgl_shipment >= ? and p.tgl_shipment <= ?
+                ) fk2 on a.po = fk2.po and a.dest = fk2.dest
                 group by a.po, a.dest, a.no_carton, a.barcode
                 ) k2 on o.po = k2.po and o.dest = k2.dest and o.no_carton = k2.no_carton and o.barcode = k2.barcode
                 group by o.po, o.dest, o.no_carton, coalesce(k1.id_so_det, k2.id_so_det)
                 ) b on a.po = b.po and a.dest = b.dest and a.no_carton = b.no_carton and a.id_so_det = b.id_so_det
-                where p.tgl_shipment >= ? and p.tgl_shipment <= ?
                 group by a.po, a.dest, a.no_carton
                 ) c
                 -- ws & styleno: semua baris packing list po & dest tsb (tanpa filter tanggal, sama seperti sebelumnya)
