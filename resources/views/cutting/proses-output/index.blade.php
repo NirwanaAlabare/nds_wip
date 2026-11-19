@@ -66,18 +66,122 @@
             background-color: #fff;
         }
 
+        /* Tombol Panduan di header: hover tetap terang, bukan hitam (timpa style.css global) */
+        .po-head-r .btn-light:hover,
+        .po-head-r .btn-light:focus-visible {
+            background-color: #e2e6ea !important;
+            border-color: #e2e6ea !important;
+            color: #1d2433 !important;
+        }
+
+        /* ===== Panduan ===== */
+        #poGuide, .po-spot-l {
+            --g-ink: #1d2433; --g-muted: #6b7385; --g-line: #ebe7de; --g-soft: #f7f5f0;
+            --g-pri: #4057e3; --g-ok: #1a9d63; --g-wip: #e39a12; --g-err: #e0483e; --g-empty: #e4e1d8; --g-acc: #ff971f;
+        }
+        .po-g { padding: 0 20px 20px; color: var(--g-ink); font-size: 13.5px; }
+        .po-g-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 0; background: #fff; border-bottom: 1px solid var(--g-line); margin-bottom: 4px; }
+        .po-g-nav a { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--g-soft); color: var(--g-pri); text-decoration: none; border: 1px solid var(--g-line); }
+        .po-g-nav a:hover { background: var(--g-pri); color: #fff; }
+        .po-g section { padding-top: 16px; scroll-margin-top: 56px; }
+        .po-g h6 { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: 700; color: var(--g-pri); border-left: 4px solid var(--g-acc); padding-left: 8px; margin-bottom: 10px; }
+        .po-g ul { padding-left: 18px; margin-bottom: 0; }
+        .po-g li { margin-bottom: 6px; line-height: 1.5; }
+        .po-g-t { margin-bottom: 0; }
+        .po-g-t td { vertical-align: top; padding: 7px 8px; line-height: 1.5; }
+        .po-g-t td:first-child { width: 210px; white-space: nowrap; color: var(--g-pri); }
+        .po-g-btn { display: inline-block; font-size: 12px; padding: 2px 8px; border: 1px solid #c5ccd6; border-radius: .3rem; background: #fff; }
+        .po-g-flow { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .po-g-flow > div { flex: 1; min-width: 130px; background: var(--g-soft); border: 1px solid var(--g-line); border-radius: .5rem; padding: 8px 12px; }
+        .po-g-flow > div.ok { background: #e7f7ee; border-color: #b9e8cf; }
+        .po-g-flow b { display: block; color: var(--g-pri); } .po-g-flow span { font-size: 12px; color: var(--g-muted); }
+        .po-g-flow > i { align-self: center; font-style: normal; font-weight: 700; color: var(--g-acc); }
+        .po-g-faq dt { color: var(--g-pri); margin-top: 8px; } .po-g-faq dd { margin: 2px 0 0; }
+        .po-g-show { border: 1px solid var(--g-pri); background: #fff; color: var(--g-pri); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 2px 10px; }
+        .po-g-show:hover, .po-g-show.pri { background: var(--g-pri); color: #fff; }
+        .po-g-show.pri:hover { filter: brightness(.92); }
+        .po-g-note { font-size: 12.5px; color: var(--g-muted); margin-bottom: 10px; }
+
+        /* Panduan: peta halaman */
+        .po-map { background: var(--g-soft); border: 1px solid var(--g-line); border-radius: .6rem; padding: 14px; max-width: 760px; }
+        .po-map-z { position: relative; cursor: pointer; transition: box-shadow .15s; }
+        .po-map-z:hover { box-shadow: 0 0 0 2px var(--g-acc); z-index: 6; }
+        .po-map-n { position: absolute; top: -9px; left: -9px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; background: var(--g-acc); color: #fff !important; font-size: 12px; font-weight: 700; display: grid; place-items: center; text-decoration: none; box-shadow: 0 0 0 2px #fff; }
+        .po-map-n.sm { width: 18px; height: 18px; font-size: 10.5px; top: -7px; left: -7px; }
+        .po-map-n:hover, .po-map-n:focus-visible { background: var(--g-pri); z-index: 5; }
+        .po-map-tip { position: absolute; top: calc(100% + 8px); left: -4px; width: 230px; padding: 8px 10px; border-radius: .45rem; background: #1d2433; color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45; text-align: left; box-shadow: 0 6px 18px rgba(0,0,0,.25); opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity .15s, transform .15s, visibility .15s; pointer-events: none; }
+        .po-map-tip:before { content: ""; position: absolute; top: -5px; left: 10px; width: 10px; height: 10px; background: #1d2433; transform: rotate(45deg); }
+        .po-map-n.tip-l .po-map-tip { left: auto; right: -4px; }
+        .po-map-n.tip-l .po-map-tip:before { left: auto; right: 10px; }
+        .po-map-tip b { display: block; font-size: 12.5px; margin-bottom: 2px; color: #ffc98a; }
+        .po-map-tip small { display: block; margin-top: 5px; font-size: 10.5px; color: rgba(255,255,255,.65); }
+        .po-map-n:hover .po-map-tip, .po-map-n:focus-visible .po-map-tip { opacity: 1; visibility: visible; transform: none; }
+        .po-map-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 8px 6px 10px; border-radius: .4rem .4rem 0 0; background: var(--sb-color, #082149); }
+        .po-map-head b { font-size: 12px; color: #fff; }
+        .po-map-head .r { display: flex; gap: 4px; padding: 3px; border-radius: .35rem; }
+        .po-map-head .r i { width: 46px; height: 14px; border-radius: 3px; background: #fff; }
+        .po-map-body { background: #fff; border: 1px solid var(--g-line); border-top: 0; border-radius: 0 0 .45rem .45rem; padding: 12px 10px; display: flex; flex-direction: column; gap: 12px; }
+        .po-map-fl { display: flex; gap: 6px; width: max-content; border-radius: .3rem; }
+        .po-map-fl i { width: 56px; height: 14px; border-radius: .25rem; border: 1px solid #c5ccd6; }
+        .po-map-fl i.lk { background: #e9ecef; }
+        .po-map-row { display: flex; gap: 8px; align-items: center; }
+        .po-map-bt { display: flex; gap: 6px; border-radius: .3rem; }
+        .po-map-bt i { width: 22px; height: 16px; border-radius: .25rem; background: #0d6efd; }
+        .po-map-bt i.xl { width: 58px; background: #fff; border: 1.5px solid #198754; }
+        .po-map-ch { border: 1px solid var(--g-line); border-radius: .4rem; padding: 6px 8px; }
+        .po-map-ch .chip { display: flex; gap: 4px; justify-content: flex-end; margin-bottom: 6px; }
+        .po-map-ch .chip i { width: 40px; height: 10px; border-radius: 10px; background: #cfe2ff; }
+        .po-map-ch .chip i.r { background: #f8d7da; } .po-map-ch .chip i.w { background: #fff; border: 1px solid #dee2e6; }
+        .po-map-ch .bar { height: 10px; border-radius: 0 5px 5px 0; margin-top: 4px; }
+        .po-map-tb { display: grid; grid-template-columns: repeat(3, 26px) repeat(10, 1fr) repeat(3, 1fr); gap: 3px; border-radius: .3rem; }
+        .po-map-tb i { height: 12px; border-radius: .15rem; background: var(--g-soft); border: 1px solid var(--g-line); }
+        .po-map-tb i.fz { background: #b8daff; border-color: #9ec5fe; }
+        .po-map-tb i.a { background: #d1e7dd; border-color: #a3cfbb; } .po-map-tb i.b { background: #fff3cd; border-color: #ffe69c; }
+        .po-map-tb i.o { background: #e7f1ff; border-color: #9ec5fe; }
+        .po-map-tb i.s { background: #198754; border: 0; height: 12px; width: 60%; justify-self: center; border-radius: 6px; }
+
+        /* Panduan: sorot elemen & tur */
+        .po-spot { position: fixed; z-index: 2000; border-radius: .6rem; box-shadow: 0 0 0 9999px rgba(17,24,39,.6); outline: 3px solid #ff971f; outline-offset: 3px; pointer-events: none; animation: poSpot 1.2s ease-in-out infinite; }
+        @keyframes poSpot { 50% { outline-offset: 8px; outline-color: rgba(255,151,31,.6); } }
+        .po-spot-cv { position: fixed; inset: 0; z-index: 1999; cursor: pointer; }
+        .po-spot-l { position: fixed; z-index: 2001; background: #fff; color: var(--g-ink); font-size: 13px; padding: 10px 12px; border-radius: .5rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); width: 340px; max-width: calc(100vw - 16px); }
+        .po-spot-l .st { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--g-pri); margin-bottom: 4px; }
+        .po-spot-l .dots { display: flex; gap: 4px; }
+        .po-spot-l .dots i { width: 7px; height: 7px; border-radius: 50%; background: #e2e6ec; }
+        .po-spot-l .dots i.done { background: #b7c2f5; }
+        .po-spot-l .dots i.on { background: var(--g-acc); width: 16px; border-radius: 4px; }
+        .po-spot-l > b { display: block; font-weight: 700; }
+        .po-spot-l > span.d { display: block; color: #3d4450; font-size: 12.5px; line-height: 1.5; margin-top: 3px; }
+        .po-spot-l > span.d b { color: var(--g-ink); }
+        .po-spot-l .nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
+        .po-spot-l .nav button { border: 1px solid #c5ccd6; background: #fff; color: var(--g-ink); font-size: 12.5px; font-weight: 600; border-radius: .35rem; padding: 4px 12px; }
+        .po-spot-l .nav button:disabled { opacity: .4; }
+        .po-spot-l .nav button.pri { background: var(--g-pri); border-color: var(--g-pri); color: #fff; }
+        .po-spot-l .nav button:not(:disabled):hover { filter: brightness(.95); }
+        .po-spot-l small { display: block; color: var(--g-muted); font-size: 11.5px; margin-top: 6px; padding-top: 5px; border-top: 1px solid #e2e6ec; }
+        .po-spot-l kbd { font-size: 10px; padding: 0 4px; }
+
+        @media (max-width: 576px) {
+            .po-g-t td:first-child { width: auto; white-space: normal; }
+            .po-g-flow > i { display: none; }
+        }
     </style>
 @endsection
 
 @section('content')
     <div class="card">
-        <div class="card-header bg-sb">
+        <div class="card-header bg-sb d-flex align-items-center">
             <h5 class="card-title fw-bold mb-0">
                 <i class="fas fa-list"></i> Proses Output
             </h5>
+            <div class="po-head-r ms-auto" style="margin-block: -.5rem;">
+                <button type="button" class="btn btn-light btn-sm" id="guideBtn">
+                    <i class="fas fa-book-open"></i> Panduan
+                </button>
+            </div>
         </div>
         <div class="card-body">
-            <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
+            <div class="d-flex flex-wrap align-items-end gap-3 mb-3" id="poFilter">
                 <div>
                     <label class="form-label"><small>Buyer</small></label>
                     <select id="buyer_filter" class="form-control form-control-sm select2bs4" style="width: 220px;">
@@ -147,10 +251,130 @@
                 </div>
                 <div id="panel-chart" class="px-2 pt-2"></div>
             </div>
-            <div>
+            <div id="poTable">
                 <table class="table table-bordered table-striped w-100 text-nowrap" id="list-table">
                     {{-- Header & body dibangun lewat JS sesuai panel yang ada di data (buildListTable) --}}
                 </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Panduan halaman --}}
+    <div class="modal fade" id="poGuide" tabindex="-1" aria-labelledby="poGuideTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <div>
+                        <small class="text-uppercase fw-bold" style="letter-spacing: .6px; opacity: .75;">Panduan</small>
+                        <h5 class="modal-title fw-bold" id="poGuideTitle">Proses Output</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body po-g">
+                    <nav class="po-g-nav">
+                        <a href="#pog-peta">Peta halaman</a><a href="#pog-alur">Alur singkat</a><a href="#pog-filter">Filter</a><a href="#pog-cari">Cari &amp; Export</a>
+                        <a href="#pog-grafik">Grafik per panel</a><a href="#pog-tabel">Tabel &amp; rumus</a><a href="#pog-tips">Tips &amp; FAQ</a>
+                    </nav>
+
+                    <section id="pog-peta">
+                        <h6><span>Peta halaman</span> <button type="button" class="po-g-show pri" data-tour="0"><i class="fa fa-play"></i> Mulai tur</button></h6>
+                        <p class="po-g-note">Klik <b>nomor</b> untuk membaca penjelasannya, atau klik <b>kotaknya</b> untuk melihat langsung di halaman.</p>
+                        <div class="po-map">
+                            <div class="po-map-head">
+                                <b>Proses Output</b>
+                                <div class="po-map-z r" data-spot=".po-head-r"><a href="#pog-peta" class="po-map-n tip-l" aria-label="Tombol Panduan">1<span class="po-map-tip" role="tooltip"><b>Panduan</b>Membuka halaman bantuan ini kapan saja.<small>Klik kotak untuk melihat di halaman</small></span></a><i></i></div>
+                            </div>
+                            <div class="po-map-body">
+                                <div class="po-map-row">
+                                    <div class="po-map-z po-map-fl" data-spot="#poFilter"><a href="#pog-filter" class="po-map-n sm" aria-label="Filter">2<span class="po-map-tip" role="tooltip"><b>Filter</b>Buyer / WS wajib salah satu, lalu persempit dengan Style, Color, Size.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i><i></i><i></i><i></i><i class="lk"></i></div>
+                                    <div class="po-map-z po-map-bt" data-spot="#btnSearch"><a href="#pog-cari" class="po-map-n sm" aria-label="Cari dan Export">3<span class="po-map-tip" role="tooltip"><b>Cari &amp; Export Excel</b>Tampilkan data sesuai filter, atau unduh sebagai Excel.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i class="xl"></i></div>
+                                </div>
+                                <div class="po-map-z po-map-ch" data-spot="#panel-chart-card">
+                                    <a href="#pog-grafik" class="po-map-n sm" aria-label="Grafik">4<span class="po-map-tip" role="tooltip"><b>Output Per Panel</b>Total output tiap panel dibanding Output Set &amp; Qty Order.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                    <div class="chip"><i></i><i class="r"></i><i class="w"></i><i class="w"></i></div>
+                                    <div class="bar" style="width: 80%; background: #d1e7dd;"></div>
+                                    <div class="bar" style="width: 62%; background: #fff3cd;"></div>
+                                    <div class="bar" style="width: 72%; background: #f8d7da;"></div>
+                                </div>
+                                <div class="po-map-z po-map-tb" data-spot="#poTable">
+                                    <a href="#pog-tabel" class="po-map-n sm" aria-label="Tabel">5<span class="po-map-tip" role="tooltip"><b>Tabel output</b>Kolom per panel, lalu Output Set, Qty Order &amp; Balance di ujung kanan.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                    <i class="fz"></i><i class="fz"></i><i class="fz"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="o"></i><i class="o"></i><i class="o"></i>
+                                    <i class="s"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                                    <i class="s"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="pog-alur">
+                        <h6>Alur singkat</h6>
+                        <div class="po-g-flow">
+                            <div><b>Pilih Buyer / WS</b><span>wajib salah satu</span></div><i>→</i>
+                            <div><b>Persempit</b><span>Style, Color, Size (opsional)</span></div><i>→</i>
+                            <div><b>Klik cari</b><span>grafik &amp; tabel tampil</span></div><i>→</i>
+                            <div class="ok"><b>Cek Balance</b><span>atau Export Excel</span></div>
+                        </div>
+                    </section>
+
+                    <section id="pog-filter">
+                        <h6><span>Filter</span> <button type="button" class="po-g-show" data-spot="#poFilter"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm po-g-t">
+                            <tr><td><b>Buyer</b></td><td>Memilih buyer akan mengisi daftar WS milik buyer tersebut. Style, Color &amp; Size dikosongkan lagi.</td></tr>
+                            <tr><td><b>WS</b></td><td>Memilih WS akan mengisi daftar Style, Color &amp; Size sesuai WS itu.</td></tr>
+                            <tr><td><b>Style / Color / Size</b></td><td>Opsional, untuk mempersempit data. Kosongkan untuk melihat semua.</td></tr>
+                            <tr><td><b>Status Order</b></td><td>Terkunci; terisi otomatis sesuai WS terpilih
+                                (<span class="badge bg-success">Open Order</span> / <span class="badge bg-danger">Close Order</span>).</td></tr>
+                        </table>
+                        <ul class="mt-2">
+                            <li>Minimal <b>Buyer atau WS</b> harus dipilih sebelum cari / export.</li>
+                        </ul>
+                    </section>
+
+                    <section id="pog-cari">
+                        <h6><span>Cari &amp; Export Excel</span> <button type="button" class="po-g-show" data-spot="#btnSearch"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm po-g-t">
+                            <tr><td><span class="btn btn-primary btn-sm py-0 px-2"><i class="fa fa-search"></i></span> Cari</td><td>Menampilkan grafik dan tabel sesuai filter. Filter yang diganti baru berlaku setelah klik cari lagi.</td></tr>
+                            <tr><td><span class="po-g-btn text-success"><i class="fas fa-file-excel"></i> Export Excel</span></td><td>Mengunduh data sesuai filter sebagai file .xlsx.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="pog-grafik">
+                        <h6><span>Grafik Output Per Panel</span> <button type="button" class="po-g-show" data-spot="#panel-chart-card"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm po-g-t">
+                            <tr><td><b>Batang</b></td><td>Total output tiap panel; warnanya sama dengan warna header panel di tabel. Arahkan kursor ke batang untuk rincian Form, Scrap, Switching &amp; Adjustment.</td></tr>
+                            <tr><td><b>Garis biru</b></td><td>Output Set (jumlah set yang sudah lengkap).</td></tr>
+                            <tr><td><b>Garis merah</b></td><td>Qty Order.</td></tr>
+                            <tr><td><b>Ringkasan atas</b></td><td>Output Set, Qty Order, Total Output, dan panel dengan output <b>terendah</b>.</td></tr>
+                        </table>
+                        <ul class="mt-2">
+                            <li>Grafik baru muncul setelah klik cari, dan ikut menyesuaikan bila tabel disaring lewat kotak <b>Search</b>.</li>
+                        </ul>
+                    </section>
+
+                    <section id="pog-tabel">
+                        <h6><span>Tabel &amp; rumus</span> <button type="button" class="po-g-show" data-spot="#poTable"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm po-g-t">
+                            <tr><td><b>Status Order – Size</b></td><td>Kolom kiri yang tetap terlihat (freeze) saat tabel digeser ke kanan. Satu baris = satu WS / Color / Size.</td></tr>
+                            <tr><td><b>Kolom per panel</b></td><td>Form, Scrap, Switching Out, Switching In, Adjustment, lalu Output.</td></tr>
+                            <tr><td><b>Output</b></td><td>Form + Scrap − Switching Out + Switching In + Adjustment.</td></tr>
+                            <tr><td><b>Output Set</b></td><td>Output panel <b>terkecil</b> di baris itu. Output panel yang sama dengan Output Set ditulis <span class="text-primary fw-bold">biru</span>.</td></tr>
+                            <tr><td><b>Balance</b></td><td>Output Set − Qty Order. <span class="text-success fw-bold">Hijau</span> = lebih, <span class="text-danger fw-bold">merah</span> = masih kurang.</td></tr>
+                            <tr><td><b>Total (baris bawah)</b></td><td>Jumlah tiap kolom, mengikuti hasil Search.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="pog-tips">
+                        <h6>Tips &amp; FAQ</h6>
+                        <dl class="po-g-faq mb-0">
+                            <dt>Muncul "Pilih buyer atau WS terlebih dahulu"?</dt>
+                            <dd>Pilih minimal Buyer atau WS, lalu klik cari lagi.</dd>
+                            <dt>Panel mana yang menahan Output Set?</dt>
+                            <dd>Lihat angka Output yang berwarna biru di tiap baris, atau chip <b>Terendah</b> di atas grafik.</dd>
+                            <dt>Daftar WS / Style / Color / Size kosong?</dt>
+                            <dd>Daftar WS ikut Buyer, sedangkan Style, Color &amp; Size ikut WS. Pilih Buyer / WS dulu.</dd>
+                        </dl>
+                    </section>
+                </div>
             </div>
         </div>
     </div>
@@ -767,5 +991,168 @@
                 }
             });
         }
+
+        // ===== Panduan: sorot elemen asli + tur langkah demi langkah =====
+        const gEl = document.getElementById('poGuide'), gBs = bootstrap.Modal.getOrCreateInstance(gEl);
+        const TOUR_KEY = 'proses_output_tour_seen_{{ Auth::id() }}';
+        const STEPS = [
+            { sel: '.po-head-r', sec: 'pog-peta', lbl: 'Panduan',
+              d: 'Tombol <b>Panduan</b> membuka halaman bantuan ini kapan saja.' },
+            { sel: '#poFilter', sec: 'pog-filter', lbl: 'Filter',
+              d: 'Pilih <b>Buyer</b> atau <b>WS</b> (wajib salah satu). Style, Color &amp; Size bisa dipersempit sesuai WS. <b>Status Order</b> terisi otomatis dari WS.' },
+            { sel: '#btnSearch', sec: 'pog-cari', lbl: 'Cari',
+              d: 'Klik tombol <b>cari</b> untuk menampilkan data sesuai filter.' },
+            { sel: '#but_export', sec: 'pog-cari', lbl: 'Export Excel',
+              d: 'Unduh data sesuai filter yang dipilih sebagai file Excel.' },
+            { sel: '#panel-chart-card', fb: '#poTable', sec: 'pog-grafik', lbl: 'Output Per Panel',
+              d: 'Total output tiap panel. Garis biru = <b>Output Set</b>, garis merah = <b>Qty Order</b>. Arahkan kursor ke batang untuk rinciannya.' },
+            { sel: '#poTable', sec: 'pog-tabel', lbl: 'Tabel output',
+              d: 'Satu baris per WS / Color / Size, tiap panel punya kolom Form, Scrap, Switching, Adjustment &amp; Output. Di ujung: <b>Output Set</b>, <b>Qty Order</b>, <b>Balance</b>.' },
+        ];
+        let spotTok = 0, spotIdx = -1, tourFirst = false;
+
+        function gGo(id, smooth) {
+            const t = gEl.querySelector(id);
+            if (t) t.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        }
+
+        function spotClear() {
+            spotTok++;
+            document.querySelectorAll('.po-spot, .po-spot-l, .po-spot-cv').forEach(x => x.remove());
+            removeEventListener('scroll', spotOff, true);
+            removeEventListener('resize', spotOff);
+        }
+
+        // Tutup tur & kembali ke panduan di bagian langkah terakhir yang dilihat
+        function spotOff() {
+            const s = STEPS[spotIdx], first = tourFirst;
+            spotClear();
+            spotIdx = -1;
+            if (first) {
+                tourFirst = false;
+                try { localStorage.setItem(TOUR_KEY, '1'); } catch (e) {}
+            }
+            gEl.addEventListener('shown.bs.modal', () => gGo(first || !s ? '#pog-peta' : '#' + s.sec), { once: true });
+            gBs.show();
+        }
+
+        function visibleEl(sel) {
+            return sel ? [...document.querySelectorAll(sel)].find(x => x.offsetParent !== null) : null;
+        }
+
+        function spotGo(i) {
+            if (i < 0 || i >= STEPS.length) return;
+            spotClear();
+            spotIdx = i;
+
+            const s = STEPS[i], n = STEPS.length;
+            // grafik belum tampil (belum cari): sorot tabelnya saja
+            const target = visibleEl(s.sel) || visibleEl(s.fb);
+            if (!target) { spotOff(); return; }
+
+            const tok = spotTok;
+            if (document.activeElement) document.activeElement.blur();
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Tunggu scroll berhenti (posisi elemen stabil beberapa frame), baru pasang sorotan
+            let last = null, still = 0;
+            const t0 = performance.now();
+            (function wait() {
+                if (tok !== spotTok) return;
+                const top = target.getBoundingClientRect().top;
+                still = last !== null && Math.abs(top - last) < 0.5 ? still + 1 : 0;
+                last = top;
+                if (still >= 6 || performance.now() - t0 > 2000) draw(); else requestAnimationFrame(wait);
+            })();
+
+            function draw() {
+                const r = target.getBoundingClientRect(), pad = 6;
+
+                const cv = document.createElement('div');
+                cv.className = 'po-spot-cv';
+                cv.onclick = spotOff;
+
+                const box = document.createElement('div');
+                box.className = 'po-spot';
+                Object.assign(box.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px' });
+
+                const l = document.createElement('div');
+                l.className = 'po-spot-l';
+                l.innerHTML = `<div class="st"><span>Langkah ${i + 1} dari ${n}</span><span class="dots">${STEPS.map((_, k) => `<i class="${k === i ? 'on' : k < i ? 'done' : ''}"></i>`).join('')}</span></div>
+                    <b>${$('<div>').text(s.lbl).html()}</b><span class="d">${s.d}</span>
+                    <div class="nav"><button type="button" data-nav="prev" ${i ? '' : 'disabled'}>‹ Sebelumnya</button>
+                        <button type="button" data-nav="next" class="pri">${i === n - 1 ? 'Selesai ✓' : 'Berikutnya ›'}</button></div>
+                    <small><kbd>←</kbd><kbd>→</kbd> pindah langkah · <kbd>Esc</kbd>, scroll, atau klik area gelap untuk kembali ke panduan</small>`;
+                l.onclick = e => {
+                    const b = e.target.closest('[data-nav]');
+                    if (!b) return;
+                    if (b.dataset.nav === 'prev') spotGo(i - 1);
+                    else if (i === n - 1) spotOff();
+                    else spotGo(i + 1);
+                };
+
+                document.body.append(cv, box, l);
+
+                const lh = l.offsetHeight, below = r.bottom + 16 + lh < innerHeight;
+                l.style.left = Math.max(8, Math.min(innerWidth - l.offsetWidth - 8, r.left)) + 'px';
+                l.style.top = (below ? r.bottom + 16 : Math.max(8, r.top - lh - 16)) + 'px';
+
+                const nx = l.querySelector('[data-nav="next"]');
+                if (nx) nx.focus({ preventScroll: true });
+
+                // Mulai dengarkan scroll user setelah sorotan tampil
+                setTimeout(() => {
+                    if (tok !== spotTok || !document.querySelector('.po-spot')) return;
+                    addEventListener('scroll', spotOff, true);
+                    addEventListener('resize', spotOff);
+                }, 250);
+            }
+        }
+
+        document.getElementById('guideBtn').addEventListener('click', e => {
+            e.stopPropagation();
+            gBs.show();
+        });
+
+        // Klik di dalam panduan: nomor/nav → lompat ke bagian; kotak/tombol "Tunjukkan" → sorot di halaman
+        gEl.addEventListener('click', e => {
+            const a = e.target.closest('.po-map-n, .po-g-nav a');
+            if (a) {
+                e.preventDefault();
+                e.stopPropagation();
+                gGo(a.getAttribute('href'), true);
+                return;
+            }
+
+            const b = e.target.closest('[data-spot], [data-tour]');
+            if (!b) return;
+
+            const idx = b.dataset.tour !== undefined ? 0 : Math.max(0, STEPS.findIndex(x => x.sel === b.dataset.spot));
+            gEl.addEventListener('hidden.bs.modal', () => spotGo(idx), { once: true });
+            gBs.hide();
+        });
+
+        document.addEventListener('keydown', e => {
+            if (spotIdx < 0) return;
+            if (e.key === 'Escape') { e.preventDefault(); spotOff(); return; }
+            if (!document.querySelector('.po-spot')) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); spotIdx === STEPS.length - 1 ? spotOff() : spotGo(spotIdx + 1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); spotGo(spotIdx - 1); }
+        }, true);
+
+        // Tur otomatis saat halaman pertama kali dibuka oleh user ini (per user per browser)
+        function autoTour() {
+            let seen = false;
+            try { seen = localStorage.getItem(TOUR_KEY) === '1'; } catch (e) { seen = true; }
+            if (seen) return;
+
+            setTimeout(() => {
+                if (spotIdx < 0 && !document.querySelector('.modal.show') && !Swal.isVisible()) {
+                    tourFirst = true;
+                    spotGo(0);
+                }
+            }, 600);
+        }
+        autoTour();
     </script>
 @endsection

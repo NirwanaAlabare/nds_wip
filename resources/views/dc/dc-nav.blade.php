@@ -118,7 +118,7 @@
             <li>
                 <a href="{{ route('stock-trolley') }}"
                     class="dropdown-item {{ $routeName == 'stock-trolley' ? 'active' : '' }}">
-                    Trolley <i class="fas fa-dolly-flatbed"></i>
+                    Stok Trolley <i class="fas fa-dolly-flatbed"></i>
                 </a>
             </li>
         </ul>
@@ -210,6 +210,12 @@
                 <a href="{{ route('dc-report-terima-secondary-luar') }}"
                     class="dropdown-item {{ $routeName == 'dc-report-terima-secondary-luar' ? 'active' : '' }}">
                     Terima Secondary Luar  <i class="fa-solid fa-file"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('dc-report-stocker-checker') }}"
+                    class="dropdown-item {{ $routeName == 'dc-report-stocker-checker' ? 'active' : '' }}">
+                    Stocker Checker  <i class="fa-solid fa-file"></i>
                 </a>
             </li>
         </ul>

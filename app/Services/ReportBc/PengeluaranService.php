@@ -799,13 +799,18 @@ class PengeluaranService
                     a.supplier as nama_pengirim,
                     a.trans_no as nomor_bpb,
                     MIN(a.bppbdate) as tanggal_bpb,
-                    a.id_contents as id_item,
+                    MAX(a.kode_brg) as id_item,
                     a.itemdesc as uraian_barang,
                     a.unit as jenis_satuan,
                     SUM(a.qty) as jumlah_satuan,
                     GROUP_CONCAT(DISTINCT a.curr) as kode_valuta,
                     SUM(a.nilai_barang) as nilai_barang
                 FROM (
+                    -- Barang tanpa id content (barang umum GEN, knitting GB/GG, dll: masteritem.id_gen kosong)
+                    -- memakai id_item masteritem sebagai kode barang. Kunci pengelompokan diberi awalan
+                    -- 'item_' supaya tiap barang tetap satu baris (dulu kodenya NULL semua sehingga barang
+                    -- berbeda dalam satu dokumen & satuan yang sama tergabung jadi satu baris) dan tidak
+                    -- bentrok dengan id content yang angkanya kebetulan sama.
                     SELECT
                         a.jenis_dok as jenis_dokumen,
                         LPAD(a.bcno, 6, '0') as bcno,
@@ -813,13 +818,13 @@ class PengeluaranService
                         IF(a.bppbno_int != '', a.bppbno_int, a.bppbno) as trans_no,
                         a.bppbdate,
                         d.supplier,
-                        mcnt.id as kode_brg,
+                        IFNULL(mcnt.id, s.id_item) as kode_brg,
                         s.itemdesc as itemdesc,
                         a.unit,
                         SUM(ROUND(IFNULL(a.qty, 0))) as qty,
                         SUM(ROUND(IFNULL(a.price, 0) * IFNULL(a.qty, 0), 2)) as nilai_barang,
                         IFNULL(NULLIF(TRIM(a.curr), ''), a.curr) as curr,
-                        mcnt.id as id_contents,
+                        IFNULL(mcnt.id, CONCAT('item_', s.id_item)) as id_contents,
                         s.matclass,
                         (SELECT sub_ac.kpno
                         FROM so_det sub_sd
@@ -844,7 +849,7 @@ class PengeluaranService
                     AND a.cancel = 'N'
                     AND a.bppbdate BETWEEN '$fromDate' AND '$toDate'
                     {$whereMatclass}
-                    GROUP BY a.bcno, a.bppbno, IFNULL(mcnt.id, s.id_item), a.price, a.jenis_dok, a.remark, a.tujuan
+                    GROUP BY a.bcno, a.bppbno, IFNULL(mcnt.id, CONCAT('item_', s.id_item)), a.price, a.jenis_dok, a.remark, a.tujuan
                 ) as a
                 GROUP BY a.trans_no, a.unit, a.id_contents
             ";
@@ -2363,8 +2368,8 @@ class PengeluaranService
             $rows = [
                 $no++,
                 $row->jenis_dokumen ?? '-',
-                $row->nomor_daftar ?? '-',
-                ($row->tanggal_daftar && $row->tanggal_daftar != '0000-00-00' && $row->tanggal_daftar != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_daftar)) : '-',
+                ReportBcDokumen::nomor($row),
+                ReportBcDokumen::tanggal($row),
                 $row->nomor_bpb ?? '-',
                 ($row->tanggal_bpb && $row->tanggal_bpb != '0000-00-00' && $row->tanggal_bpb != '0000-00-00 00:00:00') ? date('d-m-Y', strtotime($row->tanggal_bpb)) : '-',
                 $row->nama_pengirim ?? '-',

@@ -20,6 +20,7 @@ use App\Http\Controllers\Cutting\PipingProcessController;
 use App\Http\Controllers\Cutting\PipingStockController;
 use App\Http\Controllers\Cutting\CuttingStockOpnameController;
 use App\Http\Controllers\Cutting\ReportCuttingController;
+use App\Http\Controllers\Cutting\ReportMutasiInTransitFabricController;
 use App\Http\Controllers\Cutting\CuttingSwitchingController;
 use App\Http\Controllers\Cutting\ProsesOutputController;
 
@@ -389,9 +390,9 @@ Route::middleware('auth')->group(function () {
             Route::put('/cutting/update-finish/{id?}', 'updateFinish')->name('finish-update-spreading-form');
             Route::delete('/cutting/destroy-roll/{id?}', 'destroySpreadingRoll')->name('destroy-spreading-roll');
             Route::post('/cutting/recalculate-form/{id?}', 'recalculateForm')->name('recalculate-spreading-form');
-            Route::post('/cutting/reorder-roll', 'reorderRoll')->name('reorder-spreading-roll');
-            Route::get('/cutting/insert-time', 'getInsertTime')->name('get-insert-time-spreading-roll');
-            Route::post('/cutting/store-roll', 'storeAddedRoll')->name('store-added-spreading-roll');
+            Route::post('/cutting/reorder-roll', 'reorderRoll')->name('reorder-spreading-roll')->middleware("role:superadmin");
+            Route::get('/cutting/insert-time', 'getInsertTime')->name('get-insert-time-spreading-roll')->middleware("role:superadmin");
+            Route::post('/cutting/store-roll', 'storeAddedRoll')->name('store-added-spreading-roll')->middleware("role:superadmin");
             Route::get('/check-stocker-form', 'checkStockerForm')->name('check-stocker-form');
         });
 
@@ -450,6 +451,12 @@ Route::middleware('auth')->group(function () {
             Route::get('/export_excel_report_return_fabric_cutting', 'export_excel_report_return_fabric_cutting')->name('export_excel_report_return_fabric_cutting');
             Route::get('/export_roll_fabric_cutting_in', 'export_roll_fabric_cutting_in')->name('export_roll_fabric_cutting_in');
             Route::get('/export_excel_report_mutasi_wip_cutting_set', 'export_excel_report_mutasi_wip_cutting_set')->name('export_excel_report_mutasi_wip_cutting_set');
+        });
+
+        // Report Mutasi In Transit Fabric
+        Route::controller(ReportMutasiInTransitFabricController::class)->prefix("report-cutting/mutasi-in-transit-fabric")->middleware('role:cutting')->group(function () {
+            Route::get('/', 'index')->name('report-mutasi-in-transit-fabric');
+            Route::post('/export', 'export')->name('report-mutasi-in-transit-fabric-export');
         });
 
         // Roll

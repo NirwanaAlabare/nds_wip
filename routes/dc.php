@@ -194,6 +194,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/send-trolley-stock/{id?}', 'send')->name('send-trolley-stock');
         Route::post('/submit-send-trolley-stock', 'submitSend')->name('submit-send-trolley-stock');
 
+        // tampilan lama (qty tetap memakai perhitungan terbaru)
+        Route::get('/allocate-old', 'allocateOld')->name('allocate-trolley-old');
+        Route::get('/allocate-this-old/{id?}', 'allocateThisOld')->name('allocate-this-trolley-old');
+        Route::get('/send-trolley-stock-old/{id?}', 'sendOld')->name('send-trolley-stock-old');
+
         // get data
         Route::get('/get-stocker-data/{id?}', 'getStockerData')->name('get-stocker-data-trolley-stock');
     });
@@ -306,6 +311,12 @@ Route::middleware('auth')->group(function () {
         // Route untuk cancel data
         Route::post('/secondary-luar/cancel', 'cancelTerimaSecLuar')->name('terima.secondary.luar.cancel');
         Route::post('/secondary-luar/check-all', 'checkAllTerimaSecondaryLuar')->name('terima.secondary.luar.check-all');
+
+        // Stocker Checker
+        Route::get('/stocker-checker', 'stockerChecker')->name('dc-report-stocker-checker');
+        Route::get('/stocker-checker/by-form', 'stockerCheckerByForm')->name('dc-report-stocker-checker-by-form');
+        Route::get('/stocker-checker/data', 'stockerCheckerData')->name('dc-report-stocker-checker-data');
+        Route::get('/stocker-checker/by-ws', 'stockerCheckerByWs')->name('dc-report-stocker-checker-by-ws');
     });
 
     // Stocker Process

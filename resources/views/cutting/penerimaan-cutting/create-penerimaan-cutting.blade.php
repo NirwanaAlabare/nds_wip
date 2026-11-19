@@ -868,7 +868,7 @@
             const totalOn = tgl => tgl.slice(0, 7) < curMonth ? (+CARRY_TOT[tgl] || ROWS.filter(r => r.tgl === tgl).length) : ROWS.filter(r => r.tgl === tgl).length;
             function renderSisa() {
                 const w = ROWS.filter(inPend), wc = w.filter(isCarry);
-                const head = `<div class="pc-card-h"><span class="lbl"><i class="fa fa-hourglass-half"></i> Sisa roll belum diterima</span><span class="r">s/d ${fmon(curMonth)} · termasuk ${carryFrom ? 'sejak ' + fmon(carryFrom) : 'bulan sebelumnya'}</span></div>`;
+                const head = `<div class="pc-card-h"><span class="lbl"><i class="fa fa-hourglass-half"></i> Sisa roll belum diterima</span><span class="r">s/d ${fmon(curMonth)}${carryFrom && carryFrom >= curMonth ? '' : ' · termasuk ' + (carryFrom ? 'sejak ' + fmon(carryFrom) : 'bulan sebelumnya')}</span></div>`;
                 if (!w.length) { $id('pc-sisa').innerHTML = head + `<div class="pc-empty">Semua roll sudah diterima ✓</div>`; return; }
                 const o = byU(w), uk = ukeys(o);
                 const g = {}; w.forEach(r => (g[r.tgl] ||= { tgl: r.tgl, rows: [] }).rows.push(r));

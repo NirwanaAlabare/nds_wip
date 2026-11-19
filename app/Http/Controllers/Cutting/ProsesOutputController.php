@@ -63,7 +63,7 @@ class ProsesOutputController extends Controller
     }
 
     // Qty output cutting per buyer, ws, style, color, panel, size:
-    // qty form (form cut, reject, piece, ws additional) + qty switching in / out (log switching yang masih aktif) + qty scrap + qty adjustment
+    // qty form (form cut, reject, piece, ws additional) + qty switching in / out (log switching form yang masih aktif + wip_switching_adj CUTTING) + qty scrap + qty adjustment
     public function getData(Request $request)
     {
         return response()->json([
@@ -462,13 +462,123 @@ class ProsesOutputController extends Controller
                     GROUP BY master_sb_ws.id_so_det, wip_adjustment.style, wip_adjustment.panel, wip_adjustment.part
                 ) adjustment
                 GROUP BY adjustment.so_det_id, adjustment.panel
+
+                UNION ALL
+
+                -- 9. Switching WIP in (wip_switching_adj CUTTING, sisi tujuan): qty per panel = qty part terkecil di panel itu
+                SELECT
+                    switching_in.buyer,
+                    switching_in.act_costing_id,
+                    switching_in.act_costing_ws,
+                    switching_in.style,
+                    switching_in.color,
+                    switching_in.panel,
+                    switching_in.so_det_id,
+                    switching_in.size,
+                    0 ratio,
+                    0 form_gelar,
+                    NULL diff,
+                    MIN(switching_in.qty) qty_in,
+                    0 qty_out,
+                    0 qty_scrap,
+                    0 qty_adjustment
+                FROM (
+                    SELECT
+                        master_sb_ws.buyer,
+                        master_sb_ws.id_act_cost act_costing_id,
+                        master_sb_ws.ws act_costing_ws,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
+                        wip_switching_adj.panel,
+                        master_sb_ws.id_so_det so_det_id,
+                        master_sb_ws.size,
+                        SUM(wip_switching_adj.qty) qty
+                    FROM wip_switching_adj
+                    INNER JOIN (
+                        SELECT
+                            MIN(id_so_det) id_so_det,
+                            MIN(id_act_cost) id_act_cost,
+                            ws,
+                            color,
+                            size,
+                            styleno,
+                            buyer
+                        FROM master_sb_ws
+                        WHERE ws IN ($wsIn)
+                        GROUP BY ws, color, size, styleno, buyer
+                    ) master_sb_ws
+                        ON master_sb_ws.ws = wip_switching_adj.no_ws
+                        AND master_sb_ws.color = wip_switching_adj.color
+                        AND master_sb_ws.size = wip_switching_adj.size
+                        AND master_sb_ws.styleno = wip_switching_adj.style
+                    WHERE wip_switching_adj.type_report = 'CUTTING'
+                      AND wip_switching_adj.status = 'Y'
+                      AND wip_switching_adj.no_ws IN ($wsIn)
+                    GROUP BY master_sb_ws.id_so_det, wip_switching_adj.style, wip_switching_adj.panel, wip_switching_adj.part
+                ) switching_in
+                GROUP BY switching_in.so_det_id, switching_in.panel
+
+                UNION ALL
+
+                -- 10. Switching WIP out (wip_switching_adj CUTTING, sisi asal): qty per panel = qty part terkecil di panel itu
+                SELECT
+                    switching_out.buyer,
+                    switching_out.act_costing_id,
+                    switching_out.act_costing_ws,
+                    switching_out.style,
+                    switching_out.color,
+                    switching_out.panel,
+                    switching_out.so_det_id,
+                    switching_out.size,
+                    0 ratio,
+                    0 form_gelar,
+                    NULL diff,
+                    0 qty_in,
+                    MIN(switching_out.qty) qty_out,
+                    0 qty_scrap,
+                    0 qty_adjustment
+                FROM (
+                    SELECT
+                        master_sb_ws.buyer,
+                        master_sb_ws.id_act_cost act_costing_id,
+                        master_sb_ws.ws act_costing_ws,
+                        master_sb_ws.styleno style,
+                        master_sb_ws.color,
+                        wip_switching_adj.from_panel panel,
+                        master_sb_ws.id_so_det so_det_id,
+                        master_sb_ws.size,
+                        SUM(wip_switching_adj.from_qty) qty
+                    FROM wip_switching_adj
+                    INNER JOIN (
+                        SELECT
+                            MIN(id_so_det) id_so_det,
+                            MIN(id_act_cost) id_act_cost,
+                            ws,
+                            color,
+                            size,
+                            styleno,
+                            buyer
+                        FROM master_sb_ws
+                        WHERE ws IN ($wsIn)
+                        GROUP BY ws, color, size, styleno, buyer
+                    ) master_sb_ws
+                        ON master_sb_ws.ws = wip_switching_adj.from_no_ws
+                        AND master_sb_ws.color = wip_switching_adj.from_color
+                        AND master_sb_ws.size = wip_switching_adj.from_size
+                        AND master_sb_ws.styleno = wip_switching_adj.from_style
+                    WHERE wip_switching_adj.type_report = 'CUTTING'
+                      AND wip_switching_adj.status = 'Y'
+                      AND wip_switching_adj.from_no_ws IN ($wsIn)
+                    GROUP BY master_sb_ws.id_so_det, wip_switching_adj.from_style, wip_switching_adj.from_panel, wip_switching_adj.from_part
+                ) switching_out
+                GROUP BY switching_out.so_det_id, switching_out.panel
             ) mc
             LEFT JOIN master_size_new ON master_size_new.size = mc.size
             WHERE 1 = 1
                 $filters
             GROUP BY mc.act_costing_id, mc.color, mc.panel, mc.size
             ORDER BY mc.buyer, mc.act_costing_ws, mc.style, mc.color, size_order, mc.panel
-        ", array_merge(array_merge(...array_fill(0, 9, $wsList)), $filterBindings));
+        ", array_merge(array_merge(...array_fill(0, 13, $wsList)), $filterBindings));
     }
 
     // Sub kolom tiap panel: field => judul (urutan sama dengan tabel)
