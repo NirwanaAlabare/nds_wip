@@ -555,6 +555,115 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Tombol header (Panduan & Kembali): hover tetap terang, bukan hitam (timpa style.css global) */
+        .pl-head-r .btn-light:hover,
+        .pl-head-r .btn-light:focus-visible {
+            background-color: #e2e6ea !important;
+            border-color: #e2e6ea !important;
+            color: #1d2433 !important;
+        }
+
+        /* ===== Panduan ===== */
+        #plGuide, .pl-spot-l {
+            --g-ink: #1d2433; --g-muted: #6b7385; --g-line: #ebe7de; --g-soft: #f7f5f0;
+            --g-pri: #4057e3; --g-ok: #1a9d63; --g-wip: #e39a12; --g-err: #e0483e; --g-empty: #e4e1d8; --g-acc: #ff971f;
+        }
+        .pl-g { padding: 0 20px 20px; color: var(--g-ink); font-size: 13.5px; }
+        .pl-g-nav { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 0; background: #fff; border-bottom: 1px solid var(--g-line); margin-bottom: 4px; }
+        .pl-g-nav a { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: var(--g-soft); color: var(--g-pri); text-decoration: none; border: 1px solid var(--g-line); }
+        .pl-g-nav a:hover { background: var(--g-pri); color: #fff; }
+        .pl-g section { padding-top: 16px; scroll-margin-top: 56px; }
+        .pl-g h6 { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: 700; color: var(--g-pri); border-left: 4px solid var(--g-acc); padding-left: 8px; margin-bottom: 10px; }
+        .pl-g ul { padding-left: 18px; margin-bottom: 0; }
+        .pl-g li { margin-bottom: 6px; line-height: 1.5; }
+        .pl-g-t { margin-bottom: 0; }
+        .pl-g-t td { vertical-align: top; padding: 7px 8px; line-height: 1.5; }
+        .pl-g-t td:first-child { width: 210px; white-space: nowrap; color: var(--g-pri); }
+        .pl-g-btn { display: inline-block; font-size: 12px; padding: 2px 8px; border: 1px solid #c5ccd6; border-radius: .3rem; background: #fff; }
+        .pl-g-flow { display: flex; align-items: stretch; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .pl-g-flow > div { flex: 1; min-width: 130px; background: var(--g-soft); border: 1px solid var(--g-line); border-radius: .5rem; padding: 8px 12px; }
+        .pl-g-flow > div.ok { background: #e7f7ee; border-color: #b9e8cf; }
+        .pl-g-flow b { display: block; color: var(--g-pri); } .pl-g-flow span { font-size: 12px; color: var(--g-muted); }
+        .pl-g-flow > i { align-self: center; font-style: normal; font-weight: 700; color: var(--g-acc); }
+        .pl-g-faq dt { color: var(--g-pri); margin-top: 8px; } .pl-g-faq dd { margin: 2px 0 0; }
+        .pl-g kbd { font-size: 11px; padding: 1px 5px; }
+        .pl-g-show { border: 1px solid var(--g-pri); background: #fff; color: var(--g-pri); font-size: 11.5px; font-weight: 600; border-radius: 20px; padding: 2px 10px; }
+        .pl-g-show:hover, .pl-g-show.pri { background: var(--g-pri); color: #fff; }
+        .pl-g-show.pri:hover { filter: brightness(.92); }
+        .pl-g-note { font-size: 12.5px; color: var(--g-muted); margin-bottom: 10px; }
+
+        /* Panduan: peta halaman */
+        .pl-map { background: var(--g-soft); border: 1px solid var(--g-line); border-radius: .6rem; padding: 14px; max-width: 760px; display: flex; flex-direction: column; gap: 12px; }
+        .pl-map-z { position: relative; cursor: pointer; transition: box-shadow .15s; }
+        .pl-map-z:hover { box-shadow: 0 0 0 2px var(--g-acc); z-index: 6; }
+        .pl-map-n { position: absolute; top: -9px; left: -9px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; background: var(--g-acc); color: #fff !important; font-size: 12px; font-weight: 700; display: grid; place-items: center; text-decoration: none; box-shadow: 0 0 0 2px #fff; }
+        .pl-map-n:hover, .pl-map-n:focus-visible { background: var(--g-pri); z-index: 5; }
+        .pl-map-tip { position: absolute; top: calc(100% + 8px); left: -4px; width: 230px; padding: 8px 10px; border-radius: .45rem; background: #1d2433; color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45; text-align: left; box-shadow: 0 6px 18px rgba(0,0,0,.25); opacity: 0; visibility: hidden; transform: translateY(-4px); transition: opacity .15s, transform .15s, visibility .15s; pointer-events: none; }
+        .pl-map-tip:before { content: ""; position: absolute; top: -5px; left: 10px; width: 10px; height: 10px; background: #1d2433; transform: rotate(45deg); }
+        .pl-map-n.tip-l .pl-map-tip { left: auto; right: -4px; }
+        .pl-map-n.tip-l .pl-map-tip:before { left: auto; right: 10px; }
+        .pl-map-tip b { display: block; font-size: 12.5px; margin-bottom: 2px; color: #ffc98a; }
+        .pl-map-tip small { display: block; margin-top: 5px; font-size: 10.5px; color: rgba(255,255,255,.65); }
+        .pl-map-n:hover .pl-map-tip, .pl-map-n:focus-visible .pl-map-tip { opacity: 1; visibility: visible; transform: none; }
+        .pl-map-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 8px 6px 10px; border-radius: .4rem; background: var(--sb-color, #082149); }
+        .pl-map-head b { font-size: 12px; color: #fff; }
+        .pl-map-head .r { display: flex; gap: 4px; padding: 3px; border-radius: .35rem; }
+        .pl-map-head .r i { width: 40px; height: 14px; border-radius: 3px; background: #fff; }
+        .pl-map-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; }
+        .pl-map-card { background: #fff; border: 1px solid var(--g-line); border-radius: .45rem; padding: 8px; }
+        .pl-map-card .h { font-size: 9.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--g-muted); margin: 0 0 6px 10px; }
+        .pl-map-card .row6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+        .pl-map-card .row6 i { height: 16px; border-radius: .25rem; background: var(--g-soft); border: 1px solid var(--g-line); }
+        .pl-map-card .row6 i.sel { border: 1.5px solid var(--g-pri); background: #fff; }
+        .pl-map-card .inp { display: grid; grid-template-columns: 1fr 1fr auto 1fr 1fr; gap: 4px; margin-bottom: 6px; }
+        .pl-map-card .inp i { height: 14px; border-radius: .25rem; border: 1px solid #c5ccd6; background: #fff; }
+        .pl-map-card .inp em { width: 34px; height: 14px; border-radius: .25rem; background: #dfe5ff; }
+        .pl-map-card .chips { display: flex; gap: 3px; }
+        .pl-map-card .chips i { width: 30px; height: 10px; border-radius: 10px; background: #dfe5ff; }
+        .pl-map-card .st { height: 6px; border-radius: 3px; background: var(--g-empty); margin-top: 6px; }
+        .pl-map-card .bar { height: 7px; border-radius: 4px; background: var(--g-empty); margin-top: 8px; overflow: hidden; }
+        .pl-map-card .bar i { display: block; height: 100%; width: 45%; background: var(--g-pri); }
+        .pl-map-card .tabs { display: flex; gap: 3px; margin-bottom: 6px; }
+        .pl-map-card .tabs i { height: 10px; width: 36px; border-radius: 10px; border: 1px solid #c5ccd6; }
+        .pl-map-card .tabs i.on { background: var(--g-pri); border-color: var(--g-pri); }
+        .pl-map-card .mx { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: 3px; }
+        .pl-map-card .mx i { height: 14px; border-radius: .2rem; background: var(--g-soft); border: 1px solid var(--g-line); }
+        .pl-map-card .mx i.q { background: #fff; border-color: #c5ccd6; }
+        .pl-map-card .ft { display: flex; justify-content: flex-end; margin-top: 6px; }
+        .pl-map-card .ft i { width: 90px; height: 14px; border-radius: .25rem; background: var(--g-pri); }
+        .pl-map-card .hd { display: flex; justify-content: flex-end; gap: 4px; margin-bottom: 6px; }
+        .pl-map-card .hd i { width: 34px; height: 12px; border-radius: .25rem; background: var(--g-soft); border: 1px solid var(--g-line); }
+        .pl-map-card .hd i.d { background: #fde3e1; border-color: #f6c2be; }
+        .pl-map-card .hd i.p { background: var(--g-pri); border-color: var(--g-pri); }
+        .pl-map-card .rw { height: 6px; border-radius: 3px; background: var(--g-empty); margin-top: 5px; }
+
+        /* Panduan: sorot elemen & tur */
+        .pl-spot { position: fixed; z-index: 2000; border-radius: .6rem; box-shadow: 0 0 0 9999px rgba(17,24,39,.6); outline: 3px solid #ff971f; outline-offset: 3px; pointer-events: none; animation: plSpot 1.2s ease-in-out infinite; }
+        @keyframes plSpot { 50% { outline-offset: 8px; outline-color: rgba(255,151,31,.6); } }
+        .pl-spot-cv { position: fixed; inset: 0; z-index: 1999; cursor: pointer; }
+        .pl-spot-l { position: fixed; z-index: 2001; background: #fff; color: var(--g-ink); font-size: 13px; padding: 10px 12px; border-radius: .5rem; box-shadow: 0 6px 18px rgba(0,0,0,.25); width: 340px; max-width: calc(100vw - 16px); }
+        .pl-spot-l .st { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--g-pri); margin-bottom: 4px; }
+        .pl-spot-l .dots { display: flex; gap: 4px; }
+        .pl-spot-l .dots i { width: 7px; height: 7px; border-radius: 50%; background: #e2e6ec; }
+        .pl-spot-l .dots i.done { background: #b7c2f5; }
+        .pl-spot-l .dots i.on { background: var(--g-acc); width: 16px; border-radius: 4px; }
+        .pl-spot-l > b { display: block; font-weight: 700; }
+        .pl-spot-l > span.d { display: block; color: #3d4450; font-size: 12.5px; line-height: 1.5; margin-top: 3px; }
+        .pl-spot-l > span.d b { color: var(--g-ink); }
+        .pl-spot-l .nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
+        .pl-spot-l .nav button { border: 1px solid #c5ccd6; background: #fff; color: var(--g-ink); font-size: 12.5px; font-weight: 600; border-radius: .35rem; padding: 4px 12px; }
+        .pl-spot-l .nav button:disabled { opacity: .4; }
+        .pl-spot-l .nav button.pri { background: var(--g-pri); border-color: var(--g-pri); color: #fff; }
+        .pl-spot-l .nav button:not(:disabled):hover { filter: brightness(.95); }
+        .pl-spot-l small { display: block; color: var(--g-muted); font-size: 11.5px; margin-top: 6px; padding-top: 5px; border-top: 1px solid #e2e6ec; }
+        .pl-spot-l kbd { font-size: 10px; padding: 0 4px; }
+
+        @media (max-width: 576px) {
+            .pl-g-t td:first-child { width: auto; white-space: normal; }
+            .pl-g-flow > i { display: none; }
+            .pl-map-grid { grid-template-columns: 1fr; }
+        }
     </style>
 @endsection
 
@@ -564,9 +673,14 @@
             <h5 class="card-title fw-bold mb-0">
                 <i class="fas fa-box-open"></i> Packing List — Baru
             </h5>
-            <a class="btn btn-light btn-sm ms-auto" style="margin-block: -.5rem;" href="{{ route('packing-list-karton') }}">
-                <i class="fas fa-arrow-left"></i> Kembali
-            </a>
+            <div class="pl-head-r d-flex gap-2 ms-auto" style="margin-block: -.5rem;">
+                <button type="button" class="btn btn-light btn-sm" id="guideBtn">
+                    <i class="fas fa-book-open"></i> Panduan
+                </button>
+                <a class="btn btn-light btn-sm" href="{{ route('packing-list-karton') }}">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </a>
+            </div>
         </div>
     </div>
 
@@ -609,7 +723,7 @@
 
         {{-- 1. Tentukan Carton + Progress Packing --}}
         <div class="t2-top-layout">
-            <div class="t2-card">
+            <div class="t2-card" id="plCartonCard">
                 <div class="t2-title">1. Tentukan Carton</div>
                 <div class="t2-toolbar">
                     <div class="t2-field">
@@ -635,7 +749,7 @@
                 <div class="t2-chips" id="chips"></div>
             </div>
 
-            <div class="t2-card t2-sidecard">
+            <div class="t2-card t2-sidecard" id="plProgCard">
                 <div class="t2-title">Progress Packing</div>
                 <div class="t2-stat"><span>Total Qty PO</span><b id="totalPoVal">0 pcs</b></div>
                 <div class="t2-stat"><span>Sudah Packing</span><b id="packed">0 pcs</b></div>
@@ -648,7 +762,7 @@
         </div>
 
         {{-- 2. Isi Packing per Barcode --}}
-        <div class="t2-card">
+        <div class="t2-card" id="plIsiCard">
             <div class="t2-title">2. Isi Packing per Barcode</div>
             <div class="t2-info">
                 Semua detail dari Sales Order sudah ditampilkan otomatis. <b>Semua size ditampilkan horizontal</b>.
@@ -670,7 +784,7 @@
         </div>
 
         {{-- 3. Hasil Packing List --}}
-        <div class="t2-card">
+        <div class="t2-card" id="plHasilCard">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="t2-title mb-0">3. Hasil Packing List</div>
                 <div class="d-flex gap-2 align-items-center">
@@ -700,6 +814,165 @@
                 <div class="modal-body t2-container" id="previewBody"></div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-primary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Panduan halaman --}}
+    <div class="modal fade" id="plGuide" tabindex="-1" aria-labelledby="plGuideTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <div>
+                        <small class="text-uppercase fw-bold" style="letter-spacing: .6px; opacity: .75;">Panduan</small>
+                        <h5 class="modal-title fw-bold" id="plGuideTitle">Packing List — Baru</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body pl-g">
+                    <nav class="pl-g-nav">
+                        <a href="#plg-peta">Peta halaman</a><a href="#plg-alur">Alur singkat</a><a href="#plg-atas">Tombol atas</a><a href="#plg-po">Pilih PO</a><a href="#plg-carton">Tentukan carton</a>
+                        <a href="#plg-prog">Progress packing</a><a href="#plg-isi">Isi packing</a><a href="#plg-hasil">Hasil &amp; simpan</a><a href="#plg-tips">Tips &amp; FAQ</a>
+                    </nav>
+
+                    <section id="plg-peta">
+                        <h6><span>Peta halaman</span> <button type="button" class="pl-g-show pri" data-tour="0"><i class="fa fa-play"></i> Mulai tur</button></h6>
+                        <p class="pl-g-note">Klik <b>nomor</b> untuk membaca penjelasannya, atau klik <b>kotaknya</b> untuk melihat langsung di halaman.</p>
+                        <div class="pl-map">
+                            <div class="pl-map-head">
+                                <b>Packing List — Baru</b>
+                                <div class="pl-map-z r" data-spot=".pl-head-r"><a href="#plg-atas" class="pl-map-n tip-l" aria-label="Tombol di kanan atas">2<span class="pl-map-tip" role="tooltip"><b>Tombol di kanan atas</b>Panduan dan Kembali ke daftar Packing List.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i></div>
+                            </div>
+                            <div class="pl-map-z pl-map-card" data-spot=".t2-order">
+                                <a href="#plg-po" class="pl-map-n" aria-label="Pilih PO">3<span class="pl-map-tip" role="tooltip"><b>Pilih No. PO</b>Pilih PO, lalu info shipment, buyer, worksheet, style &amp; dest tampil otomatis.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                <div class="h">Info PO</div>
+                                <div class="row6"><i class="sel"></i><i></i><i></i><i></i><i></i><i></i></div>
+                            </div>
+                            <div class="pl-map-grid">
+                                <div class="pl-map-z pl-map-card" data-spot="#plCartonCard">
+                                    <a href="#plg-carton" class="pl-map-n" aria-label="Tentukan carton">4<span class="pl-map-tip" role="tooltip"><b>1. Tentukan Carton</b>Isi nomor carton mulai–sampai dan Tipe Packing, lalu Pilih Carton.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                    <div class="h">1. Tentukan carton</div>
+                                    <div class="inp"><i></i><i></i><em></em><i></i><i></i></div>
+                                    <div class="chips"><i></i><i></i><i></i><i></i></div>
+                                </div>
+                                <div class="pl-map-z pl-map-card" data-spot="#plProgCard">
+                                    <a href="#plg-prog" class="pl-map-n tip-l" aria-label="Progress packing">5<span class="pl-map-tip" role="tooltip"><b>Progress Packing</b>Total qty PO, qty yang sudah dimasukkan, balance, dan persen.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                    <div class="h">Progress packing</div>
+                                    <div class="st"></div><div class="st" style="width:70%"></div>
+                                    <div class="bar"><i></i></div>
+                                </div>
+                            </div>
+                            <div class="pl-map-z pl-map-card" data-spot="#plIsiCard">
+                                <a href="#plg-isi" class="pl-map-n" aria-label="Isi packing per barcode">6<span class="pl-map-tip" role="tooltip"><b>2. Isi Packing per Barcode</b>Isi qty per size untuk 1 carton, lalu Simpan ke Carton Terpilih.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                <div class="h">2. Isi packing per barcode</div>
+                                <div class="tabs"><i class="on"></i><i></i><i></i></div>
+                                <div class="mx"><i></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="q"></i><i></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="q"></i></div>
+                                <div class="ft"><i></i></div>
+                            </div>
+                            <div class="pl-map-z pl-map-card" data-spot="#plHasilCard">
+                                <a href="#plg-hasil" class="pl-map-n" aria-label="Hasil packing list">7<span class="pl-map-tip" role="tooltip"><b>3. Hasil Packing List</b>Daftar carton yang sudah diisi. Cek dengan Preview, lalu Simpan Packing List.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                <div class="h">3. Hasil packing list</div>
+                                <div class="hd"><i></i><i></i><i></i><i class="d"></i><i class="p"></i></div>
+                                <div class="rw"></div><div class="rw" style="width:80%"></div><div class="rw"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="plg-alur">
+                        <h6>1. Alur singkat</h6>
+                        <div class="pl-g-flow">
+                            <div><b>Pilih PO</b><span>detail SKU dimuat</span></div><i>→</i>
+                            <div><b>Tentukan carton</b><span>no. mulai–sampai + tipe</span></div><i>→</i>
+                            <div><b>Isi qty per size</b><span>isi untuk 1 carton</span></div><i>→</i>
+                            <div><b>Simpan ke carton</b><span>masuk Hasil Packing List</span></div><i>→</i>
+                            <div class="ok"><b>Simpan Packing List</b><span>baru tersimpan ke database</span></div>
+                        </div>
+                        <ul>
+                            <li>Ulangi langkah <b>Tentukan carton → Isi qty → Simpan ke carton</b> untuk setiap komposisi isi carton yang berbeda.</li>
+                            <li>Data baru benar-benar tersimpan setelah menekan <b>Simpan Packing List</b>. Sebelum itu, data hanya ada di halaman ini.</li>
+                        </ul>
+                    </section>
+
+                    <section id="plg-atas">
+                        <h6><span>2. Tombol di kanan atas</span> <button type="button" class="pl-g-show" data-spot=".pl-head-r"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm pl-g-t">
+                            <tr><td><span class="pl-g-btn">Panduan</span></td><td>Membuka halaman ini.</td></tr>
+                            <tr><td><span class="pl-g-btn">Kembali</span></td><td>Kembali ke daftar Packing List. Data yang belum disimpan akan hilang.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="plg-po">
+                        <h6><span>3. Pilih No. PO</span> <button type="button" class="pl-g-show" data-spot=".t2-order"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm pl-g-t">
+                            <tr><td><b>Pilih No. PO</b></td><td>Pilih PO yang akan dibuat packing list-nya. Bisa diketik untuk mencari.</td></tr>
+                            <tr><td><b>Tgl. Shipment, Buyer, Worksheet, Style, Dest</b></td><td>Tampil otomatis sesuai PO terpilih (hanya informasi).</td></tr>
+                        </table>
+                        <ul class="mt-2">
+                            <li>Mengganti PO akan mengosongkan isian carton dan Hasil Packing List yang belum disimpan.</li>
+                        </ul>
+                    </section>
+
+                    <section id="plg-carton">
+                        <h6><span>4. Tentukan Carton</span> <button type="button" class="pl-g-show" data-spot="#plCartonCard"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm pl-g-t">
+                            <tr><td><b>Carton Mulai / Sampai</b></td><td>Nomor carton pertama dan terakhir yang isinya sama. Contoh 1 s/d 5 = carton 1, 2, 3, 4, 5.</td></tr>
+                            <tr><td><span class="pl-g-btn">Pilih Carton</span></td><td>Menandai carton tersebut sebagai carton terpilih (tampil sebagai label di bawahnya).</td></tr>
+                            <tr><td><b>Tipe Packing</b> <span class="text-danger">*</span></td><td>Wajib diisi, misal <b>SOLID</b>. Otomatis huruf besar.</td></tr>
+                            <tr><td><b>Keterangan</b></td><td>Opsional.</td></tr>
+                        </table>
+                        <ul class="mt-2">
+                            <li>Carton yang sudah ada di Hasil Packing List tidak bisa dipilih lagi; nomornya tampil di bawah form.</li>
+                        </ul>
+                    </section>
+
+                    <section id="plg-prog">
+                        <h6><span>5. Progress Packing</span> <button type="button" class="pl-g-show" data-spot="#plProgCard"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm pl-g-t">
+                            <tr><td><b>Total Qty PO</b></td><td>Jumlah qty seluruh SKU di PO.</td></tr>
+                            <tr><td><b>Sudah Packing</b></td><td>Total qty yang sudah dimasukkan ke Hasil Packing List di halaman ini.</td></tr>
+                            <tr><td><b>Balance &amp; Progress</b></td><td>Sisa qty dan persentasenya.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="plg-isi">
+                        <h6><span>6. Isi Packing per Barcode</span> <button type="button" class="pl-g-show" data-spot="#plIsiCard"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm pl-g-t">
+                            <tr><td><b>Tab Worksheet</b></td><td>Menyaring baris per worksheet. <b>Semua Worksheet</b> menampilkan semuanya.</td></tr>
+                            <tr><td><b>PO / Pack / Bal</b></td><td>Di tiap size: qty PO, qty yang sudah di-packing (termasuk yang tersimpan sebelumnya), dan sisanya.</td></tr>
+                            <tr><td><b>Kolom Qty</b></td><td>Isi qty <b>untuk 1 carton</b>. Qty ini diterapkan ke setiap carton terpilih. Kotak jadi merah bila melebihi balance.</td></tr>
+                            <tr><td><b>Barcode Kosong</b></td><td>Size tanpa barcode tidak bisa diisi.</td></tr>
+                            <tr><td><span class="pl-g-btn">Simpan ke Carton Terpilih</span></td><td>Memasukkan isian ke Hasil Packing List. Form carton &amp; qty dikosongkan lagi untuk carton berikutnya.</td></tr>
+                        </table>
+                        <ul class="mt-2">
+                            <li>Qty × jumlah carton tidak boleh melebihi balance. Contoh: qty 10 untuk 5 carton = butuh balance 50.</li>
+                        </ul>
+                    </section>
+
+                    <section id="plg-hasil">
+                        <h6><span>7. Hasil Packing List &amp; simpan</span> <button type="button" class="pl-g-show" data-spot="#plHasilCard"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                        <table class="table table-sm pl-g-t">
+                            <tr><td><b>Jumlah Carton / Total Qty</b></td><td>Ringkasan isi Hasil Packing List.</td></tr>
+                            <tr><td><span class="pl-g-btn">Preview</span></td><td>Melihat isi tiap carton dalam bentuk visual sebelum disimpan.</td></tr>
+                            <tr><td><span class="pl-g-btn">Hapus</span> <small class="text-muted">(per baris)</small></td><td>Menghapus satu carton dari hasil, supaya nomornya bisa diisi ulang.</td></tr>
+                            <tr><td><span class="pl-g-btn">Hapus Semua</span></td><td>Mengosongkan seluruh hasil (ada konfirmasi).</td></tr>
+                            <tr><td><span class="pl-g-btn">Simpan Packing List</span></td><td>Menyimpan semua carton ke database (ada konfirmasi). Setelah berhasil, data PO dimuat ulang.</td></tr>
+                        </table>
+                    </section>
+
+                    <section id="plg-tips">
+                        <h6>8. Tips &amp; FAQ</h6>
+                        <dl class="pl-g-faq mb-0">
+                            <dt>Salah isi qty di satu carton?</dt>
+                            <dd>Klik <b>Hapus</b> di baris carton itu pada Hasil Packing List, lalu pilih ulang nomor carton dan isi lagi.</dd>
+                            <dt>Muncul "Carton … sudah ada di packing list"?</dt>
+                            <dd>Nomor carton itu sudah ada di Hasil Packing List. Pakai nomor lain atau hapus dulu carton tersebut.</dd>
+                            <dt>Muncul "melebihi balance"?</dt>
+                            <dd>Qty × jumlah carton lebih besar dari sisa PO. Kurangi qty atau jumlah carton terpilih.</dd>
+                            <dt>Halaman tertutup sebelum Simpan Packing List?</dt>
+                            <dd>Data di Hasil Packing List hilang dan perlu diisi ulang. Simpan setelah semua carton selesai.</dd>
+                        </dl>
+                    </section>
                 </div>
             </div>
         </div>
@@ -1217,8 +1490,166 @@
             $('#modalPreviewPacking').modal('show');
         }
 
+        // ===== Panduan: sorot elemen asli + tur langkah demi langkah =====
+        const gEl = document.getElementById('plGuide'), gBs = bootstrap.Modal.getOrCreateInstance(gEl);
+        const TOUR_KEY = 'pl_tour_seen_{{ Auth::id() }}';
+        const STEPS = [
+            { sel: '.pl-head-r', sec: 'plg-atas', lbl: 'Tombol di kanan atas',
+              d: '<b>Panduan</b> membuka halaman bantuan ini · <b>Kembali</b> ke daftar Packing List.' },
+            { sel: '.t2-order', sec: 'plg-po', lbl: 'Pilih No. PO',
+              d: 'Pilih PO terlebih dahulu. Info shipment, buyer, worksheet, style &amp; dest tampil otomatis.' },
+            { sel: '#plCartonCard', sec: 'plg-carton', lbl: '1. Tentukan Carton',
+              d: 'Isi <b>Carton Mulai–Sampai</b> lalu klik <b>Pilih Carton</b>. Isi juga <b>Tipe Packing</b> (wajib).' },
+            { sel: '#plProgCard', sec: 'plg-prog', lbl: 'Progress Packing',
+              d: 'Total qty PO, qty yang sudah dimasukkan ke hasil, balance, dan persentasenya.' },
+            { sel: '#plIsiCard', sec: 'plg-isi', lbl: '2. Isi Packing per Barcode',
+              d: 'Isi qty per size <b>untuk 1 carton</b>, lalu <b>Simpan ke Carton Terpilih</b>. Qty diterapkan ke semua carton terpilih.' },
+            { sel: '#plHasilCard', sec: 'plg-hasil', lbl: '3. Hasil Packing List',
+              d: 'Cek dengan <b>Preview</b>, lalu <b>Simpan Packing List</b> agar tersimpan ke database.' },
+        ];
+        let spotTok = 0, spotIdx = -1, tourFirst = false;
+
+        function gGo(id, smooth) {
+            const t = gEl.querySelector(id);
+            if (t) t.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+        }
+
+        function spotClear() {
+            spotTok++;
+            document.querySelectorAll('.pl-spot, .pl-spot-l, .pl-spot-cv').forEach(x => x.remove());
+            removeEventListener('scroll', spotOff, true);
+            removeEventListener('resize', spotOff);
+        }
+
+        // Tutup tur & kembali ke panduan di bagian langkah terakhir yang dilihat
+        function spotOff() {
+            const s = STEPS[spotIdx], first = tourFirst;
+            spotClear();
+            spotIdx = -1;
+            if (first) {
+                tourFirst = false;
+                try { localStorage.setItem(TOUR_KEY, '1'); } catch (e) {}
+            }
+            gEl.addEventListener('shown.bs.modal', () => gGo(first || !s ? '#plg-peta' : '#' + s.sec), { once: true });
+            gBs.show();
+        }
+
+        function spotGo(i) {
+            if (i < 0 || i >= STEPS.length) return;
+            spotClear();
+            spotIdx = i;
+
+            const s = STEPS[i], n = STEPS.length;
+            const target = [...document.querySelectorAll(s.sel)].find(x => x.offsetParent !== null);
+            if (!target) { spotOff(); return; }
+
+            const tok = spotTok;
+            if (document.activeElement) document.activeElement.blur();
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Tunggu scroll berhenti (posisi elemen stabil beberapa frame), baru pasang sorotan
+            let last = null, still = 0;
+            const t0 = performance.now();
+            (function wait() {
+                if (tok !== spotTok) return;
+                const top = target.getBoundingClientRect().top;
+                still = last !== null && Math.abs(top - last) < 0.5 ? still + 1 : 0;
+                last = top;
+                if (still >= 6 || performance.now() - t0 > 2000) draw(); else requestAnimationFrame(wait);
+            })();
+
+            function draw() {
+                const r = target.getBoundingClientRect(), pad = 6;
+
+                const cv = document.createElement('div');
+                cv.className = 'pl-spot-cv';
+                cv.onclick = spotOff;
+
+                const box = document.createElement('div');
+                box.className = 'pl-spot';
+                Object.assign(box.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px' });
+
+                const l = document.createElement('div');
+                l.className = 'pl-spot-l';
+                l.innerHTML = `<div class="st"><span>Langkah ${i + 1} dari ${n}</span><span class="dots">${STEPS.map((_, k) => `<i class="${k === i ? 'on' : k < i ? 'done' : ''}"></i>`).join('')}</span></div>
+                    <b>${escHtml(s.lbl)}</b><span class="d">${s.d}</span>
+                    <div class="nav"><button type="button" data-nav="prev" ${i ? '' : 'disabled'}>‹ Sebelumnya</button>
+                        <button type="button" data-nav="next" class="pri">${i === n - 1 ? 'Selesai ✓' : 'Berikutnya ›'}</button></div>
+                    <small><kbd>←</kbd><kbd>→</kbd> pindah langkah · <kbd>Esc</kbd>, scroll, atau klik area gelap untuk kembali ke panduan</small>`;
+                l.onclick = e => {
+                    const b = e.target.closest('[data-nav]');
+                    if (!b) return;
+                    if (b.dataset.nav === 'prev') spotGo(i - 1);
+                    else if (i === n - 1) spotOff();
+                    else spotGo(i + 1);
+                };
+
+                document.body.append(cv, box, l);
+
+                const lh = l.offsetHeight, below = r.bottom + 16 + lh < innerHeight;
+                l.style.left = Math.max(8, Math.min(innerWidth - l.offsetWidth - 8, r.left)) + 'px';
+                l.style.top = (below ? r.bottom + 16 : Math.max(8, r.top - lh - 16)) + 'px';
+
+                const nx = l.querySelector('[data-nav="next"]');
+                if (nx) nx.focus({ preventScroll: true });
+
+                // Mulai dengarkan scroll user setelah sorotan tampil
+                setTimeout(() => {
+                    if (tok !== spotTok || !document.querySelector('.pl-spot')) return;
+                    addEventListener('scroll', spotOff, true);
+                    addEventListener('resize', spotOff);
+                }, 250);
+            }
+        }
+
+        document.getElementById('guideBtn').addEventListener('click', e => {
+            e.stopPropagation();
+            gBs.show();
+        });
+
+        // Klik di dalam panduan: nomor/nav → lompat ke bagian; kotak/tombol "Tunjukkan" → sorot di halaman
+        gEl.addEventListener('click', e => {
+            const a = e.target.closest('.pl-map-n, .pl-g-nav a');
+            if (a) {
+                e.preventDefault();
+                e.stopPropagation();
+                gGo(a.getAttribute('href'), true);
+                return;
+            }
+
+            const b = e.target.closest('[data-spot], [data-tour]');
+            if (!b) return;
+
+            const idx = b.dataset.tour !== undefined ? 0 : Math.max(0, STEPS.findIndex(x => x.sel === b.dataset.spot));
+            gEl.addEventListener('hidden.bs.modal', () => spotGo(idx), { once: true });
+            gBs.hide();
+        });
+
+        document.addEventListener('keydown', e => {
+            if (spotIdx < 0) return;
+            if (e.key === 'Escape') { e.preventDefault(); spotOff(); return; }
+            if (!document.querySelector('.pl-spot')) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); spotIdx === STEPS.length - 1 ? spotOff() : spotGo(spotIdx + 1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); spotGo(spotIdx - 1); }
+        }, true);
+
+        // Tur otomatis saat halaman pertama kali dibuka oleh user ini (per user per browser)
+        function autoTour() {
+            let seen = false;
+            try { seen = localStorage.getItem(TOUR_KEY) === '1'; } catch (e) { seen = true; }
+            if (seen) return;
+
+            setTimeout(() => {
+                if (spotIdx < 0 && !document.querySelector('.modal.show')) {
+                    tourFirst = true;
+                    spotGo(0);
+                }
+            }, 600);
+        }
+
         // Init
         renderTabs();
         renderAll();
+        autoTour();
     </script>
 @endsection
