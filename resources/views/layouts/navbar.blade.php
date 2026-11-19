@@ -629,8 +629,8 @@
                                 </a>
                             </li> --}}
                             <li>
-                                <a href="{{ route('packing-list') }}"
-                                    class="dropdown-item {{ $subPage == 'packing-list' ? 'active' : '' }}">
+                                <a href="{{ route('packing-list-karton') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-list-karton' ? 'active' : '' }}">
                                     Upload Packing List <i class="fas fa-file-upload fa-sm"></i>
                                 </a>
                             </li>
