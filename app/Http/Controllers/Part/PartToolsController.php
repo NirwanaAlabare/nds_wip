@@ -25,6 +25,7 @@ class PartToolsController extends Controller
         $list = DB::select("
                 SELECT
                     pc.id,
+                    pc.tanggal_berlaku as part_custom_tanggal,
                     pc.id part_custom_id,
                     pc.part_id part_custom_part_id,
                     pc.part_detail_id part_custom_part_detail_id,
@@ -128,6 +129,7 @@ class PartToolsController extends Controller
     {
         $validatedRequest = $request->validate([
             "edit_part_custom_id" => "required|exists:part_custom,id",
+            "edit_part_custom_tanggal" => "nullable",
             "edit_part_custom_part_detail_id" => "required",
             "edit_part_custom_color" => "required",
             "edit_part_custom_status" => "required",
@@ -152,6 +154,7 @@ class PartToolsController extends Controller
         }
 
         $partCustomUpdate = $partCustom->update([
+            "tanggal_berlaku" => $validatedRequest['edit_part_custom_tanggal'],
             "part_detail_id" => $validatedRequest['edit_part_custom_part_detail_id'],
             "color" => $validatedRequest['edit_part_custom_color'],
             "part_status" => $partDetail->part_status,
@@ -180,7 +183,7 @@ class PartToolsController extends Controller
         if (!$partCustom) {
             return response()->json([
                 "status" => 400,
-                
+
                 "message" => "Custom Part tidak ditemukan.",
             ]);
         }
