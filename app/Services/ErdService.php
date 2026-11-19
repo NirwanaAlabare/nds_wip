@@ -830,6 +830,74 @@ class ErdService
         return ['statements' => $statements, 'errors' => array_values(array_unique($errors)), 'notes' => array_values(array_unique($notes))];
     }
 
+    // Skrip SQL (dokumentasi, tidak dijalankan) untuk tabel pilihan: tabel database dari SHOW CREATE TABLE,
+    // tabel draft dari createSql. Urut parent dulu, DROP IF EXISTS, dibungkus FOREIGN_KEY_CHECKS=0.
+    public function sqlScript($id, $only)
+    {
+        $diagram = DB::table('erd_diagrams')->find($id);
+        if (!$diagram) {
+            $this->fail('Diagram tidak ditemukan', 404);
+        }
+        $names = array_values(array_unique(array_filter((array) $only, 'is_string')));
+        if (!$names) {
+            $this->fail('Pilih minimal satu tabel');
+        }
+
+        $schema = $this->readSchema($diagram->connection);
+        $tables = $this->layout($diagram)['tables'];
+        $drafts = array_values(array_filter($names, fn ($n) => !isset($schema['tables'][$n]) && !empty($tables[$n]['draft'])));
+        $draftSql = $drafts ? collect($this->preview($id, $drafts)['statements'])->keyBy('table') : collect();
+
+        $creates = [];
+        $dependsOn = [];
+        $notes = [];
+        $db = DB::connection($diagram->connection);
+        foreach ($names as $name) {
+            if (isset($schema['tables'][$name])) {
+                $row = (array) ($db->select('SHOW CREATE TABLE `' . str_replace('`', '``', $name) . '`')[0] ?? []);
+                // Counter AUTO_INCREMENT data saat ini dibuang supaya tabel baru mulai dari 1
+                $creates[$name] = ['sql' => preg_replace('/ AUTO_INCREMENT=\d+/', '', rtrim($row['Create Table'] ?? '')) . ';', 'draft' => false];
+                $dependsOn[$name] = array_column(array_filter($schema['fks'], fn ($f) => $f['table'] === $name), 'ref_table');
+            } elseif (isset($draftSql[$name])) {
+                $creates[$name] = ['sql' => $draftSql[$name]['sql'], 'draft' => true];
+                $dependsOn[$name] = array_column($draftSql[$name]['fks'], 'ref_table');
+            } else {
+                $notes[] = "Tabel `$name` tidak ditemukan, dilewati.";
+            }
+        }
+
+        // Parent dulu; relasi melingkar tetap aman karena FOREIGN_KEY_CHECKS=0
+        $ordered = [];
+        $visiting = [];
+        $visit = function ($name) use (&$visit, &$ordered, &$visiting, $dependsOn, $creates) {
+            if (isset($ordered[$name]) || isset($visiting[$name])) return;
+            $visiting[$name] = true;
+            foreach ($dependsOn[$name] ?? [] as $parent) {
+                if ($parent !== $name && isset($creates[$parent])) $visit($parent);
+            }
+            $ordered[$name] = true;
+        };
+        foreach (array_keys($creates) as $name) {
+            $visit($name);
+        }
+
+        $out = "-- {$diagram->name} ({$diagram->connection} / {$db->getDatabaseName()})\n"
+            . '-- Dibuat dari ERD Designer, ' . now()->format('d-m-Y H:i') . "\n\n"
+            . "SET FOREIGN_KEY_CHECKS = 0;\n\n";
+        foreach (array_keys($ordered) as $name) {
+            $q = '`' . str_replace('`', '``', $name) . '`';
+            $out .= ($creates[$name]['draft'] ? "-- DRAFT (belum ada di database)\n" : '')
+                . "DROP TABLE IF EXISTS $q;\n" . $creates[$name]['sql'] . "\n\n";
+        }
+        $out .= "SET FOREIGN_KEY_CHECKS = 1;\n";
+
+        return [
+            'sql'    => $out,
+            'tables' => array_map(fn ($n) => ['name' => $n, 'draft' => $creates[$n]['draft']], array_keys($ordered)),
+            'notes'  => $notes,
+        ];
+    }
+
     // BIGINT(20) UNSIGNED dan BIGINT UNSIGNED dianggap sama
     private function baseType($type)
     {

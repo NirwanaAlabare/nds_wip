@@ -170,6 +170,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/undo/{id}', 'undo')->name('undo-erd');
         Route::get('/preview/{id}', 'preview')->name('preview-erd');
         Route::post('/apply/{id}', 'apply')->name('apply-erd');
+        Route::get('/sql/{id}', 'sql')->name('sql-erd');
     });
 
     Route::controller(WorkTrackerController::class)->prefix("work-tracker")->middleware('role:superadmin')->group(function () {
