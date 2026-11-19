@@ -66,6 +66,7 @@
         $pageTitles = [
             'dashboard-marketing' => 'Dashboard',
             'marketing-approval-center' => 'Approval Center',
+            'marketing-panduan' => 'Panduan Marketing',
             'master-costing' => 'Costing',
             'create-costing' => 'Create Costing',
             'edit-costing' => 'Edit Costing',
@@ -95,12 +96,25 @@
 
     @include('layouts.link')
 
+    @if ($navbar && $page == 'dashboard-marketing')
+        {{-- Navbar khusus marketing (marketing.partials.navbar). --}}
+        <link rel="stylesheet" href="{{ asset('dist/css/marketing-navbar.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-navbar.css')) }}">
+    @endif
+    @if (!empty($mktTheme))
+        {{-- Tema terang/gelap (halaman yang set $mktTheme): pilihan user di localStorage nds-theme, default ikut sistem. --}}
+        <script>try{var t=localStorage.getItem("nds-theme");if(t!=="dark"&&t!=="light")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+    @endif
+
     @if (str_contains(optional(request()->route())->getActionName() ?? '', 'Marketing_'))
         <link rel="stylesheet" href="{{ asset('dist/css/marketing-alert.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-alert.css')) }}">
+        {{-- Export PDF / Excel dengan loading + cegah klik berulang. --}}
+        <script src="{{ asset('dist/js/marketing-download.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-download.js')) }}" defer></script>
         {{-- Breadcrumb marketing: Home -> tampilan awal, Marketing -> dashboard marketing; link abu, putih + garis bawah saat hover. --}}
         <style>
             :is(.ac-breadcrumb, .bom-breadcrumb, .ndoc-crumb, .so-breadcrumb, .ws-crumb, .costing-crumb, .mc-crumb, .mg-crumb) a { color: #b4b4b4; text-decoration: none; }
             :is(.ac-breadcrumb, .bom-breadcrumb, .ndoc-crumb, .so-breadcrumb, .ws-crumb, .costing-crumb, .mc-crumb, .mg-crumb) a:hover { color: #fff; text-decoration: underline; }
+            /* Breadcrumb marketing disembunyikan dulu (navbar marketing baru). Hapus baris ini untuk menampilkan lagi. */
+            :is(.ac-breadcrumb, .bom-breadcrumb, .ndoc-crumb, .so-breadcrumb, .ws-crumb, .costing-crumb, .mc-crumb, .mg-crumb) { display: none !important; }
         </style>
     @endif
     @if (!empty($mktEmbed))
@@ -126,7 +140,11 @@
     <div class="wrapper">
         <!-- Navbar -->
         @if ($navbar)
-            @include('layouts.navbar', ['page' => $page, 'subPage' => $subPage, 'subPageGroup' => $subPageGroup, 'routeName' => Route::current()->getName()])
+            @if ($page == 'dashboard-marketing')
+                @include('marketing.partials.navbar', ['subPage' => $subPage, 'subPageGroup' => $subPageGroup])
+            @else
+                @include('layouts.navbar', ['page' => $page, 'subPage' => $subPage, 'subPageGroup' => $subPageGroup, 'routeName' => Route::current()->getName()])
+            @endif
         @endif
 
         <!-- Offcanvas -->

@@ -363,6 +363,7 @@
     .mkt-error-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #fff; font-size: 16px; line-height: 1; }
 
     .so-notes-field { grid-column: span 2; }
+    .so-sync-status { align-self: center; margin-right: 10px; color: #64748b; font-size: 13px; }
 
     .so-image-review { display: flex; min-height: 270px; align-items: center; justify-content: center; gap: 24px; padding: 12px; }
     .so-image-nav { width: 34px; height: 34px; border: 0; border-radius: 50%; color: #7b8791; background: #f1f3f5; }
@@ -634,13 +635,16 @@
     /* Section Sales Order & Purchase Order: satu baris, lebar per class (menyusut proporsional kalau layar sempit).
        so-field-sm = Currency 162px, so-field-lg = Sales Order Type / FOB / PO System / Notes 368.4px; jarak 16px.
        Field 59px, radius 12, border 1, padding 16. */
-    #so-header-fields .so-edit-grid { display: flex !important; flex-wrap: nowrap; column-gap: 16px; }
+    #so-header-fields .so-edit-grid { display: flex !important; flex-wrap: wrap; column-gap: 16px; }
     #so-header-fields .so-edit-grid > .form-group { min-width: 0; grid-column: auto !important; }
     /* Tanpa batas lebar: field melebar proporsional mengisi card, jadi tidak ada sisa ruang kosong di kanan. */
     #so-header-fields .so-edit-grid > .so-field-sm { flex: 162 1 0; }
     #so-header-fields .so-edit-grid > .so-field-lg { flex: 368.4 1 0; }
     #so-header-fields .so-edit-grid .form-control,
     #so-header-fields .so-edit-grid .select2-container--bootstrap4 .select2-selection { height: 59px; min-height: 59px; border-width: 1px; border-radius: 12px; }
+    /* Notes = textarea di baris sendiri, lebar penuh, supaya tidak menyembul dari barisan field 59px. */
+    #so-header-fields .so-edit-grid > .so-notes-field { flex: 1 1 100% !important; max-width: 100% !important; }
+    #so-header-fields .so-edit-grid textarea.so-notes-input { height: auto; min-height: 96px; padding: 14px 16px; line-height: 1.5; resize: vertical; }
     @media (max-width: 991.98px) {
         /* Tablet: 2 field per baris. */
         #so-header-fields .so-edit-grid { flex-wrap: wrap; row-gap: 16px; }
@@ -813,7 +817,7 @@
                             </select>
                         </div>
                         <div class="form-group so-field-lg so-notes-field">
-                            <label>Notes</label><input type="text" name="notes" id="notes" class="form-control" placeholder="Notes" value="{{ $so->notes ?? '' }}">
+                            <label>Notes</label><textarea name="notes" id="notes" class="form-control so-notes-input" rows="3" placeholder="Notes">{{ $so->notes ?? '' }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -976,118 +980,171 @@
         return match ? `${match[3]}/${match[2]}/${match[1]}` : String(value);
     }
 
+    // Ambil baris dari server lalu gambar tabel. Dipakai saat halaman dibuka, setelah upload, dan kalau perlu sinkron ulang.
+    // Edit sel / Add / Hapus tidak memanggil ini: tabel langsung digambar dari data di browser (soRenderPreview).
     function loadPreviewUpload(init) {
-        const soScrollY = window.scrollY, $soWrap = $('.so-preview-table-wrap');
-        $soWrap.css('min-height', $soWrap.outerHeight() || '');
-        $('#table-preview-so tbody').html('<tr><td colspan="11" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
-        $('#summary-exfty-date').text('-');
-
-        $.ajax({
+        if (init || !previewUploadRows.length) {
+            $('#table-preview-so tbody').html('<tr><td colspan="11" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading data...</td></tr>');
+        }
+        return $.ajax({
             url: soUrl('rows'),
             type: 'GET',
             data: { id_costing: $('#id_costing').val(), init: init ? 1 : 0 },
             success: function(res) {
-                if ($.fn.DataTable.isDataTable('#table-preview-so')) {
-                    $('#table-preview-so').DataTable().destroy();
-                }
                 // Satu baris = satu color + size, urut sesuai upload.
                 previewUploadRows = res.rows || [];
                 soWorksheetBySet = res.worksheet_by_set || {};
                 // Tanpa baris sama sekali = SO baru yang belum diisi: tabel tetap bisa diisi manual lewat Add.
                 soSavedMode = res.mode === 'saved' && previewUploadRows.length > 0;
-                // Tabel detail selalu tampil (detail bisa dari upload atau Add manual).
-                $('#card-preview').show();
-                if (previewUploadRows.length) $('#card-preview').removeClass('is-invalid');
-                soDupRows = soSavedMode ? new Set() : soDuplicateRows();
-                soSetErrs = soSavedMode ? {} : soSetMismatch();
-                soFollowRows = new Set(); // Qty BOTTOM diisi sendiri; beda dengan TOP = merah (soSetMismatch).
                 $('#summary-worksheet-no').text((res.worksheets || []).join('\n') || '-');
-                $('#so-add-row').prop('hidden', soSavedMode);
-                $('#so-discard-upload').prop('hidden', soSavedMode || !previewUploadRows.length);
-
-                let bodyHtml = '';
-                if (previewUploadRows.length > 0) {
-                    const exFactoryDate = previewUploadRows.find(row => row.ex_fty);
-                    $('#summary-exfty-date').text(formatSummaryDate(exFactoryDate ? exFactoryDate.ex_fty : null));
-                    previewUploadRows.forEach((row, rowIndex) => {
-                        bodyHtml += `<tr data-id="${row.id}">
-                            <td class="preview-col-check">${soSavedMode ? '' : `<input type="checkbox" class="so-row-check" data-id="${row.id}" aria-label="Pilih baris">`}</td>
-                            <td class="preview-col-no so-cell-auto">${rowIndex + 1}</td>
-                            ${soCell(rowIndex, 'po', 'preview-col-po')}
-                            ${soCell(rowIndex, 'destination', 'preview-col-destination')}
-                            ${soCell(rowIndex, 'ex_fty', 'preview-col-exfty')}
-                            ${soCell(rowIndex, 'ship_mode', 'preview-col-ship')}
-                            ${soCell(rowIndex, 'product_set', 'preview-col-set')}
-                            ${soCell(rowIndex, 'color', 'preview-col-color')}
-                            ${soCell(rowIndex, 'size', 'preview-col-size')}
-                            ${soCell(rowIndex, 'qty', 'preview-col-qty text-right')}
-                            <td class="preview-col-action">${soSavedMode ? '' : `
-                                <button type="button" class="preview-row-delete" data-row-index="${rowIndex}" aria-label="Hapus baris" title="Hapus baris">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>`}
-                            </td></tr>`;
-                    });
-                } else {
-                    bodyHtml = '<tr><td colspan="11" class="so-detail-empty-hint">Belum ada detail. Klik <b>Add</b> untuk mengisi manual, atau upload file Excel di atas.</td></tr>';
-                }
-                $('#table-preview-so tbody').html(bodyHtml);
-                $('#table-preview-so').toggleClass('is-saved', soSavedMode);
-                $('#table-preview-so .so-check-all').prop('checked', false);
-                soUpdateBulk();
-
-                if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
-                const grandTotal = previewUploadRows.reduce((sum, row) => sum + (Number(row.qty) || 0), 0);
-                $('#table-preview-so tfoot').html(`<tr>
-                    <th class="preview-col-check"></th>
-                    <th></th>
-                    <th class="text-left fw-bold">GRAND TOTAL</th>
-                    <th></th><th></th><th></th><th></th><th></th><th></th>
-                    <th class="preview-col-qty fw-bold">${grandTotal.toLocaleString('id-ID')}</th>
-                    <th class="preview-col-action"></th>
-                </tr>`);
-                if (grandTotal > 0) { $('#so-file-dropzone').removeClass('is-invalid'); refreshSoErrorAlert(); }
-
-                if (previewUploadRows.length > 0) {
-                    previewTable = $('#table-preview-so').DataTable({
-                        "paging": true,
-                        "pageLength": 10,
-                        "lengthMenu": [5, 10, 25, 50, 100],
-                        "dom": 't<"so-preview-pager"lp>',
-                        "language": { "lengthMenu": "Item Per Page _MENU_", "paginate": { "previous": "‹", "next": "›" } },
-                        "info": true,
-                        "searching": true,
-                        "ordering": false,
-                        "autoWidth": false,
-                        "responsive": false,
-                        "scrollX": false,
-                        "columnDefs": [
-                            { targets: 0, width: '34px' },
-                            { targets: 1, width: '40px' },
-                            { targets: 2, width: '160px' },
-                            { targets: 3, width: '190px' },
-                            { targets: 4, width: '115px' },
-                            { targets: 5, width: '110px' },
-                            { targets: 6, width: '130px' },
-                            { targets: 7, width: '190px' },
-                            { targets: 8, width: '80px' },
-                            { targets: 9, width: '90px' },
-                            { targets: '_all', className: 'text-center' }
-                        ],
-                        "drawCallback": function(settings) {
-                            let api = this.api();
-                            setTimeout(function() { api.columns.adjust(); }, 10);
-                        }
-                    });
-                }
-
-                soAfterRender();
-                $soWrap.css('min-height', '');
-                if (Math.abs(window.scrollY - soScrollY) > 2) window.scrollTo(window.scrollX, soScrollY);
+                soRenderPreview();
             },
             error: function(xhr) {
                 $('#table-preview-so tbody').html('<tr><td colspan="11" class="text-center text-danger">Gagal memuat data preview.</td></tr>');
             }
         });
+    }
+
+    // Gambar ulang tabel dari previewUploadRows (tanpa ke server): halaman, sel aktif, dan scroll dikembalikan lewat soReloadState.
+    function soRenderPreview() {
+        const soScrollY = window.scrollY, $soWrap = $('.so-preview-table-wrap');
+        $soWrap.css('min-height', $soWrap.outerHeight() || '');
+        if ($.fn.DataTable.isDataTable('#table-preview-so')) {
+            $('#table-preview-so').DataTable().destroy();
+        }
+        previewTable = null;
+        // Tabel detail selalu tampil (detail bisa dari upload atau Add manual).
+        $('#card-preview').show();
+        if (previewUploadRows.length) $('#card-preview').removeClass('is-invalid');
+        soDupRows = soSavedMode ? new Set() : soDuplicateRows();
+        soSetErrs = soSavedMode ? {} : soSetMismatch();
+        soFollowRows = new Set(); // Qty BOTTOM diisi sendiri; beda dengan TOP = merah (soSetMismatch).
+        $('#so-add-row').prop('hidden', soSavedMode);
+        $('#so-discard-upload').prop('hidden', soSavedMode || !previewUploadRows.length);
+        $('#summary-exfty-date').text('-');
+
+        let bodyHtml = '';
+        if (previewUploadRows.length > 0) {
+            const exFactoryDate = previewUploadRows.find(row => row.ex_fty);
+            $('#summary-exfty-date').text(formatSummaryDate(exFactoryDate ? exFactoryDate.ex_fty : null));
+            previewUploadRows.forEach((row, rowIndex) => {
+                bodyHtml += `<tr data-id="${row.id}">
+                    <td class="preview-col-check">${soSavedMode ? '' : `<input type="checkbox" class="so-row-check" data-id="${row.id}" aria-label="Pilih baris">`}</td>
+                    <td class="preview-col-no so-cell-auto">${rowIndex + 1}</td>
+                    ${soCell(rowIndex, 'po', 'preview-col-po')}
+                    ${soCell(rowIndex, 'destination', 'preview-col-destination')}
+                    ${soCell(rowIndex, 'ex_fty', 'preview-col-exfty')}
+                    ${soCell(rowIndex, 'ship_mode', 'preview-col-ship')}
+                    ${soCell(rowIndex, 'product_set', 'preview-col-set')}
+                    ${soCell(rowIndex, 'color', 'preview-col-color')}
+                    ${soCell(rowIndex, 'size', 'preview-col-size')}
+                    ${soCell(rowIndex, 'qty', 'preview-col-qty text-right')}
+                    <td class="preview-col-action">${soSavedMode ? '' : `
+                        <button type="button" class="preview-row-delete" data-row-index="${rowIndex}" aria-label="Hapus baris" title="Hapus baris">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>`}
+                    </td></tr>`;
+            });
+        } else {
+            bodyHtml = '<tr><td colspan="11" class="so-detail-empty-hint">Belum ada detail. Klik <b>Add</b> untuk mengisi manual, atau upload file Excel di atas.</td></tr>';
+        }
+        $('#table-preview-so tbody').html(bodyHtml);
+        $('#table-preview-so').toggleClass('is-saved', soSavedMode);
+        $('#table-preview-so .so-check-all').prop('checked', false);
+        soUpdateBulk();
+
+        if ($('#table-preview-so tfoot').length === 0) $('#table-preview-so').append('<tfoot></tfoot>');
+        const grandTotal = previewUploadRows.reduce((sum, row) => sum + (Number(row.qty) || 0), 0);
+        $('#table-preview-so tfoot').html(`<tr>
+            <th class="preview-col-check"></th>
+            <th></th>
+            <th class="text-left fw-bold">GRAND TOTAL</th>
+            <th></th><th></th><th></th><th></th><th></th><th></th>
+            <th class="preview-col-qty fw-bold">${grandTotal.toLocaleString('id-ID')}</th>
+            <th class="preview-col-action"></th>
+        </tr>`);
+        if (grandTotal > 0) { $('#so-file-dropzone').removeClass('is-invalid'); refreshSoErrorAlert(); }
+
+        if (previewUploadRows.length > 0) {
+            previewTable = $('#table-preview-so').DataTable({
+                "paging": true,
+                "pageLength": 10,
+                "lengthMenu": [5, 10, 25, 50, 100],
+                "dom": 't<"so-preview-pager"lp>',
+                "language": { "lengthMenu": "Item Per Page _MENU_", "paginate": { "previous": "‹", "next": "›" } },
+                "info": true,
+                "searching": true,
+                "ordering": false,
+                "autoWidth": false,
+                "responsive": false,
+                "scrollX": false,
+                "columnDefs": [
+                    { targets: 0, width: '34px' },
+                    { targets: 1, width: '40px' },
+                    { targets: 2, width: '160px' },
+                    { targets: 3, width: '190px' },
+                    { targets: 4, width: '115px' },
+                    { targets: 5, width: '110px' },
+                    { targets: 6, width: '130px' },
+                    { targets: 7, width: '190px' },
+                    { targets: 8, width: '80px' },
+                    { targets: 9, width: '90px' },
+                    { targets: '_all', className: 'text-center' }
+                ],
+                "drawCallback": function(settings) {
+                    let api = this.api();
+                    setTimeout(function() { api.columns.adjust(); }, 10);
+                }
+            });
+        }
+
+        soAfterRender();
+        $soWrap.css('min-height', '');
+        if (Math.abs(window.scrollY - soScrollY) > 2) window.scrollTo(window.scrollX, soScrollY);
+    }
+
+    // ===== Simpan di belakang: request ke so_tmp diantre (urutan terjaga), tampilan tidak menunggu =====
+    // soFailed: ada kiriman sel yang gagal -> Save ditahan sampai tabel dimuat ulang (angka di layar = server).
+    let soQueue = Promise.resolve(), soPending = 0, soFailed = false;
+    // Qty bilangan bulat: "1250" / "1.250" (ribuan) = 1250; desimal = NaN (ditolak, dulu "12.5" jadi 125).
+    const soWholeQty = v => { const t = String(v ?? '').trim(); return /^\d+$/.test(t) ? Number(t) : /^\d{1,3}(\.\d{3})+$/.test(t) ? Number(t.replace(/\./g, '')) : NaN; };
+    function soQueueSend(options) {
+        soPending++;
+        soSyncStatus();
+        const job = soQueue.then(() => new Promise((resolve, reject) => $.ajax(options).done(resolve).fail(reject)));
+        soQueue = job.catch(() => { soFailed = true; }).finally(() => { soPending--; soSyncStatus(); });
+        return job;
+    }
+    function soSyncStatus() {
+        let $el = $('#so-sync-status');
+        if (!$el.length) $el = $('<span id="so-sync-status" class="so-sync-status" hidden></span>').insertBefore('#form-create-so button[type="submit"]');
+        $el.prop('hidden', soPending === 0).html('<i class="fas fa-circle-notch fa-spin"></i> Menyimpan perubahan...');
+    }
+    // Nilai sel di browser setelah diedit (sama dengan yang disimpan server).
+    function soSetLocal(index, field, value) {
+        const row = previewUploadRows[index];
+        if (!row) return;
+        row[field] = field === 'qty' ? (soWholeQty(value) || 0) : (value === '' ? null : value);
+    }
+    function soKeepState(extra) {
+        soReloadState = Object.assign({ page: previewTable ? previewTable.page() : 0, active: soActive, move: null, sel: null, pasted: [] }, extra || {});
+    }
+    // Hapus baris di browser dulu, lalu kirim ke server; gagal = muat ulang dari server.
+    function soRemoveRows(ids) {
+        const set = new Set(ids.map(Number));
+        const all = ids.length === previewUploadRows.length;
+        previewUploadRows = previewUploadRows.filter(row => !set.has(Number(row.id)));
+        soActive = null;
+        soSel = null;
+        soKeepState();
+        // Semua baris terhapus: lepas juga file upload yang tadi dipilih.
+        if (all) { soInvalidEdits = {}; $('#file_so').val('').trigger('change'); }
+        soRenderPreview();
+        soQueueSend({ url: soUrl('remove'), type: 'POST', data: soData({ ids: ids }) })
+            .catch(function (xhr) {
+                mktAlert('DEL-04', { detail: xhr.responseJSON?.message || 'Koneksi ke server terputus. Coba hapus lagi.' });
+                loadPreviewUpload();
+            });
     }
 
     // ===== Checkbox: hapus beberapa baris sekaligus (semua halaman tabel ikut dihitung) =====
@@ -1113,15 +1170,7 @@
         const soNo = $.trim($('#so-no-badge').text());
         mktAlert('DEL-03', { row: label, doc: soNo || 'Sales Order ini' }).then(function (result) {
             if (!result.isConfirmed) return;
-            const $btn = $('#so-bulk-delete').prop('disabled', true);
-            $.ajax({ url: soUrl('remove'), type: 'POST', data: soData({ ids: ids }) })
-                .done(function () {
-                    // Semua baris terhapus: lepas juga file upload yang tadi dipilih.
-                    if (ids.length === previewUploadRows.length) { soInvalidEdits = {}; $('#file_so').val('').trigger('change'); }
-                    loadPreviewUpload();
-                })
-                .fail(function (xhr) { mktAlert('DEL-04', { detail: xhr.responseJSON?.message || 'Koneksi ke server terputus. Coba hapus lagi.' }); })
-                .always(function () { $btn.prop('disabled', false); });
+            soRemoveRows(ids);
         });
     });
 
@@ -1133,15 +1182,7 @@
 
         mktAlert('DEL-03', { row: label, doc: soNo || 'Sales Order ini' }).then(function(result) {
             if (!result.isConfirmed) return;
-            $.ajax({
-                url: soUrl('remove'),
-                type: 'POST',
-                data: soData({ ids: [row.id] }),
-                success: function() { loadPreviewUpload(); },
-                error: function(xhr) {
-                    mktAlert('DEL-04', { detail: xhr.responseJSON?.message || 'Koneksi ke server terputus. Coba hapus lagi.' });
-                }
-            });
+            soRemoveRows([row.id]);
         });
     });
 
@@ -1149,16 +1190,21 @@
     $(document).on('click', '#so-add-row', function() {
         const source = soActive ? previewUploadRows[soActive.row] : null;
         const $button = $(this).prop('disabled', true);
-        $.ajax({
+        soQueueSend({
             url: soUrl('add'),
             type: 'POST',
             data: soData({ source_id: source ? source.id : null })
-        }).done(function(res) {
+        }).then(function(res) {
             soReloadState = { page: 'last', focusId: res.id, focusField: 'po', move: null, pasted: [], active: null };
-            loadPreviewUpload();
-        }).fail(function(xhr) {
+            if (res.row) {
+                previewUploadRows.push(res.row);
+                soRenderPreview();
+            } else {
+                loadPreviewUpload();
+            }
+        }).catch(function(xhr) {
             mktToast('err', 'Baris belum ditambahkan', xhr.responseJSON?.message || 'Koneksi ke server terputus. Klik Add lagi.');
-        }).always(function() {
+        }).finally(function() {
             $button.prop('disabled', false);
         });
     });
@@ -1198,7 +1244,7 @@
     // Klik sel = pilih; ketik / Enter / F2 = edit; panah, Tab, Enter = pindah; Delete = kosongkan; Ctrl+V = paste (biru sebentar).
     // Teks tidak boleh berspasi di awal/akhir atau berspasi ganda; qty angka bulat > 0; color, size, destination, set harus ada di master. Sel salah merah dan Save diblok.
     // Ship Mode per baris (so_tmp.ship_modes_id); wajib setelah kolomnya ada di DB.
-    const SO_SHIP_READY = @json(app(\App\Services\MarketingSalesOrderService::class)->shipReady());
+    const SO_SHIP_READY = @json(app(\App\Services\Marketing\MarketingSalesOrderService::class)->shipReady());
     const SO_SHIP_OPTIONS = @json($shipModes->map(fn ($m) => ['id' => $m->id, 'name' => $m->ship_mode_name])->values());
     const SO_TEXT_FIELDS = ['po', 'destination', 'ex_fty', 'ship_mode', 'product_set', 'color', 'size'];
     const SO_REQUIRED_FIELDS = ['po', 'destination', 'ex_fty', 'product_set', 'color', 'size'].concat(SO_SHIP_READY ? ['ship_mode'] : []);
@@ -1273,9 +1319,9 @@
             return null;
         }
         if (field === 'qty') {
-            const qty = value.replace(/[.,]/g, '');
             if (value === '') return 'Wajib diisi.';
-            return /^\d+$/.test(qty) && Number(qty) > 0 ? null : 'Qty harus angka bulat lebih dari 0.';
+            const qty = soWholeQty(value);
+            return qty > 0 ? null : 'Qty harus angka bulat lebih dari 0 (tanpa koma / desimal).';
         }
         return null;
     }
@@ -1728,27 +1774,32 @@
             sel: options.move ? null : (soSel ? { anchor: Object.assign({}, soSel.anchor), focus: Object.assign({}, soSel.focus) } : null),
             pasted: options.pasted ? changes.filter(change => !soCellError(change.field, change.value)).map(change => ({ row: change.row, field: change.field })) : []
         };
-        if (!toSend.length) {
-            loadPreviewUpload();
-            return;
-        }
-        $.ajax({
-            url: soUrl('cells'),
-            type: 'POST',
-            data: soData({ changes: toSend })
-        }).done(function (res) {
-            (res.errors || []).forEach(error => {
-                const change = sentChanges[error.index];
-                if (change) soInvalidEdits[soCellKey(change.row, change.field)] = change.value;
-            });
-            if (res.errors && res.errors.length) {
+        // Tampilan langsung berubah (tanpa memuat ulang tabel); simpan ke so_tmp jalan di belakang.
+        // Sel yang ditolak server dikembalikan ke nilai lama lalu ditandai merah dengan isian user.
+        const sent = sentChanges.map(change => ({ key: soCellKey(change.row, change.field), id: previewUploadRows[change.row].id, field: change.field,
+            value: change.value, before: previewUploadRows[change.row][change.field] }));
+        sentChanges.forEach(change => soSetLocal(change.row, change.field, change.value));
+        soRenderPreview();
+        if (!toSend.length) return;
+        soQueueSend({ url: soUrl('cells'), type: 'POST', data: soData({ changes: toSend }) })
+            .then(function (res) {
+                if (!res.errors || !res.errors.length) return;
+                res.errors.forEach(error => {
+                    const item = sent[error.index];
+                    const row = item && previewUploadRows.find(r => r.id === item.id);
+                    if (!row) return;
+                    row[item.field] = item.before;
+                    soInvalidEdits[item.key] = item.value;
+                });
                 mktToast('warn', res.errors.length + ' sel belum disimpan', res.errors.map(error => error.message).join(' ') + ' Sel itu ditandai merah, perbaiki isinya.');
-            }
-        }).fail(function (xhr) {
-            mktToast('err', 'Perubahan belum tersimpan', xhr.responseJSON?.message || 'Koneksi ke server terputus. Ketik ulang isinya.');
-        }).always(function () {
-            loadPreviewUpload();
-        });
+                soKeepState();
+                soRenderPreview();
+            })
+            .catch(function (xhr) {
+                mktToast('err', 'Perubahan belum tersimpan', xhr.responseJSON?.message || 'Koneksi ke server terputus. Ketik ulang isinya.');
+                soKeepState();
+                loadPreviewUpload();
+            });
     }
 
     // Setelah tabel dimuat ulang: kembalikan halaman, sel aktif, dan tandai sel hasil paste (biru 4 detik).
@@ -2260,7 +2311,7 @@
             formData.append('id_costing', $('#id_costing').val());
             formData.append('_token', '{{ csrf_token() }}');
 
-            $.ajax({ url: soUrl('upload'), type: 'POST', data: formData, contentType: false, processData: false }).done(function(res) {
+            soQueue.then(() => $.ajax({ url: soUrl('upload'), type: 'POST', data: formData, contentType: false, processData: false })).then(function(res) {
                 soFileUploaded = true;
                 soInvalidEdits = {};
                 uploadButton.removeClass('mkt-btn--navy').addClass('mkt-btn--green').text('Uploaded');
@@ -2268,9 +2319,9 @@
                 Swal.close();
                 mktToast('ok', 'File SO terbaca', res.message || 'Baris SO tampil di tabel. Cek lagi sebelum disimpan.');
                 loadPreviewUpload();
-            }).fail(function(xhr) {
+            }, function(xhr) {
                 showSoErrors(xhr, 'File SO belum diproses', 'Koneksi ke server terputus. Upload file lagi.');
-            }).always(finish);
+            }).finally(finish);
         });
 
         let soSaving = false;   // Save yang sedang berjalan; klik Save berikutnya diabaikan sampai selesai.
@@ -2306,7 +2357,7 @@
             // Angka untuk SV-03: jumlah destination & PO berbeda dan total qty dari baris Sales Order Detail.
             function soSaveSummary() {
                 const distinct = field => new Set(previewUploadRows.map(row => String(row[field] || '').trim().toUpperCase()).filter(Boolean)).size;
-                const qty = previewUploadRows.reduce((sum, row) => sum + (Number(String(row.qty ?? '').replace(/[.,]/g, '')) || 0), 0);
+                const qty = previewUploadRows.reduce((sum, row) => sum + (soWholeQty(row.qty) || 0), 0);
                 return {
                     costing: $.trim($('#summary-costing-no').text()),
                     dest: distinct('destination'),
@@ -2321,8 +2372,20 @@
                     soSaving = true;
                     const $saveButton = $('#form-create-so button[type="submit"]').prop('disabled', true);
                     Swal.fire({ title: 'Menyimpan Sales Order', text: 'Tunggu sebentar, No WS sedang dibuat sistem.', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-                    $.ajax({
-                        url: soUrl('save'), type: "POST", data: $(this).serialize(),
+                    const formData = $(this).serialize();
+                    // Tunggu perubahan sel yang masih dikirim, baru Save. Kalau ada yang gagal terkirim, Save ditahan dan tabel dimuat ulang.
+                    soQueue.then(() => {
+                        if (soFailed) {
+                            soSaving = false;
+                            $saveButton.prop('disabled', false);
+                            soFailed = false;
+                            Swal.fire({ icon: 'warning', title: 'Ada perubahan yang belum tersimpan', text: 'Sebagian perubahan sel gagal terkirim ke server. Tabel dimuat ulang; cek lagi lalu klik Save.' });
+                            loadPreviewUpload();
+                            return;
+                        }
+                        const expect = '&expect_rows=' + previewUploadRows.length + '&expect_qty=' + previewUploadRows.reduce((sum, row) => sum + (soWholeQty(row.qty) || 0), 0);
+                        return $.ajax({
+                        url: soUrl('save'), type: "POST", data: formData + expect,
                         complete: function(xhr) {
                             // Berhasil = halaman pindah ke listing, jadi tombol tetap terkunci.
                             if (xhr.status !== 200) {
@@ -2338,6 +2401,7 @@
                             showSoErrors(xhr, 'Sales Order belum tersimpan', 'Koneksi ke server terputus. Klik Save lagi.');
                             loadPreviewUpload();
                         }
+                        });
                     });
                 }
             });
@@ -2347,7 +2411,7 @@
             const leave = () => { window.location.href = "{{ route('master-costing') }}"; };
             // Cancel membuang editan yang belum disimpan (SO baru: draft-nya ikut dibuang, jadi Add SO berikutnya mulai kosong).
             // Ada perubahan -> konfirmasi dulu, sama seperti Cancel di BOM.
-            const discard = () => $.ajax({ url: soUrl('discard'), type: 'POST', data: soData(soId ? { edit_token: SO_EDIT_TOKEN } : {}) }).always(leave);
+            const discard = () => soQueue.then(() => $.ajax({ url: soUrl('discard'), type: 'POST', data: soData(soId ? { edit_token: SO_EDIT_TOKEN } : {}) })).finally(leave);
             const changed = soId ? soTouched : previewUploadRows.length > 0;
             if (!changed) {
                 soId ? discard() : leave();

@@ -9,9 +9,9 @@
         return 'data:image/' . $type . ';base64,' . base64_encode(file_get_contents($path));
     };
     // Lebar kolom A. MATERIAL kira-kira mengikuti Excel BOM; PRICE dilebarkan untuk harga IDR.
-    $w = [6, 18, 15, 26, 15, 12, 16, 10, 9, 7, 12, 8, 10, 13, 7, 20, 12, 12];
+    $w = [6, 18, 15, 26, 15, 9, 16, 11, 10, 9, 7, 12, 8, 10, 13, 7, 20, 12, 12];
     $w = array_map(fn ($x) => round($x / array_sum($w) * 100, 2), $w);
-    $heads = ['NO', 'CONTENT', 'SHELL', 'ITEMS', 'COLOR', 'SIZE', 'DESTINATION', 'ORIG QTY', 'CONS / PC', 'UNIT', 'QTY REQ', 'LOSS %', 'VALUE', 'TOTAL QTY REQ', 'UNIT', 'SUPPLIER', 'PRICE', 'PRICE COSTING'];
+    $heads = ['NO', 'CONTENT', 'SHELL', 'ITEMS', 'COLOR', 'SIZE', 'DESTINATION', 'SHIP MODE', 'ORIG QTY', 'CONS / PC', 'UNIT', 'QTY REQ', 'LOSS %', 'VALUE', 'TOTAL QTY REQ', 'UNIT', 'SUPPLIER', 'PRICE', 'PRICE COSTING'];
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -114,7 +114,7 @@
         </thead>
         <tbody>
             @forelse ($p['groups'] as $group)
-                <tr class="grp"><td colspan="18">{{ $group['label'] }}</td></tr>
+                <tr class="grp"><td colspan="19">{{ $group['label'] }}</td></tr>
                 @foreach ($group['rows'] as $row)
                     <tr>
                         <td class="c b">{{ $row['no'] }}</td>
@@ -124,6 +124,7 @@
                         <td class="c {{ $row['color'] === '-' ? 'm' : '' }}">{{ $row['color'] }}</td>
                         <td class="c">{{ $row['size'] }}</td>
                         <td class="c">{{ $row['dest'] }}</td>
+                        <td class="c">{{ $row['ship_mode'] }}</td>
                         <td class="r">{{ $int($row['orig']) }}</td>
                         <td class="r">{{ $dec($row['cons']) }}</td>
                         <td class="c">{{ $row['unit'] }}</td>
@@ -138,20 +139,24 @@
                     </tr>
                 @endforeach
             @empty
-                <tr><td colspan="18" class="c m">Belum ada material.</td></tr>
+                <tr><td colspan="19" class="c m">Belum ada material.</td></tr>
             @endforelse
         </tbody>
     </table>
     <div class="foot">{{ $p['note'] }}</div>
 
-    <div class="sec">B. CHARGES</div>
+    {{-- Bagian B hanya Manufacturing; Other Cost disembunyikan dulu (sama dengan Excel BOM). Tambahkan 'OTH' untuk menampilkan lagi. --}}
+    @php
+        $chargeTabs = ['MFG'];
+        $chargeRows = array_values(array_filter($p['charges'], fn ($c) => in_array($c['tab'] ?? 'MFG', $chargeTabs, true)));
+    @endphp
+    <div class="sec">{{ in_array('OTH', $chargeTabs, true) ? 'B. MANUFACTURING & OTHER COST' : 'B. MANUFACTURING' }}</div>
     <table class="grid">
         <thead>
             <tr>
                 <th style="width: 4%;">NO</th>
-                <th style="width: 14%;">ITEM CODE</th>
-                <th style="width: 24%;">ITEM</th>
-                <th style="width: 16%;">SUPPLIER</th>
+                <th style="width: 34%;">ITEM</th>
+                <th style="width: 20%;">SUPPLIER</th>
                 <th style="width: 8%;">CONS</th>
                 <th style="width: 6%;">UNIT</th>
                 <th style="width: 9%;">PRICE</th>
@@ -160,10 +165,9 @@
             </tr>
         </thead>
         <tbody>
-            @forelse ($p['charges'] as $i => $c)
+            @forelse ($chargeRows as $i => $c)
                 <tr>
                     <td class="c">{{ $i + 1 }}</td>
-                    <td class="{{ $c['code'] === '-' ? 'c m' : '' }}">{{ $c['code'] }}</td>
                     <td>{{ $c['item'] }}</td>
                     <td class="{{ $c['supplier'] === '-' ? 'c m' : '' }}">{{ $c['supplier'] }}</td>
                     <td class="r">{{ $dec($c['cons']) }}</td>
@@ -173,7 +177,7 @@
                     <td>{{ $c['note'] }}</td>
                 </tr>
             @empty
-                <tr><td colspan="9" class="c m">Tidak ada charges.</td></tr>
+                <tr><td colspan="8" class="c m">Tidak ada manufacturing.</td></tr>
             @endforelse
         </tbody>
     </table>

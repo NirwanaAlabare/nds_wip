@@ -48,14 +48,14 @@ use App\Http\Controllers\LapMutasiGlobalController;
 use App\Http\Controllers\RekonsiliasiMutasiController;
 use App\Http\Controllers\BarcodeRakController;
 use App\Http\Controllers\MaintainBpbController;
-use App\Http\Controllers\Marketing_AdditionalBomController;
-use App\Http\Controllers\Marketing_BomController;
-use App\Http\Controllers\Marketing_CostingController;
-use App\Http\Controllers\Marketing_WorksheetController;
-use App\Http\Controllers\Marketing_SOController;
-use App\Http\Controllers\Marketing_SalesOrderController;
-use App\Http\Controllers\Marketing_BomNdsController;
-use App\Http\Controllers\MarketingDashboardController;
+use App\Http\Controllers\Marketing\Marketing_AdditionalBomController;
+use App\Http\Controllers\Marketing\Marketing_BomController;
+use App\Http\Controllers\Marketing\Marketing_CostingController;
+use App\Http\Controllers\Marketing\Marketing_WorksheetController;
+use App\Http\Controllers\Marketing\Marketing_SOController;
+use App\Http\Controllers\Marketing\Marketing_SalesOrderController;
+use App\Http\Controllers\Marketing\Marketing_BomNdsController;
+use App\Http\Controllers\Marketing\MarketingDashboardController;
 use App\Http\Controllers\MasterLokasiController;
 use App\Http\Controllers\MgtReportDailyCostController;
 use App\Http\Controllers\MgtReportDailyEarnBuyerController;
@@ -173,11 +173,11 @@ use App\Http\Controllers\AssetTransTabController;
 use App\Http\Controllers\AssetMonitoringTabController;
 use App\Http\Controllers\AssetOpnameTabController;
 use App\Http\Controllers\AssetMesinReportController;
-use App\Http\Controllers\Marketing_ApprovalCenterController;
-use App\Http\Controllers\Marketing_MasterGroupController;
-use App\Http\Controllers\Marketing_MasterContentController;
-use App\Http\Controllers\MarketingReportController;
-use App\Http\Controllers\Marketing_CatalogController;
+use App\Http\Controllers\Marketing\Marketing_ApprovalCenterController;
+use App\Http\Controllers\Marketing\Marketing_MasterGroupController;
+use App\Http\Controllers\Marketing\Marketing_MasterContentController;
+use App\Http\Controllers\Marketing\MarketingReportController;
+use App\Http\Controllers\Marketing\Marketing_CatalogController;
 use App\Http\Controllers\HelpdeskDashboardController;
 use App\Http\Controllers\BAPFormController;
 use App\Http\Controllers\MaintenanceACFormController;
@@ -209,6 +209,7 @@ Auth::routes(['register' => false]);
 Route::get('/', [App\Http\Controllers\General\HomeController::class, 'index']);
 
 Route::get('/home', [App\Http\Controllers\General\HomeController::class, 'index'])->name('home');
+Route::get('/home-lama', [App\Http\Controllers\General\HomeController::class, 'indexOld'])->name('home-lama');
 
 // Dashboard
 require base_path('routes/dashboard.php');
@@ -1290,6 +1291,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard_marketing/board', 'board')->name('dashboard-marketing-board');
     });
 
+    Route::get('/marketing/panduan', [Marketing_ApprovalCenterController::class, 'panduan'])
+        ->middleware('marketing')
+        ->name('marketing-panduan');
+
     // Approval Center
     Route::controller(Marketing_ApprovalCenterController::class)->prefix('marketing/approval-center')->middleware('marketing')->group(function () {
         Route::get('/', 'index')->name('marketing-approval-center');
@@ -1356,7 +1361,7 @@ Route::middleware('auth')->group(function () {
         Route::get('print-excel-costing/{id}', 'printExcel')->name('print-excel-costing');
         Route::get('/approval', 'approval')->name('master-costing-approval');
         Route::post('/approve/{id}', 'submitApproval')->name('submit-costing-approval');
-        Route::get('/copy/{id}', 'copyCosting')->name('copy-costing');
+        Route::post('/copy/{id}', 'copyCosting')->name('copy-costing');
     });
 
     Route::controller(Marketing_WorksheetController::class)->prefix('marketing/worksheet')->middleware('marketing')->group(function () {
@@ -1506,6 +1511,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/pdf/{soId}', 'pdf')->name('bom-nds-pdf');
         Route::get('/pdf-batch', 'pdfBatch')->name('bom-nds-pdf-batch');
         Route::get('/excel/{soId}', 'excel')->name('bom-nds-excel');
+        Route::post('/preview-excel', 'previewExcel')->name('bom-nds-preview-excel');
     });
 
     // Marketing Report

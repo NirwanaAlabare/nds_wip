@@ -1,0 +1,75 @@
+/* Tema gelap Approval Center, palet sama dengan Marketing List (marketing-list-theme.css dimuat juga untuk latar halaman,
+   checkbox, select2, scrollbar). Hanya WARNA saat <html data-theme="dark">; susunan, ukuran, dan tabel tidak berubah. */
+html[data-theme="dark"] .ac-page { color: var(--ml-ink); }
+html[data-theme="dark"] .ac-frame { background: var(--ml-card); box-shadow: 0 10px 40px rgba(0, 0, 0, .45); }
+html[data-theme="dark"] .ac-heading h1 { color: var(--ml-primary); }
+html[data-theme="dark"] .ac-heading p { color: var(--ml-ink2); }
+html[data-theme="dark"] .ac-heading p i, html[data-theme="dark"] .ac-heading h1 i { color: var(--ml-muted); }
+
+/* Kartu ringkasan: warna masing-masing jadi versi gelap transparan. */
+html[data-theme="dark"] .ac-summary-card { box-shadow: 0 4px 14px rgba(0, 0, 0, .35); }
+html[data-theme="dark"] .ac-summary-card span { color: var(--ml-ink2) !important; }
+html[data-theme="dark"] .ac-summary-card strong { color: var(--ml-ink); }
+html[data-theme="dark"] .ac-summary-card small { color: var(--ml-muted); }
+html[data-theme="dark"] .ac-summary-card.is-costing { background: rgba(56, 189, 248, .12); border-color: rgba(56, 189, 248, .35); --ac-accent: #38bdf8; }
+html[data-theme="dark"] .ac-summary-card.is-bom { background: rgba(250, 204, 21, .10); border-color: rgba(250, 204, 21, .32); --ac-accent: #facc15; }
+html[data-theme="dark"] .ac-summary-card.is-unlock-costing { background: rgba(251, 113, 133, .11); border-color: rgba(251, 113, 133, .34); --ac-accent: #fb7185; }
+html[data-theme="dark"] .ac-summary-card.is-unlock-bom { background: rgba(167, 139, 250, .12); border-color: rgba(167, 139, 250, .36); --ac-accent: #a78bfa; }
+html[data-theme="dark"] .ac-summary-card.is-unlock-so { background: rgba(251, 146, 60, .11); border-color: rgba(251, 146, 60, .34); --ac-accent: #fb923c; }
+html[data-theme="dark"] .ac-summary-card.is-active { box-shadow: 0 0 0 1px var(--ac-accent), 0 6px 18px rgba(0, 0, 0, .45); }
+
+/* Panel, toolbar, filter */
+html[data-theme="dark"] .ac-panel { background: var(--ml-soft); box-shadow: 0 4px 20px rgba(0, 0, 0, .35); }
+html[data-theme="dark"] .ac-section-title { color: var(--ml-ink); }
+html[data-theme="dark"] .ac-section-title .text-muted { color: var(--ml-muted) !important; }
+html[data-theme="dark"] .ac-date-toggle { background: var(--ml-card); border-color: var(--ml-line); color: var(--ml-ink2); }
+html[data-theme="dark"] .ac-date-panel { background: var(--ml-card); border-color: var(--ml-line); box-shadow: 0 8px 24px rgba(0, 0, 0, .5); color: var(--ml-ink2); }
+html[data-theme="dark"] .ac-page .form-control { background-color: var(--ml-card); border-color: var(--ml-line); color: var(--ml-ink); }
+html[data-theme="dark"] .ac-page .form-control::placeholder { color: var(--ml-muted); }
+html[data-theme="dark"] .ac-input-icon { color: var(--ml-muted); }
+html[data-theme="dark"] .ac-search-by-wrap .select2-container--bootstrap4 .select2-selection { background-color: var(--ml-card); border-color: var(--ml-line); }
+html[data-theme="dark"] .ac-search-by-wrap .select2-search__field { color: var(--ml-ink); }
+html[data-theme="dark"] .ac-search-by-wrap .select2-search__field::placeholder { color: var(--ml-muted); }
+html[data-theme="dark"] .ac-filter-summary { color: var(--ml-muted); }
+html[data-theme="dark"] .ac-filter-summary .ac-chip { background: #173a6e; color: #d6e6ff; }
+html[data-theme="dark"] .ac-filter-summary .ac-clear { color: var(--ml-ink2); }
+html[data-theme="dark"] .ac-filter-summary .ac-clear:disabled { color: #3d4d61; }
+
+/* Tab status */
+html[data-theme="dark"] .ac-status-selected { color: #8ec0ff; }
+html[data-theme="dark"] .ac-status-tab { color: #b6c0cf; }
+html[data-theme="dark"] .ac-status-tab[data-status="return"] { color: #fb923c; }
+html[data-theme="dark"] .ac-status-tab[data-status="cancel"] { color: #ff7482; }
+html[data-theme="dark"] .ac-status-tab[data-status="approved"] { color: #4fd28f; }
+html[data-theme="dark"] .ac-status-tab[data-status="unlocked"],
+html[data-theme="dark"] .ac-status-tab[data-status="request"] { color: #6fa5ff; }
+html[data-theme="dark"] .ac-count { background: var(--ml-thead); color: var(--ml-ink2); }
+
+/* Tabel (warna saja) */
+html[data-theme="dark"] .ac-table { color: var(--ml-ink); }
+html[data-theme="dark"] .ac-table thead th { background: var(--ml-thead); border-color: var(--ml-line); color: #d6e6ff; }
+html[data-theme="dark"] .ac-table tbody td { border-color: var(--ml-line); color: var(--ml-ink); }
+html[data-theme="dark"] .ac-table tbody tr:hover { background: var(--ml-hover); }
+html[data-theme="dark"] .ac-date-badge { background: #1d3157; color: #dbe7ff; }
+html[data-theme="dark"] .ac-badge.is-awaiting { border-color: #2c3e57; background: #1a2840; color: #b6c0cf; }
+html[data-theme="dark"] .ac-badge.is-return { border-color: rgba(251, 146, 60, .4); background: rgba(251, 146, 60, .12); color: #fdba74; }
+html[data-theme="dark"] .ac-badge.is-cancel { border-color: rgba(255, 92, 110, .4); background: rgba(255, 92, 110, .12); color: #ff8a96; }
+html[data-theme="dark"] .ac-badge.is-approved { border-color: rgba(47, 212, 124, .4); background: rgba(47, 212, 124, .12); color: #6ee7a6; }
+html[data-theme="dark"] .ac-badge.is-unlocked,
+html[data-theme="dark"] .ac-badge.is-request { border-color: rgba(61, 139, 255, .4); background: rgba(61, 139, 255, .12); color: #8ec0ff; }
+html[data-theme="dark"] .ac-timeline-toggle { background: var(--ml-card); border-color: var(--ml-line); color: var(--ml-muted); }
+html[data-theme="dark"] .ac-timeline-toggle[aria-expanded="true"] { background: #173a6e; border-color: #24477d; color: #8ec0ff; }
+html[data-theme="dark"] .ac-timeline { background: #0f1a2c; color: var(--ml-ink2); }
+html[data-theme="dark"] .ac-timeline-item time { color: var(--ml-muted); }
+html[data-theme="dark"] .ac-empty { color: var(--ml-muted); }
+
+/* Info, item per page, halaman */
+html[data-theme="dark"] .ac-card .dataTables_info,
+html[data-theme="dark"] .ac-card .dataTables_length,
+html[data-theme="dark"] .ac-card .dataTables_length label { color: var(--ml-ink2); }
+html[data-theme="dark"] .ac-card .dataTables_length select { background-color: var(--ml-card); border-color: var(--ml-primary); color: var(--ml-ink); }
+html[data-theme="dark"] .ac-card .page-link { background: none; color: var(--ml-ink2); }
+html[data-theme="dark"] .ac-card .page-item.active .page-link { background: var(--ml-primary); color: #fff; }
+html[data-theme="dark"] .ac-card .page-item.disabled .page-link { color: #7d8ba0 !important; opacity: 1; }
+html[data-theme="dark"] .ac-card .dataTables_processing { background: var(--ml-card); color: var(--ml-ink); border-color: var(--ml-line); }
+html[data-theme="dark"] .ac-card .page-item:not(.active):not(.disabled) .page-link { color: var(--ml-ink2) !important; }

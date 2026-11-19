@@ -1,7 +1,11 @@
 @extends('layouts.index')
 
+{{-- Halaman ini mendukung tema terang/gelap (tombol tema di navbar marketing). --}}
+@php($mktTheme = true)
+
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-list-theme.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-list-theme.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
@@ -1097,33 +1101,18 @@
 
             // BOM dengan beberapa WS terkunci: pilih WS yang mau di-unlock, lalu dialog alasan yang sama.
             $(document).on('click', '.bom-unlock-pick', function() {
+                // Modal sama dengan Request Unlock Costing; WS dipilih lewat dropdown di dalam modal.
                 const list = $(this).data('list') || [];
-                const buyer = $(this).data('buyer');
-                const options = {};
-                list.forEach(b => { options[b.id] = `${b.no_ws} (${b.bom_no})`; });
-                Swal.fire({
-                    title: 'Request Unlock BOM',
-                    text: 'Pilih worksheet yang BOM-nya mau diubah.',
-                    input: 'select',
-                    inputOptions: options,
-                    inputPlaceholder: 'Pilih worksheet',
-                    showCancelButton: true,
-                    confirmButtonText: 'Lanjut',
-                    cancelButtonText: 'Cancel',
-                    inputValidator: value => value ? undefined : 'Pilih worksheet dulu',
-                }).then(res => {
-                    if (!res.isConfirmed) return;
-                    const bom = list.find(b => String(b.id) === String(res.value));
-                    openUnlockRequest({
-                        type: 'bom',
-                        id: bom.id,
-                        number: `${bom.bom_no} · ${bom.no_ws}`,
-                        buyer: buyer,
-                        onSuccess: function() {
-                            mktToast('ok', 'Permintaan unlock terkirim', 'Permintaan menunggu keputusan Marketing Manager di Approval Center.');
-                            table.ajax.reload(null, false);
-                        }
-                    });
+                openUnlockRequest({
+                    type: 'bom',
+                    id: list[0]?.id,
+                    number: list[0] ? `${list[0].bom_no} · ${list[0].no_ws}` : '',
+                    buyer: $(this).data('buyer'),
+                    choices: list.map(b => ({ id: b.id, label: `${b.no_ws} (${b.bom_no})`, number: `${b.bom_no} · ${b.no_ws}` })),
+                    onSuccess: function() {
+                        mktToast('ok', 'Permintaan unlock terkirim', 'Permintaan menunggu keputusan Marketing Manager di Approval Center.');
+                        table.ajax.reload(null, false);
+                    }
                 });
             });
 
@@ -1182,7 +1171,8 @@
                     if (result.value.mode === 'merge') {
                         const url = new URL(d.batch, window.location.origin);
                         d.ids.forEach(id => url.searchParams.append('ids[]', id));
-                        window.open(url.toString(), '_blank');
+                        // Gabung jadi satu PDF: pakai loading + cegah klik berulang (marketing-download.js).
+                        window.mktDownload ? window.mktDownload(url.toString()) : window.open(url.toString(), '_blank');
                         return;
                     }
 
@@ -1961,7 +1951,13 @@
                     didOpen: () => Swal.showLoading(),
                 });
 
-                window.location.href = d.url;
+                // Copy membuat data baru, jadi lewat POST + CSRF (bukan link GET).
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = d.url;
+                form.innerHTML = '<input type="hidden" name="_token" value="{{ csrf_token() }}">';
+                document.body.appendChild(form);
+                form.submit();
             });
         }
     </script>

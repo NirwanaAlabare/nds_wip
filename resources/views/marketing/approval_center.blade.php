@@ -18,8 +18,13 @@
     $searchColumns = ['number' => null, 'worksheet' => 'No Worksheet', 'buyer' => 'Buyer', 'brand' => 'Brand', 'style' => 'Style'];
 @endphp
 
+{{-- Halaman ini mendukung tema terang/gelap (tombol tema di navbar marketing), warna sama dengan Marketing List. --}}
+@php($mktTheme = true)
+
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-list-theme.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-list-theme.css')) }}">
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-approval-theme.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-approval-theme.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
@@ -434,6 +439,9 @@
             bomNdsDetail: "{{ route('bom-nds-detail', ':id') }}",
             timeline: "{{ route('costing-timeline', ':id') }}"
         };
+        // Approve / Return / Cancel / Unlock hanya untuk Marketing Manager; waktu daftar dimuat dikirim untuk cek versi.
+        const AC_CAN_DECIDE = @json($canDecide ?? true);
+        const AC_SEEN = {};
         const AC_CSRF = "{{ csrf_token() }}";
         const AC_STATUS_LABEL = {
             awaiting: 'Awaiting Approval', return: 'Return to Staff', cancel: 'Cancel',
@@ -526,11 +534,13 @@
                 columns: columns
             });
 
+            table.on('xhr.dt', function (e, settings, json) { if (json && json.seen_at) AC_SEEN[type] = json.seen_at; });
             const reload = () => table.ajax.reload();
             const updateSelection = function () {
                 const count = $card.find('tbody .ac-row-check:checked').length;
                 $card.find('[data-selected]').text(count);
-                $card.find('[data-ac-action]').prop('disabled', count === 0);
+                $card.find('[data-ac-action]').prop('disabled', count === 0 || !AC_CAN_DECIDE)
+                    .attr('title', AC_CAN_DECIDE ? null : 'Hanya Marketing Manager yang bisa memproses.');
             };
 
             table.on('xhr.dt', function (event, settings, json) {
@@ -765,7 +775,7 @@
                     : mktAlert(type === 'bom' ? 'APR-03' : 'APR-02', { count: ready.length, docs: ready.map(row => row.doc_no).join(', ') }, acDocsInfo(ready, type));
                 dialog.then(function (result) {
                     if (!result.isConfirmed) return;
-                    postAction(url, { ids: ids, action: action, note: '' }, reload,
+                    postAction(url, { ids: ids, action: action, note: '', seen_at: AC_SEEN[type] || '' }, reload,
                         res => mktAlert('APR-05', { count: acProcessed(res, ready.length), type: label }));
                 });
                 return;
@@ -780,7 +790,7 @@
                 ...acDocsInfo(rows, type)
             }).then(function (result) {
                 if (!result.isConfirmed) return;
-                postAction(url, { ids: ids, action: action, note: result.value.trim() }, reload,
+                postAction(url, { ids: ids, action: action, note: result.value.trim(), seen_at: AC_SEEN[type] || '' }, reload,
                     res => mktAlert(action === 'return' ? 'APR-08' : 'APR-10', { count: acProcessed(res, ids.length), type: label }));
             });
         }

@@ -30,6 +30,18 @@ class HomeController extends Controller
             return Redirect::to('/form-cut-input');
         }
 
+        return view('home_nds.index');
+    }
+
+    /**
+     * Home lama (tampilan sebelum home NDS baru), tetap bisa dibuka lewat /home-lama.
+     */
+    public function indexOld()
+    {
+        if (Auth::user()->type == "meja") {
+            return Redirect::to('/form-cut-input');
+        }
+
         return view('home');
     }
 }

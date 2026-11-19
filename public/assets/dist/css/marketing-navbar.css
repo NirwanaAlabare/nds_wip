@@ -1,0 +1,137 @@
+/* Navbar khusus modul Marketing (gaya prototype proto/marketing-list.html). Semua selector di bawah .mkt-nav supaya tidak mengenai modul lain.
+   Tema gelap aktif bila <html data-theme="dark"> (hanya di halaman yang mendukung; lihat $mktTheme di layouts.index). */
+.mkt-nav {
+    --mn-card: #ffffff; --mn-primary: #284a63; --mn-ink: #16202b; --mn-ink2: #3a4654; --mn-muted: #7a8494;
+    --mn-line: #e8ecf2; --mn-soft: #f5f7fa; --mn-thead: #c7dcff; --mn-err: #c62828;
+    position: sticky; top: 0; z-index: 1035;
+    background: var(--mn-card); color: var(--mn-ink);
+    border-bottom: 1px solid var(--mn-line); box-shadow: 0 6px 18px -14px rgba(40, 74, 99, .45);
+    font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5;
+    transition: background .3s, box-shadow .3s;
+}
+/* Gelap = versi final prototype (dark v2-v4): header gradasi biru, pil aktif putih, aksen #3d8bff. */
+html[data-theme="dark"] .mkt-nav {
+    --mn-card: #111c31; --mn-primary: #3d8bff; --mn-ink: #eef3fb; --mn-ink2: #d3ddec; --mn-muted: #a6b6cc;
+    --mn-line: #22324e; --mn-soft: #17253d; --mn-thead: #1a2e52; --mn-err: #ff5c6e;
+    background: radial-gradient(520px 140px at 18% 0%, rgba(61, 139, 255, .28), transparent 70%), linear-gradient(100deg, #0a1535 0%, #0d1f4d 55%, #0a2a55 100%);
+    border-bottom-color: #1f3a70; box-shadow: 0 8px 28px -14px rgba(0, 0, 0, .7);
+}
+.mkt-nav.glass { background: rgba(255, 255, 255, .82); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); box-shadow: 0 10px 30px -18px rgba(40, 74, 99, .55); }
+html[data-theme="dark"] .mkt-nav.glass { background: radial-gradient(520px 140px at 18% 0%, rgba(61, 139, 255, .28), transparent 70%), linear-gradient(100deg, #0a1535 0%, #0d1f4d 55%, #0a2a55 100%); }
+.mkt-nav *, .mkt-nav *::before, .mkt-nav *::after { box-sizing: border-box; }
+.mkt-nav [hidden] { display: none !important; }
+.mkt-nav button { font: inherit; cursor: pointer; }
+.mkt-nav a { text-decoration: none; }
+/* Gutter samping lebih lega (prototype terbaru): 16px di HP sampai 36px di layar lebar. */
+.mkt-nav-in { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 0 max(clamp(16px, 2vw, 36px), env(safe-area-inset-right, 0px)) 0 max(clamp(16px, 2vw, 36px), env(safe-area-inset-left, 0px)); }
+
+.mkt-hb { display: none; width: 38px; height: 38px; flex: none; border: 1px solid var(--mn-line); border-radius: 10px; background: var(--mn-card); color: var(--mn-ink2); place-items: center; }
+.mkt-logo { display: flex; align-items: center; flex: none; padding: 4px 16px 4px 0; border-right: 1px solid var(--mn-line); transition: transform .25s; }
+.mkt-logo:hover { transform: translateY(-1px); }
+.mkt-logo img { display: block; height: 42px; width: auto; }
+html[data-theme="dark"] .mkt-logo { border-right-color: rgba(255, 255, 255, .14); }
+html[data-theme="dark"] .mkt-logo img { filter: drop-shadow(0 0 .6px #fff) drop-shadow(0 0 .6px #fff) drop-shadow(0 0 10px rgba(255, 255, 255, .28)); }
+
+.mkt-menu { display: flex; align-items: center; gap: 4px; }
+.mkt-menu > a, .mkt-dd > button { display: inline-flex; align-items: center; gap: 4px; padding: 7px 14px; border: 0; border-radius: 999px; background: none; color: var(--mn-ink2); font-size: 14px; font-weight: 600; white-space: nowrap; transition: color .2s, background .2s; }
+.mkt-menu > a:hover, .mkt-dd > button:hover, .mkt-dd > button[aria-expanded="true"] { color: var(--mn-primary); background: var(--mn-soft); }
+.mkt-menu .on, .mkt-menu .on:hover { color: #fff !important; background: linear-gradient(135deg, #3a6d93, #284a63) !important; box-shadow: 0 8px 18px -8px rgba(40, 74, 99, .75), inset 0 1px 0 rgba(255, 255, 255, .18); }
+html[data-theme="dark"] .mkt-menu > a:hover, html[data-theme="dark"] .mkt-dd > button:hover, html[data-theme="dark"] .mkt-dd > button[aria-expanded="true"] { color: #fff; background: rgba(255, 255, 255, .1); }
+html[data-theme="dark"] .mkt-menu .on, html[data-theme="dark"] .mkt-menu .on:hover { color: #0a1222 !important; background: linear-gradient(135deg, #ffffff, #dfe9f7) !important; box-shadow: 0 0 0 1px rgba(255, 255, 255, .5), 0 6px 22px -6px rgba(255, 255, 255, .45); }
+html[data-theme="dark"] .mkt-sr, html[data-theme="dark"] .mkt-thm { background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .14); }
+html[data-theme="dark"] .mkt-sr kbd { background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .14); }
+html[data-theme="dark"] .mkt-out { border-left-color: rgba(255, 255, 255, .14); }
+html[data-theme="dark"] .mkt-ddm, html[data-theme="dark"] .mkt-res { box-shadow: 0 18px 40px rgba(0, 0, 0, .5); }
+.mkt-dd { position: relative; }
+.mkt-dd > button svg { transition: transform .3s cubic-bezier(.3, 1.35, .45, 1); }
+.mkt-dd > button[aria-expanded="true"] svg { transform: rotate(180deg); }
+.mkt-ddm { position: absolute; top: calc(100% + 10px); left: 0; z-index: 5; min-width: 260px; padding: 6px; background: var(--mn-card); border: 1px solid var(--mn-line); border-radius: 14px; box-shadow: 0 24px 50px -20px rgba(40, 74, 99, .45); animation: mkt-ddpop .28s cubic-bezier(.2, 1.2, .4, 1) both; transform-origin: 20% 0; }
+@keyframes mkt-ddpop { from { opacity: 0; transform: translateY(-8px) scale(.96); } to { opacity: 1; transform: none; } }
+.mkt-ddm a { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; color: var(--mn-ink); transition: background .2s, transform .2s; }
+.mkt-ddm a:hover { background: var(--mn-soft); color: var(--mn-ink); transform: translateX(3px); }
+.mkt-ddm a[aria-current="page"] { background: var(--mn-soft); }
+.mkt-ddm a i { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 10px; background: var(--mn-thead); color: var(--mn-primary); font-style: normal; }
+.mkt-ddm b { display: block; font-size: 14px; font-weight: 600; }
+.mkt-ddm small { display: block; margin-top: 1px; color: var(--mn-muted); font-size: 12px; }
+
+.mkt-sp { flex: 1; }
+.mkt-sr { position: relative; display: flex; align-items: center; gap: 8px; width: min(240px, 18vw); height: 38px; margin: 0; padding: 0 12px; border: 1px solid var(--mn-line); border-radius: 999px; background: var(--mn-soft); color: var(--mn-muted); font-weight: 400; transition: box-shadow .25s, border-color .25s, width .35s cubic-bezier(.3, 1.2, .45, 1); }
+.mkt-sr:focus-within { width: min(320px, 26vw); border-color: #9dbbe0; box-shadow: 0 0 0 4px rgba(47, 127, 214, .12); background: var(--mn-card); }
+.mkt-sr input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--mn-ink); font-size: 13px; }
+.mkt-sr input::placeholder { color: var(--mn-muted); }
+.mkt-sr kbd { flex: none; padding: 1px 6px; border: 1px solid var(--mn-line); border-radius: 6px; background: var(--mn-card); color: var(--mn-muted); font: 600 10.5px Inter, sans-serif; box-shadow: none; }
+.mkt-res { position: absolute; top: calc(100% + 8px); right: 0; z-index: 5; width: 320px; max-height: 60vh; overflow: auto; padding: 6px; background: var(--mn-card); border: 1px solid var(--mn-line); border-radius: 14px; box-shadow: 0 24px 50px -20px rgba(40, 74, 99, .45); }
+.mkt-res .hd { padding: 6px 10px 4px; color: var(--mn-muted); font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; }
+.mkt-res a { display: block; padding: 8px 10px; border-radius: 10px; color: var(--mn-ink); }
+.mkt-res a.act, .mkt-res a:hover { background: var(--mn-soft); color: var(--mn-ink); }
+.mkt-res b { display: block; font-size: 13.5px; font-weight: 600; }
+.mkt-res small { display: block; color: var(--mn-muted); font-size: 11.5px; }
+.mkt-res mark { padding: 0; border-radius: 3px; background: rgba(47, 127, 214, .2); color: inherit; }
+.mkt-res .emp { padding: 10px; color: var(--mn-muted); font-size: 13px; }
+
+.mkt-thm { width: 38px; height: 38px; flex: none; display: grid; place-items: center; border: 1px solid var(--mn-line); border-radius: 50%; background: var(--mn-card); color: var(--mn-ink2); transition: transform .2s, background .2s; }
+.mkt-thm:hover { transform: translateY(-1px); background: var(--mn-soft); }
+.mkt-thm .sun { display: none; }
+html[data-theme="dark"] .mkt-thm .sun { display: block; }
+html[data-theme="dark"] .mkt-thm .moon { display: none; }
+
+.mkt-who { display: flex; align-items: center; gap: 10px; flex: none; color: var(--mn-ink); }
+.mkt-who:hover { color: var(--mn-ink); }
+.mkt-who > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--mn-primary); color: #fff; font-weight: 700; }
+.mkt-who b { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; line-height: 1.2; color: var(--mn-ink); }
+.mkt-who small { display: block; color: var(--mn-muted); font-size: 11.5px; white-space: nowrap; }
+.mkt-out { display: inline-flex; align-items: center; gap: 6px; flex: none; padding: 8px 4px 8px 16px; border-left: 1px solid var(--mn-line); color: var(--mn-ink2); font-weight: 600; white-space: nowrap; }
+.mkt-out:hover { color: var(--mn-err); }
+.mkt-out svg { transition: transform .25s; }
+.mkt-out:hover svg { transform: translateX(-3px); }
+
+@media (max-width: 1199.98px) {
+    .mkt-hb { display: grid; }
+    .mkt-menu { position: absolute; top: 100%; left: 12px; right: 12px; display: none; flex-direction: column; align-items: stretch; gap: 2px; padding: 8px; background: var(--mn-card); border: 1px solid var(--mn-line); border-radius: 14px; box-shadow: 0 24px 50px -20px rgba(40, 74, 99, .45); }
+    .mkt-menu.open { display: flex; }
+    .mkt-menu > a, .mkt-dd > button { width: 100%; justify-content: space-between; border-radius: 10px; }
+    .mkt-ddm { position: static; margin: 4px 0 6px; box-shadow: none; }
+    .mkt-who div { display: none; }
+}
+@media (max-width: 767.98px) {
+    .mkt-sr { display: none; }
+    .mkt-out span { display: none; }
+    .mkt-logo { border-right: 0; padding-right: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .mkt-nav *, .mkt-nav { transition: none !important; animation: none !important; } }
+
+/* Pil meluncur (sama persis prototype "Navbar v4"): satu pil di belakang menu, pindah ke menu yang di-hover/fokus, balik ke menu aktif saat mouse keluar. */
+.mkt-menu { position: relative; isolation: isolate; }
+.mkt-pill { position: absolute; z-index: -1; top: 0; left: 0; width: 0; height: 0; border-radius: 999px; opacity: 0; pointer-events: none;
+    background: linear-gradient(135deg, #3a6d93, #284a63); box-shadow: 0 8px 18px -8px rgba(40, 74, 99, .75), inset 0 1px 0 rgba(255, 255, 255, .18);
+    transition: transform .45s cubic-bezier(.3, 1.35, .45, 1), width .45s cubic-bezier(.3, 1.35, .45, 1), height .3s, opacity .25s; }
+html[data-theme="dark"] .mkt-pill { background: linear-gradient(135deg, #ffffff, #dfe9f7); box-shadow: 0 0 0 1px rgba(255, 255, 255, .5), 0 6px 22px -6px rgba(255, 255, 255, .45); }
+.mkt-menu.js > a, .mkt-menu.js .mkt-dd > button { transition: color .25s; }
+.mkt-menu.js .on, .mkt-menu.js .on:hover { background: transparent !important; box-shadow: none !important; color: var(--mn-ink2) !important; }
+.mkt-menu.js > a:hover, .mkt-menu.js .mkt-dd > button:hover, .mkt-menu.js .mkt-dd > button[aria-expanded="true"] { background: transparent; }
+.mkt-menu.js > a:not(.hl):hover, .mkt-menu.js .mkt-dd > button:not(.hl):hover { color: var(--mn-primary); }
+html[data-theme="dark"] .mkt-menu.js > a:not(.hl):hover, html[data-theme="dark"] .mkt-menu.js .mkt-dd > button:not(.hl):hover { color: #fff; background: rgba(255, 255, 255, .1); }
+.mkt-menu.js .hl, .mkt-menu.js .on.hl { color: #fff !important; }
+html[data-theme="dark"] .mkt-menu.js .hl, html[data-theme="dark"] .mkt-menu.js .on.hl { color: #0a1222 !important; }
+@media (max-width: 1199.98px) {
+    /* Menu dilipat (☰): tanpa pil, menu aktif ditandai latar lembut. */
+    .mkt-pill { display: none; }
+    .mkt-menu.js .hl { color: var(--mn-ink2) !important; }
+    .mkt-menu.js .on, .mkt-menu.js .on.hl { background: var(--mn-soft) !important; color: var(--mn-primary) !important; }
+}
+@media (prefers-reduced-motion: reduce) { .mkt-pill { transition: none; } }
+/* Mode gelap: aturan .on gelap di atas lebih kuat, jadi menu aktif perlu dipolos ulang supaya hanya pil meluncur yang putih. */
+@media (min-width: 1200px) {
+    html[data-theme="dark"] .mkt-menu.js .on, html[data-theme="dark"] .mkt-menu.js .on:hover { background: transparent !important; box-shadow: none !important; color: var(--mn-ink2) !important; }
+    html[data-theme="dark"] .mkt-menu.js .on:not(.hl):hover { color: #fff !important; }
+    html[data-theme="dark"] .mkt-menu.js .on.hl, html[data-theme="dark"] .mkt-menu.js .on.hl:hover { color: #0a1222 !important; }
+}
+
+/* Chip user: avatar + nama dalam satu pil bergaris (sesuai contoh), tombol tema bulat di kirinya. */
+.mkt-who { gap: 9px; padding: 3px 14px 3px 3px; border: 1px solid var(--mn-line); border-radius: 999px; background: var(--mn-card); transition: background .2s, border-color .2s; }
+.mkt-who:hover { background: var(--mn-soft); }
+.mkt-who > span { width: 32px; height: 32px; font-size: 13px; }
+.mkt-who > b { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; font-weight: 600; color: var(--mn-ink); }
+html[data-theme="dark"] .mkt-who { background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .14); }
+html[data-theme="dark"] .mkt-who:hover { background: rgba(255, 255, 255, .12); }
+@media (max-width: 1199.98px) { .mkt-who { padding-right: 3px; } .mkt-who > b { display: none; } }

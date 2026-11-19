@@ -1,4 +1,5 @@
-{{-- Modal Request Unlock (Costing / BOM). Buka dengan openUnlockRequest({ type, id, number, buyer, onSuccess }). --}}
+{{-- Modal Request Unlock (Costing / BOM). Buka dengan openUnlockRequest({ type, id, number, buyer, onSuccess, choices }).
+     choices (opsional, BOM dengan beberapa WS terkunci): [{ id, label, number }] -> muncul dropdown Worksheet. --}}
 <div class="modal fade" id="modal-request-unlock" tabindex="-1" aria-labelledby="unlock-request-title" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered unlock-request-dialog">
         <div class="modal-content unlock-request-modal">
@@ -11,6 +12,12 @@
                 </span>
             </div>
             <p class="unlock-request-note">This document is approved and can't be edited. Request an unlock from the <b>marketing manager</b> if you need to change it.</p>
+
+            <div class="unlock-request-ws" id="unlock-request-ws" hidden>
+                <h5 class="unlock-request-title">Worksheet</h5>
+                <label for="unlock-request-ws-select" class="unlock-request-label">Pilih worksheet yang BOM-nya mau diubah</label>
+                <select id="unlock-request-ws-select" class="form-control"></select>
+            </div>
 
             <h5 class="unlock-request-title" id="unlock-request-title">Request Unlock</h5>
             <label for="unlock-request-reason" class="unlock-request-label">Reason for Change</label>
@@ -46,16 +53,39 @@
     .unlock-request-reason:focus { border-color: #94a3b8; box-shadow: 0 0 0 2px rgba(148, 163, 184, .2); }
     .unlock-request-error { margin-top: 4px; color: #dc2626; font-size: 10px; }
     .unlock-request-actions { display: flex; justify-content: flex-end; gap: 14px; margin-top: 6px; }
+    .unlock-request-ws { margin-bottom: 16px; }
+    .unlock-request-ws .select2-container .select2-selection { font-size: 12px; }
 </style>
 <script>
     (function() {
         let current = null;
         const $modal = $('#modal-request-unlock');
 
+        // Nilai dari atribut data-* bisa masih ter-escape (mis. "H&amp;M"); tampilkan sebagai teks biasa.
+        const plain = value => $('<textarea>').html(value == null ? '' : String(value)).text();
+        const $ws = $('#unlock-request-ws-select');
+
+        $ws.on('change', function() {
+            const pick = (current?.choices || []).find(c => String(c.id) === String($ws.val()));
+            if (!pick) return;
+            current.id = pick.id;
+            $('#unlock-request-no').text(plain(pick.number || pick.label));
+        });
+
         window.openUnlockRequest = function(options) {
             current = options;
-            $('#unlock-request-no').text(options.number || '');
-            $('#unlock-request-buyer').text(options.buyer || '');
+            $('#unlock-request-no').text(plain(options.number));
+            $('#unlock-request-buyer').text(plain(options.buyer));
+            const choices = Array.isArray(options.choices) ? options.choices : [];
+            $('#unlock-request-ws').prop('hidden', choices.length < 2);
+            if (choices.length > 1) {
+                if ($ws.hasClass('select2-hidden-accessible')) $ws.select2('destroy');
+                $ws.empty();
+                choices.forEach(c => $ws.append(new Option(plain(c.label), c.id)));
+                $ws.val(String(options.id ?? choices[0].id));
+                if ($.fn.select2) $ws.select2({ theme: 'bootstrap4', width: '100%', dropdownParent: $modal });
+                $ws.trigger('change');
+            }
             $('#unlock-request-reason').val('');
             $('#unlock-request-error').prop('hidden', true).text('');
             $('#unlock-request-save').prop('disabled', false);

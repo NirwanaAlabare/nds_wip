@@ -13,21 +13,19 @@
     $one = ['line' => $line->id];
 @endphp
 <div class="ndoc">
-    <div class="ndoc-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; Bill of Material &nbsp;›&nbsp; <strong>Detail BOM</strong></div>
     <div class="ndoc-card">
+        <div class="ndoc-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; Bill of Material &nbsp;›&nbsp; <strong>Detail BOM</strong></div>
         <div class="ndoc-head">
             <div>
-                <h1>Detail Bill of Material</h1>
-                <p>{{ $h['bom_no'] ?: 'BOM belum disimpan — isi di bawah masih isian awal dari Costing' }}</p>
+                <h1>Detail Bill of Material <i class="fas fa-info-circle"></i></h1>
+                <p><i class="fas fa-database"></i> {{ $h['bom_no'] ? 'Untuk Melihat Detail Bill of Material' : 'BOM belum disimpan — isi di bawah masih isian awal dari Costing' }}</p>
             </div>
             <div class="ndoc-actions">
-                <a href="{{ route('bom-nds-edit', $soId) }}?line={{ $line->id }}" class="mkt-btn mkt-btn--navy mkt-btn--sm"><i class="fas fa-edit"></i> Edit</a>
+                @if ($editLineId)
+                    <a href="{{ route('bom-nds-edit', $soId) }}?line={{ $editLineId }}" class="mkt-btn mkt-btn--navy mkt-btn--sm"><i class="fas fa-edit"></i> Edit</a>
+                @endif
                 <a href="{{ route('bom-nds-pdf', ['soId' => $soId] + $one) }}" target="_blank" class="mkt-btn mkt-btn--red mkt-btn--sm"><i class="fas fa-file-pdf"></i> PDF</a>
                 <a href="{{ route('bom-nds-excel', ['soId' => $soId] + $one) }}" class="mkt-btn mkt-btn--green mkt-btn--sm"><i class="fas fa-file-excel"></i> Excel</a>
-                @if ($lines->count() > 1)
-                    <a href="{{ route('bom-nds-pdf', $soId) }}" target="_blank" class="mkt-btn mkt-btn--red mkt-btn--sm"><i class="fas fa-file-pdf"></i> PDF semua WS</a>
-                    <a href="{{ route('bom-nds-excel', $soId) }}" class="mkt-btn mkt-btn--green mkt-btn--sm"><i class="fas fa-file-excel"></i> Excel semua WS</a>
-                @endif
             </div>
         </div>
 
@@ -50,7 +48,6 @@
             <div><span>No Worksheet</span><strong>{{ $v($h['no_ws']) }}</strong></div>
             <div><span>No Sales Order</span><strong>{{ $v($h['so_no']) }}</strong></div>
             <div><span>No Costing</span><strong>{{ $v($h['costing_no']) }}</strong></div>
-            <div><span>Delivery Date</span><strong title="{{ $h['delivery'] }}">{{ $v($h['delivery']) }}</strong></div>
         </div>
 
         <div class="ndoc-grid">
@@ -70,22 +67,26 @@
             <section class="ndoc-box">
                 <h2>Breakdown Order</h2>
                 <div class="ndoc-scroll">
-                    <table class="ndoc-table">
-                        <thead><tr><th>No</th><th>Color</th>@foreach ($bd['sizes'] as $size)<th class="n">{{ $size['name'] }}</th>@endforeach<th class="n">Total</th></tr></thead>
+                    <table class="ndoc-table ndoc-bd">
+                        <thead><tr><th>No</th><th>Destination</th><th>Color</th>@foreach ($bd['sizes'] as $size)<th class="n">{{ $size['name'] }}</th>@endforeach<th class="n">Total</th></tr></thead>
                         <tbody>
+                            {{-- Satu baris per destinasi x color (yang ada qty-nya). --}}
                             @php($col = array_fill(0, count($bd['sizes']), 0))
-                            @foreach ($bd['colors'] as $ci => $color)
-                                @php($t = 0)
-                                <tr><td>{{ $ci + 1 }}</td><td>{{ $color['name'] }}</td>
-                                    @foreach ($bd['sizes'] as $i => $size)
-                                        @php($q = collect($bd['dests'])->sum(fn ($d) => $bd['qty'][$d['id']][$color['id']][$i] ?? 0))
-                                        @php($t += $q)
-                                        @php($col[$i] += $q)
-                                        <td class="n">{{ $q ? $n($q) : '-' }}</td>
-                                    @endforeach
-                                    <td class="n t">{{ $n($t) }}</td></tr>
+                            @php($no = 0)
+                            @foreach ($bd['dests'] as $dest)
+                                @foreach ($bd['colors'] as $color)
+                                    @php($qty = $bd['qty'][$dest['id']][$color['id']] ?? [])
+                                    @continue(!array_sum($qty))
+                                    <tr><td>{{ ++$no }}</td><td>{{ $dest['name'] ?: '-' }}</td><td>{{ $color['name'] }}</td>
+                                        @foreach ($bd['sizes'] as $i => $size)
+                                            @php($q = (int) ($qty[$i] ?? 0))
+                                            @php($col[$i] += $q)
+                                            <td class="n">{{ $q ? $n($q) : '-' }}</td>
+                                        @endforeach
+                                        <td class="n t">{{ $n(array_sum($qty)) }}</td></tr>
+                                @endforeach
                             @endforeach
-                            <tr class="tot"><td colspan="2">TOTAL</td>@foreach ($col as $q)<td class="n">{{ $n($q) }}</td>@endforeach<td class="n">{{ $n(array_sum($col)) }}</td></tr>
+                            <tr class="tot"><td colspan="3">TOTAL</td>@foreach ($col as $q)<td class="n">{{ $n($q) }}</td>@endforeach<td class="n">{{ $n(array_sum($col)) }}</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -94,7 +95,7 @@
 
         @forelse ($doc['sections'] as $section)
             <h3 class="ndoc-title">{{ $section['label'] }}</h3>
-            <div class="ndoc-scroll">@include('marketing.bom_nds._table', ['section' => $section, 'cls' => 'ndoc-table'])</div>
+            <div class="ndoc-scroll">@include('marketing.bom_nds._table', ['section' => $section, 'cls' => 'ndoc-table ndoc-center'])</div>
         @empty
             <p class="text-muted">Belum ada material atau charge di Costing untuk WS ini.</p>
         @endforelse

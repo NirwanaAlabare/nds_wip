@@ -1,6 +1,12 @@
 @extends('layouts.index')
 
+{{-- Modal User Guide halaman ini disembunyikan dulu (panduan ada di menu Panduan). true = tampilkan tombol Panduan + modal. --}}
+@php $guideModal = false; @endphp
+
 @section('custom-link')
+    @if ($guideModal && !empty($ndsTrial) && empty($viewOnly))
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-guide.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-guide.css')) }}">
+    @endif
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-fonts.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-fonts.css')) }}">
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-form.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-form.css')) }}">
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
@@ -410,7 +416,7 @@
         .costing-lock-alert-btn { flex: 0 0 auto; }
         .costing-lock-alert-close { flex: 0 0 auto; padding: 0; border: 0; background: none; color: #fff; font-size: 18px; line-height: 1; }
         /* Kartu ringkasan saat terkunci (sama dengan Detail Costing): 3 putih + 3 abu-biru. */
-        .costing-lock-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .costing-lock-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
         .costing-lock-stat { min-width: 0; min-height: 76px; padding: 10px 14px; border-radius: 10px; background: #6c8798; color: #fff; box-shadow: 0 3px 8px rgba(30, 41, 59, .10); }
         .costing-lock-stat span { display: block; margin-bottom: 4px; color: #e7eef2; font-family: 'Poppins', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: 0.2px; line-height: 1.25; }
         .costing-lock-stat strong { display: block; overflow: hidden; color: #fff; font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: 0.05em; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
@@ -423,7 +429,7 @@
             .costing-lock-stat strong { font-size: 18px; }
         }
         @media (max-width: 1199.98px) {
-            .costing-lock-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .costing-lock-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         @media (max-width: 991.98px) {
             .costing-lock-stat { min-height: 0; }
@@ -761,7 +767,7 @@
                 @endif
             </div>
             @else
-            <h1 class="costing-page-title">Edit Costing <i class="fas fa-info-circle info-icon"></i> <span class="costing-no">{{ $costing->no_costing }}</span></h1>
+            <h1 class="costing-page-title">Edit Costing @if ($guideModal && !empty($ndsTrial))<button type="button" class="mkt-guide-btn" data-guide-open="guide-edit-costing" title="Cara memakai halaman ini"><i class="far fa-question-circle"></i> Panduan</button>@else<i class="fas fa-info-circle info-icon"></i>@endif <span class="costing-no">{{ $costing->no_costing }}</span></h1>
             <p class="costing-page-subtitle"><i class="fas fa-database"></i> Untuk Mengubah Data Costing</p>
             <div class="costing-error-alert" id="costing-error-alert" role="alert" hidden>
                 <i class="fas fa-exclamation-circle"></i><span id="costing-error-text"></span>
@@ -792,9 +798,7 @@
             </div>
             @php
                 $lockCards = [
-                    ['No Worksheet', $costing->kpno ?: '-'],
                     ['No Costing', $costing->no_costing ?: '-'],
-                    ['DELIVERY DATE', $costing->deldate ? \Carbon\Carbon::parse($costing->deldate)->format('d/m/Y') : '-'],
                     ['QTY Planned', $costing->qty_planned ?: 0],
                     ['SMV (MINUTES)', rtrim(rtrim(number_format((float) ($costing->smv ?? 0), 3, ',', '.'), '0'), ',')],
                     ['CONFIRM PRICE', number_format((float) ($costing->confirm_price ?? 0), 2, ',', '.')],
@@ -802,7 +806,7 @@
             @endphp
             <div class="costing-lock-summary">
                 @foreach ($lockCards as [$label, $value])
-                <div class="costing-lock-stat{{ $loop->index < 3 ? ' is-light' : '' }}"><span>{{ $label }}</span><strong title="{{ $value }}">{{ $value }}</strong></div>
+                <div class="costing-lock-stat{{ $loop->index < 1 ? ' is-light' : '' }}"><span>{{ $label }}</span><strong title="{{ $value }}">{{ $value }}</strong></div>
                 @endforeach
             </div>
             @elseif ($unlockState === 'requested')
@@ -1121,7 +1125,7 @@
                             <div class="costing-fields four-columns fill-row">
                                 <div class="costing-field">
                                     <label for="qty_planned">QTY Planned (PCS)</label>
-                                    <input type="text" name="qty_planned" id="qty_planned" class="form-control input-decimal" placeholder="QTY Planned (PCS)" value="{{ isset($costing->qty_planned) ? number_format($costing->qty_planned, 0, '', '') : '' }}" required>
+                                    <input type="text" name="qty_planned" id="qty_planned" class="form-control input-money" inputmode="numeric" data-max-decimals="0" placeholder="QTY Planned (PCS)" value="{{ isset($costing->qty_planned) ? number_format($costing->qty_planned, 0, ',', '.') : '' }}" required>
                                 </div>
                                 @if (empty($ndsTrial))
                                 <div class="costing-field">
@@ -1636,9 +1640,15 @@
     </div>
 </div>
 @include('marketing.costing.brand_modal')
+@if ($guideModal && !empty($ndsTrial) && empty($viewOnly))
+    @include('marketing.guides.edit_costing')
+@endif
 @endsection
 
 @section('custom-script')
+@if ($guideModal && !empty($ndsTrial) && empty($viewOnly))
+<script src="{{ asset('dist/js/marketing-guide.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-guide.js')) }}"></script>
+@endif
 <script src="{{ asset('dist/js/marketing-title-case.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-title-case.js')) }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script src="{{ asset('dist/js/marketing-brand-select.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-brand-select.js')) }}"></script>
@@ -1889,7 +1899,7 @@
 
     // Qty order belum punya kolom di DB baru: perhitungan memakai Qty Planned.
     $('#qty_planned').on('input change', function () {
-        $('#qty').val($(this).val());
+        $('#qty').val(mktMoney(this));
         if (typeof calculate_summary === 'function') calculate_summary();
     });
 
@@ -2154,7 +2164,15 @@
 
         $(document).on('input change', '.calc-input', function() { calculate_template(); });
         $(document).on('input change', '.m-calc', function() { calculate_modal(); });
-        $(document).on('input', '#rate_to_idr, #rate_from_idr, #confirm_price', function() { calculate_template(); calculate_summary(); });
+        $(document).on('input', '#rate_to_idr, #rate_from_idr, #confirm_price', function() {
+            if (this.id !== 'confirm_price') {
+                $('#costing-category-content tr.row-costing').each(function () {
+                    const $r = $(this);
+                    xlRecalc($r, $r.attr('data-category') === 'Other Cost' ? 'value_idr' : 'price');
+                });
+            }
+            calculate_template(); calculate_summary();
+        });
 
         calculate_summary();
 
@@ -2403,10 +2421,10 @@
     function calculate_template() {
         let rate_to_idr = mktMoney('#rate_to_idr') || 0;
         let rate_from_idr = mktMoney('#rate_from_idr') || 1;
-        let header_curr = $('#curr option:selected').text().trim().toUpperCase();
-
         let cat = $('#category').val();
-        let curr = $('#txt_curr option:selected').text().trim().toUpperCase();
+        let curr = $('#txt_curr').val() ? $('#txt_curr option:selected').text().trim().toUpperCase() : '';
+        // Konversi memakai currency baris yang dipilih (kosong = currency header), sama dengan server.
+        let header_curr = curr || $('#curr option:selected').text().trim().toUpperCase();
         let price = mktMoney('#txt_price') || 0;
         let cons = mktMoney('#txt_cons') || 0;
         let allow_pct = mktMoney('#txt_allowance') || 0;
@@ -3758,7 +3776,7 @@
     // Desimal minimum per kolom (sama dengan tampilan awal Blade); maksimum 7 supaya presisi tidak hilang.
     // Price (semua) 2 desimal, cons 3 desimal: input dibulatkan ke sini dan disimpan dengan presisi yang sama.
     const XL_MIN_DP = { price: 2, price_px_idr: 2, price_px_usd: 2, cons: 3, allowance: 2, value_idr: 2, value_usd: 4 };
-    const XL_MAX_DP = { price: 2, price_px_idr: 2, price_px_usd: 2, cons: 3 };
+    const XL_MAX_DP = { price: 4, price_px_idr: 4, price_px_usd: 6, cons: 3 };
     const XL_MIN_DP_OTHER = { allowance: 2, value_idr: 2, value_usd: 4 };
     // Kolom uang: IDR 2 desimal, USD 4 desimal (tampilan saja; data-val tetap presisi penuh).
     const XL_MONEY_FIELDS = ['price', 'price_px_idr', 'price_px_usd', 'value_idr', 'value_usd'];
@@ -3813,7 +3831,7 @@
         const field = xlField($td);
         let value = xlNormalize(field, val);
         if (value === null) { $td.addClass('xl-invalid'); return false; }
-        // Cons 3 desimal, price 2 desimal (sama dengan yang disimpan server).
+        // Cons 3 desimal, price 4 desimal (sama dengan yang disimpan server).
         if (typeof value === 'number' && XL_MAX_DP[field] !== undefined) value = Number(value.toFixed(XL_MAX_DP[field]));
         $td.removeClass('xl-invalid');
         if (String(value) === xlCellVal($td)) return true;
@@ -4025,7 +4043,8 @@
         const isOther = $row.attr('data-category') === 'Other Cost';
         const toIdr = mktMoney('#rate_to_idr') || 0;
         const fromIdr = mktMoney('#rate_from_idr') || 1;
-        const hdr = $('#curr option:selected').text().trim().toUpperCase();
+        // Konversi memakai currency BARIS (kosong = currency header), sama dengan rumus server & PDF.
+        const hdr = (($row.attr('data-curr') || '').trim() || $('#curr option:selected').text().trim()).toUpperCase();
         const g = function (a) { return parseFloat($row.attr('data-' + a)) || 0; };
 
         if (isOther) {
@@ -4033,14 +4052,14 @@
             else if (field === 'value_usd') xlPut($row, 'value_idr', xlRound(g('value-usd') * toIdr), true);
             return;
         }
-        if (field === 'price') {
+        if (field === 'price' || field === 'curr') {
             const p = g('price');
             let idr, usd;
             if (hdr === 'USD') { usd = p; idr = p * toIdr; } else { idr = p; usd = p / fromIdr; }
             xlPut($row, 'price_px_idr', xlRound(idr), true);
             xlPut($row, 'price_px_usd', xlRound(usd), true);
         }
-        if (['price', 'cons', 'allowance', 'price_px_idr', 'price_px_usd'].indexOf(field) !== -1) {
+        if (['price', 'curr', 'cons', 'allowance', 'price_px_idr', 'price_px_usd'].indexOf(field) !== -1) {
             const allow = 1 + (g('allowance') / 100);
             xlPut($row, 'value_idr', xlRound(g('px-idr') * g('cons') * allow), true);
             xlPut($row, 'value_usd', xlRound(g('px-usd') * g('cons') * allow), true);
@@ -4088,6 +4107,12 @@
                 return;
             }
             $row.removeClass('xl-dirty xl-row-error');
+            // Angka akhir = hasil hitung server (currency baris + kurs header).
+            if (response.values) {
+                const map = { price: 'price', price_idr: 'price_px_idr', price_usd: 'price_px_usd', value_idr: 'value_idr', value_usd: 'value_usd' };
+                Object.keys(map).forEach(function (k) { if (response.values[k] !== undefined && response.values[k] !== null) xlPut($row, map[k], Number(response.values[k]), true); });
+                xlScheduleSummary();
+            }
             result.resolve(response);
         }).fail(function (xhr) {
             $row.addClass('xl-row-error');
@@ -4125,7 +4150,7 @@
         const $content = $('#costing-category-content');
         if (xlReadonly() || $content.hasClass('xl-submit-running')) return;
         // Harga CMT tiap set di tab Manufacturing wajib terisi sebelum Update.
-        const cmtId = @json(!empty($ndsTrial) ? app(\App\Services\MarketingNdsCostingService::class)->cmtContentId() : null);
+        const cmtId = @json(!empty($ndsTrial) ? app(\App\Services\Marketing\MarketingNdsCostingService::class)->cmtContentId() : null);
         const $cmtEmpty = cmtId ? $content.find('tr.row-costing').filter(function () { return String($(this).attr('data-item')) === String(cmtId) && !(parseFloat($(this).attr('data-price')) > 0); }) : $();
         if ($cmtEmpty.length) {
             mktToast('warn', 'Harga CMT belum diisi', 'Isi Price CMT setiap product item di tab Manufacturing, lalu klik Update lagi.');
@@ -4593,12 +4618,12 @@
 
         // ===== CM Price di header: satu field per set (TOP / BOTTOM), disabled. Nilai = total CMT setelah allowance
         // (value IDR / USD mengikuti currency header) dari baris CMT di tab Manufacturing; ikut berubah saat CMT diedit.
-        const CMT_ID = @json(!empty($ndsTrial) ? app(\App\Services\MarketingNdsCostingService::class)->cmtContentId() : null);
+        const CMT_ID = @json(!empty($ndsTrial) ? app(\App\Services\Marketing\MarketingNdsCostingService::class)->cmtContentId() : null);
         if (CMT_ID && $('#cm-card').length) {
             const cmEsc = v => $('<span>').text(v == null ? '' : v).html();
             const cmRows = () => $('#costing-category-content tr.row-costing').filter(function () { return String($(this).attr('data-item')) === String(CMT_ID); });
             // Nama set (TOP / BOTTOM) dari data set Costing; baris tanpa id set di Costing satu set = set satu-satunya.
-            const CM_SETS = @json(!empty($ndsTrial) ? app(\App\Services\MarketingNdsCostingService::class)->costingSets((int) $costing->id)['sets']->pluck('set_type', 'id') : []);
+            const CM_SETS = @json(!empty($ndsTrial) ? app(\App\Services\Marketing\MarketingNdsCostingService::class)->costingSets((int) $costing->id)['sets']->pluck('set_type', 'id') : []);
             const cmSetName = id => {
                 const names = Object.values(CM_SETS || {});
                 return (CM_SETS || {})[id] || (names.length === 1 ? names[0] : '')

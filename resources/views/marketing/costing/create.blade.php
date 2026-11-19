@@ -1,6 +1,12 @@
 @extends('layouts.index')
 
+{{-- Modal User Guide halaman ini disembunyikan dulu (panduan ada di menu Panduan). true = tampilkan tombol Panduan + modal. --}}
+@php $guideModal = false; @endphp
+
 @section('custom-link')
+    @if ($guideModal)
+    <link rel="stylesheet" href="{{ asset('dist/css/marketing-guide.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-guide.css')) }}">
+    @endif
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-form.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-form.css')) }}">
     <link rel="stylesheet" href="{{ asset('dist/css/marketing-buttons.css') }}?v={{ @filemtime(public_path('assets/dist/css/marketing-buttons.css')) }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
@@ -282,7 +288,7 @@
             @csrf
             <div class="card-body">
                 <div class="costing-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; Costing &nbsp;›&nbsp; <b>Create Costing</b></div>
-                <h1 class="costing-page-title">Create Costing <i class="fas fa-info-circle"></i></h1>
+                <h1 class="costing-page-title">Create Costing @if ($guideModal)<button type="button" class="mkt-guide-btn" data-guide-open="guide-create-costing" title="Cara mengisi halaman ini"><i class="far fa-question-circle"></i> Panduan</button>@else<i class="fas fa-info-circle"></i>@endif</h1>
                 <p class="costing-page-subtitle"><i class="fas fa-database"></i> Untuk Menambah Data Costing</p>
                 <div class="costing-error-alert" id="costing-error-alert" role="alert" hidden>
                     <i class="fas fa-exclamation-circle"></i><span id="costing-error-text"></span>
@@ -507,7 +513,7 @@
                             <div class="costing-fields four-columns fill-row">
                                 <div class="costing-field">
                                     <label for="qty_planned">QTY Planned (PCS)</label>
-                                    <input type="text" name="qty_planned" id="qty_planned" class="form-control input-decimal" placeholder="QTY Planned (PCS)" required>
+                                    <input type="text" name="qty_planned" id="qty_planned" class="form-control input-money" inputmode="numeric" data-max-decimals="0" placeholder="QTY Planned (PCS)" required>
                                 </div>
                                 @if (empty($ndsTrial))
                                 <div class="costing-field">
@@ -565,9 +571,15 @@
     </div>
 </div>
 @include('marketing.costing.brand_modal')
+@if ($guideModal)
+    @include('marketing.guides.create_costing')
+@endif
 @endsection
 
 @section('custom-script')
+@if ($guideModal)
+<script src="{{ asset('dist/js/marketing-guide.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-guide.js')) }}"></script>
+@endif
 <script src="{{ asset('dist/js/marketing-title-case.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-title-case.js')) }}"></script>
 <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
 <script src="{{ asset('dist/js/marketing-brand-select.js') }}?v={{ @filemtime(public_path('assets/dist/js/marketing-brand-select.js')) }}"></script>

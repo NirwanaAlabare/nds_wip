@@ -282,7 +282,11 @@
         }
         .bom-review-section {
             display: flex;
+            flex: 1;
             flex-direction: column;
+        }
+        .bom-breakdown-section {
+            grid-column: 1 / -1;
         }
         .bom-image-review {
             display: flex;
@@ -392,9 +396,11 @@
             white-space: normal;
             overflow-wrap: anywhere;
         }
-        #bom-breakdown-table thead th:nth-child(1) { width: 36px; }
-        #bom-breakdown-table thead th:nth-child(2) { width: 130px; }
-        #bom-breakdown-table thead th:nth-child(3) { width: 130px; }
+        /* Lebar tetap untuk No, Color, qty per size, dan Total; sisa lebar (panel penuh) untuk Destination. */
+        #bom-breakdown-table thead th:nth-child(1) { width: 40px; }
+        #bom-breakdown-table thead th:nth-child(2) { width: auto; min-width: 200px; }
+        #bom-breakdown-table thead th:nth-child(3) { width: 160px; }
+        #bom-breakdown-table thead th:nth-child(n+4) { width: 90px; }
         #section-list-item > #bom-content-tabs { margin: 0 0 14px; }
         #section-list-item .bom-detail-card {
             margin: 0;
@@ -1193,10 +1199,10 @@
 .bom-ws-picker .mkt-btn{text-decoration:none;position:relative}
 .bom-ws-picker.is-loading{opacity:.6;pointer-events:none}
 .bom-ws-dot{position:absolute;top:-3px;right:-3px;width:11px;height:11px;border-radius:50%;background:#f59e0b;border:2px solid #fff}
-.bom-stale{margin:0 0 16px;padding:12px 16px;border:1px solid #f0c36d;border-radius:10px;background:#fff8e6;color:#7a5300;font-size:14px}
+.bom-stale{margin:0 0 16px;padding:12px 16px;border:1px solid #f5a3ab;border-left:4px solid #dc2626;border-radius:10px;background:#fff1f2;color:#9f1239;font-size:14px}
 .bom-stale .t{font-weight:600}
 .bom-stale ul{margin:6px 0 0;padding-left:22px}
-.bom-stale .i{margin-top:6px;color:#6b5a2e}
+.bom-stale .i{margin-top:6px;color:#9f1239}
 .bom-stale .i:first-child{margin-top:0}
 #bomx .xs tr.chg td{box-shadow:inset 0 0 0 9999px rgba(245,158,11,.12)}
 #bom-content-tabs .nav-link{text-decoration:none}
@@ -1211,6 +1217,8 @@
 /* Gaya tabel disamakan dengan tabel Costing (warna, garis, sorotan sel); ukuran baris, kolom & font tetap seperti di atas. */
 #bomx{--c-cost:#7c3aed;--c-so:#2563eb;--c-in:#f97316;--c-auto:#94a3b8}
 #bomx .wrapS{padding:10px 12px 8px;border:1px solid #edf0f5!important;border-radius:8px;background:#fff;box-shadow:0 3px 12px rgba(30,41,59,.09)}
+/* Grid input: tanpa padding kiri-kanan, supaya kolom yang di-scroll tidak kelihatan di celah sebelah kiri kolom beku (NO, Content, Shell). */
+#bomx #wrap.wrapS{padding-left:0;padding-right:0}
 #bomx .xs,#bomx .pv{font-family:Inter,sans-serif;background:#fff}
 #bomx .xs th,#bomx .pv th{background:#cfe0ff!important;color:#1e293b!important;font-weight:500!important;text-transform:uppercase;border:0!important}
 #bomx .xs thead th:first-child,#bomx .pv tr:first-child th:first-child{border-radius:6px 0 0 0}
@@ -1313,17 +1321,18 @@
                         <div class="bom-image-caption" id="bom-image-caption"></div>
                         <div class="bom-image-counter mkt-cf-dots" id="bom-image-counter"></div>
                     </section>
-                    <section class="bom-overview-section">
-                        <h2 class="bom-overview-title">Breakdown Order</h2>
-                        <div class="bom-breakdown-wrap">
-                            <table class="table table-sm table-bordered" id="bom-breakdown-table">
-                                <thead></thead>
-                                <tbody></tbody>
-                                <tfoot></tfoot>
-                            </table>
-                        </div>
-                    </section>
                 </div>
+                {{-- Breakdown Order lebar penuh di bawah Information Buyer / Product & Type dan Review Image. --}}
+                <section class="bom-overview-section bom-breakdown-section">
+                    <h2 class="bom-overview-title">Breakdown Order</h2>
+                    <div class="bom-breakdown-wrap">
+                        <table class="table table-sm table-bordered" id="bom-breakdown-table">
+                            <thead></thead>
+                            <tbody></tbody>
+                            <tfoot></tfoot>
+                        </table>
+                    </div>
+                </section>
             </div>
 
             <div class="bom-stale" id="bom-stale" role="alert" hidden></div>
@@ -1338,10 +1347,10 @@
                             <div class="sheetbar">
                                 <div class="legend"><span><span class="dot d-cost"></span>Costing</span><span><span class="dot d-so"></span>SO</span><span><span class="dot d-in"></span>Input</span><span><span class="dot d-auto"></span>Auto</span></div>
                                 <span class="sp"></span>
-                                <div class="mode" role="tablist"><button type="button" data-mode="in" aria-pressed="true">&#9998; Input</button><button type="button" data-mode="pv" aria-pressed="false">&#128065; Preview per color &times; size</button></div>
+                                <div class="mode" role="tablist"><button type="button" data-mode="in" aria-pressed="true">&#9998; Input</button><button type="button" data-mode="pv" aria-pressed="false">&#128065; Preview per color &times; size &times; destinasi</button></div>
                                 <button type="button" class="mkt-btn mkt-btn--red mkt-btn--sm" id="bClear"><i class="fas fa-trash-alt"></i> Hapus</button>
                             </div>
-                            <div id="pvBox" hidden style="margin-top:8px"><div class="pvbar"><label><input type="checkbox" id="pvAll"> Pecah semua item per color &times; size</label><span class="sp"></span><span id="pvInfo"></span><button type="button" class="mkt-btn mkt-btn--green mkt-btn--sm" id="pvXls"><i class="fas fa-file-excel"></i> Export Excel</button></div>
+                            <div id="pvBox" hidden style="margin-top:8px"><div class="pvbar"><span class="sp"></span><span id="pvInfo"></span><button type="button" class="mkt-btn mkt-btn--green mkt-btn--sm" id="pvXls"><i class="fas fa-file-excel"></i> Export Excel</button></div>
                                 <div class="wrapS"><table class="pv" id="pv"></table></div></div>
                             <div id="inBox" style="margin-top:8px">
                                 <div class="wrapS" id="wrap" tabindex="0"><table class="xs" id="xs"></table></div>
@@ -1616,7 +1625,7 @@
         { k: 'dest', t: 'Destinasi', src: 'in', list: 1, fixed: 'Destinasi Other Cost ' + NO_ERD, w: 86 },
         { k: 'cons', t: 'Qty/pc', src: 'in', num: 1, w: 76 },
         { k: 'unit', t: 'Unit', src: 'in', list: UNITLIST, w: 62 },
-        { k: 'sup', t: 'Vendor', src: 'in', list: SUPLIST, w: 132, wrap: 1 },
+        { k: 'sup', t: 'Supplier', src: 'in', list: SUPLIST, w: 132, wrap: 1 },
         { k: 'price', t: 'Price', src: 'in', num: 1, w: 70 },
         { k: 'pc', t: 'Price costing', src: 'cost', ro: 1, num: 1, w: 108 },
         { k: 'tq', t: 'Total qty', src: 'auto', auto: 1, w: 100 },
@@ -1653,7 +1662,7 @@
     const CHG = t => t === 'MFG' || t === 'OTH';
     const cols = () => (CHG(tab) ? COLS_O : COLS_M);
     const vis = () => rows.filter(r => r.tab === tab);
-    // Cons/pc BOM (baris induk & rincian color/size) tidak boleh melebihi Cons costing: yang lebih besar dipaksa 0.
+    // Cons/pc BOM (baris induk & rincian color/size) tidak boleh melebihi Cons costing: yang lebih besar disamakan dengan Cons costing.
     // Dipanggil dari markDirty, jadi berlaku untuk ketik, paste, fill, salin baris atas, dll.
     function capCons() {
         const over = [];
@@ -1663,12 +1672,12 @@
             if (limit === null || limit === undefined || r.cons === null || r.cons === undefined) return;
             if (Number(r.cons) > Number(limit) + 1e-9) {
                 over.push(`${baseOf(r).content} (${String(r.cons).replace('.', ',')} > ${String(limit).replace('.', ',')})`);
-                r.cons = 0;
+                r.cons = Number(limit);
             }
         });
         if (!over.length) return;
         const list = [...new Set(over)];
-        const msg = `Cons BOM tidak boleh lebih besar dari Cons costing, jadi dikembalikan ke 0: ${list.slice(0, 3).join('; ')}${list.length > 3 ? ` dan ${list.length - 3} lainnya` : ''}.`;
+        const msg = `Cons BOM tidak boleh lebih besar dari Cons costing, jadi disamakan dengan Cons costing: ${list.slice(0, 3).join('; ')}${list.length > 3 ? ` dan ${list.length - 3} lainnya` : ''}.`;
         if (window.mktToast) window.mktToast('err', 'Cons melebihi Costing', msg, { duration: 5000 });
         else toast(msg);
     }
@@ -1711,7 +1720,8 @@
 
     // ===== hitung: qty SO (destinasi baris itu, atau semua) per color x size masuk ke sub-baris yang cocok (atau induk), x cons
     let ORIG = {},
-        NEED = {};
+        NEED = {},
+        TOTC = {}; // Total Qty Req per baris = jumlah ceil per sel (sama dengan preview, PDF, Excel)
     // Sub-baris yang menampung qty color/size itu (sub terakhir yang cocok), atau induknya sendiri.
     const bestOf = (b, kids, colorId, sizeId, destId) => {
         let best = b;
@@ -1733,7 +1743,7 @@
                     const best = bestOf(b, kids, c.id, z.id, d.id),
                         dest = eff(best, 'dest');
                     if (dest && dest !== d.id) return;
-                    fn(best, qq, c, z, i);
+                    fn(best, qq, c, z, i, d);
                 }),
             ),
         );
@@ -1741,6 +1751,7 @@
     function calc() {
         const out = {};
         ORIG = {};
+        TOTC = {};
         rows.filter(r => !r.parent).forEach(b => {
             const kids = rows.filter(x => x.parent === b.uid);
             [b, ...kids].forEach(x => {
@@ -1750,6 +1761,7 @@
             eachQty(b, kids, (best, qq) => {
                 ORIG[best.uid] += qq;
                 out[best.uid] += qq * (eff(best, 'cons') || 0);
+                TOTC[best.uid] = (TOTC[best.uid] || 0) + Math.ceil(qq * (eff(best, 'cons') || 0) * (1 + (eff(best, 'loss') || 0) / 100));
             });
             [b, ...kids].forEach(x => {
                 if (unitName(eff(x, 'unit')) === 'LOT') out[x.uid] = eff(x, 'cons') || 0;
@@ -1759,7 +1771,9 @@
     }
     const totQ = r => {
         const n = NEED[r.uid] || 0;
-        return isOth(r) ? n : Math.ceil(n * (1 + (eff(r, 'loss') || 0) / 100));
+        if (isOth(r)) return n;
+        if (unitName(eff(r, 'unit')) === 'LOT' || TOTC[r.uid] === undefined) return Math.ceil(n * (1 + (eff(r, 'loss') || 0) / 100));
+        return TOTC[r.uid];
     };
     const valOf = r => totQ(r) * (eff(r, 'price') || 0);
 
@@ -1885,8 +1899,10 @@
                 ? `<div class="t"><i class="fas fa-exclamation-triangle"></i> BOM perlu diperbarui: Sales Order / Costing berubah setelah BOM disimpan. Tabel di bawah sudah disesuaikan (baris kuning = baru), klik <b>Save</b> untuk menyimpannya.</div><ul>${s.changes.map(c => `<li>${esc(c)}</li>`).join('')}</ul>`
                 : '') + s.info.map(i => `<div class="i"><i class="fas fa-info-circle"></i> ${esc(i)}</div>`).join('');
     }
+    const HIDDEN_TABS = ['OTH'];
     function renderTabs() {
-        $('#bom-content-tabs').innerHTML = TABS.map(
+        // Tab Other Cost disembunyikan dulu (hapus dari HIDDEN_TABS untuk menampilkan lagi).
+        $('#bom-content-tabs').innerHTML = TABS.filter(([k]) => !HIDDEN_TABS.includes(k)).map(
             ([k, l]) =>
                 `<li class="nav-item"><a href="#" class="nav-link${k === tab ? ' active' : ''}" role="tab" data-t="${k}" aria-selected="${k === tab}">${l}</a></li>`,
         ).join('');
@@ -2098,25 +2114,28 @@
             `<span style="display:flex;align-items:center;gap:10px">Item Per Page <span class="ipp" style="border:1px solid var(--navy);border-radius:6px;padding:3px 12px">25 &#10005;</span> Of ${V.length}</span><span style="display:flex;gap:16px;color:var(--mute)"><span>Lengkap <b>${ok}/${bases.length}</b></span>${n > 1 ? `<span>Jumlah <b>${fmt(s)}</b></span>` : ''}<span>Value <b>${fmt(val)}</b></span><span style="color:var(--navy)">&lsaquo; <b style="background:var(--navy);color:#fff;border-radius:5px;padding:1px 8px">1</b> &rsaquo;</span></span>`;
     }
 
-    // ===== preview (read-only): kebutuhan tiap material, bisa dipecah per color x size
-    // Satu baris preview per sub-baris (atau per color x size kalau dicentang); src = baris yang dipakai cons & item-nya.
-    function explode(r, all) {
+    // ===== preview (read-only): kebutuhan tiap material per color x size x destinasi SO, apa pun rule BOM-nya
+    // (sama dengan PDF / Excel BOM). src = baris yang dipakai cons & item-nya. Charges dan unit LOT tidak dipecah.
+    function explode(r) {
         const M = {},
-            kids = rows.filter(x => x.parent === r.uid);
-        eachQty(r, kids, (src, qq, c, z, i) => {
-            const key = all ? c.id + '|' + z.id : src.uid;
+            kids = rows.filter(x => x.parent === r.uid),
+            all = !CHG(r.tab) && unitName(eff(r, 'unit')) !== 'LOT';
+        eachQty(r, kids, (src, qq, c, z, i, d) => {
+            const key = all ? d.id + '|' + c.id + '|' + z.id : src.uid;
             (M[key] = M[key] || {
                 src,
                 oq: 0,
-                at: all ? COLORS.indexOf(c) * 1000 + i : rows.indexOf(src),
+                at: all ? (COLORS.indexOf(c) * 1000 + i) * 1000 + DESTS.indexOf(d) : rows.indexOf(src),
                 color: all ? c.name : src.color ? colorName(src.color) : 'ALL',
                 size: all ? z.name : src.sizes ? rangeTxt(src.sizes) : 'ALL',
+                dest: all ? d.name : null,
             }).oq += qq;
         });
         return Object.values(M).sort((x, y) => x.at - y.at);
     }
     function renderPv() {
-        const all = $('#pvAll').checked;
+        // Download Excel hanya di tab View All Docs.
+        $('#pvXls').style.display = tab === 'DOCS' ? '' : 'none';
         const SEC = {
             FAB: 'FABRIC',
             SEW: 'ACCESSORIES SEWING',
@@ -2124,7 +2143,7 @@
             MFG: 'MANUFACTURING',
             OTH: 'OTHER COST',
         };
-        const tabs = tab === 'DOCS' ? ['FAB', 'SEW', 'PACK', 'MFG', 'OTH'] : [tab];
+        const tabs = tab === 'DOCS' ? ['FAB', 'SEW', 'PACK', 'MFG', 'OTH'].filter(k => !HIDDEN_TABS.includes(k)) : [tab];
         const PH = [
             ['NO', ''],
             ['Content', 'cost'],
@@ -2157,7 +2176,7 @@
             let no = 0;
             rows.filter(r => r.tab === tb && !r.parent).forEach(r => {
                 no++;
-                explode(r, all).forEach((e, i) => {
+                explode(r).forEach((e, i) => {
                     const cons = eff(e.src, 'cons') || 0,
                         loss = CHG(tb) ? 0 : eff(e.src, 'loss') || 0,
                         u = eff(e.src, 'unit'),
@@ -2169,7 +2188,7 @@
                     grand += val;
                     lines++;
                     h += `<tr class="${i === 0 ? 'g' : ''}"><td>${i === 0 ? no : ''}</td><td class="k">${i === 0 ? esc(r.content) : ''}</td><td>${i === 0 ? esc(r.shell || '') : ''}</td><td>${i === 0 && !CHG(tb) ? esc(ruleBase(r)) : ''}</td>
-                <td>${esc(e.color)}</td><td>${esc(e.size)}</td><td>${esc(label('item', eff(e.src, 'item'))) || '<span class="dim">—</span>'}</td><td>${CHG(tb) ? '' : esc(label('dest', eff(e.src, 'dest'))) || 'Semua'}</td>
+                <td>${esc(e.color)}</td><td>${esc(e.size)}</td><td>${esc(label('item', eff(e.src, 'item'))) || '<span class="dim">—</span>'}</td><td>${CHG(tb) ? '' : esc(e.dest || label('dest', eff(e.src, 'dest'))) || 'Semua'}</td>
                 <td class="n">${fmt(e.oq, 0)}</td><td class="n">${cons ? nf('cons', cons) : '--'}</td><td>${esc(unitName(u))}</td><td class="n">${req ? fmt(req) : '--'}</td><td class="n">${CHG(tb) ? '' : loss}</td><td class="n">${lv ? fmt(lv) : '--'}</td><td class="n">${tot ? fmt(tot, 0) : '--'}</td>
                 <td>${esc(unitName(u))}</td><td>${esc(label('sup', eff(e.src, 'sup')))}</td><td class="n">${pr != null ? nf('price', pr) : '--'}</td><td class="n">${r.pc != null ? nf('price', r.pc) : '--'}</td><td class="n">${val ? fmt(val) : '--'}</td></tr>`;
                 });
@@ -2311,8 +2330,10 @@
     }
     function parseNum(v) {
         let s = String(v).trim().replace(/\s|%/g, '');
+        // Format Indonesia: titik = ribuan, koma = desimal ("12.500,89" -> 12500.89, "12.500" -> 12500).
         if (s.includes(',') && s.includes('.'))
             s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+        else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
         else s = s.replace(',', '.');
         return s === '' || isNaN(s) ? NaN : parseFloat(s);
     }
@@ -2798,9 +2819,6 @@
             mode === 'pv' ? renderPv() : render();
         }
     });
-    document.addEventListener('change', e => {
-        if (e.target.id === 'pvAll') renderPv();
-    });
     // Tombol Hapus = kosongkan isian baris yang dicentang (centang header = semua baris tab ini).
     window.bomUpdClear = function () {
         const btn = document.getElementById('bClear');
@@ -2839,22 +2857,14 @@
         });
     });
     window.bomUpdClear();
+    // Download Excel (tab View All Docs) = file yang sama dengan download EXCEL di listing (BOM per SO, data tersimpan).
     $('#pvXls').addEventListener('click', () => {
-        const css = `\u003cstyle>
-        table,th,td{font-family:Calibri,Arial,sans-serif;font-size:11pt;}
-        th{font-weight:bold;background:#f0f0f0;}
-    \u003c/style>`;
-
-        const doc = `\u003chtml>\u003chead>\u003cmeta charset="utf-8">${css}\u003c/head>\u003cbody>\u003ctable border="1">${$('#pv').innerHTML}\u003c/table>\u003c/body>\u003c/html>`;
-
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([doc], { type: 'application/vnd.ms-excel' }));
-        a.download = `BOM ${PAGE.header.no_ws || ''}`.trim().replace(/[\\/:*?"<>|]+/g, '-') + '.xls';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        if (dirty) {
+            toast('Simpan dulu perubahan BOM supaya ikut masuk ke Excel.');
+            return;
+        }
+        window.mktDownload ? window.mktDownload(@json(route('bom-nds-excel', $soId)), $('#pvXls')) : (window.location.href = @json(route('bom-nds-excel', $soId)));
     });
-
     // ===== simpan
     function payload() {
         const pickV = r => ({ id: r.dbid, item: r.item, cons: r.cons, unit: r.unit, sup: r.sup, price: r.price });

@@ -11,12 +11,12 @@
     $n = fn ($x) => number_format((float) $x, 0, ',', '.');
 @endphp
 <div class="ndoc">
-    <div class="ndoc-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; Sales Order &nbsp;›&nbsp; <strong>Detail SO</strong></div>
     <div class="ndoc-card">
+        <div class="ndoc-crumb"><a href="{{ route('home') }}">Home</a> &nbsp;›&nbsp; <a href="{{ route('dashboard-marketing') }}">Marketing</a> &nbsp;›&nbsp; <a href="{{ route('master-costing') }}">Process</a> &nbsp;›&nbsp; Sales Order &nbsp;›&nbsp; <strong>Detail SO</strong></div>
         <div class="ndoc-head">
             <div>
-                <h1>Detail Sales Order</h1>
-                <p>{{ $h['so_no'] }}</p>
+                <h1>Detail Sales Order <i class="fas fa-info-circle"></i></h1>
+                <p><i class="fas fa-database"></i> Untuk Melihat Detail Sales Order</p>
             </div>
             <div class="ndoc-actions">
                 {{-- SO tanpa approval: bebas diedit, kecuali WS-nya sudah dipakai di Marker (pop-up hubungi IT). --}}
@@ -35,7 +35,6 @@
             <div><span>No Sales Order</span><strong>{{ $v($h['so_no']) }}</strong></div>
             <div><span>No Costing</span><strong>{{ $v($h['costing_no']) }}</strong></div>
             <div><span>SO Date</span><strong>{{ $v($h['so_date']) }}</strong></div>
-            <div><span>Delivery Date</span><strong title="{{ $h['delivery'] }}">{{ $v($h['delivery']) }}</strong></div>
             <div><span>Total Qty</span><strong>{{ $n($h['total_qty']) }}</strong></div>
         </div>
 
@@ -68,7 +67,7 @@
             <section class="ndoc-box" style="margin-bottom: 14px">
                 <h2>{{ $ws['no_ws'] }}{{ $ws['item'] ? ' · ' . $ws['item'] : '' }}</h2>
                 <div class="ndoc-scroll">
-                    <table class="ndoc-table">
+                    <table class="ndoc-table ndoc-bd">
                         <thead><tr><th>No</th><th>Color</th>@foreach ($ws['sizes'] as $size)<th class="n">{{ $size }}</th>@endforeach<th class="n">Total</th></tr></thead>
                         <tbody>
                             @foreach ($ws['colors'] as $i => $color)
@@ -85,7 +84,7 @@
 
         <h3 class="ndoc-title">Sales Order Detail</h3>
         <div class="ndoc-scroll">
-            <table class="ndoc-table">
+            <table class="ndoc-table ndoc-center">
                 <thead><tr><th>No</th><th>Worksheet</th><th>Buyer PO</th><th>PO Date</th><th>Ex FTY</th><th>Ship Mode</th><th>Destination</th><th>Color</th><th>Size</th><th>SKU</th><th>Barcode</th><th class="n">Qty</th></tr></thead>
                 <tbody>
                     @foreach ($doc['rows'] as $i => $r)

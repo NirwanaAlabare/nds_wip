@@ -16,7 +16,7 @@
                 <th>KETERANGAN</th>
                 <th>QTY/PC</th>
                 <th>UNIT</th>
-                <th>VENDOR</th>
+                <th>SUPPLIER</th>
                 <th>PRICE</th>
                 <th>PRICE COSTING</th>
                 <th>TOTAL QTY</th>
@@ -59,7 +59,7 @@
                         <td class="w">{{ $i === 0 ? $l['content'] : '' }}</td>
                         <td class="w">@if ($i === 0){{ $v($l['shell']) }}@if ($l['parts'])<br><span class="dim">{{ $l['parts'] }}</span>@endif @endif</td>
                         <td>{{ $i === 0 ? $l['rule'] : '' }}</td>
-                        <td>{{ $l['color'] ?? 'Semua' }}</td><td>{{ $l['size'] ?? 'Semua' }}</td><td class="w">{{ $v($l['item']) }}</td><td>{{ $l['dest'] ?? 'Semua' }}</td>
+                        <td>{{ $l['color'] ?? 'Semua' }}</td><td>{{ $l['size'] ?? 'Semua' }}</td><td class="w l">{{ $v($l['item']) }}</td><td>{{ $l['dest'] ?? 'Semua' }}</td>
                         <td class="{{ $r }}">{{ $n0($l['orig']) }}</td><td class="{{ $r }}">{{ $cons($l['cons']) }}</td><td>{{ $v($l['unit']) }}</td><td class="{{ $r }}">{{ $n2($l['req']) }}</td>
                         <td class="{{ $r }}">{{ $n0($l['loss']) }}</td><td class="{{ $r }}">{{ $n2($l['loss_value']) }}</td><td class="{{ $r }}">{{ $n0($l['total']) }}</td>
                         <td class="w">{{ $v($l['supplier']) }}</td><td class="{{ $r }}">{{ $price($l['price']) }}</td><td class="{{ $r }}">{{ $price($l['price_costing']) }} {{ $l['currency'] }}</td>

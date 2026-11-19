@@ -272,12 +272,14 @@
                     <h1 class="costing-detail-title">Detail Costing <i class="fas fa-info-circle"></i></h1>
                     <p class="costing-detail-subtitle"><i class="fas fa-database"></i> Untuk Melihat Detail Costing</p>
                 </div>
-                {{-- <div class="costing-detail-actions">
+                {{-- Sama dengan Detail SO / Detail BOM: Edit, PDF, Excel. Edit hanya kalau Costing tidak terkunci. --}}
+                <div class="costing-detail-actions">
                     @if ($unlock['can_edit'] ?? false)
-                    <a href="{{ route('edit-costing', $costing->id) }}" class="mkt-btn mkt-btn--navy mkt-btn--sm"><i class="fas fa-pen"></i> Edit Costing</a>
+                        <a href="{{ route('edit-costing', $costing->id) }}" class="mkt-btn mkt-btn--navy mkt-btn--sm"><i class="fas fa-edit"></i> Edit</a>
                     @endif
-                    <a href="{{ route('master-costing') }}" class="mkt-btn mkt-btn--gray mkt-btn--sm">Kembali</a>
-                </div> --}}
+                    <a href="{{ route('print-costing-pdf', $costing->id) }}" target="_blank" class="mkt-btn mkt-btn--red mkt-btn--sm"><i class="fas fa-file-pdf"></i> PDF</a>
+                    <a href="{{ route('print-excel-costing', $costing->id) }}" class="mkt-btn mkt-btn--green mkt-btn--sm"><i class="fas fa-file-excel"></i> Excel</a>
+                </div>
             </div>
 
             @if ($unlockState === 'locked')
@@ -456,9 +458,9 @@
                                             {{-- <td class="text-center"><input type="checkbox" class="row-check" aria-label="Pilih item {{ $loop->iteration }}" disabled></td> --}}
                                             <td class="text-center">{{ $loop->iteration }}</td>
                                             <td class="mkt-tc">{{ $det->nama_item ?: '-' }}</td>
-                                            <td>{{ $det->nama_set ?? ($productSets[$det->set]->nama ?? '-') }}</td>
+                                            <td class="text-center">{{ $det->nama_set ?? ($productSets[$det->set]->nama ?? '-') }}</td>
                                             <td class="mkt-tc">{{ $det->item_desc ?: '-' }}</td>
-                                            <td class="mkt-tc">{{ $det->nama_supplier ?: '-' }}</td>
+                                            <td class="mkt-tc text-center">{{ $det->nama_supplier ?: '-' }}</td>
                                             <td class="text-center">{{ $det->curr ?: '-' }}</td>
                                             <td class="text-right">{{ number_format((float) ($det->price ?? 0), 2, ',', '.') }}</td>
                                             <td class="text-right">{{ number_format((float) ($det->price_px_idr ?? 0), 2, ',', '.') }}</td>
@@ -536,7 +538,7 @@
                                         {{-- <td class="text-center"><input type="checkbox" class="row-check" aria-label="Pilih item {{ $loop->iteration }}" disabled></td> --}}
                                         <td class="text-center">{{ $loop->iteration }}</td>
                                         <td class="mkt-tc">{{ $det->nama_item ?: '-' }}</td>
-                                        <td class="mkt-tc">{{ $det->item_desc ?: '-' }}</td>
+                                        <td class="mkt-tc text-center">{{ $det->item_desc ?: '-' }}</td>
                                         <td class="text-center">{{ $det->unit ?: '-' }}</td>
                                         <td class="text-right">{{ number_format((float) ($det->allowance ?? 0), 2, ',', '.') }}%</td>
                                         <td class="text-right">{{ number_format((float) ($det->value_idr ?? 0), 7, ',', '.') }}</td>

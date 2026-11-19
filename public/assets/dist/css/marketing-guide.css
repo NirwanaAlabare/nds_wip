@@ -1,0 +1,154 @@
+/* User Guide marketing (modal langkah demi langkah + gambar). Warna ikut tema terang/gelap marketing. */
+.mkt-guide {
+    --g-card: #ffffff; --g-soft: #f5f7fa; --g-line: #e2e8f0; --g-ink: #16202b; --g-ink2: #475569; --g-muted: #7a8494;
+    --g-primary: #284a63; --g-accent: #2f7fd6; --g-hl: #ff9f1c; --g-hlbg: rgba(255, 159, 28, .14);
+    position: fixed; inset: 0; z-index: 2050; display: grid; place-items: center; padding: 16px;
+    background: rgba(8, 14, 28, .55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    font-family: Inter, system-ui, sans-serif; color: var(--g-ink);
+}
+html[data-theme="dark"] .mkt-guide, .mkt-guide[data-g-theme="dark"] {
+    --g-card: #111c31; --g-soft: #17253d; --g-line: #22324e; --g-ink: #eef3fb; --g-ink2: #d3ddec; --g-muted: #a6b6cc;
+    --g-primary: #3d8bff; --g-accent: #3d8bff; --g-hlbg: rgba(255, 159, 28, .18);
+}
+.mkt-guide[hidden] { display: none !important; }
+.mkt-guide *, .mkt-guide *::before, .mkt-guide *::after { box-sizing: border-box; }
+.mkt-guide-box { display: flex; flex-direction: column; width: min(1040px, 100%); max-height: calc(100vh - 32px); overflow: hidden; border-radius: 16px; background: var(--g-card); box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .5); animation: mkt-guide-in .25s cubic-bezier(.2, 1.2, .4, 1) both; }
+@keyframes mkt-guide-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.mkt-guide-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 18px 22px 10px; }
+.mkt-guide-head small { color: var(--g-accent); font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; }
+.mkt-guide-head h2 { margin: 2px 0 0; color: var(--g-primary); font: 700 22px/1.2 Poppins, sans-serif; }
+.mkt-guide-x { border: 0; background: none; color: var(--g-muted); font-size: 28px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.mkt-guide-x:hover { color: var(--g-ink); }
+
+.mkt-guide-nav { display: flex; gap: 6px; margin: 0; padding: 4px 22px 12px; list-style: none; overflow-x: auto; border-bottom: 1px solid var(--g-line); }
+.mkt-guide-nav button { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px 6px 6px; border: 1px solid var(--g-line); border-radius: 999px; background: var(--g-card); color: var(--g-ink2); font-size: 12.5px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.mkt-guide-nav button span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--g-soft); color: var(--g-ink2); font-size: 11.5px; }
+.mkt-guide-nav button.done span { background: #16a34a; color: #fff; }
+.mkt-guide-nav button.on { border-color: var(--g-primary); background: var(--g-primary); color: #fff; }
+.mkt-guide-nav button.on span { background: #fff; color: var(--g-primary); }
+
+.mkt-guide-body { flex: 1; min-height: 0; overflow: auto; padding: 18px 22px; }
+.mkt-guide-step { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+.mkt-guide-step[hidden] { display: none; }
+.mkt-guide-visual { display: grid; gap: 12px; }
+.mkt-guide-visual figure { margin: 0; padding: 12px; border: 1px solid var(--g-line); border-radius: 12px; background: var(--g-soft); }
+.mkt-guide-visual figcaption { margin-top: 6px; color: var(--g-muted); font-size: 11px; font-weight: 600; text-align: center; letter-spacing: .4px; text-transform: uppercase; }
+.mkt-guide-map svg { display: block; width: 100%; height: auto; max-height: 220px; }
+.mkt-guide-text h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; color: var(--g-primary); font: 700 18px/1.3 Poppins, sans-serif; }
+.mkt-guide-text h3 span { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--g-primary); color: #fff; font-size: 14px; }
+html[data-theme="dark"] .mkt-guide-text h3 span, .mkt-guide[data-g-theme="dark"] .mkt-guide-text h3 span { color: #0a1222; }
+.mkt-guide-text p { margin: 0 0 10px; color: var(--g-ink2); font-size: 14px; line-height: 1.6; }
+.mkt-guide-text ul, .mkt-guide-text ol { margin: 0 0 10px; padding-left: 20px; color: var(--g-ink2); font-size: 14px; line-height: 1.6; }
+.mkt-guide-text li { margin: 3px 0; }
+.mkt-guide-text b { color: var(--g-ink); }
+.mkt-guide-tip { display: flex; gap: 8px; margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--g-hlbg); color: var(--g-ink); font-size: 13px; line-height: 1.5; }
+.mkt-guide-tip i { margin-top: 3px; color: var(--g-hl); }
+.mkt-guide-num { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 4px; border-radius: 50%; background: var(--g-hl); color: #fff; font-size: 10.5px; font-weight: 700; vertical-align: 1px; }
+
+/* Alur proses (langkah 1) */
+.mkt-guide-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 12px; }
+.mkt-guide-flow span { padding: 5px 10px; border-radius: 8px; background: var(--g-soft); border: 1px solid var(--g-line); color: var(--g-ink2); font-size: 12.5px; font-weight: 600; }
+.mkt-guide-flow span.on { background: var(--g-primary); border-color: var(--g-primary); color: #fff; }
+html[data-theme="dark"] .mkt-guide-flow span.on, .mkt-guide[data-g-theme="dark"] .mkt-guide-flow span.on { color: #0a1222; }
+.mkt-guide-flow i { color: var(--g-muted); font-size: 11px; }
+
+/* Contoh isian: tiruan field form dengan nomor penjelasan */
+.mkt-guide-mock .gm-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
+.mkt-guide-mock .gm-grid.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.mkt-guide-mock .gm-f { position: relative; min-width: 0; }
+.mkt-guide-mock .gm-f.span { grid-column: 1 / -1; }
+.mkt-guide-mock .gm-f label { display: block; margin-bottom: 3px; color: var(--g-ink2); font-size: 11.5px; font-weight: 600; }
+.mkt-guide-mock .gm-in { display: flex; align-items: center; gap: 6px; min-height: 32px; padding: 6px 10px; border: 1px solid var(--g-line); border-radius: 6px; background: var(--g-card); color: var(--g-ink); font-size: 12.5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.mkt-guide-mock .gm-in.ro { background: var(--g-soft); color: var(--g-muted); }
+.mkt-guide-mock .gm-in.sel::after { content: "\25BE"; margin-left: auto; color: var(--g-muted); }
+.mkt-guide-mock .gm-in.hl { border-color: var(--g-hl); box-shadow: 0 0 0 3px var(--g-hlbg); }
+.mkt-guide-mock .gm-chip { padding: 1px 7px; border-radius: 4px; background: #dbeafe; color: #1e3a8a; font-size: 11px; font-weight: 600; }
+html[data-theme="dark"] .mkt-guide-mock .gm-chip, .mkt-guide[data-g-theme="dark"] .mkt-guide-mock .gm-chip { background: #173a6e; color: #d6e6ff; }
+.mkt-guide-mock .gm-n { position: absolute; top: -7px; right: -7px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--g-hl); color: #fff; font-size: 11px; font-weight: 700; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
+.mkt-guide-mock .gm-drop { display: grid; place-items: center; gap: 4px; padding: 18px 10px; border: 2px dashed var(--g-line); border-radius: 10px; color: var(--g-muted); font-size: 12.5px; text-align: center; }
+.mkt-guide-mock .gm-drop b { color: var(--g-accent); }
+.mkt-guide-mock .gm-thumbs { display: flex; gap: 6px; margin-top: 8px; }
+.mkt-guide-mock .gm-thumbs span { width: 46px; height: 46px; border-radius: 6px; background: linear-gradient(135deg, #c7dcff, #8fb3e8); }
+.mkt-guide-mock .gm-thumbs span:nth-child(2) { background: linear-gradient(135deg, #fde68a, #f59e0b); }
+.mkt-guide-mock .gm-thumbs span:nth-child(3) { background: linear-gradient(135deg, #bbf7d0, #22c55e); }
+.mkt-guide-mock .gm-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.mkt-guide-mock .gm-btn { padding: 6px 16px; border-radius: 999px; background: #16a34a; color: #fff; font-size: 12.5px; font-weight: 700; }
+.mkt-guide-mock .gm-btn.red { background: #dc2626; }
+.mkt-guide-mock .gm-menu { margin-top: 4px; border: 1px solid var(--g-line); border-radius: 6px; background: var(--g-card); font-size: 12px; overflow: hidden; }
+.mkt-guide-mock .gm-menu div { padding: 5px 10px; color: var(--g-ink2); }
+.mkt-guide-mock .gm-menu div.add { color: var(--g-accent); font-weight: 600; background: var(--g-soft); }
+
+/* Tombol pembuka di judul halaman */
+.mkt-guide-btn { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; padding: 5px 12px; border: 1px solid #c7d6ea; border-radius: 999px; background: #eef4ff; color: #284a63; font: 600 13px Inter, sans-serif; vertical-align: middle; cursor: pointer; transition: background .2s, transform .2s; }
+.mkt-guide-btn:hover { background: #dce9ff; transform: translateY(-1px); }
+html[data-theme="dark"] .mkt-guide-btn, .mkt-guide[data-g-theme="dark"] .mkt-guide-btn { border-color: #24477d; background: #173a6e; color: #d6e6ff; }
+
+@media (max-width: 860px) {
+    .mkt-guide-step { grid-template-columns: 1fr; }
+    .mkt-guide-mock .gm-grid.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .mkt-guide-box { animation: none; } }
+
+/* Jarak lebih lega: kepala, daftar langkah (turun baris, tanpa scrollbar), isi, dan kaki modal. */
+.mkt-guide-head { padding: 22px 28px 12px; }
+.mkt-guide-nav { flex-wrap: wrap; gap: 8px; padding: 6px 28px 16px; overflow: visible; }
+.mkt-guide-nav button { padding: 7px 14px 7px 7px; }
+.mkt-guide-body { padding: 24px 28px; }
+.mkt-guide-step { gap: 28px; }
+.mkt-guide-visual { gap: 16px; }
+.mkt-guide-visual figure { padding: 16px; }
+.mkt-guide-text { padding-top: 2px; }
+.mkt-guide-text h3 { margin-bottom: 14px; }
+.mkt-guide-text p { margin-bottom: 12px; }
+.mkt-guide-text ul, .mkt-guide-text ol { margin-bottom: 14px; }
+.mkt-guide-text li { margin: 6px 0; }
+.mkt-guide-tip { margin-top: 14px; padding: 12px 14px; }
+.mkt-guide-foot { display: flex; align-items: center; gap: 10px; padding: 14px 28px 18px; border-top: 1px solid var(--g-line); background: var(--g-card); }
+.mkt-guide-count { color: var(--g-muted); font-size: 13px; font-weight: 600; }
+.mkt-guide-sp { flex: 1; }
+.mkt-guide-foot .mkt-btn { min-width: 130px; }
+.mkt-guide-foot .mkt-btn:disabled { opacity: .45; cursor: default; box-shadow: none; }
+@media (max-width: 600px) {
+    .mkt-guide-head, .mkt-guide-body { padding-left: 16px; padding-right: 16px; }
+    .mkt-guide-nav { padding: 4px 16px 12px; }
+    .mkt-guide-foot { flex-wrap: wrap; padding: 12px 16px 14px; }
+    .mkt-guide-count { flex: 1 1 100%; text-align: center; }
+    .mkt-guide-sp { display: none; }
+    .mkt-guide-foot .mkt-btn { flex: 1 1 0; min-width: 0; }
+}
+
+/* Contoh tampilan tambahan (Edit Costing): tabel mini, kotak pengingat, tab, legenda. */
+.mkt-guide-mock .gm-table { width: 100%; border-collapse: collapse; font-size: 12px; background: var(--g-card); border-radius: 6px; overflow: hidden; }
+.mkt-guide-mock .gm-table th { padding: 6px 8px; background: #cfe0ff; color: #26394c; font-size: 10.5px; font-weight: 600; text-align: left; white-space: nowrap; }
+html[data-theme="dark"] .mkt-guide-mock .gm-table th, .mkt-guide[data-g-theme="dark"] .mkt-guide-mock .gm-table th { background: #1a2e52; color: #d6e6ff; }
+.mkt-guide-mock .gm-table td { padding: 6px 8px; border-top: 1px solid var(--g-line); color: var(--g-ink); white-space: nowrap; }
+.mkt-guide-mock .gm-table td.in { text-align: right; }
+.mkt-guide-mock .gm-table td.auto { text-align: right; color: var(--g-muted); background: var(--g-soft); }
+.mkt-guide-mock .gm-table td.sel { box-shadow: inset 0 0 0 2px #2f7fd6; }
+.mkt-guide-mock .gm-table td.pasted { background: #dbeafe; color: #1e3a8a; }
+.mkt-guide-mock .gm-table td.bad { background: #ffe4e6; box-shadow: inset 0 0 0 2px #dc3545; color: #9f1239; }
+.mkt-guide-mock .gm-cap { display: block; margin-bottom: 4px; color: var(--g-ink2); font-size: 11.5px; }
+.mkt-guide-mock .gm-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 8px; color: var(--g-muted); font-size: 11px; }
+.mkt-guide-mock .gm-sw { display: inline-block; width: 12px; height: 10px; margin-right: 4px; border-radius: 2px; vertical-align: -1px; }
+.mkt-guide-mock .gm-sw.sel { box-shadow: inset 0 0 0 2px #2f7fd6; background: var(--g-card); }
+.mkt-guide-mock .gm-sw.pasted { background: #dbeafe; }
+.mkt-guide-mock .gm-sw.bad { background: #ffe4e6; box-shadow: inset 0 0 0 1.5px #dc3545; }
+.mkt-guide-mock .gm-alert { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 9px 10px; border-radius: 8px; font-size: 11.5px; line-height: 1.4; }
+.mkt-guide-mock .gm-alert:last-child { margin-bottom: 0; }
+.mkt-guide-mock .gm-alert > div { flex: 1; min-width: 0; }
+.mkt-guide-mock .gm-alert b, .mkt-guide-mock .gm-alert span { display: block; }
+.mkt-guide-mock .gm-alert.warn { background: #fff7e6; color: #92400e; }
+.mkt-guide-mock .gm-alert.lock { background: #eef2f7; color: #334155; }
+.mkt-guide-mock .gm-alert.info { background: #e8f1fd; color: #1e3a8a; }
+html[data-theme="dark"] .mkt-guide-mock .gm-alert.warn, .mkt-guide[data-g-theme="dark"] .mkt-guide-mock .gm-alert.warn { background: #3d2a0e; color: #ffd08a; }
+html[data-theme="dark"] .mkt-guide-mock .gm-alert.lock, .mkt-guide[data-g-theme="dark"] .mkt-guide-mock .gm-alert.lock { background: #1a2840; color: #d3ddec; }
+html[data-theme="dark"] .mkt-guide-mock .gm-alert.info, .mkt-guide[data-g-theme="dark"] .mkt-guide-mock .gm-alert.info { background: #0f2f55; color: #cfe0ff; }
+.mkt-guide-mock .gm-alert .gm-btn { flex: none; padding: 4px 10px; font-size: 11px; }
+.mkt-guide-mock .gm-btn.navy { background: #284a63; }
+.mkt-guide-mock .gm-btn.orange { background: #f59e0b; }
+.mkt-guide-mock .gm-btn.blue { background: #2563eb; }
+.mkt-guide-mock .gm-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.mkt-guide-mock .gm-tabs > span:not(.gm-n) { padding: 5px 9px; border-bottom: 2px solid transparent; color: var(--g-ink2); font-size: 11.5px; font-weight: 600; }
+.mkt-guide-mock .gm-tabs > span.on { border-bottom-color: var(--g-primary); color: var(--g-primary); }
+.mkt-guide-mock .gm-tabs > span.docs { border-radius: 6px; background: var(--g-soft); }
