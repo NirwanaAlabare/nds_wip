@@ -625,7 +625,12 @@
                         <form action={{ route("store-part-custom") }} method="POST" class="mb-3" onsubmit="submitForm(this, event)">
                             <input type="hidden" class="form-control" name="part_custom_id" id="part_custom_id" value="{{ $part->id }}">
                             <div class="row">
-                                <div class="col-12 col-md-4 mb-3">
+                                <div class="col-12 col-md-3 mb-3">
+                                    <label class="form-label"><small><b>Tanggal berlaku</b></small></label>
+                                    <input type="date" class="form-control" name="part_custom_tanggal" id="part_custom_tanggal">
+                                    <div id="part_custom_tanggal_text" class="form-text"><small>*Kosongkan jika berlaku untuk semua periode.</small></div>
+                                </div>
+                                <div class="col-12 col-md-3 mb-3">
                                     <label class="form-label"><small><b>Colors</b></small></label>
                                     @php
                                         $colors = explode(",", $part->color);
@@ -639,7 +644,7 @@
                                         @endif
                                     </select>
                                 </div>
-                                <div class="col-12 col-md-4 mb-3">
+                                <div class="col-12 col-md-3 mb-3">
                                     <label class="form-label"><small><b>Part</b></small></label>
                                     <select class="form-select select2bs4" name="part_custom_part_detail_id" id="part_custom_part_detail_id">
                                         <option selected="selected" value="">Pilih Part</option>
@@ -650,7 +655,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-12 col-md-4 mb-3">
+                                <div class="col-12 col-md-3 mb-3">
                                     <label class="form-label"><small><b>Part Status</b></small></label>
                                     <select class="form-select select2bs4" id="part_custom_status" name="part_custom_status">
                                         <option value="">Pilih Status</option>
@@ -671,6 +676,7 @@
                                 <thead>
                                     <tr>
                                         <th>Action</th>
+                                        <th>Tanggal Berlaku</th>
                                         <th>Part Detail</th>
                                         <th>Color</th>
                                         <th>Original Status</th>
@@ -701,6 +707,11 @@
                         <div class="modal-body">
                             <div class="mb-3">
                                 <input type="hidden" class="form-control" readonly id="edit_part_custom_id" name="edit_part_custom_id">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><small><b>Tanggal berlaku</b></small></label>
+                                <input type="date" class="form-control" name="edit_part_custom_tanggal" id="edit_part_custom_tanggal">
+                                <div id="edit_part_custom_tanggal" class="form-text"><small>*Kosongkan jika berlaku untuk semua periode.</small></div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Color</label>
@@ -755,7 +766,7 @@
                         </div>
                         <div class="modal-footer">
                             <div class="d-flex gap-1">
-                                <button type="button" class="btn btn-sb-secondary" data-bs-dismiss="modal">Batal</button>
+                                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Batal</button>
                                 <div class="d-flex gap-2">
                                     <button type="submit" class="btn btn-sb-secondary btn-sm flex-fill" name="part_custom_submit" id="part_custom_submit">
                                         SIMPAN <i class="fa fa-save"></i>
@@ -1073,7 +1084,7 @@
                                 html += `
                                     <tr>
                                         <td class="text-center fw-bold">${item.row}</td>
-                                        <td class="text-center text-nowrap">${item.tanggal_berlaku}</td>
+                                        <td class="text-center text-nowrap">${item.tanggal_berlaku ?? '-'}</td>
                                         <td class="text-center">${item.ws}</td>
                                         <td>${item.buyer}</td>
                                         <td>${item.style}</td>
@@ -2368,6 +2379,7 @@
             },
             columns: [
                 {data: "part_custom_id"},
+                {data: "part_custom_tanggal"},
                 {data: "nama_part"},
                 {data: "part_custom_color"},
                 {data: "part_status"},
@@ -2399,7 +2411,7 @@
 
         $('#datatable-part-custom thead tr').clone(true).appendTo('#datatable-part-custom thead');
         $('#datatable-part-custom thead tr:eq(1) th').each(function(i) {
-            if (i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6) {
+            if (i != 0) {
                 var title = $(this).text();
                 $(this).html('<input type="text" class="form-control form-control-sm" />');
 
