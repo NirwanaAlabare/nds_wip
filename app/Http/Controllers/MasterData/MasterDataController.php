@@ -182,12 +182,29 @@ class MasterDataController extends Controller
             ],
         ];
 
+        // Group General (database nds): angka per sub group. Kalau database nds tidak terbaca,
+        // kartunya dilewati supaya dashboard tetap tampil.
+        $grup = MasterGroupGeneralController::ringkasan();
+        if ($grup !== null) {
+            $kartu[] = [
+                'kunci'  => 'grup',
+                'judul'  => 'Group General',
+                'sub'    => number_format($grup['grup']) . ' groups',
+                'ikon'   => 'fa-layer-group',
+                'rute'   => 'master-data-group-general',
+                'buat'   => route('master-data-group-general', ['form' => 'baru']),
+                'satuan' => 'sub groups',
+                'angka'  => $grup,
+            ];
+        }
+
         return view('master-data.dashboard', [
-            'kartu'        => $kartu,
-            'nama'         => Auth::user()->name ?? '',
-            'page'         => 'dashboard-master-data',
-            'subPageGroup' => 'master-data',
-            'subPage'      => 'dashboard',
+            'kartu'          => $kartu,
+            'nama'           => Auth::user()->name ?? '',
+            'page'           => 'dashboard-master-data',
+            'subPageGroup'   => 'master-data',
+            'subPage'        => 'dashboard',
+            'containerFluid' => true,
         ]);
     }
 

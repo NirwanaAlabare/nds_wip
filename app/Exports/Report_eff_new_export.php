@@ -635,5 +635,11 @@ class Report_eff_new_export implements FromView, WithEvents, ShouldAutoSize
                 ],
             ]
         );
+
+        // Kurs Tengah BI (kolom O): 2 angka di belakang koma
+        $event->sheet->getDelegate()
+            ->getStyle('O5:O' . $event->getConcernable()->rowCount)
+            ->getNumberFormat()
+            ->setFormatCode('0.00');
     }
 }

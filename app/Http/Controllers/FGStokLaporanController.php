@@ -844,7 +844,7 @@ class FGStokLaporanController extends Controller
                 fg_stok_penerimaan_packing.no_karton_gd AS no_carton,
                 fg_stok_penerimaan_packing.lokasi_palet AS lokasi,
                 'TEMPORARY PACKING' AS sumber_pemasukan,
-                fg_stok_penerimaan_packing.created_by,
+                fg_stok_penerimaan_packing.created_by_username AS created_by,
                 fg_stok_penerimaan_packing.created_at
             FROM
                 fg_stok_penerimaan_packing
@@ -874,7 +874,7 @@ class FGStokLaporanController extends Controller
                 fg_stok_penerimaan_packing.no_karton_gd AS no_carton,
                 fg_stok_penerimaan_packing.lokasi_palet AS lokasi,
                 'PACKING CENTRAL' AS sumber_pemasukan,
-                fg_stok_penerimaan_packing.created_by,
+                fg_stok_penerimaan_packing.created_by_username AS created_by,
                 fg_stok_penerimaan_packing.created_at
             FROM
                 fg_stok_penerimaan_packing
@@ -904,7 +904,7 @@ class FGStokLaporanController extends Controller
                 fg_stok_penerimaan_packing.no_karton_gd AS no_carton,
                 fg_stok_penerimaan_packing.lokasi_palet AS lokasi,
                 'MUTASI INTERNAL' AS sumber_pemasukan,
-                fg_stok_penerimaan_packing.created_by,
+                fg_stok_penerimaan_packing.created_by_username AS created_by,
                 fg_stok_penerimaan_packing.created_at
             FROM
                 fg_stok_penerimaan_packing
@@ -980,6 +980,8 @@ class FGStokLaporanController extends Controller
             'Size',
             'Qty',
             'Sumber',
+            'User',
+            'Tanggal Input',
         ], [
             'fill'       => '#ADD8E6',
             'font-style' => 'bold',
@@ -988,8 +990,8 @@ class FGStokLaporanController extends Controller
             'valign'     => 'center',
         ]);
 
-        $sheet->mergeCells('A1:M1');
-        $sheet->mergeCells('A2:M2');
+        $sheet->mergeCells('A1:O1');
+        $sheet->mergeCells('A2:O2');
 
         foreach ($data as $row) {
 
@@ -1007,6 +1009,8 @@ class FGStokLaporanController extends Controller
                 $row->size,
                 (float) ($row->qty ?? 0),
                 $row->sumber_pemasukan,
+                $row->created_by,
+                $row->created_at,
             ];
 
             $rows = array_map(fn ($value) => $value ?? '', $rows);
@@ -1014,7 +1018,7 @@ class FGStokLaporanController extends Controller
             $sheet->writeRow($rows, ['border' => 'thin']);
         }
 
-        foreach (range('A', 'M') as $col) {
+        foreach (range('A', 'O') as $col) {
             $sheet->setColWidth($col, 20);
         }
 

@@ -34,8 +34,9 @@
                          menampilkannya cuma bikin bingung user yang menagih
                          SJ hari ini. --}}
                     <li>Jenis transaksi: <b>Penjualan</b>,
-                        <b>Pengiriman ke Subkontraktor CMT</b>, atau
-                        <b>Pengiriman Sample</b>.</li>
+                        <b>Pengiriman ke Subkontraktor CMT</b>,
+                        <b>Pengiriman Sample</b>, atau
+                        <b>Retur Pembelian Impor</b>.</li>
                     <li>Khusus FG/OUT: penerimanya harus customer.</li>
                 </ul>
             </div>
