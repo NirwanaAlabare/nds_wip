@@ -182,6 +182,7 @@
                             'Packing Defect': 'warning',
                             'Packing Reject': 'danger',
                             'Packing PO': 'dark',
+                            'Reject In': 'danger',
                         };
                         return '<span class="badge bg-' + (colors[data] ?? 'secondary') + '">' + data + '</span>';
                     }},

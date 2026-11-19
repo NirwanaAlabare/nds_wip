@@ -2,6 +2,13 @@
 
 @section('custom-link')
     <style>
+        /* Font lokal Inter 4.1 (public/assets/fonts/Inter) - hanya dipakai di Mode TV, file baru diunduh browser saat Mode TV aktif */
+        @font-face { font-family: "Inter"; src: url("{{ asset('assets/fonts/Inter/Inter-Regular.woff2') }}") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+        @font-face { font-family: "Inter"; src: url("{{ asset('assets/fonts/Inter/Inter-Medium.woff2') }}") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+        @font-face { font-family: "Inter"; src: url("{{ asset('assets/fonts/Inter/Inter-SemiBold.woff2') }}") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+        @font-face { font-family: "Inter"; src: url("{{ asset('assets/fonts/Inter/Inter-Bold.woff2') }}") format("woff2"); font-weight: 700 900; font-style: normal; font-display: swap; }
+        .wrapper { background: #e3eefa; }
+        .wrapper .content-wrapper { background: transparent; } /* abu-abu bawaan AdminLTE menutupi .wrapper */
         .pc-wrap, #pcModal, #pcGuide {
             --pc-pri: var(--sb-color, #082149);
             --pc-pri2: #1d4a8a;
@@ -464,6 +471,98 @@
         .pc-spot-cv { position: fixed; inset: 0; z-index: 1999; cursor: pointer; }
         @media (max-width: 576px) { .pc-map-grid { grid-template-columns: 1fr; } }
         @media (prefers-reduced-motion: reduce) { .pc-wrap *, .pc-flyer, .pc-thr { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+        /* ===== Mode TV (body.pc-tv): font Inter, minimal 15px, ukuran bulat, letter-spacing lebih rapat ===== */
+        body.pc-tv .pc-wrap, body.pc-tv #pcModal, body.pc-tv #pcGuide { font-family: "Inter", "Segoe UI", Arial, sans-serif; font-feature-settings: "tnum" 1, "cv11" 1; font-weight: 500; -webkit-font-smoothing: auto; text-rendering: optimizeLegibility; }
+        body.pc-tv .pc-wrap small, body.pc-tv .pc-wrap kbd, body.pc-tv .pc-wrap .btn, body.pc-tv .pc-wrap .form-select, body.pc-tv .pc-wrap .form-control,
+        body.pc-tv #pcModal small, body.pc-tv #pcModal kbd, body.pc-tv #pcModal .btn, body.pc-tv #pcModal .form-control, body.pc-tv #pcGuide small, body.pc-tv #pcGuide kbd, body.pc-tv #pcGuide .btn { font-size: max(15px, 1em); }
+        body.pc-tv .pc-wrap .lbl { font-size: 15px; letter-spacing: .5px; }
+        body.pc-tv .pc-head p { font-size: 15px; }
+        body.pc-tv .pc-card-h .r { font-size: 15px; }
+        body.pc-tv #pc-scan::placeholder { font-family: inherit; }
+        body.pc-tv .pc-under { font-size: 15px; }
+        body.pc-tv .pc-under kbd { font-size: 15px; }
+        body.pc-tv .pc-badge { font-size: 15px; letter-spacing: .5px; }
+        body.pc-tv .pc-rh .tm { font-size: 15px; }
+        body.pc-tv .pc-msg { font-size: 15px; }
+        body.pc-tv .pc-facts small { font-size: 15px; letter-spacing: .5px; }
+        body.pc-tv .pc-meta { font-size: 15px; }
+        body.pc-tv .pc-hist { font-size: 15px; }
+        body.pc-tv .pc-opt kbd { font-size: 15px; }
+        body.pc-tv .pc-opt b { font-size: 15px; }
+        body.pc-tv .pc-opt small { font-size: 15px; }
+        body.pc-tv .pc-opt .q em { font-size: 15px; }
+        body.pc-tv .pc-ring .c span { font-size: 15px; }
+        body.pc-tv .pc-kr small { font-size: 15px; }
+        body.pc-tv .pc-carry { font-size: 15px; }
+        body.pc-tv .pc-carry .q { font-size: 15px; }
+        body.pc-tv .pc-khint { font-size: 15px; }
+        body.pc-tv .pc-old { font-size: 15px; }
+        body.pc-tv .pc-age { font-size: 15px; }
+        body.pc-tv .pc-kpi small { font-size: 15px; letter-spacing: .5px; }
+        body.pc-tv .pc-kpi b em { font-size: 15px; }
+        body.pc-tv .pc-kpi .s2 { font-size: 15px; }
+        body.pc-tv .pc-kpi.hot .go { font-size: 15px; }
+        body.pc-tv .pc-aging-h { font-size: 15px; }
+        body.pc-tv .pc-aleg { font-size: 15px; }
+        body.pc-tv .pc-bars-h { font-size: 15px; }
+        body.pc-tv .pc-bars-h2 { font-size: 15px; }
+        body.pc-tv .pc-br .dt2 { font-size: 15px; }
+        body.pc-tv .pc-br .q { font-size: 15px; }
+        body.pc-tv .pc-br .k { font-size: 15px; }
+        body.pc-tv .pc-br .k .pp { min-width: 68px; font-size: 15px; }
+        body.pc-tv .pc-msep { font-size: 15px; letter-spacing: .5px; }
+        body.pc-tv .pc-msep span { font-size: 15px; }
+        body.pc-tv .pc-more { font-size: 15px; }
+        body.pc-tv .pc-dhint { font-size: 15px; }
+        body.pc-tv .pc-rak-more { font-size: 15px; }
+        body.pc-tv .pc-shelf-l { font-size: 15px; }
+        body.pc-tv .pc-pop { width: 260px; font-size: 15px; }
+        body.pc-tv .pc-pop .h b { font-size: 15px; }
+        body.pc-tv .pc-rt-h span { font-size: 15px; }
+        body.pc-tv .pc-rt-c em { font-size: 15px; }
+        body.pc-tv .pc-rt-x { font-size: 15px; }
+        body.pc-tv .pc-rak-f { font-size: 15px; }
+        body.pc-tv .pc-feed-h { font-size: 15px; letter-spacing: .5px; }
+        body.pc-tv .pc-fd .m b { font-size: 15px; }
+        body.pc-tv .pc-fd .m span { font-size: 15px; }
+        body.pc-tv .pc-fd .t { font-size: 15px; }
+        body.pc-tv .pc-ak-empty { font-size: 15px; }
+        body.pc-tv #pcModal .modal-header .sub { font-size: 15px; }
+        body.pc-tv #pcModal .modal-header .lbl, body.pc-tv #pcGuide .modal-header .lbl { font-size: 15px; letter-spacing: .5px; }
+        body.pc-tv #pcModal .pc-fchip { font-size: 15px; }
+        body.pc-tv #pcModal .pc-fchip button { font-size: 15px; }
+        body.pc-tv #pcModal th { font-size: 15px !important; }
+        body.pc-tv #pcModal td .s { font-size: 15px; }
+        body.pc-tv #pcModal .stt { font-size: 15px; }
+        body.pc-tv #pcModal .pc-mf { font-size: 15px; }
+        body.pc-tv .pc-g { font-size: 15px; }
+        body.pc-tv .pc-g-nav a { font-size: 15px; }
+        body.pc-tv .pc-g-btn { font-size: 15px; }
+        body.pc-tv .pc-g-b { font-size: 15px; }
+        body.pc-tv .pc-g-leg { font-size: 15px; }
+        body.pc-tv .pc-g-flow b { color: var(--pc-pri); } .pc-g-flow span { font-size: 15px; }
+        body.pc-tv .pc-g kbd { font-size: 15px; }
+        body.pc-tv .pc-g-show { font-size: 15px; }
+        body.pc-tv .pc-g-note { font-size: 15px; }
+        body.pc-tv .pc-map-n { top: -11px; left: -11px; width: 26px; height: 26px; font-size: 15px; }
+        body.pc-tv .pc-map-n.sm { width: 24px; height: 24px; font-size: 15px; top: -9px; left: -9px; }
+        body.pc-tv .pc-map-tip { width: 260px; font-size: 15px; }
+        body.pc-tv .pc-map-tip b { font-size: 15px; }
+        body.pc-tv .pc-map-tip small { font-size: 15px; }
+        body.pc-tv .pc-map-head .t b { font-size: 15px; }
+        body.pc-tv .pc-map-head .t span { font-size: 15px; }
+        body.pc-tv .pc-map-card .h { font-size: 15px; }
+        body.pc-tv .pc-map-card .inp span { font-size: 15px; }
+        body.pc-tv .pc-map-card .inp i { font-size: 15px; }
+        body.pc-tv .pc-map-card .res em { font-size: 15px; }
+        body.pc-tv .pc-spot-l { font-size: 15px; }
+        body.pc-tv .pc-spot-l .st { font-size: 15px; }
+        body.pc-tv .pc-spot-l .nav button { font-size: 15px; }
+        body.pc-tv .pc-spot-l kbd { font-size: 15px; }
+        body.pc-tv .pc-spot-l > span.d { font-size: 15px; }
+        body.pc-tv .pc-spot-l small { font-size: 15px; }
+        body.pc-tv .pc-tour-wait > div { font-size: 15px; }
     </style>
 @endsection
 
@@ -477,6 +576,16 @@
             <div class="pc-head-r">
                 <button type="button" class="btn btn-sm btn-outline-primary" id="pc-guide-btn"><i class="fa fa-book-open"></i> Panduan</button>
                 <button type="button" class="btn btn-sm btn-outline-secondary" id="pc-fx"></button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="pc-tv" title="Font lebih besar dan tegas untuk layar TV (bisa juga lewat URL ?tv=1)"></button>
+                <script>
+                    /* Mode TV dipasang sebelum halaman tampil supaya tidak berkedip. ?tv=1 / ?tv=0 di URL ikut disimpan. */
+                    (function () {
+                        var on = false, q = new URLSearchParams(location.search).get('tv');
+                        try { on = localStorage.getItem('pc_tv') === '1'; } catch (e) {}
+                        if (q === '1' || q === '0') { on = q === '1'; try { localStorage.setItem('pc_tv', q); } catch (e) {} }
+                        document.body.classList.toggle('pc-tv', on);
+                    })();
+                </script>
                 <select class="form-select form-select-sm" id="pc-month" title="Bulan BPPB"></select>
                 <a href="{{ route('create-old-penerimaan-cutting') }}" class="btn btn-outline-secondary btn-sm" title="Buka tampilan lama (scan → daftar → simpan)"><i class="fas fa-history"></i> Tampilan lama</a>
                 <a href="{{ route('penerimaan-cutting') }}" class="btn btn-primary btn-sm"><i class="fas fa-reply"></i> Kembali</a>
@@ -565,7 +674,7 @@
                         <div class="pc-map">
                             <div class="pc-map-head">
                                 <div class="t"><b>Penerimaan Fabric Cutting</b><span>Scan barcode kain dari gudang. Langsung tersimpan.</span></div>
-                                <div class="pc-map-z r" data-spot=".pc-head-r" data-lbl="Tombol di kanan atas"><a href="#pcg-atas" class="pc-map-n tip-l" aria-label="Tombol di kanan atas">2<span class="pc-map-tip" role="tooltip"><b>Tombol di kanan atas</b>Panduan, Animasi &amp; suara, pilihan bulan BPPB, Tampilan lama, dan Kembali.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i><i class="w"></i><i></i><i class="p"></i></div>
+                                <div class="pc-map-z r" data-spot=".pc-head-r" data-lbl="Tombol di kanan atas"><a href="#pcg-atas" class="pc-map-n tip-l" aria-label="Tombol di kanan atas">2<span class="pc-map-tip" role="tooltip"><b>Tombol di kanan atas</b>Panduan, Animasi &amp; suara, Mode TV, pilihan bulan BPPB, Tampilan lama, dan Kembali.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i><i class="w"></i><i></i><i class="p"></i></div>
                             </div>
                             <div class="pc-map-grid">
                                 <div class="pc-map-col">
@@ -621,6 +730,7 @@
                         <table class="table table-sm pc-g-t">
                             <tr><td><span class="pc-g-btn">Panduan</span></td><td>Membuka halaman ini.</td></tr>
                             <tr><td><span class="pc-g-btn">Animasi &amp; suara: ON/OFF</span></td><td>Menyalakan atau mematikan efek gerak dan bunyi saat scan. Pilihan tersimpan di browser ini. Bunyi tetap berguna sebagai tanda tanpa harus melihat layar.</td></tr>
+                            <tr><td><span class="pc-g-btn">Mode TV: ON/OFF</span></td><td>Memperbesar font (minimal 15px, huruf Inter yang lebih tegas) untuk ditampilkan di layar TV. Pilihan tersimpan di browser ini. Bisa juga langsung lewat alamat halaman dengan tambahan <code>?tv=1</code> (atau <code>?tv=0</code> untuk mematikan).</td></tr>
                             <tr><td><span class="pc-g-btn">BPPB [bulan]</span></td><td>Memilih bulan BPPB yang dipantau di kartu <i>Progres</i> dan <i>Sisa roll</i>. Tidak membatasi scan.</td></tr>
                             <tr><td><span class="pc-g-btn">Tampilan lama</span></td><td>Membuka tampilan lama (scan → daftar → simpan).</td></tr>
                             <tr><td><span class="pc-g-btn">Kembali</span></td><td>Kembali ke daftar penerimaan.</td></tr>
@@ -1209,6 +1319,11 @@
             $id('pc-fx').onclick = () => { FX = !FX; try { localStorage.setItem('pc_fx', FX ? '1' : '0'); } catch (e) {} fxLabel(); focus(); };
             fxLabel();
 
+            /* ===== mode TV ===== */
+            function tvLabel() { const on = document.body.classList.contains('pc-tv'); const b = $id('pc-tv'); b.innerHTML = '<i class="fa fa-tv"></i> Mode TV: ' + (on ? 'ON' : 'OFF'); b.classList.toggle('active', on); }
+            $id('pc-tv').onclick = () => { const on = document.body.classList.toggle('pc-tv'); try { localStorage.setItem('pc_tv', on ? '1' : '0'); } catch (e) {} tvLabel(); focus(); };
+            tvLabel();
+
             let ac;
             function tone(f, t0, d, type = 'sine', v = .06) {
                 try {
@@ -1322,7 +1437,7 @@
             function gGo(id, smooth) { const t = gEl.querySelector(id); if (t) t.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }); }
             const STEPS = [
                 { sel: '.pc-head-r', sec: 'pcg-atas', lbl: 'Tombol di kanan atas',
-                  d: '<b>Panduan</b> membuka halaman ini · <b>Animasi &amp; suara</b> menyalakan/mematikan efek dan bunyi scan · <b>BPPB [bulan]</b> memilih bulan yang dipantau · <b>Tampilan lama</b> membuka alur scan → daftar → simpan · <b>Kembali</b> ke daftar penerimaan.' },
+                  d: '<b>Panduan</b> membuka halaman ini · <b>Animasi &amp; suara</b> menyalakan/mematikan efek dan bunyi scan · <b>Mode TV</b> memperbesar font untuk layar TV · <b>BPPB [bulan]</b> memilih bulan yang dipantau · <b>Tampilan lama</b> membuka alur scan → daftar → simpan · <b>Kembali</b> ke daftar penerimaan.' },
                 { sel: '#pc-scan-card', sec: 'pcg-scan', lbl: 'Kartu Scan Barcode Fabric',
                   d: 'Pakai scanner, ketik lalu Enter/Get, atau kamera. Setiap scan langsung tersimpan.' },
                 { sel: '#pc-res', sec: 'pcg-hasil', lbl: 'Hasil scan muncul di sini',

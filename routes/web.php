@@ -92,6 +92,7 @@ use App\Http\Controllers\PPICDashboardController;
 use App\Http\Controllers\PPICLineMapController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\Purchasing\BookingStockController;
+use App\Http\Controllers\Purchasing\GeneralRequestController;
 use App\Http\Controllers\PurchasingController;
 use App\Http\Controllers\PurchasingDashboardController;
 use App\Http\Controllers\PurchasingReportController;
@@ -896,6 +897,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('packing-out-scan');
         Route::get('/create', 'create')->name('create-packing-out-scan');
         Route::get('/get-carton-data', 'getCartonData')->name('get-carton-data-packing-out-scan');
+        Route::get('/get-saldo-po', 'getSaldoPo')->name('get-saldo-po-packing-out-scan');
         Route::post('/store', 'store')->name('store-packing-out-scan');
         Route::post('/destroy', 'destroy')->name('destroy-packing-out-scan');    
     });
@@ -1021,7 +1023,7 @@ Route::middleware('auth')->group(function () {
 
     // Packing List
     Route::controller(PackingPackingListController::class)->prefix("packing-packing-list")->middleware('packing')->group(function () {
-        Route::get('/', 'index')->name('packing-list');
+        // Route::get('/', 'index')->name('packing-list');
         Route::post('/upload_packing_list', 'upload_packing_list')->name('upload-packing-list');
         Route::get('/show_det_po', 'show_det_po')->name('show_det_po');
         Route::get('/export_data_template_po_packing_list_horizontal', 'export_data_template_po_packing_list_horizontal')->name('export_data_template_po_packing_list_horizontal');
@@ -1113,8 +1115,8 @@ Route::middleware('auth')->group(function () {
     Route::controller(PengeluaranBarangJadiSoController::class)->prefix("pengeluaran_barang_jadi_so")->middleware('finishgood')->group(function () {
         Route::get('/create', 'create')->name('create_pengeluaran_barang_jadi_so');
         Route::get('/get_sent_to', 'get_sent_to')->name('pbj_out_get_sent_to');
-        Route::get('/get_po', 'get_po')->name('pbj_out_get_po');
-        Route::get('/get_po_detail', 'get_po_detail')->name('pbj_out_get_po_detail');
+        Route::get('/get_ref', 'get_ref')->name('pbj_out_get_ref');
+        Route::get('/get_detail', 'get_detail')->name('pbj_out_get_detail');
     });
 
     // Pengeluaran Finish Good
@@ -2167,6 +2169,11 @@ Route::middleware('auth')->group(function () {
         Route::delete('/delete/{id}', 'delete')->name('booking-stock-delete');
         Route::get('/export-excel', 'exportExcel')->name('booking-stock-export');
         Route::get('/get-ws-asal', 'getWsAsal')->name('booking-stock-get-ws-asal');
+    });
+
+    // General Request (MOCKUP - data masih dummy)
+    Route::controller(GeneralRequestController::class)->prefix("general-request")->middleware('role:purchasing')->group(function () {
+        Route::get('/', 'index')->name('general-request');
     });
 
     Route::controller(PurchasingDashboardController::class)->middleware('role:purchasing')->group(function () {

@@ -9,13 +9,14 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Penerimaan massal untuk pengeluaran gudang ke Cutting yang tgl_bppb-nya
- * sebelum tanggal tertentu (default 1 Oktober 2026).
+ * dalam rentang --after (inklusif) s/d --before (eksklusif),
+ * default 1 Januari 2026 s/d sebelum 1 Oktober 2026.
  *
  * Langkah 1 (penerimaan_cutting):
  * - Insert per whs_bppb_det yang belum diterima, status != 'N'.
  * - tanggal_terima = tgl_bppb, created_at = tgl_bppb 00:00:00.
  *
- * Langkah 2 (scanned_item):
+ * Langkah 2 (scanned_item) — OPSIONAL, hanya jalan dengan --with-scanned / --only-scanned:
  * - Hanya DIBUAT untuk roll hasil backfill yang belum punya scanned_item.
  *   Roll yang sudah punya scanned_item tidak diubah sama sekali.
  * - Target diambil dari penerimaan_cutting ber-tanda backfill, jadi aman
@@ -26,53 +27,61 @@ use Illuminate\Support\Facades\DB;
  *
  * Contoh:
  *   php artisan penerimaan-cutting:backfill --dry-run
- *   php artisan penerimaan-cutting:backfill --skip-scanned --force
- *   php artisan penerimaan-cutting:backfill --only-scanned --force
+ *   php artisan penerimaan-cutting:backfill --force                  (penerimaan saja)
+ *   php artisan penerimaan-cutting:backfill --only-scanned --force   (nanti, bila scanned_item diperlukan)
  */
 class BackfillPenerimaanCutting extends Command
 {
     protected $signature = 'penerimaan-cutting:backfill
+                            {--after=2026-01-01 : Ambil whs_bppb_det dengan tgl_bppb >= tanggal ini}
                             {--before=2026-10-01 : Ambil whs_bppb_det dengan tgl_bppb < tanggal ini}
                             {--chunk=500 : Jumlah baris per batch}
                             {--sleep=200 : Jeda antar batch (milidetik) agar tidak membebani DB}
-                            {--skip-scanned : Hanya insert penerimaan_cutting, lewati pembuatan scanned_item}
+                            {--with-scanned : Setelah penerimaan, buat juga scanned_item (default: TIDAK dibuat)}
                             {--only-scanned : Hanya buat scanned_item (untuk roll hasil backfill yang belum punya)}
                             {--force : Jalankan tanpa konfirmasi (untuk dijalankan tanpa ditunggui)}
                             {--dry-run : Hanya hitung, tidak menyimpan apa pun}';
 
-    protected $description = 'Penerimaan Fabric Cutting massal untuk BPPB sebelum tanggal tertentu (+ buat scanned_item yang belum ada)';
+    protected $description = 'Penerimaan Fabric Cutting massal untuk BPPB dalam rentang tanggal tertentu (+ buat scanned_item yang belum ada)';
 
     private const MARK = 'backfill';
 
     public function handle()
     {
+        $after = $this->option('after');
         $before = $this->option('before');
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $before)) {
-            $this->error('Format --before harus YYYY-MM-DD');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $after) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $before)) {
+            $this->error('Format --after dan --before harus YYYY-MM-DD');
+            return 1;
+        }
+        if ($after >= $before) {
+            $this->error('--after harus lebih awal dari --before');
             return 1;
         }
 
         $chunk = max(50, (int) $this->option('chunk'));
         $sleep = max(0, (int) $this->option('sleep'));
         $dryRun = (bool) $this->option('dry-run');
-        $skipScanned = (bool) $this->option('skip-scanned');
+        $withScanned = (bool) $this->option('with-scanned');
         $onlyScanned = (bool) $this->option('only-scanned');
 
-        if ($skipScanned && $onlyScanned) {
-            $this->error('--skip-scanned dan --only-scanned tidak bisa dipakai bersamaan.');
+        if ($withScanned && $onlyScanned) {
+            $this->error('--with-scanned dan --only-scanned tidak bisa dipakai bersamaan.');
             return 1;
         }
 
         $this->info('Mulai: ' . Carbon::now()->format('Y-m-d H:i:s'));
 
         if (!$onlyScanned) {
-            if (!$this->stepPenerimaan($before, $chunk, $sleep, $dryRun)) {
+            if (!$this->stepPenerimaan($after, $before, $chunk, $sleep, $dryRun)) {
                 return 0;
             }
         }
 
-        if (!$skipScanned) {
+        if ($withScanned || $onlyScanned) {
             $this->stepScannedItem($chunk, $sleep, $dryRun);
+        } else {
+            $this->comment('Langkah scanned_item dilewati (pakai --with-scanned atau --only-scanned bila nanti diperlukan).');
         }
 
         $this->info('Selesai: ' . Carbon::now()->format('Y-m-d H:i:s'));
@@ -86,14 +95,14 @@ class BackfillPenerimaanCutting extends Command
     /**
      * Langkah 1: insert penerimaan_cutting. Return false bila harus berhenti.
      */
-    private function stepPenerimaan(string $before, int $chunk, int $sleep, bool $dryRun): bool
+    private function stepPenerimaan(string $after, string $before, int $chunk, int $sleep, bool $dryRun): bool
     {
-        $summary = $this->baseQuery($before)
+        $summary = $this->baseQuery($after, $before)
             ->leftJoin('laravel_nds.scanned_item as si', 'si.id_roll', '=', 'd.id_roll')
             ->selectRaw('COUNT(*) AS baris, COUNT(DISTINCT d.id_roll) AS roll, COUNT(DISTINCT CASE WHEN si.id IS NULL THEN d.id_roll END) AS roll_tanpa_scanned')
             ->first();
 
-        $this->info("[1/2] BPPB ke Cutting sebelum {$before} yang belum diterima (status != 'N'):");
+        $this->info("[1/2] BPPB ke Cutting {$after} s/d sebelum {$before} yang belum diterima (status != 'N'):");
         $this->table(['Baris penerimaan', 'Roll unik', 'Roll tanpa scanned_item'], [[
             $summary->baris, $summary->roll, $summary->roll_tanpa_scanned,
         ]]);
@@ -115,7 +124,7 @@ class BackfillPenerimaanCutting extends Command
         $bar = $this->output->createProgressBar($summary->baris);
         $inserted = 0;
 
-        $this->baseQuery($before)
+        $this->baseQuery($after, $before)
             ->selectRaw('d.id, d.id_roll, d.qty_out, d.satuan, h.tgl_bppb')
             ->chunkById($chunk, function ($rows) use (&$inserted, $bar, $sleep) {
                 $now = Carbon::now();
@@ -243,9 +252,9 @@ class BackfillPenerimaanCutting extends Command
     }
 
     /**
-     * whs_bppb_det ke Cutting sebelum $before, belum diterima, status bukan 'N'.
+     * whs_bppb_det ke Cutting dengan $after <= tgl_bppb < $before, belum diterima, status bukan 'N'.
      */
-    private function baseQuery(string $before)
+    private function baseQuery(string $after, string $before)
     {
         return DB::connection('mysql_sb')
             ->table('whs_bppb_det as d')
@@ -253,6 +262,7 @@ class BackfillPenerimaanCutting extends Command
             ->leftJoin('laravel_nds.penerimaan_cutting as pc', 'pc.whs_bppb_det_id', '=', 'd.id')
             ->where('h.tujuan', 'Production - Cutting')
             ->where('d.no_bppb', 'NOT LIKE', 'MT/%')
+            ->where('h.tgl_bppb', '>=', $after)
             ->where('h.tgl_bppb', '<', $before)
             ->whereRaw("COALESCE(d.status, 'Y') <> 'N'")
             ->whereNull('pc.id');

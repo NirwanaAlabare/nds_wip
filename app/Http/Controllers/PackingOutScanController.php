@@ -127,6 +127,41 @@ class PackingOutScanController extends Controller
         ]);
     }
 
+    // Qty stok PO + dest di Packing Central (sumber sama dengan cek stok di store), total + detail per item
+    public function getSaldoPo(Request $request)
+    {
+        $cek_po = DB::table('ppic_master_so')
+            ->select('po', 'dest')
+            ->where('id', $request->cbopo)
+            ->first();
+
+        if (!$cek_po) {
+            return response()->json(['message' => 'PO tidak ditemukan'], 404);
+        }
+
+        $urutan = DB::table('master_size_new')->pluck('urutan', 'size');
+
+        $data = collect(app(PackingCentralSwitchingController::class)->saldoAkhirDetailTransaksiPerItem($cek_po->po, $cek_po->dest))
+            ->filter(fn ($r) => (int) $r->qty != 0)
+            ->map(fn ($r) => [
+                'ws'      => $r->ws ?? '-',
+                'styleno' => $r->styleno ?? '-',
+                'color'   => $r->color ?? '-',
+                'size'    => $r->size ?? '-',
+                'qty'     => (int) $r->qty,
+                'urutan'  => $urutan[$r->size] ?? 9999,
+            ])
+            ->sortBy([['ws', 'asc'], ['styleno', 'asc'], ['color', 'asc'], ['urutan', 'asc']])
+            ->values();
+
+        return response()->json([
+            'po'    => $cek_po->po,
+            'dest'  => $cek_po->dest,
+            'total' => $data->sum('qty'),
+            'data'  => $data,
+        ]);
+    }
+
     // Simpan 1x scan barcode ke karton (alur sama dengan PackingPackingOutController@store, tanpa FGS)
     public function store(Request $request)
     {

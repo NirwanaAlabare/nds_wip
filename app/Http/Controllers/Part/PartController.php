@@ -2504,12 +2504,13 @@ class PartController extends Controller
                 $partStatus = strtolower(trim($row[$colPartStatus] ?? ''));
 
                 // 1. Validasi Kelengkapan Data per Baris
-                if (trim((string) $tglBerlakuRaw) === '' || empty($ws) || empty($buyer) || empty($style) || empty($color) || empty($panel) || empty($part) || empty($partStatus)) {
+                if (empty($ws) || empty($buyer) || empty($style) || empty($color) || empty($panel) || empty($part) || empty($partStatus)) {
                     $errorRows[] = "Baris " . ($i + 1) . ": Ada kolom yang masih kosong.";
                     continue;
                 }
 
-                if (!$tglBerlaku) {
+                // Tanggal berlaku boleh kosong; jika diisi, formatnya harus valid
+                if (trim((string) $tglBerlakuRaw) !== '' && !$tglBerlaku) {
                     $errorRows[] = "Baris " . ($i + 1) . ": Format Tanggal berlaku '{$tglBerlakuRaw}' tidak valid.";
                     continue;
                 }

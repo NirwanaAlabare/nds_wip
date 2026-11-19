@@ -330,157 +330,7 @@ class TrolleyStockerController extends Controller
                 //     groupBy('form_cut_input.no_cut', 'form_cut_piece.no_cut', 'stocker_input.form_cut_id', 'stocker_input.form_reject_id', 'stocker_input.form_piece_id', 'stocker_input.so_det_id', 'stocker_input.group_stocker', 'stocker_input.ratio', 'stocker_input.stocker_reject')->
                 //     orderBy('trolley_stocker.updated_at', 'desc');
 
-            $trolley = DB::select("WITH
-                secondary_in_update as (
-                        select
-                                secondary_in_id,
-                                SUM(secondary_in_update.reject) qty_reject,
-                                SUM(secondary_in_update.replace) qty_replace
-                        FROM
-                                secondary_in_update
-                        GROUP BY
-                                secondary_in_id
-                ),
-                trolley_stock_main as  (
-                        select
-                                trolley_stocker.id,
-                                GROUP_CONCAT(stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
-                                master_sb_ws.ws act_costing_ws,
-                                COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) END) no_cut,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) style,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                                stocker_input.color,
-                                CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
-                                GROUP_CONCAT(DISTINCT (CASE WHEN part_detail.part_status is not null then concat(master_part.nama_part, ' - ', part_detail.part_status) ELSE master_part.nama_part END) SEPARATOR ', ') nama_part,
-                                part_detail.part_status,
-                                COALESCE(stocker_input.size, master_sb_ws.size) size,
-                                COALESCE((last_in.qty_in - COALESCE(last_in_update.qty_reject, 0) + COALESCE(last_in_update.qty_replace, 0)), MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_update.qty_reject, 0) + COALESCE(secondary_in_update.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty_main,
-                                null qty,
-                                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_in_update.qty_reject, 0) + COALESCE(secondary_in_update.qty_replace, 0) ), ') ' ))) rangeAwalAkhir,
-                                `stocker_input`.`form_cut_id`, `stocker_input`.`form_piece_id`, `stocker_input`.`form_reject_id`, `stocker_input`.`so_det_id`, `stocker_input`.`group_stocker`, `stocker_input`.`ratio`, `stocker_input`.`stocker_reject`
-                        from `trolley_stocker` left join `stocker_input` on `stocker_input`.`id` = `trolley_stocker`.`stocker_id` left join `master_sb_ws` on `master_sb_ws`.`id_so_det` = `stocker_input`.`so_det_id` left join `dc_in_input` on `dc_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `secondary_in_input` on `secondary_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join secondary_in_update on secondary_in_update.secondary_in_id = secondary_in_input.id left join `secondary_inhouse_input` on `secondary_inhouse_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `form_cut_input` on `form_cut_input`.`id` = `stocker_input`.`form_cut_id` left join `form_cut_reject` on `form_cut_reject`.`id` = `stocker_input`.`form_reject_id` left join `form_cut_piece` on `form_cut_piece`.`id` = `stocker_input`.`form_piece_id` left join `marker_input` on `marker_input`.`kode` = `form_cut_input`.`id_marker` left join `part_detail` on `part_detail`.`id` = `stocker_input`.`part_detail_id` left join `part` on `part`.`id` = `part_detail`.`part_id` left join `part_detail` as `part_detail_com` on `part_detail_com`.`id` = `part_detail`.`from_part_detail` and `part_detail`.`part_status` = 'complement' left join `part` as `part_com` on `part_com`.`id` = `part_detail_com`.`part_id` left join `master_part` on `master_part`.`id` = `part_detail`.`master_part_id` left join `users` on `users`.`id` = `trolley_stocker`.`created_by` left join
-                                (
-                                                SELECT
-                                                                stocker_input.id_qr_stocker,
-                                                                MAX( part_detail_secondary.urutan ) AS max_urutan
-                                                FROM
-                                                                stocker_input
-                                                                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
-                                                                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
-                                                                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                                                GROUP BY
-                                                                id_qr_stocker
-                                                HAVING
-                                                                MAX( part_detail_secondary.urutan ) IS NOT NULL
-                                ) AS multi_secondary
-                        on `multi_secondary`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `secondary_in_input` as `last_in` on `last_in`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` and `last_in`.`urutan` >= `multi_secondary`.`max_urutan`
-                        LEFT JOIN secondary_in_update last_in_update ON last_in_update.secondary_in_id = last_in.id
-                        where `trolley_stocker`.`trolley_id` = ? and `trolley_stocker`.`status` = 'active' and part_detail.part_status = 'main' AND (part_detail.status = 'active' OR part_detail.status IS NULL)
-                        group by stocker_input.id_qr_stocker
-                ),
-                trolley_stock as  (
-                        select
-                                trolley_stocker.id,
-                                GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
-                                master_sb_ws.ws act_costing_ws,
-                                COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) END) no_cut,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) style,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                                stocker_input.color,
-                                CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
-                                GROUP_CONCAT(DISTINCT (CASE WHEN part_detail.part_status is not null then concat(master_part.nama_part, ' - ', part_detail.part_status) ELSE master_part.nama_part END) SEPARATOR ', ') nama_part,
-                                part_detail.part_status,
-                                COALESCE(stocker_input.size, master_sb_ws.size) size,
-                                null qty_main,
-                                COALESCE((last_in.qty_in - COALESCE(last_in_update.qty_reject, 0) + COALESCE(last_in_update.qty_replace, 0)), MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_update.qty_reject, 0) + COALESCE(secondary_in_update.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
-                                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_in_update.qty_reject, 0) + COALESCE(secondary_in_update.qty_replace, 0) ), ') ' ))) rangeAwalAkhir,
-                                `stocker_input`.`form_cut_id`, `stocker_input`.`form_piece_id`, `stocker_input`.`form_reject_id`, `stocker_input`.`so_det_id`, `stocker_input`.`group_stocker`, `stocker_input`.`ratio`, `stocker_input`.`stocker_reject`
-                        from `trolley_stocker` left join `stocker_input` on `stocker_input`.`id` = `trolley_stocker`.`stocker_id` left join `master_sb_ws` on `master_sb_ws`.`id_so_det` = `stocker_input`.`so_det_id` left join `dc_in_input` on `dc_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `secondary_in_input` on `secondary_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join secondary_in_update on secondary_in_update.secondary_in_id = secondary_in_input.id left join `secondary_inhouse_input` on `secondary_inhouse_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `form_cut_input` on `form_cut_input`.`id` = `stocker_input`.`form_cut_id` left join `form_cut_reject` on `form_cut_reject`.`id` = `stocker_input`.`form_reject_id` left join `form_cut_piece` on `form_cut_piece`.`id` = `stocker_input`.`form_piece_id` left join `marker_input` on `marker_input`.`kode` = `form_cut_input`.`id_marker` left join `part_detail` on `part_detail`.`id` = `stocker_input`.`part_detail_id` left join `part` on `part`.`id` = `part_detail`.`part_id` left join `part_detail` as `part_detail_com` on `part_detail_com`.`id` = `part_detail`.`from_part_detail` and `part_detail`.`part_status` = 'complement' left join `part` as `part_com` on `part_com`.`id` = `part_detail_com`.`part_id` left join `master_part` on `master_part`.`id` = `part_detail`.`master_part_id` left join `users` on `users`.`id` = `trolley_stocker`.`created_by` left join
-                                (
-                                                SELECT
-                                                                stocker_input.id_qr_stocker,
-                                                                MAX( part_detail_secondary.urutan ) AS max_urutan
-                                                FROM
-                                                                stocker_input
-                                                                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
-                                                                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
-                                                                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                                                GROUP BY
-                                                                id_qr_stocker
-                                                HAVING
-                                                                MAX( part_detail_secondary.urutan ) IS NOT NULL
-                                ) AS multi_secondary
-                        on `multi_secondary`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `secondary_in_input` as `last_in` on `last_in`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` and `last_in`.`urutan` >= `multi_secondary`.`max_urutan`
-                        LEFT JOIN secondary_in_update last_in_update ON last_in_update.secondary_in_id = last_in.id
-                        where `trolley_stocker`.`trolley_id` = ? and `trolley_stocker`.`status` = 'active'  AND (part_detail.part_status != 'main' OR part_detail.part_status IS NULL) AND (part_detail.status = 'active' OR part_detail.status IS NULL)
-                        group by stocker_input.id_qr_stocker
-                        order by `trolley_stocker`.`updated_at` desc
-                )
-
-                select
-                        GROUP_CONCAT(id) id,
-                        GROUP_CONCAT(id_qr_stocker) id_qr_stocker,
-                        act_costing_ws,
-                        GROUP_CONCAT(DISTINCT panel ORDER BY panel ASC SEPARATOR ', ') panel,
-                        no_cut,
-                        style,
-                        tipe,
-                        color,
-                        user,
-                        GROUP_CONCAT(DISTINCT nama_part) nama_part,
-                        size,
-                        GROUP_CONCAT(qty_main),
-                        GROUP_CONCAT(qty),
-                        COALESCE( LEAST( COALESCE(MAX(qty_main), MIN(qty)) , COALESCE(MIN(qty), MAX(qty_main)) ), 0) as qty,
-                        ( MIN(qty) - COALESCE(MAX(qty_main), MIN(qty)) ) diff_qty,
-                        rangeAwalAkhir
-                from
-                        (
-                                SELECT * FROM trolley_stock_main
-                                UNION ALL
-                                SELECT * FROM trolley_stock
-                        ) trolley_stock
-                group by
-                        `no_cut`, `form_cut_id`, `form_piece_id`, `form_reject_id`, `so_det_id`, `size`, `group_stocker`, `ratio`, `stocker_reject`
-            ", [$request->trolley_id, $request->trolley_id]);
-
-            return DataTables::of($trolley)->
-                // filterColumn('id', function($query, $keyword) {
-                //     $query->whereRaw("trolley_stocker.id LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('id_qr_stocker', function($query, $keyword) {
-                //     $query->whereRaw("stocker_input.id_qr_stocker LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('act_costing_ws', function($query, $keyword) {
-                //     $query->whereRaw("stocker_input.act_costing_ws LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('no_cut', function($query, $keyword) {
-                //     $query->whereRaw("COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut) LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('style', function($query, $keyword) {
-                //     $query->whereRaw("(CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('color', function($query, $keyword) {
-                //     $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('panel', function($query, $keyword) {
-                //     $query->whereRaw("COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) '%".$keyword."%'");
-                // })->
-                // filterColumn('nama_part', function($query, $keyword) {
-                //     $query->whereRaw("master_part.nama_part LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('qty', function($query, $keyword) {
-                //     $query->whereRaw("stocker_input.qty_ply LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('rangeAwalAkhir', function($query, $keyword) {
-                //     $query->whereRaw("CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('size', function($query, $keyword) {
-                //     $query->whereRaw("stocker_input.size LIKE '%".$keyword."%'");
-                // })->
-                toJson();
+            return response()->json(['data' => $this->getTrolleyStockGroups($request->trolley_id)->values()]);
         }
 
         $trolleys = Trolley::orderBy('nama_trolley', 'asc')->get();
@@ -491,157 +341,7 @@ class TrolleyStockerController extends Controller
     public function allocateThis(Request $request, $id)
     {
         if ($request->ajax()) {
-            $trolley = DB::select("WITH
-                secondary_in_update as (
-                        select
-                                secondary_in_id,
-                                SUM(secondary_in_update.reject) qty_reject,
-                                SUM(secondary_in_update.replace) qty_replace
-                        FROM
-                                secondary_in_update
-                        GROUP BY
-                                secondary_in_id
-                ),
-                trolley_stock_main as  (
-                        select
-                                trolley_stocker.id,
-                                GROUP_CONCAT(stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
-                                master_sb_ws.ws act_costing_ws,
-                                COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) END) no_cut,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) style,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                                stocker_input.color,
-                                CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
-                                GROUP_CONCAT(DISTINCT (CASE WHEN part_detail.part_status is not null then concat(master_part.nama_part, ' - ', part_detail.part_status) ELSE master_part.nama_part END) SEPARATOR ', ') nama_part,
-                                part_detail.part_status,
-                                COALESCE(stocker_input.size, master_sb_ws.size) size,
-                                COALESCE((last_in.qty_in - COALESCE(last_in_update.qty_reject, 0) + COALESCE(last_in_update.qty_replace, 0)), MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_update.qty_reject, 0) + COALESCE(secondary_in_update.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty_main,
-                                null qty,
-                                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_in_update.qty_reject, 0) + COALESCE(secondary_in_update.qty_replace, 0) ), ') ' ))) rangeAwalAkhir,
-                                `stocker_input`.`form_cut_id`, `stocker_input`.`form_piece_id`, `stocker_input`.`form_reject_id`, `stocker_input`.`so_det_id`, `stocker_input`.`group_stocker`, `stocker_input`.`ratio`, `stocker_input`.`stocker_reject`
-                        from `trolley_stocker` left join `stocker_input` on `stocker_input`.`id` = `trolley_stocker`.`stocker_id` left join `master_sb_ws` on `master_sb_ws`.`id_so_det` = `stocker_input`.`so_det_id` left join `dc_in_input` on `dc_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `secondary_in_input` on `secondary_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join secondary_in_update on secondary_in_update.secondary_in_id = secondary_in_input.id left join `secondary_inhouse_input` on `secondary_inhouse_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `form_cut_input` on `form_cut_input`.`id` = `stocker_input`.`form_cut_id` left join `form_cut_reject` on `form_cut_reject`.`id` = `stocker_input`.`form_reject_id` left join `form_cut_piece` on `form_cut_piece`.`id` = `stocker_input`.`form_piece_id` left join `marker_input` on `marker_input`.`kode` = `form_cut_input`.`id_marker` left join `part_detail` on `part_detail`.`id` = `stocker_input`.`part_detail_id` left join `part` on `part`.`id` = `part_detail`.`part_id` left join `part_detail` as `part_detail_com` on `part_detail_com`.`id` = `part_detail`.`from_part_detail` and `part_detail`.`part_status` = 'complement' left join `part` as `part_com` on `part_com`.`id` = `part_detail_com`.`part_id` left join `master_part` on `master_part`.`id` = `part_detail`.`master_part_id` left join `users` on `users`.`id` = `trolley_stocker`.`created_by` left join
-                                (
-                                                SELECT
-                                                                stocker_input.id_qr_stocker,
-                                                                MAX( part_detail_secondary.urutan ) AS max_urutan
-                                                FROM
-                                                                stocker_input
-                                                                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
-                                                                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
-                                                                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                                                GROUP BY
-                                                                id_qr_stocker
-                                                HAVING
-                                                                MAX( part_detail_secondary.urutan ) IS NOT NULL
-                                ) AS multi_secondary
-                        on `multi_secondary`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `secondary_in_input` as `last_in` on `last_in`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` and `last_in`.`urutan` >= `multi_secondary`.`max_urutan`
-                        LEFT JOIN secondary_in_update last_in_update ON last_in_update.secondary_in_id = last_in.id
-                        where `trolley_stocker`.`trolley_id` = ? and `trolley_stocker`.`status` = 'active' and part_detail.part_status = 'main' AND (part_detail.status = 'active' OR part_detail.status IS NULL)
-                        group by stocker_input.id_qr_stocker
-                ),
-                trolley_stock as  (
-                        select
-                                trolley_stocker.id,
-                                GROUP_CONCAT(DISTINCT stocker_input.id_qr_stocker ORDER BY stocker_input.id ASC SEPARATOR ', ') id_qr_stocker,
-                                master_sb_ws.ws act_costing_ws,
-                                COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END) END) no_cut,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) style,
-                                (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END) END) tipe,
-                                stocker_input.color,
-                                CONCAT(users.username, ' (',trolley_stocker.updated_at, ')') user,
-                                GROUP_CONCAT(DISTINCT (CASE WHEN part_detail.part_status is not null then concat(master_part.nama_part, ' - ', part_detail.part_status) ELSE master_part.nama_part END) SEPARATOR ', ') nama_part,
-                                part_detail.part_status,
-                                COALESCE(stocker_input.size, master_sb_ws.size) size,
-                                null qty_main,
-                                COALESCE((last_in.qty_in - COALESCE(last_in_update.qty_reject, 0) + COALESCE(last_in_update.qty_replace, 0)), MIN(COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_update.qty_reject, 0) + COALESCE(secondary_in_update.qty_replace, 0) ), COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply)) qty,
-                                CONCAT(MIN(stocker_input.range_awal), ' - ', MAX(stocker_input.range_akhir), (CONCAT(' (', MIN( COALESCE((COALESCE(stocker_input.qty_ply_mod, stocker_input.qty_ply) - stocker_input.qty_ply), 0) + COALESCE(dc_in_input.qty_replace, 0) - COALESCE(dc_in_input.qty_reject, 0) + COALESCE(secondary_inhouse_input.qty_replace, 0) - COALESCE(secondary_inhouse_input.qty_reject, 0) + COALESCE(secondary_in_input.qty_replace, 0) - COALESCE(secondary_in_input.qty_reject, 0) - COALESCE(secondary_in_update.qty_reject, 0) + COALESCE(secondary_in_update.qty_replace, 0) ), ') ' ))) rangeAwalAkhir,
-                                `stocker_input`.`form_cut_id`, `stocker_input`.`form_piece_id`, `stocker_input`.`form_reject_id`, `stocker_input`.`so_det_id`, `stocker_input`.`group_stocker`, `stocker_input`.`ratio`, `stocker_input`.`stocker_reject`
-                        from `trolley_stocker` left join `stocker_input` on `stocker_input`.`id` = `trolley_stocker`.`stocker_id` left join `master_sb_ws` on `master_sb_ws`.`id_so_det` = `stocker_input`.`so_det_id` left join `dc_in_input` on `dc_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `secondary_in_input` on `secondary_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join secondary_in_update on secondary_in_update.secondary_in_id = secondary_in_input.id left join `secondary_inhouse_input` on `secondary_inhouse_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `form_cut_input` on `form_cut_input`.`id` = `stocker_input`.`form_cut_id` left join `form_cut_reject` on `form_cut_reject`.`id` = `stocker_input`.`form_reject_id` left join `form_cut_piece` on `form_cut_piece`.`id` = `stocker_input`.`form_piece_id` left join `marker_input` on `marker_input`.`kode` = `form_cut_input`.`id_marker` left join `part_detail` on `part_detail`.`id` = `stocker_input`.`part_detail_id` left join `part` on `part`.`id` = `part_detail`.`part_id` left join `part_detail` as `part_detail_com` on `part_detail_com`.`id` = `part_detail`.`from_part_detail` and `part_detail`.`part_status` = 'complement' left join `part` as `part_com` on `part_com`.`id` = `part_detail_com`.`part_id` left join `master_part` on `master_part`.`id` = `part_detail`.`master_part_id` left join `users` on `users`.`id` = `trolley_stocker`.`created_by` left join
-                                (
-                                                SELECT
-                                                                stocker_input.id_qr_stocker,
-                                                                MAX( part_detail_secondary.urutan ) AS max_urutan
-                                                FROM
-                                                                stocker_input
-                                                                LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
-                                                                LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
-                                                                LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                                                GROUP BY
-                                                                id_qr_stocker
-                                                HAVING
-                                                                MAX( part_detail_secondary.urutan ) IS NOT NULL
-                                ) AS multi_secondary
-                        on `multi_secondary`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` left join `secondary_in_input` as `last_in` on `last_in`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker` and `last_in`.`urutan` >= `multi_secondary`.`max_urutan`
-                        LEFT JOIN secondary_in_update last_in_update ON last_in_update.secondary_in_id = last_in.id
-                        where `trolley_stocker`.`trolley_id` = ? and `trolley_stocker`.`status` = 'active'  AND (part_detail.part_status != 'main' OR part_detail.part_status IS NULL) AND (part_detail.status = 'active' OR part_detail.status IS NULL)
-                        group by stocker_input.id_qr_stocker
-                        order by `trolley_stocker`.`updated_at` desc
-                )
-
-                select
-                        GROUP_CONCAT(id) id,
-                        GROUP_CONCAT(id_qr_stocker) id_qr_stocker,
-                        act_costing_ws,
-                        GROUP_CONCAT(DISTINCT panel ORDER BY panel ASC SEPARATOR ', ') panel,
-                        no_cut,
-                        style,
-                        tipe,
-                        color,
-                        user,
-                        GROUP_CONCAT(DISTINCT nama_part) nama_part,
-                        size,
-                        GROUP_CONCAT(qty_main),
-                        GROUP_CONCAT(qty),
-                        COALESCE( LEAST( COALESCE(MAX(qty_main), MIN(qty)) , COALESCE(MIN(qty), MAX(qty_main)) ), 0) as qty,
-                        ( MIN(qty) - COALESCE(MAX(qty_main), MIN(qty)) ) diff_qty,
-                        rangeAwalAkhir
-                from
-                        (
-                                SELECT * FROM trolley_stock_main
-                                UNION ALL
-                                SELECT * FROM trolley_stock
-                        ) trolley_stock
-                group by
-                        `no_cut`, `form_cut_id`, `form_piece_id`, `form_reject_id`, `so_det_id`, `size`, `group_stocker`, `ratio`, `stocker_reject`
-            ", [$id, $id]);
-
-            return DataTables::of($trolley)->
-                // filterColumn('id', function($query, $keyword) {
-                //     $query->whereRaw("trolley_stocker.id LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('id_qr_stocker', function($query, $keyword) {
-                //     $query->whereRaw("stocker_input.id_qr_stocker LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('act_costing_ws', function($query, $keyword) {
-                //     $query->whereRaw("stocker_input.act_costing_ws LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('no_cut', function($query, $keyword) {
-                //     $query->whereRaw("COALESCE(form_cut_input.no_cut, form_cut_piece.no_cut) LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('style', function($query, $keyword) {
-                //     $query->whereRaw("(CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE (CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END) END) LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('color', function($query, $keyword) {
-                //     $query->whereRaw("stocker_input.color LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('panel', function($query, $keyword) {
-                //     $query->whereRaw("COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) '%".$keyword."%'");
-                // })->
-                // filterColumn('nama_part', function($query, $keyword) {
-                //     $query->whereRaw("master_part.nama_part LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('qty', function($query, $keyword) {
-                //     $query->whereRaw("stocker_input.qty_ply LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('rangeAwalAkhir', function($query, $keyword) {
-                //     $query->whereRaw("CONCAT(stocker_input.range_awal, ' - ', stocker_input.range_akhir) LIKE '%".$keyword."%'");
-                // })->
-                // filterColumn('size', function($query, $keyword) {
-                //     $query->whereRaw("stocker_input.size LIKE '%".$keyword."%'");
-                // })->
-                toJson();
+            return response()->json(['data' => $this->getTrolleyStockGroups($id)->values()]);
         }
 
         $trolley = Trolley::with('userLine')->where('id', $id)->first();
@@ -1103,26 +803,70 @@ class TrolleyStockerController extends Controller
         );
     }
 
-    public function send(Request $request, $id) {
+    /**
+     * Tampilan lama halaman Alokasi Trolley (pilih trolley), qty memakai perhitungan terbaru.
+     * Tabel tampilan lama memakai DataTables server side, jadi data dikirim lewat yajra.
+     */
+    public function allocateOld(Request $request)
+    {
+        if ($request->ajax()) {
+            return DataTables::of($this->getTrolleyStockGroups($request->trolley_id))->toJson();
+        }
+
+        $trolleys = Trolley::orderBy('nama_trolley', 'asc')->get();
+
+        return view('dc.trolley.stock-trolley.allocate-trolley-old', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolleys' => $trolleys]);
+    }
+
+    /**
+     * Tampilan lama halaman Alokasi Stok Trolley (trolley tertentu), qty memakai perhitungan terbaru.
+     */
+    public function allocateThisOld(Request $request, $id)
+    {
+        if ($request->ajax()) {
+            return DataTables::of($this->getTrolleyStockGroups($id))->toJson();
+        }
+
+        $trolley = Trolley::with('userLine')->where('id', $id)->first();
+
+        return view('dc.trolley.stock-trolley.allocate-this-trolley-old', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley]);
+    }
+
+    /**
+     * Tampilan lama halaman Kirim Stok Trolley, qty memakai perhitungan terbaru.
+     */
+    public function sendOld(Request $request, $id)
+    {
         $trolley = Trolley::with('userLine')->where('id', $id)->first();
 
         $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->orderBy('line_id', 'asc')->get();
         $trolleys = Trolley::with('userLine')->where('id', "!=", $id)->orderBy("nama_trolley")->get();
 
-        $trolleyStocks = collect(DB::select("
-            WITH secondary_in_update as (
-                select
-                    secondary_in_id,
-                    SUM(secondary_in_update.reject) qty_reject,
-                    SUM(secondary_in_update.replace) qty_replace
-                FROM
-                    secondary_in_update
-                GROUP BY
-                    secondary_in_id
-            )
+        $trolleyStocks = $this->getTrolleyStockGroups($id, true);
 
+        return view('dc.trolley.stock-trolley.send-stock-trolley-old', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines, 'trolleys' => $trolleys, 'trolleyStocks' => $trolleyStocks]);
+    }
+
+    /**
+     * Stok trolley dikelompokkan per (form, so_det, size, group, ratio, stocker reject),
+     * dipakai halaman Kirim (send) dan Alokasi (allocate & allocateThis).
+     *
+     * Qty dihitung dengan accessor yang sama dengan submitSend() ('getCurrentQtyAttribute' di 'App/Models/Stocker/Stocker.php'),
+     * qty grup = qty stocker terkecil, diff_qty = qty terkecil - qty terbesar part main.
+     *
+     * @param  mixed  $trolleyId
+     * @param  bool  $excludeLine  abaikan stocker yang sudah berstatus 'line'
+     * @return \Illuminate\Support\Collection
+     */
+    private function getTrolleyStockGroups($trolleyId, $excludeLine = false)
+    {
+        if (!$trolleyId) {
+            return collect([]);
+        }
+
+        $trolleyStocks = collect(DB::select("
             SELECT
-                id,
+                MIN( id ) id,
                 GROUP_CONCAT( DISTINCT stocker_id ORDER BY stocker_id ASC SEPARATOR ', ' ) stocker_id,
                 GROUP_CONCAT( DISTINCT id_qr_stocker ORDER BY id ASC SEPARATOR ', ' ) id_qr_stocker,
                 act_costing_ws,
@@ -1133,28 +877,28 @@ class TrolleyStockerController extends Controller
                 GROUP_CONCAT( DISTINCT panel ORDER BY panel ASC SEPARATOR ', ' ) panel,
                 GROUP_CONCAT( DISTINCT nama_part SEPARATOR ', ' ) nama_part,
                 size,
-                COALESCE( LEAST( COALESCE(MAX(qty_main), MIN(qty)) , COALESCE(MIN(qty), MAX(qty_main)) ), 0) as qty,
-                ( MIN(qty) - COALESCE(MAX(qty_main), MIN(qty)) ) diff_qty,
                 rangeAwalAkhir,
                 MAX( user ) as user
             FROM
             (
                 SELECT
                     trolley_stocker.id,
+                    trolley_stocker.updated_at,
                     stocker_input.id as stocker_id,
                     stocker_input.id_qr_stocker as id_qr_stocker,
                     master_sb_ws.ws act_costing_ws,
-                    COALESCE(form_cut_input.id, form_cut_piece.id, form_cut_reject.id) as form_cut_id,
+                    -- Kolom form asli dari stocker_input (bukan dari tabel form hasil JOIN),
+                    -- supaya bundle beda form tidak tergabung saat data form-nya tidak ditemukan
+                    stocker_input.form_cut_id,
+                    stocker_input.form_piece_id,
+                    stocker_input.form_reject_id,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END )  END  ) no_cut,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END )  END ) style,
                     (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END ) END ) tipe,
                     stocker_input.color,
                     COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
                     CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) nama_part,
-                    COALESCE ( stocker_input.size, stocker_input.size ) size,
-                    COALESCE (last_in.qty_in - COALESCE(last_update.qty_reject) + COALESCE(last_update.qty_replace, 0), MIN(COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal,  0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_update.qty_reject, 0 ) + COALESCE ( secondary_in_update.qty_replace, 0 ) )) qty_main,
-                    COALESCE (last_in.qty_in - COALESCE(last_update.qty_reject) + COALESCE(last_update.qty_replace, 0), MIN(COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal,  0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_update.qty_reject, 0 ) + COALESCE ( secondary_in_update.qty_replace, 0 ) )) qty,
-                    CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir ), ( CONCAT( ' (', MIN( COALESCE (( stocker_input.qty_ply_mod - stocker_input.qty_ply ), 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 )  ), ') ' ))) rangeAwalAkhirOld,
+                    COALESCE(stocker_input.size, master_sb_ws.size) size,
                     CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir )) rangeAwalAkhir,
                     CONCAT( users.username, ' (', trolley_stocker.updated_at, ')' ) USER,
                     stocker_input.so_det_id,
@@ -1165,108 +909,19 @@ class TrolleyStockerController extends Controller
                     `trolley_stocker`
                     LEFT JOIN `stocker_input` ON `stocker_input`.`id` = `trolley_stocker`.`stocker_id`
                     LEFT JOIN `master_sb_ws` ON `master_sb_ws`.`id_so_det` = `stocker_input`.`so_det_id`
-                    LEFT JOIN `dc_in_input` ON `dc_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
-                    LEFT JOIN `secondary_in_input` ON `secondary_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
-                    LEFT JOIN `secondary_in_update` ON `secondary_in_update`.`secondary_in_id` = `secondary_in_input`.`id`
-                    LEFT JOIN `secondary_inhouse_input` ON `secondary_inhouse_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
                     LEFT JOIN `form_cut_input` ON `form_cut_input`.`id` = `stocker_input`.`form_cut_id`
                     LEFT JOIN `form_cut_reject` ON `form_cut_reject`.`id` = `stocker_input`.`form_reject_id`
                     LEFT JOIN `form_cut_piece` ON `form_cut_piece`.`id` = `stocker_input`.`form_piece_id`
-                    LEFT JOIN `marker_input` ON `marker_input`.`kode` = `form_cut_input`.`id_marker`
                     left join part_detail on stocker_input.part_detail_id = part_detail.id
                     left join part on part.id = part_detail.part_id
                     left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
                     left join part part_com on part_com.id = part_detail_com.part_id
                     LEFT JOIN `master_part` ON `master_part`.`id` = `part_detail`.`master_part_id`
                     LEFT JOIN `users` ON `users`.`id` = `trolley_stocker`.`created_by`
-                    LEFT JOIN  (
-                        SELECT
-                            stocker_input.id_qr_stocker,
-                            MAX( part_detail_secondary.urutan ) AS max_urutan
-                        FROM
-                            stocker_input
-                            LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
-                            LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
-                            LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                        GROUP BY
-                            id_qr_stocker
-                        HAVING
-                             MAX( part_detail_secondary.urutan ) IS NOT NULL
-                    ) AS multi_secondary ON `multi_secondary`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
-                    LEFT JOIN `secondary_in_input` AS `last_in` ON `last_in`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
-                    AND `last_in`.`urutan` >= `multi_secondary`.`max_urutan`
-                    LEFT JOIN secondary_in_update AS last_update ON last_update.secondary_in_id = last_in.id
                 WHERE
-                    `trolley_id` = ".$id."
+                    `trolley_id` = ?
                     AND `trolley_stocker`.`status` = 'active'
-                    AND `stocker_input`.`status` != 'line'
-                    AND part_detail.part_status = 'main'
-                    AND (part_detail.status = 'active' OR part_detail.status IS NULL)
-                GROUP BY
-                    stocker_input.id_qr_stocker
-                UNION ALL
-                SELECT
-                    trolley_stocker.id,
-                    stocker_input.id as stocker_id,
-                    stocker_input.id_qr_stocker as id_qr_stocker,
-                    master_sb_ws.ws act_costing_ws,
-                    COALESCE(form_cut_input.id, form_cut_piece.id, form_cut_reject.id) as form_cut_id,
-                    (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.no_cut ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN '-' ELSE form_cut_input.no_cut END )  END  ) no_cut,
-                    (CASE WHEN stocker_input.form_piece_id > 0 THEN form_cut_piece.style ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN form_cut_reject.style ELSE master_sb_ws.styleno END )  END ) style,
-                    (CASE WHEN stocker_input.form_piece_id > 0 THEN 'PIECE' ELSE ( CASE WHEN stocker_input.form_reject_id > 0 THEN 'REJECT' ELSE 'NORMAL' END ) END ) tipe,
-                    stocker_input.color,
-                    COALESCE(CONCAT(part_com.panel, (CASE WHEN part_com.panel_status IS NOT NULL THEN CONCAT(' - ', part_com.panel_status) ELSE '' END)), CONCAT(part.panel, (CASE WHEN part.panel_status IS NOT NULL THEN CONCAT(' - ', part.panel_status) ELSE '' END))) panel,
-                    CONCAT(master_part.nama_part, (CASE WHEN part_detail.part_status IS NOT NULL THEN CONCAT(' - ', part_detail.part_status) ELSE '' END)) nama_part,
-                    COALESCE ( stocker_input.size, stocker_input.size ) size,
-                    null as qty_main,
-                    COALESCE (last_in.qty_in - COALESCE(last_update.qty_reject) + COALESCE(last_update.qty_replace, 0), MIN(COALESCE ( stocker_input.qty_ply_mod, stocker_input.qty_ply, dc_in_input.qty_awal,  0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_update.qty_reject, 0 ) + COALESCE ( secondary_in_update.qty_replace, 0 ) )) qty,
-                    CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir ), ( CONCAT( ' (', MIN( COALESCE (( stocker_input.qty_ply_mod - stocker_input.qty_ply ), 0 ) + COALESCE ( dc_in_input.qty_replace, 0 ) - COALESCE ( dc_in_input.qty_reject, 0 ) + COALESCE ( secondary_inhouse_input.qty_replace, 0 ) - COALESCE ( secondary_inhouse_input.qty_reject, 0 ) + COALESCE ( secondary_in_input.qty_replace, 0 ) - COALESCE ( secondary_in_input.qty_reject, 0 )  ), ') ' ))) rangeAwalAkhirOld,
-                    CONCAT( MIN( stocker_input.range_awal ), ' - ', MAX( stocker_input.range_akhir )) rangeAwalAkhir,
-                    CONCAT( users.username, ' (', trolley_stocker.updated_at, ')' ) USER,
-                    stocker_input.so_det_id,
-                    stocker_input.group_stocker,
-                    stocker_input.ratio,
-                    stocker_input.stocker_reject
-                FROM
-                    `trolley_stocker`
-                    LEFT JOIN `stocker_input` ON `stocker_input`.`id` = `trolley_stocker`.`stocker_id`
-                    LEFT JOIN `master_sb_ws` ON `master_sb_ws`.`id_so_det` = `stocker_input`.`so_det_id`
-                    LEFT JOIN `dc_in_input` ON `dc_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
-                    LEFT JOIN `secondary_in_input` ON `secondary_in_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
-                    LEFT JOIN `secondary_in_update` ON `secondary_in_update`.`secondary_in_id` = `secondary_in_input`.`id`
-                    LEFT JOIN `secondary_inhouse_input` ON `secondary_inhouse_input`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
-                    LEFT JOIN `form_cut_input` ON `form_cut_input`.`id` = `stocker_input`.`form_cut_id`
-                    LEFT JOIN `form_cut_reject` ON `form_cut_reject`.`id` = `stocker_input`.`form_reject_id`
-                    LEFT JOIN `form_cut_piece` ON `form_cut_piece`.`id` = `stocker_input`.`form_piece_id`
-                    LEFT JOIN `marker_input` ON `marker_input`.`kode` = `form_cut_input`.`id_marker`
-                    left join part_detail on stocker_input.part_detail_id = part_detail.id
-                    left join part on part.id = part_detail.part_id
-                    left join part_detail part_detail_com on part_detail_com.id = part_detail.from_part_detail and part_detail.part_status = 'complement'
-                    left join part part_com on part_com.id = part_detail_com.part_id
-                    LEFT JOIN `master_part` ON `master_part`.`id` = `part_detail`.`master_part_id`
-                    LEFT JOIN `users` ON `users`.`id` = `trolley_stocker`.`created_by`
-                    LEFT JOIN  (
-                    SELECT
-                        stocker_input.id_qr_stocker,
-                        MAX( part_detail_secondary.urutan ) AS max_urutan
-                    FROM
-                        stocker_input
-                        LEFT JOIN part_detail ON part_detail.id = stocker_input.part_detail_id
-                        LEFT JOIN part_detail_secondary ON part_detail_secondary.part_detail_id = stocker_input.part_detail_id
-                        LEFT JOIN master_secondary ON master_secondary.id = part_detail_secondary.master_secondary_id
-                    GROUP BY
-                        id_qr_stocker
-                    HAVING
-                        MAX( part_detail_secondary.urutan ) IS NOT NULL
-                    ) AS multi_secondary ON `multi_secondary`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
-                    LEFT JOIN `secondary_in_input` AS `last_in` ON `last_in`.`id_qr_stocker` = `stocker_input`.`id_qr_stocker`
-                    AND `last_in`.`urutan` >= `multi_secondary`.`max_urutan`
-                    LEFT JOIN secondary_in_update AS last_update ON last_update.secondary_in_id = last_in.id
-                WHERE
-                    `trolley_id` = ".$id."
-                    AND `trolley_stocker`.`status` = 'active'
-                    AND `stocker_input`.`status` != 'line'
-                    AND (part_detail.part_status != 'main' OR part_detail.part_status IS NULL)
+                    ".($excludeLine ? "AND `stocker_input`.`status` != 'line'" : "")."
                     AND (part_detail.status = 'active' OR part_detail.status IS NULL)
                 GROUP BY
                     stocker_input.id_qr_stocker
@@ -1274,12 +929,54 @@ class TrolleyStockerController extends Controller
             GROUP BY
                 `no_cut`,
                 `form_cut_id`,
+                `form_piece_id`,
+                `form_reject_id`,
                 `so_det_id`,
                 `size`,
                 `group_stocker`,
                 `ratio`,
                 `stocker_reject`
-        "));
+            ORDER BY
+                MAX( updated_at ) DESC
+        ", [$trolleyId]));
+
+        // Qty per stocker
+        $stockerIds = $trolleyStocks->flatMap(function ($trolleyStock) {
+            return array_map('trim', explode(',', $trolleyStock->stocker_id));
+        })->unique()->values();
+
+        $stockerModels = Stocker::with(Stocker::CURRENT_QTY_RELATIONS)->whereIn('id', $stockerIds)->get()->keyBy('id');
+
+        foreach ($trolleyStocks as $trolleyStock) {
+            $groupStockers = collect(array_map('trim', explode(',', $trolleyStock->stocker_id)))->map(function ($stockerId) use ($stockerModels) {
+                return $stockerModels->get($stockerId);
+            })->filter();
+
+            $minQty = $groupStockers->map(function ($stocker) {
+                return $stocker->current_qty;
+            })->min();
+
+            // Selisih qty terkecil dengan qty terbesar part main
+            $maxMainQty = $groupStockers->filter(function ($stocker) {
+                return $stocker->partDetail && $stocker->partDetail->part_status == 'main';
+            })->map(function ($stocker) {
+                return $stocker->current_qty;
+            })->max();
+
+            $trolleyStock->qty = $minQty ?? 0;
+            $trolleyStock->diff_qty = $maxMainQty !== null ? ($minQty - $maxMainQty) : 0;
+        }
+
+        return $trolleyStocks;
+    }
+
+    public function send(Request $request, $id) {
+        $trolley = Trolley::with('userLine')->where('id', $id)->first();
+
+        $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->orderBy('line_id', 'asc')->get();
+        $trolleys = Trolley::with('userLine')->where('id', "!=", $id)->orderBy("nama_trolley")->get();
+
+        $trolleyStocks = $this->getTrolleyStockGroups($id, true);
 
         return view('dc.trolley.stock-trolley.send-stock-trolley', ['page' => 'dashboard-dc', 'subPageGroup' => 'trolley-dc', 'subPage' => 'stock-trolley', 'trolley' => $trolley, 'lines' => $lines, 'trolleys' => $trolleys, 'trolleyStocks' => $trolleyStocks]);
     }
@@ -1463,50 +1160,11 @@ class TrolleyStockerController extends Controller
                 $stockers = [];
                 $smallestQty = null;
                 for ($i = 0; $i < count($stockerIds); $i++) {
-                    $thisStockerData = Stocker::where('id', $stockerIds[$i])->first();
+                    $thisStockerData = Stocker::with(Stocker::CURRENT_QTY_RELATIONS)->where('id', $stockerIds[$i])->first();
                     $stockers[] = $thisStockerData;
 
-                    // Qty
-                    $currentQty = null;
-
-                    $thisStockerPartDetailSecondaries = $thisStockerData->partDetail ? ($thisStockerData->partDetail->secondaries ? $thisStockerData->partDetail->secondaries : null) : null;
-                    if ($thisStockerPartDetailSecondaries) {
-                        $currentSecondary = $thisStockerPartDetailSecondaries->sortByDesc("urutan")->first();
-
-                        if ($currentSecondary && $currentSecondary->secondary) {
-                            if ($currentSecondary->secondary->tujuan != 'NON SECONDARY') {
-                                $currentSecondaryIn = SecondaryIn::where("id_qr_stocker", $thisStockerData->id_qr_stocker)
-                                    ->where("urutan", $currentSecondary->urutan)
-                                    ->first();
-
-                                if ($currentSecondaryIn) {
-                                    $updates = $currentSecondaryIn->secondaryInUpdate;
-                                    $currentQty = $currentSecondaryIn->qty_in - $updates->sum("reject") + $updates->sum("replace");
-                                } else {
-                                    $currentQty = $thisStockerData->qty_adjusted;
-                                }
-                            } else {
-                                $currentDc = DCIn::where("id_qr_stocker", $thisStockerData->id_qr_stocker)->first();
-                                $currentQty = $currentDc
-                                    ? $currentDc->qty_awal - $currentDc->qty_reject + $currentDc->qty_replace
-                                    : $thisStockerData->qty_adjusted;
-                            }
-                        } else {
-                            $currentQty = $thisStockerData->qty_adjusted;
-                        }
-                    } else {
-                        $currentQty = $thisStockerData->qty_adjusted;
-                    }
-
-                    // Prevent zero on stocker reject
-                    if ($currentQty < 1) {
-                        $currentQty = $thisStockerData->qty_adjusted;
-                    }
-
-                    /*
-                    '$thisStockerData->qty_adjusted' MERUPAKAN ACCESSOR
-                    FUNGSINYA ADA DI DALAM MODEL 'App/Models/Stocker/Stocker.php' dengan nama 'getQtyAdjustedAttribute'
-                     */
+                    // Qty, logika sama dengan tampilan send() : accessor 'getCurrentQtyAttribute' di 'App/Models/Stocker/Stocker.php'
+                    $currentQty = $thisStockerData->current_qty;
 
                     if ($smallestQty === null || $currentQty < $smallestQty) {
                         $smallestQty = $currentQty;

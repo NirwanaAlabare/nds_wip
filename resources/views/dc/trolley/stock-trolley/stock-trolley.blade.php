@@ -1,4 +1,4 @@
-@extends('layouts.index')
+@extends('layouts.index', ["containerFluid" => true])
 
 @section('custom-link')
     <!-- DataTables -->
@@ -11,7 +11,7 @@
     <div class="card card-sb">
         <div class="card-header">
             <h5 class="card-title fw-bold">
-                <i class="fas fa-dolly-flatbed"></i> Trolley
+                <i class="fas fa-dolly-flatbed"></i> Stok Trolley
             </h5>
         </div>
         <div class="card-body">

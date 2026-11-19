@@ -4,6 +4,8 @@
     <!-- Select2 -->
     <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <!-- DataTables -->
+    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
 
     <style type="text/css">
         .ps-app {
@@ -110,7 +112,8 @@
 
         .ps-po-row {
             display: grid;
-            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+            /* Tgl Shipment & Qty Stok selebar isinya (tidak terpotong), sisa ruang untuk PO & Dest */
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto auto;
             gap: 10px;
             margin-top: 10px;
         }
@@ -147,6 +150,12 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .ps-po-link:hover .ps-po-val,
+        .ps-po-link:focus .ps-po-val {
+            color: var(--pri);
+            text-decoration: underline dotted;
         }
 
         .ps-po-in .select2-container {
@@ -1146,6 +1155,12 @@
                             {{-- Diisi dari JS sesuai PO + dest terpilih --}}
                             <b id="tglShipment" class="ps-po-val">-</b>
                         </label>
+
+                        {{-- Saldo stok PO di Packing Central; klik untuk detail --}}
+                        <div class="ps-po-in ps-po-link" id="saldoPoBox" role="button" tabindex="0" title="Lihat detail qty stok">
+                            <span>QTY STOK</span>
+                            <b id="saldoPo" class="ps-po-val">-</b>
+                        </div>
                     </div>
 
                     <div class="ps-scan-box">
@@ -1186,6 +1201,46 @@
                     <div class="ps-act-list" id="activity"></div>
                 </div>
             </aside>
+        </div>
+    </div>
+
+    {{-- Detail saldo PO di Packing Central --}}
+    <div class="modal fade" id="saldoPoModal" tabindex="-1" aria-labelledby="saldoPoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-sb text-light">
+                    <div style="min-width: 0;">
+                        <small class="text-uppercase fw-bold" style="letter-spacing: .6px; opacity: .75;">Qty Stok Packing Central</small>
+                        {{-- PO bisa panjang: font sedikit kecil & boleh turun baris --}}
+                        <h6 class="modal-title fw-bold mb-0" style="word-break: break-word;">
+                            <span id="saldoPoTitle">-</span>
+                            <small class="fw-normal" style="opacity: .85;">· Dest : <b id="saldoPoDest">-</b></small>
+                        </h6>
+                    </div>
+                    <small class="ms-auto me-3 d-none" id="saldoPoLoad"><span class="spinner-border spinner-border-sm"></span> Memuat…</small>
+                    <button type="button" class="btn-close btn-close-white ms-0" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm table-bordered table-striped w-100" id="saldoPoTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>WS</th>
+                                <th>Style</th>
+                                <th>Color</th>
+                                <th>Size</th>
+                                <th class="text-end">Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr class="fw-bold">
+                                <td colspan="4" class="text-end">Total</td>
+                                <td class="text-end" id="saldoPoTotal">0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1382,6 +1437,9 @@
 @section('custom-script')
     <!-- Select2 -->
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
+    <!-- DataTables -->
+    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script>
         const el = id => document.getElementById(id);
         const fmt = n => Number(n).toLocaleString('id-ID');
@@ -1547,6 +1605,7 @@
                         // Baris yang stoknya habis dilewati server (tidak ada di res.ids)
                         const ids = res.ids || {}, ok = hits.filter(h => ids[h.id_so_det] != null);
                         applyHit(p, c, ok, v, note, ids, hits.filter(h => !ok.includes(h)));
+                        adjustSaldo(p.key, -ok.length);
                     } else {
                         fail(res.msg, `Karton #${c} · SKU ${v}`);
                     }
@@ -1650,6 +1709,7 @@
                         p.done.set(h.c, (p.done.get(h.c) || 0) - 1);
                         p.times.pop();
                         state.session = Math.max(0, state.session - 1);
+                        adjustSaldo(p.key, 1);
 
                         if (P() === p) {
                             state.carton = h.c;
@@ -2233,9 +2293,119 @@
             const x = PO_DEST.find(r => String(r.isi) === String(this.value));
             $('#tglShipment').text(x && x.tgl_shipment ? x.tgl_shipment : '-');
 
+            loadSaldoPo(this.value);
+
             if (this.value) loadPO(this.value);
             else applyPO(null);
         });
+
+        // ===== Qty stok PO + dest (Packing Central) =====
+        let saldoReq = null, saldoData = null, saldoTimer = null;
+
+        // Setelah scan / batal scan: angka langsung diubah di layar,
+        // lalu 2 detik setelah scan berhenti diambil ulang sekali dari server
+        function adjustSaldo(key, delta) {
+            if (String(key) !== String($('#destSelect').val())) return;
+
+            if (saldoData) {
+                saldoData.total += delta;
+                $('#saldoPo').text(fmt(saldoData.total));
+            }
+
+            clearTimeout(saldoTimer);
+            saldoTimer = setTimeout(() => loadSaldoPo(key, true), 2000);
+        }
+
+        // Total di footer ikut hasil pencarian
+        const saldoDt = $('#saldoPoTable').DataTable({
+            data: [],
+            columns: [
+                { data: 'ws', render: $.fn.dataTable.render.text() },
+                { data: 'styleno', render: $.fn.dataTable.render.text() },
+                { data: 'color', render: $.fn.dataTable.render.text() },
+                { data: 'size', render: $.fn.dataTable.render.text() },
+                { data: 'qty', className: 'text-end', render: (d, t) => t === 'display' ? fmt(d) : d },
+            ],
+            order: [],
+            pageLength: 25,
+            language: {
+                search: 'Cari:',
+                lengthMenu: 'Tampil _MENU_',
+                info: '_START_–_END_ dari _TOTAL_ baris',
+                infoEmpty: '0 baris',
+                infoFiltered: '(dari _MAX_)',
+                emptyTable: 'Tidak ada stok',
+                zeroRecords: 'Data tidak ditemukan',
+                paginate: { previous: '‹', next: '›' }
+            },
+            footerCallback: function () {
+                const sum = this.api().column(4, { search: 'applied' }).data().toArray().reduce((a, b) => a + Number(b), 0);
+                $('#saldoPoTotal').text(fmt(sum));
+            }
+        });
+
+        function renderSaldoPo(res) {
+            $('#saldoPoTitle').text(res ? res.po : '-');
+            $('#saldoPoDest').text(res ? res.dest : '-');
+            saldoDt.clear().rows.add(res ? res.data : []).draw();
+        }
+
+        // silent: ambil ulang di belakang (setelah scan), angka lama tetap tampil sampai data baru datang
+        function loadSaldoPo(key, silent = false) {
+            clearTimeout(saldoTimer);
+            if (saldoReq) saldoReq.abort();
+            if (!silent) saldoData = null;
+
+            if (!key) {
+                saldoReq = null;
+                $('#saldoPo').text('-');
+                return $.Deferred().resolve().promise();
+            }
+
+            if (!silent) $('#saldoPo').text('…');
+            $('#saldoPoLoad').removeClass('d-none');
+
+            saldoReq = $.ajax({
+                url: '{{ route('get-saldo-po-packing-out-scan') }}',
+                type: 'GET',
+                data: { cbopo: key },
+                dataType: 'json',
+                success: function (res) {
+                    saldoData = res;
+                    $('#saldoPo').text(fmt(res.total));
+                    renderSaldoPo(res);
+                },
+                error: function (xhr) {
+                    if (xhr.statusText !== 'abort' && !silent) $('#saldoPo').text('-');
+                },
+                complete: function (xhr) {
+                    if (xhr === saldoReq) $('#saldoPoLoad').addClass('d-none');
+                }
+            });
+
+            return saldoReq;
+        }
+
+        // Klik qty: ambil ulang (saldo berubah tiap scan) lalu tampilkan detail
+        $('#saldoPoBox').on('click keydown', function (e) {
+            if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            const key = $('#destSelect').val();
+            if (!key) {
+                iziToast.info({ message: 'Pilih PO dulu', position: 'topCenter' });
+                return;
+            }
+
+            renderSaldoPo(saldoData);
+            bootstrap.Modal.getOrCreateInstance(el('saldoPoModal')).show();
+            loadSaldoPo(key);
+        });
+
+        $('#saldoPoModal')
+            .on('shown.bs.modal', () => saldoDt.columns.adjust())
+            .on('hidden.bs.modal', focusScan);
 
         // Tampilkan PO terpilih: reset state & pilih karton belum full pertama
         function applyPO(key) {

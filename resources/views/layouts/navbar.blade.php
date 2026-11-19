@@ -629,8 +629,8 @@
                                 </a>
                             </li> --}}
                             <li>
-                                <a href="{{ route('packing-list') }}"
-                                    class="dropdown-item {{ $subPage == 'packing-list' ? 'active' : '' }}">
+                                <a href="{{ route('packing-list-karton') }}"
+                                    class="dropdown-item {{ $subPage == 'packing-list-karton' ? 'active' : '' }}">
                                     Upload Packing List <i class="fas fa-file-upload fa-sm"></i>
                                 </a>
                             </li>
@@ -1397,6 +1397,18 @@
                                 <a href="{{ route('history-item-purchasing') }}"
                                     class="dropdown-item {{ $subPage == 'history-item-purchasing' ? 'active' : '' }}">
                                     History Pembelian <i class="fa-solid fa-list-ul fa-sm"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" data-bs-toggle="dropdown" aria-haspopup="true"aria-expanded="false"
+                            class="nav-link dropdown-toggle {{ $subPageGroup == 'general-request' ? 'active' : '' }}">General Request</a>
+                        <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
+                            <li>
+                                <a href="{{ route('general-request') }}"
+                                    class="dropdown-item {{ $subPage == 'general-request' ? 'active' : '' }}">
+                                    Input Request <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
                         </ul>

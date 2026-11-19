@@ -584,7 +584,17 @@
             .wt-ring-text b { font-size: 21px; }
             .wt-verdict { font-size: 14.5px; }
         }
+
+        /* Mode tanpa animasi: durasi dibuat nyaris nol (bukan none) supaya event animationend tetap jalan */
+        html.wt-no-anim *:not(.fa-spin), html.wt-no-anim *::before, html.wt-no-anim *::after {
+            animation-duration: .001ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important;
+            transition-duration: .001ms !important; transition-delay: 0s !important; scroll-behavior: auto !important;
+        }
     </style>
+    <script>
+        // Dipasang sedini mungkin supaya halaman tidak sempat beranimasi sebelum pilihan terbaca
+        try { if (localStorage.getItem('wt-no-anim') === '1') document.documentElement.classList.add('wt-no-anim'); } catch (e) { /* penyimpanan browser tidak tersedia */ }
+    </script>
 @endsection
 
 @section('content')
@@ -624,6 +634,7 @@
                     <a class="wt-btn-ghost wt-btn-3d" href="{{ route('work-tracker-world') }}"><i class="fa-solid fa-cube"></i> Dunia 3D</a>
                     <button type="button" class="wt-btn-ghost" id="wt-btn-guide" data-bs-toggle="modal" data-bs-target="#wt-guide-modal"><i class="fa-solid fa-circle-question"></i> Panduan</button>
                     <button type="button" class="wt-btn-ghost" id="wt-btn-programmer"><i class="fa-solid fa-users"></i> Anggota</button>
+                    <button type="button" class="wt-btn-ghost" id="wt-anim-toggle" aria-pressed="false" title="Matikan animasi"><i class="fa-solid fa-wand-magic-sparkles"></i> <span>Animasi: On</span></button>
                     <button type="button" class="wt-btn-light" id="wt-btn-add"><i class="fa-solid fa-plus"></i> Tambah Kerjaan</button>
                 </div>
             </div>
@@ -1071,6 +1082,23 @@
             const FILE_MAX_BYTES = 10 * 1024 * 1024;
             const $view = $('#wt-view');
 
+            function noAnim() {
+                return document.documentElement.classList.contains('wt-no-anim');
+            }
+
+            function setNoAnim(on, persist) {
+                document.documentElement.classList.toggle('wt-no-anim', on);
+                $('#wt-anim-toggle').attr({ 'aria-pressed': String(on), title: on ? 'Aktifkan animasi' : 'Matikan animasi' })
+                    .find('span').text(on ? 'Animasi: Off' : 'Animasi: On');
+                if (on) {
+                    const hero = document.getElementById('wt-hero');
+                    if (hero) { hero.style.setProperty('--mx', 0); hero.style.setProperty('--my', 0); }
+                }
+                if (persist) {
+                    try { localStorage.setItem('wt-no-anim', on ? '1' : '0'); } catch (e) { /* penyimpanan browser tidak tersedia */ }
+                }
+            }
+
             function esc(value) {
                 return $('<div>').text(value === null || value === undefined ? '' : value).html().replace(/"/g, '&quot;').replace(/'/g, '&#39;');
             }
@@ -1302,6 +1330,7 @@
                 // Ikon dan bulatan latar ikut bergeser mengikuti kursor
                 const hero = document.getElementById('wt-hero');
                 $(hero).on('mousemove', function (e) {
+                    if (noAnim()) return;
                     const r = hero.getBoundingClientRect();
                     hero.style.setProperty('--mx', (((e.clientX - r.left) / r.width) - .5) * 2);
                     hero.style.setProperty('--my', (((e.clientY - r.top) / r.height) - .5) * 2);
@@ -1332,7 +1361,7 @@
 
             function countUp(el, from, to, format) {
                 cancelAnimationFrame(el.wtCount);
-                if (from === to) {
+                if (from === to || noAnim()) {
                     el.textContent = format(to);
                     return;
                 }
@@ -2578,7 +2607,7 @@
 
             function celebrate(item) {
                 const colors = ['#2f80ed', '#12a150', '#f2c94c', '#eb5757', '#9b51e0'];
-                for (let n = 0; n < 110; n++) {
+                for (let n = 0; n < (noAnim() ? 0 : 110); n++) {
                     const piece = document.createElement('div');
                     piece.className = 'wt-confetti';
                     piece.style.left = Math.random() * 100 + 'vw';
@@ -2696,6 +2725,11 @@
                 $('#wt-f-status').val(state.view === 'report' ? '' : 'open').trigger('change.select2');
                 $('#wt-f-programmer').val('').trigger('change');
                 $('#wt-f-division').val([]).trigger('change');
+            });
+
+            setNoAnim(noAnim(), false);
+            $('#wt-anim-toggle').on('click', function () {
+                setNoAnim(!noAnim(), true);
             });
 
             $('#wt-arena-fold').on('click', function () {

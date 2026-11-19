@@ -118,7 +118,7 @@
             <li>
                 <a href="{{ route('stock-trolley') }}"
                     class="dropdown-item {{ $routeName == 'stock-trolley' ? 'active' : '' }}">
-                    Trolley <i class="fas fa-dolly-flatbed"></i>
+                    Stok Trolley <i class="fas fa-dolly-flatbed"></i>
                 </a>
             </li>
         </ul>
