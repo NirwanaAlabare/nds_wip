@@ -5155,7 +5155,8 @@ class InvoiceEximController extends Controller
         $jenis = "($fg AND c.bppbdate < '2026-08-01')
                   OR c.jenis_trans LIKE 'Penjualan%'
                   OR c.jenis_trans LIKE 'Pengiriman ke Subkontraktor CMT%'
-                  OR c.jenis_trans LIKE 'Pengiriman Sample%'";
+                  OR c.jenis_trans LIKE 'Pengiriman Sample%'
+                  OR c.jenis_trans LIKE 'Retur Pembelian Impor%'";
 
         $sql = "SELECT a.so_no AS no_so, c.bppbno AS sj, c.bppbdate, c.bppbno_int AS shipping_number,
                        d.kpno AS ws, d.styleno,
