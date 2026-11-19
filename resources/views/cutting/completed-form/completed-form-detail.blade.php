@@ -740,13 +740,17 @@
                         <div class="col-md-12">
                             <div class="summary-toolbar">
                                 <span class="summary-hint">
-                                    <i class="fa-solid fa-grip-vertical"></i> Geser untuk mengatur urutan roll
-                                    &nbsp;&middot;&nbsp;
+                                    @role("superadmin")
+                                        <i class="fa-solid fa-grip-vertical"></i> Geser untuk mengatur urutan roll
+                                        &nbsp;&middot;&nbsp;
+                                    @endrole
                                     <i class="fa-solid fa-link"></i> bagian dari sambungan
                                     &nbsp;&middot;&nbsp;
                                     Klik baris untuk edit
                                 </span>
-                                <button type="button" class="btn btn-success btn-sm" onclick="startAddRoll()"><i class="fa fa-plus"></i> Tambah Roll</button>
+                                @role("superadmin")
+                                    <button type="button" class="btn btn-success btn-sm" onclick="startAddRoll()"><i class="fa fa-plus"></i> Tambah Roll</button>
+                                @endrole
                             </div>
                             <div class="w-100 table-responsive my-3">
                                 <table class="table table-bordered table" id="scannedItemTable">
@@ -1563,7 +1567,7 @@
                                 <div class="cg-rc">Recalculate Form</div>
                             </div>
                             <div class="cg-z cg-card" data-spot="#summary-card">
-                                <a href="#cg-summary" class="cg-n" aria-label="Summary">5<span class="cg-tip" role="tooltip"><b>Summary</b>Daftar roll. Klik baris untuk edit, geser untuk ubah urutan, Tambah Roll untuk menyisipkan.</span></a>
+                                <a href="#cg-summary" class="cg-n" aria-label="Summary">5<span class="cg-tip" role="tooltip"><b>Summary</b>Daftar roll. Klik baris untuk edit. Geser urutan &amp; Tambah Roll khusus superadmin.</span></a>
                                 <div class="h">Summary</div>
                                 <div class="cg-bar"><span>⋮⋮ geser · 🔗 sambungan · klik baris</span><u>+ Tambah Roll</u></div>
                                 <div class="cg-tbl"><s></s><s>⋮⋮<em></em></s><s class="sel">⋮⋮<em></em></s><s class="ct">🔗<em></em></s><s>⋮⋮<em></em></s></div>
@@ -1633,9 +1637,9 @@
                         <h6><span>5. Summary</span> <button type="button" class="cg-show" data-spot="#summary-card"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
                         <ul>
                             <li><b>Klik baris</b> roll untuk memuatnya ke form <b>Spreading</b> di bawah. Baris yang sedang diedit berwarna biru muda.</li>
-                            <li><b><i class="fa-solid fa-grip-vertical"></i> Geser</b> pegangan di kolom pertama untuk mengubah urutan roll. Setelah dikonfirmasi, urutan disimpan dan form dihitung ulang.</li>
+                            <li><b><i class="fa-solid fa-grip-vertical"></i> Geser</b> pegangan di kolom pertama untuk mengubah urutan roll (<b>khusus superadmin</b>). Setelah dikonfirmasi, urutan disimpan dan form dihitung ulang.</li>
                             <li>Baris dengan <b><i class="fa-solid fa-link"></i></b> dan garis kiri biru adalah <b>roll sambungan</b>; ikut pindah bersama roll di atasnya.</li>
-                            <li><b><i class="fa fa-plus"></i> Tambah Roll</b>: pilih posisi sisip, lalu scan ID Roll di form Spreading dan simpan.</li>
+                            <li><b><i class="fa fa-plus"></i> Tambah Roll</b> (<b>khusus superadmin</b>): pilih posisi sisip, lalu scan ID Roll di form Spreading dan simpan.</li>
                             <li><b>Operator</b> dan <b>Cons. Actual</b> wajib terisi. Tanpa itu, simpan akan ditolak.</li>
                         </ul>
                     </section>
@@ -1691,6 +1695,9 @@
     <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         var id = document.getElementById("id").value;
+
+        // Geser urutan & tambah roll khusus superadmin
+        const canArrangeRoll = {{ Auth::user()->roles->whereIn("nama_role", ["superadmin"])->count() > 0 ? 'true' : 'false' }};
 
         var summaryData = null;
         var totalSummaryData = 0;
@@ -1972,6 +1979,7 @@
 
         // -Reorder Roll (drag & drop)-
         $(summaryItemTableTbody).sortable({
+            disabled: !canArrangeRoll,
             items: '> tr.roll-head',
             handle: '.roll-drag-handle',
             axis: 'y',
@@ -2013,6 +2021,8 @@
         }
 
         async function saveRollOrder() {
+            if (!canArrangeRoll) return;
+
             let order = $(summaryItemTableTbody).children('tr.roll-head').toArray().map((row) => row.dataset.id);
 
             // Konfirmasi bypass stocker (sama seperti simpan / hapus roll)
@@ -2366,6 +2376,8 @@
         });
 
         async function startAddRoll() {
+            if (!canArrangeRoll) return;
+
             let positions = new Map();
             positions.set("_start", "Di awal (sebelum roll pertama)");
             $(summaryItemTableTbody).children('tr.roll-head').each(function() {
@@ -2460,6 +2472,8 @@
         }
 
         async function storeAddedRoll() {
+            if (!canArrangeRoll) return;
+
             let idRoll = document.getElementById("current_id_roll").value;
             if (!idRoll || idRoll == '-' || !document.getElementById("current_unit").value) {
                 return Swal.fire({
@@ -2583,7 +2597,7 @@
                 currentRollHeadId = data.id;
                 tr.classList.add('roll-head');
                 tr.dataset.label = (totalScannedItem + 1) + '. ' + (data.id_roll ? data.id_roll : '-') + ' (Group ' + (data.group_roll ? data.group_roll : '-') + ')';
-                tdHandle.innerHTML = '<i class="fa-solid fa-grip-vertical roll-drag-handle" title="Drag untuk atur urutan roll"></i>';
+                tdHandle.innerHTML = canArrangeRoll ? '<i class="fa-solid fa-grip-vertical roll-drag-handle" title="Drag untuk atur urutan roll"></i>' : '';
             } else {
                 tr.classList.add('roll-continuation');
                 tdHandle.innerHTML = '<i class="fa-solid fa-link roll-link-icon" title="Bagian dari sambungan, ikut pindah bersama roll di atasnya"></i>';
@@ -4564,7 +4578,7 @@
                 { sel: '#recalculate-btn', sec: 'cg-recalc', lbl: '4. Recalculate Form',
                   d: 'Menghitung ulang seluruh form dari data roll. Pakai bila angka terlihat tidak sesuai.' },
                 { sel: '#summary-card', sec: 'cg-summary', lbl: '5. Summary',
-                  d: '<b>Klik baris</b> untuk edit roll · <b>geser</b> pegangan untuk ubah urutan · <b>Tambah Roll</b> untuk menyisipkan roll. <b>Operator</b> wajib diisi.' },
+                  d: '<b>Klik baris</b> untuk edit roll' + (canArrangeRoll ? ' · <b>geser</b> pegangan untuk ubah urutan · <b>Tambah Roll</b> untuk menyisipkan roll' : '') + '. <b>Operator</b> wajib diisi.' },
                 { sel: '#spreading-form-card', sec: 'cg-spread', lbl: '6. Spreading',
                   d: 'Form roll terpilih. Ubah lembar gelaran, kepala kain, sisa kain, dll. Kolom merah dihitung otomatis. Tekan <b>SIMPAN</b>.' },
                 { sel: '#add-roll-ext-section:not(.d-none)|#sisa-gelaran-col', sec: 'cg-ext', lbl: '7. Roll sambungan',
