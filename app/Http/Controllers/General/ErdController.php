@@ -77,6 +77,11 @@ class ErdController extends Controller
         return response()->json($this->erd->preview($id, $request->tables));
     }
 
+    public function sql(Request $request, $id)
+    {
+        return response()->json($this->erd->sqlScript($id, $request->query('tables')));
+    }
+
     public function apply(Request $request, $id)
     {
         return response()->json($this->erd->apply($id, auth()->user(), $request->tables, $request->query('after', 0)));
