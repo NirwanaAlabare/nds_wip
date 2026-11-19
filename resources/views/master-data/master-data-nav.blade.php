@@ -30,6 +30,12 @@
                     Master Item General <i class="fa-solid fa-boxes-stacked fa-sm"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('master-data-group-general') }}"
+                    class="dropdown-item {{ (isset($subPage) && $subPage == 'master-group-general') ? 'active' : '' }}">
+                    Master Group General <i class="fa-solid fa-layer-group fa-sm"></i>
+                </a>
+            </li>
         </ul>
     </li>
 @endrole

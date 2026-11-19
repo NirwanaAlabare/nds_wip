@@ -10,7 +10,8 @@
    Animasi sengaja tidak dibatasi prefers-reduced-motion (PC kantor
    mematikan animation effects, tapi animasi tetap diminta tampil).
    ===================================================================== */
-.md-dash { max-width: 1200px; margin: 0 auto; padding-bottom: 24px; }
+/* Selebar layar (containerFluid) - tidak dibatasi di tengah */
+.md-dash { padding-bottom: 24px; }
 
 /* ---------- Banner ---------- */
 .md-hero {
@@ -122,9 +123,10 @@
 
 /* Pilihan daftar tujuan: segmen dengan penanda yang bergeser */
 .md-cakupan {
+  --jumlah: 3;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--jumlah), 1fr);
   margin-top: 10px;
   padding: 3px;
   border-radius: 10px;
@@ -135,7 +137,7 @@
   top: 3px;
   bottom: 3px;
   left: 3px;
-  width: calc((100% - 6px) / 3);
+  width: calc((100% - 6px) / var(--jumlah));
   border-radius: 8px;
   background: rgba(255, 255, 255, .95);
   transition: transform .3s cubic-bezier(.22, 1, .36, 1);
@@ -149,27 +151,42 @@
   color: #dbe7f5;
   font-size: 12px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: color .2s ease;
 }
 .md-cakupan button i { margin-right: 4px; font-size: 11px; }
 .md-cakupan button.is-pilih { color: #1e3a5f; }
 
 /* ---------- Kartu ---------- */
+/* Jumlah kolom = jumlah kartu (--kolom, diisi dari Blade). Empat kartu berjajar di layar lebar,
+   2 x 2 di layar sedang (kartu terlalu sempit untuk donut + legenda), satu kolom di HP. */
 .md-dash-grid {
+  --kolom: 3;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--kolom), minmax(0, 1fr));
   gap: 18px;
 }
+@media (max-width: 1399.98px) { .md-dash-grid.is-empat { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 991.98px) { .md-dash-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 575.98px) {
-  .md-dash-grid { grid-template-columns: 1fr; }
+  .md-dash-grid,
+  .md-dash-grid.is-empat { grid-template-columns: 1fr; }
   .md-hero { padding: 20px 18px; }
+}
+/* Empat kolom di layar 1400-1699px: donut sedikit lebih kecil supaya legenda tetap muat */
+@media (min-width: 1400px) and (max-width: 1699.98px) {
+  .md-dash-grid.is-empat .md-donut { width: 112px; height: 112px; }
+  .md-dash-grid.is-empat .md-kartu-tengah { gap: 12px; }
+  .md-dash-grid.is-empat .md-donut-angka { font-size: 20px; }
 }
 
 .md-kartu { --aksen: #1e3a5f; --aksen-muda: #e8eef6; --mx: 50%; --my: 0%; }
 .md-kartu.is-customer { --aksen: #2563eb; --aksen-muda: #e7efff; }
 .md-kartu.is-supplier { --aksen: #0d9488; --aksen-muda: #e3f5f2; }
 .md-kartu.is-item     { --aksen: #7c3aed; --aksen-muda: #f0e9ff; }
+.md-kartu.is-grup     { --aksen: #d97706; --aksen-muda: #fef3e2; }
 
 .md-kartu {
   position: relative;
@@ -189,6 +206,7 @@
 .md-kartu:nth-child(1) { animation-delay: .08s; }
 .md-kartu:nth-child(2) { animation-delay: .16s; }
 .md-kartu:nth-child(3) { animation-delay: .24s; }
+.md-kartu:nth-child(4) { animation-delay: .32s; }
 .md-kartu::before {
   content: "";
   position: absolute;
@@ -310,8 +328,9 @@
 .md-rinci-panah { font-size: 10px; color: #cbd5e1; transition: color .15s ease, transform .15s ease; }
 .md-rinci a:hover .md-rinci-panah { color: var(--aksen); transform: translateX(2px); }
 
-/* Aksi bawah */
+/* Aksi bawah - selalu di dasar kartu walau legenda kartu sebelahnya lebih panjang */
 .md-kartu-bawah {
+  margin-top: auto;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -403,7 +422,7 @@
                         <kbd class="md-cari-kunci" title="Press / to search">/</kbd>
                         <button type="submit" class="md-cari-tombol">Search</button>
                     </div>
-                    <div class="md-cakupan" id="md-cakupan" role="tablist">
+                    <div class="md-cakupan" id="md-cakupan" role="tablist" style="--jumlah: {{ count($kartu) }}">
                         <span class="md-cakupan-penanda"></span>
                         @foreach ($kartu as $i => $k)
                             <button type="button" role="tab" data-href="{{ route($k['rute']) }}" class="{{ $i === 0 ? 'is-pilih' : '' }}" aria-selected="{{ $i === 0 ? 'true' : 'false' }}">
@@ -416,7 +435,7 @@
         </section>
 
         {{-- ===== Kartu per daftar ===== --}}
-        <div class="md-dash-grid">
+        <div class="md-dash-grid {{ count($kartu) >= 4 ? 'is-empat' : '' }}" style="--kolom: {{ count($kartu) }}">
             @foreach ($kartu as $k)
                 @php
                     $a = $k['angka'];
@@ -429,7 +448,8 @@
                         $status[] = ['kelas' => 'blokir', 'label' => 'Blocked', 'nilai' => $a['blokir']];
                     }
                 @endphp
-                <div class="md-kartu is-{{ $k['kunci'] }}" role="link" tabindex="0" data-href="{{ route($k['rute']) }}" data-total="{{ $a['total'] }}">
+                <div class="md-kartu is-{{ $k['kunci'] }}" role="link" tabindex="0" data-href="{{ route($k['rute']) }}" data-total="{{ $a['total'] }}"
+                    data-satuan="{{ $k['satuan'] ?? 'records' }}">
                     <div class="md-kartu-atas">
                         <span class="md-kartu-ikon"><i class="fa-solid {{ $k['ikon'] }}"></i></span>
                         <div>
@@ -453,7 +473,7 @@
                             </svg>
                             <div class="md-donut-tengah">
                                 <span class="md-donut-angka" data-angka="{{ $a['total'] }}">{{ number_format($a['total']) }}</span>
-                                <span class="md-donut-label">records</span>
+                                <span class="md-donut-label">{{ $k['satuan'] ?? 'records' }}</span>
                             </div>
                         </div>
 
@@ -558,7 +578,7 @@
         } else {
             delete kartu.dataset.fokus;
             angka.textContent = format.format(kartu.dataset.total);
-            label.textContent = 'records';
+            label.textContent = kartu.dataset.satuan || 'records';
         }
         tengah.classList.remove('is-ganti');
         void tengah.offsetWidth;
