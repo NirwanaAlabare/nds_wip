@@ -50,6 +50,7 @@
     .table-item:hover { background: #f1f5fb; }
     .table-item.active { background: #e8f1ff; color: var(--sb); }
     .table-item.active .nm { font-weight: 600; }
+    .table-item.multi { background: #dbeafe; box-shadow: inset 3px 0 0 #2f80ed; }
     .table-item .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
     .table-item .info { flex: 1; min-width: 0; line-height: 1.25; }
     .table-item .nm { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
@@ -104,6 +105,13 @@
     .empty-card p { color: var(--muted); margin-bottom: 16px; }
     .btn-sb { background: var(--sb); color: #fff; }
     .btn-sb:hover, .btn-sb:focus { background: #0d2f66; color: #fff; }
+    .multi-bar { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; background: var(--sb); color: #fff; padding: 6px 8px 6px 14px; border-radius: 999px; font-size: 12.5px; box-shadow: 0 6px 18px rgba(8,33,73,.25); z-index: 5; white-space: nowrap; }
+    .multi-bar button { border: none; border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 600; }
+    .multi-bar .go { background: #fff; color: var(--sb); }
+    .multi-bar .x { background: transparent; color: #cbd5e1; padding: 3px 6px; }
+    .multi-bar .x:hover { color: #fff; }
+    .sql-actions { display: flex; gap: 6px; justify-content: flex-end; margin-bottom: 6px; }
+    .sql-tables { text-align: left; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
     .canvas-hint { position: absolute; left: 12px; bottom: 12px; background: rgba(8,33,73,.85); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 12px; pointer-events: none; }
 
     .erd-status { background: #fff; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding: 0 12px; color: var(--muted); font-size: 12px; }
@@ -269,6 +277,11 @@
             <div class="minimap d-none" id="minimap" title="Klik / geser untuk pindah area">
                 <svg id="minimapSvg" width="180" height="120"></svg>
             </div>
+            <div class="multi-bar d-none" id="multiBar">
+                <span><i class="fa-regular fa-square-check"></i> <b id="multiCount">0</b> tabel dipilih</span>
+                <button class="go" id="btnMultiSql" title="Lihat CREATE TABLE tabel yang dipilih"><i class="fa-solid fa-code"></i> Lihat SQL</button>
+                <button class="x" id="btnMultiClear" title="Batal pilih (Esc)"><i class="fa-solid fa-xmark"></i></button>
+            </div>
             <div class="canvas-hint" id="canvasHint" style="display:none">Lepas di kolom tujuan, atau di header tabel draft untuk membuat kolom FK otomatis. Tabel tujuan jauh? Tahan <kbd>Spasi</kbd> sambil gerakkan mouse untuk menggeser kanvas.</div>
         </div>
 
@@ -374,6 +387,7 @@
         preview: "{{ route('preview-erd', ':id') }}",
         apply: "{{ route('apply-erd', ':id') }}",
         undo: "{{ route('undo-erd', ':id') }}",
+        sql: "{{ route('sql-erd', ':id') }}",
     };
     const ME = @json(auth()->user()->username);
 </script>
@@ -394,6 +408,7 @@
     let diagrams = [], connections = [], activities = [], online = [];
     let view = { x: 40, y: 40, k: 1 };
     let sel = null;              // {kind:'table', id, col} | {kind:'rel', id}
+    let multi = new Set();       // tabel yang dipilih dengan Ctrl/Shift + klik (untuk Lihat SQL)
     let panelTab = 'props';
     let drag = null, pan = null, conn = null;
     let W = {};                  // cache lebar tabel
@@ -550,15 +565,30 @@
         renderTableList();
         renderStatus();
         renderToolbar();
+        renderMultiBar();
     }
+
+    function renderMultiBar() {
+        if (data) multi = new Set([...multi].filter((id) => tbl(id)));
+        document.getElementById('multiBar').classList.toggle('d-none', !multi.size);
+        document.getElementById('multiCount').textContent = multi.size;
+    }
+    // Ctrl/Shift + klik: tambah / lepas tabel dari pilihan. Tabel yang sedang dipilih biasa ikut masuk.
+    function toggleMulti(id) {
+        if (!multi.size && sel?.kind === 'table' && sel.id !== id) multi.add(sel.id);
+        multi.has(id) ? multi.delete(id) : multi.add(id);
+        render();
+    }
+    function clearMulti() { if (multi.size) { multi = new Set(); render(); } }
 
     function tableSvg(t, fkSet, hiSet) {
         const w = W[t.id], h = tableHeight(t);
-        const isSel = sel?.kind === 'table' && sel.id === t.id;
+        const isSel = (sel?.kind === 'table' && sel.id === t.id) || multi.has(t.id);
         const fresh = justCreated.has(t.id);
         const stroke = isSel ? '#2f80ed' : (fresh ? '#16a34a' : (t.draft ? '#f0a35e' : '#d5dbe5'));
         let s = `<g class="tbl" data-t="${esc(t.id)}" transform="translate(${t.x},${t.y})">`;
         if (fresh) s += `<rect x="-5" y="-5" width="${w + 10}" height="${h + 10}" rx="11" fill="#16a34a" opacity=".15"/>`;
+        else if (multi.has(t.id)) s += `<rect x="-5" y="-5" width="${w + 10}" height="${h + 10}" rx="11" fill="#2f80ed" opacity=".15"/>`;
         s += `<rect x="2" y="3" width="${w}" height="${h}" rx="7" fill="#0b1f44" opacity=".07"/>`;
         s += `<rect width="${w}" height="${h}" rx="7" fill="#fff" stroke="${stroke}" stroke-width="${isSel || fresh ? 2 : (t.draft ? 1.5 : 1)}"${t.draft ? ' stroke-dasharray="6 4"' : ''}/>`;
         s += `<path class="tbl-head" d="M0 7a7 7 0 0 1 7-7H${w - 7}a7 7 0 0 1 7 7V${HEAD}H0Z" fill="${t.color}"/>`;
@@ -921,7 +951,7 @@
         const q = document.getElementById('tableSearch').value.toLowerCase();
         const items = [...(data?.tables || [])].sort((a, b) => a.name.localeCompare(b.name)).filter((t) => t.name.toLowerCase().includes(q));
         document.getElementById('tableList').innerHTML = items.map((t) => `
-            <div class="table-item ${sel?.kind === 'table' && sel.id === t.id ? 'active' : ''} ${isShown(t.id) ? '' : 'is-hidden'}" data-t="${esc(t.id)}">
+            <div class="table-item ${sel?.kind === 'table' && sel.id === t.id ? 'active' : ''} ${multi.has(t.id) ? 'multi' : ''} ${isShown(t.id) ? '' : 'is-hidden'}" data-t="${esc(t.id)}">
                 <button class="eye" data-eye="${esc(t.id)}" title="${isShown(t.id) ? 'Sembunyikan dari kanvas' : 'Tampilkan di kanvas'}"><i class="fa-regular ${isShown(t.id) ? 'fa-eye' : 'fa-eye-slash'}"></i></button>
                 <span class="dot" style="background:${t.color}"></span>
                 <div class="info" title="${esc(t.name)}">
@@ -1006,6 +1036,7 @@
                 <li>Relasi: tarik <b>titik bulat</b> di sisi kolom ke kolom lain, atau pakai <b>Tambah FK ke</b> di panel tabel draft.</li>
                 <li>Klik <b>▶</b> di header tabel draft (atau <b>Buat di DB</b>) untuk membuat tabelnya di database.</li>
                 <li>Tabel yang sudah ada di database <b>dikunci</b>. Ubah strukturnya langsung di database, diagram mengikuti otomatis.</li>
+                <li><kbd>Ctrl</kbd>/<kbd>Shift</kbd> + klik beberapa tabel, lalu <b>Lihat SQL</b> untuk mendapatkan <code>CREATE TABLE</code>-nya.</li>
                 <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> membatalkan aksi Anda sendiri. <kbd>Delete</kbd> menghapus draft/relasi.</li>
             </ul>
             <div class="p-label">Cara mengetik kolom</div>
@@ -1070,6 +1101,7 @@
         const common = `
             <div class="d-flex gap-2 mt-2">
                 <button class="btn btn-sm btn-outline-secondary flex-fill" data-act="focus" title="Tampilkan hanya tabel ini dan tabel yang berelasi langsung"><i class="fa-solid fa-crosshairs"></i> Fokus + relasinya</button>
+                <button class="btn btn-sm btn-outline-secondary" data-act="sql" title="Lihat CREATE TABLE. Ctrl/Shift + klik tabel lain untuk memilih beberapa sekaligus."><i class="fa-solid fa-code"></i> SQL</button>
                 <button class="btn btn-sm btn-outline-secondary" data-act="hide" title="Sembunyikan dari kanvas (hanya untuk Anda)"><i class="fa-regular fa-eye-slash"></i></button>
             </div>
             <div class="p-label">Warna header</div>${swatches(t)}
@@ -1670,6 +1702,7 @@
             case 'deltable': deleteSelection(); return;
             case 'apply': applyToDb([t.id]); return;
             case 'focus': focusTable(t.id); return;
+            case 'sql': showSql([t.id]); return;
             case 'hide': hideTables([t.id]); return;
             case 'dup': duplicateTable(t); return;
             case 'addfk': {
@@ -1874,7 +1907,9 @@
         const relEl = e.target.closest('.rel');
         if (relEl) { select({ kind: 'rel', id: relEl.dataset.r }); return; }
         const tblEl = e.target.closest('.tbl');
+        if (tblEl && (e.ctrlKey || e.shiftKey || e.metaKey)) { toggleMulti(tblEl.dataset.t); return; }
         if (tblEl) {
+            multi = new Set();
             const t = tbl(tblEl.dataset.t), row = e.target.closest('.erd-row');
             data.tables = data.tables.filter((x) => x !== t).concat(t); // bawa ke depan
             drag = { t, dx: p.x - t.x, dy: p.y - t.y, moved: false };
@@ -1883,7 +1918,8 @@
         }
         pan = { sx: e.clientX, sy: e.clientY, vx: view.x, vy: view.y };
         svg.classList.add('panning');
-        if (sel) select(null);
+        multi = new Set();
+        if (sel) select(null); else renderMultiBar();
     });
 
     window.addEventListener('pointermove', (e) => {
@@ -2133,6 +2169,49 @@
         });
     }
 
+    // ===== Lihat SQL tabel pilihan (dokumentasi, tidak dijalankan) =====
+    async function showSql(names) {
+        if (!data || !names.length) return;
+        await opQueue;
+        let r;
+        try {
+            Swal.fire({ title: 'Menyiapkan SQL...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            r = await $.get(ROUTES.sql.replace(':id', data.id), { tables: names });
+        } catch (x) { Swal.close(); toast(errMsg(x), 'error'); return; }
+        const notes = r.notes.map((m) => `<div><i class="fa-solid fa-circle-info" style="color:#b45309"></i> ${formatDesc(m)}</div>`).join('');
+        const order = r.tables.map((t) => `<code>${esc(t.name)}</code>${t.draft ? ' <span class="badge-draft">DRAFT</span>' : ''}`).join(' &rarr; ');
+        Swal.fire({
+            title: `SQL ${r.tables.length} Tabel`, width: 900,
+            html: `
+                ${notes ? `<div class="alert alert-warning py-2 text-start small">${notes}</div>` : ''}
+                <div class="sql-tables">Urutan: ${order}</div>
+                <div class="sql-actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="sqlCopy"><i class="fa-regular fa-copy"></i> Copy</button>
+                    <button type="button" class="btn btn-sm btn-sb" id="sqlDownload"><i class="fa-solid fa-download"></i> Download .sql</button>
+                </div>
+                <div class="sql-box" style="max-height:55vh">${esc(r.sql)}</div>`,
+            confirmButtonText: 'Tutup', confirmButtonColor: '#082149',
+            didOpen: (el) => {
+                el.querySelector('#sqlCopy').addEventListener('click', async (e) => {
+                    const btn = e.currentTarget;
+                    try { await navigator.clipboard.writeText(r.sql); }
+                    catch (err) {
+                        // http (bukan https): clipboard API tidak tersedia, pakai cara lama
+                        const ta = document.createElement('textarea');
+                        ta.value = r.sql; el.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+                    }
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Tersalin';
+                });
+                el.querySelector('#sqlDownload').addEventListener('click', () => {
+                    const base = r.tables.length === 1 ? r.tables[0].name : `${fileBase()}_${r.tables.length}_tabel`;
+                    download(base.replace(/[^\w\-]+/g, '_') + '.sql', r.sql, 'text/plain');
+                });
+            },
+        });
+    }
+    document.getElementById('btnMultiSql').addEventListener('click', () => showSql([...multi]));
+    document.getElementById('btnMultiClear').addEventListener('click', clearMulti);
+
     // ===== Export =====
     function download(name, content, type) {
         const blob = content instanceof Blob ? content : new Blob([content], { type });
@@ -2235,6 +2314,8 @@
         if (!it) return;
         const t = tbl(it.dataset.t);
         if (!isShown(t.id)) showTables([t.id]);   // klik nama tabel tersembunyi = tampilkan
+        if (e.ctrlKey || e.shiftKey || e.metaKey) { toggleMulti(t.id); return; }
+        multi = new Set();
         select({ kind: 'table', id: t.id });
         centerOn(t);
     });
@@ -2251,7 +2332,7 @@
         if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.querySelector('.modal.show, .swal2-container')) return;
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
         else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSelection(); }
-        else if (e.key === 'Escape') select(null);
+        else if (e.key === 'Escape') { multi = new Set(); select(null); }
     });
 
     // ===== Pengaturan =====

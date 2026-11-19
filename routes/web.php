@@ -92,6 +92,7 @@ use App\Http\Controllers\PPICDashboardController;
 use App\Http\Controllers\PPICLineMapController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\Purchasing\BookingStockController;
+use App\Http\Controllers\Purchasing\GeneralRequestController;
 use App\Http\Controllers\PurchasingController;
 use App\Http\Controllers\PurchasingDashboardController;
 use App\Http\Controllers\PurchasingReportController;
@@ -896,6 +897,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('packing-out-scan');
         Route::get('/create', 'create')->name('create-packing-out-scan');
         Route::get('/get-carton-data', 'getCartonData')->name('get-carton-data-packing-out-scan');
+        Route::get('/get-saldo-po', 'getSaldoPo')->name('get-saldo-po-packing-out-scan');
         Route::post('/store', 'store')->name('store-packing-out-scan');
         Route::post('/destroy', 'destroy')->name('destroy-packing-out-scan');    
     });
@@ -2167,6 +2169,11 @@ Route::middleware('auth')->group(function () {
         Route::delete('/delete/{id}', 'delete')->name('booking-stock-delete');
         Route::get('/export-excel', 'exportExcel')->name('booking-stock-export');
         Route::get('/get-ws-asal', 'getWsAsal')->name('booking-stock-get-ws-asal');
+    });
+
+    // General Request (MOCKUP - data masih dummy)
+    Route::controller(GeneralRequestController::class)->prefix("general-request")->middleware('role:purchasing')->group(function () {
+        Route::get('/', 'index')->name('general-request');
     });
 
     Route::controller(PurchasingDashboardController::class)->middleware('role:purchasing')->group(function () {
