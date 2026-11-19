@@ -987,6 +987,21 @@ class PackingCentralSwitchingController extends Controller
             $item[$kunci($m->ws, $m->styleno, $m->color, $m->size)] = true;
         }
 
+        $saldo = 0;
+        foreach ($this->saldoAkhirDetailTransaksiPerItem($po) as $row) {
+            if (isset($item[$kunci($row->ws, $row->styleno, $row->color, $row->size)])) {
+                $saldo += (int) $row->qty;
+            }
+        }
+
+        return $saldo;
+    }
+
+    // Saldo Akhir Detail Transaksi hari ini untuk 1 PO, per item (ws/style/color/size).
+    // Dipakai cek stok scan Packing Out dan info qty stok di layar scan.
+    // $dest diisi -> hanya PO + dest tersebut (transaksi tanpa id PPIC dicocokkan lewat dest so_det / snapshot).
+    public function saldoAkhirDetailTransaksiPerItem($po, $dest = null)
+    {
         // Hasil sama dengan buildQueryDetailTransaksi($today, $today, '', $po) -> SUM(saldo_akhir),
         // tetapi filter PO dipasang di tiap sumber (bukan di akhir) supaya tidak menghitung semua PO.
         // Sumber tanpa PO (bppb, inject mutasi, wip_adjustment, wip_switching_adj) selalu 'TANPA PO' -> tidak ikut.
@@ -994,29 +1009,37 @@ class PackingCentralSwitchingController extends Controller
         $mulai = date('Y-m-d', strtotime($tgl_saldo . ' +1 day'));
         $tgl_akhir = max(date('Y-m-d'), $mulai);
 
-        $idPpic = DB::table('ppic_master_so')->where('po', $po)->pluck('id')->all();
+        $idPpic = DB::table('ppic_master_so')
+            ->where('po', $po)
+            ->when($dest !== null, fn ($q) => $q->where('dest', $dest))
+            ->pluck('id')->all();
         if (empty($idPpic)) {
             $idPpic = [null];
         }
         $in = implode(',', array_fill(0, count($idPpic), '?'));
 
+        // Filter dest untuk baris tanpa id PPIC (dicocokkan lewat po)
+        $pf = $dest === null ? [$po] : [$po, $dest];
+        $dS = $dest === null ? '' : 'AND s.dest = ?';
+        $dM = $dest === null ? '' : 'AND msw.dest = ?';
+
         $bindings = array_merge(
-            [$tgl_saldo], $idPpic, [$po],   // snapshot
+            [$tgl_saldo], $idPpic, $pf,     // snapshot
             $idPpic,                        // packing line
             $idPpic,                        // packing out scan
-            $idPpic, [$po],                 // switching out
+            $idPpic, $pf,                   // switching out
             $idPpic,                        // switching in
-            $idPpic, [$po],                 // gudang stok + temporary
-            $idPpic, [$po]                  // keluar gudang stok
+            $idPpic, $pf,                   // gudang stok + temporary
+            $idPpic, $pf                    // keluar gudang stok
         );
 
-        $rows = DB::select("
+        return DB::select("
             SELECT t.ws, t.styleno, t.color, t.size, SUM(t.qty) AS qty
             FROM (
                 SELECT s.ws, s.styleno, s.color, s.size, s.qty AS qty
                 FROM saldo_wip_packing_central s
                 WHERE s.tgl_saldo = ?
-                    AND (s.id_ppic_master_so IN ($in) OR (s.id_ppic_master_so IS NULL AND s.po = ?))
+                    AND (s.id_ppic_master_so IN ($in) OR (s.id_ppic_master_so IS NULL AND s.po = ? {$dS}))
 
                 UNION ALL
 
@@ -1047,7 +1070,7 @@ class PackingCentralSwitchingController extends Controller
                     LEFT JOIN master_sb_ws msw ON msw.id_so_det = sw.asal_so_det_id
                 WHERE date(sw.created_at) >= '{$mulai}'
                     AND date(sw.created_at) <= '{$tgl_akhir}'
-                    AND (sw.asal_ppic_master_so_id IN ($in) OR (sw.asal_ppic_master_so_id IS NULL AND asal.po = ?))
+                    AND (sw.asal_ppic_master_so_id IN ($in) OR (sw.asal_ppic_master_so_id IS NULL AND asal.po = ? {$dM}))
 
                 UNION ALL
 
@@ -1066,7 +1089,7 @@ class PackingCentralSwitchingController extends Controller
                 WHERE pi.tgl_penerimaan >= '{$mulai}'
                     AND pi.tgl_penerimaan <= '{$tgl_akhir}'
                     AND pi.sumber IN ('FGS', 'TEMPORARY PACKING')
-                    AND (pi.id_ppic_master_so IN ($in) OR (pi.id_ppic_master_so IS NULL AND pi.po = ?))
+                    AND (pi.id_ppic_master_so IN ($in) OR (pi.id_ppic_master_so IS NULL AND pi.po = ? {$dM}))
 
                 UNION ALL
 
@@ -1076,19 +1099,10 @@ class PackingCentralSwitchingController extends Controller
                 WHERE g.created_at >= '{$mulai} 00:00:00'
                     AND g.created_at <= '{$tgl_akhir} 23:59:59'
                     AND g.lokasi_asal = 'PACKING CENTRAL'
-                    AND (g.ppic_master_so_id IN ($in) OR (g.ppic_master_so_id IS NULL AND g.po = ?))
+                    AND (g.ppic_master_so_id IN ($in) OR (g.ppic_master_so_id IS NULL AND g.po = ? {$dM}))
             ) t
             GROUP BY t.ws, t.styleno, t.color, t.size
         ", $bindings);
-
-        $saldo = 0;
-        foreach ($rows as $row) {
-            if (isset($item[$kunci($row->ws, $row->styleno, $row->color, $row->size)])) {
-                $saldo += (int) $row->qty;
-            }
-        }
-
-        return $saldo;
     }
 
     // Sumber dan perhitungan kolom Packing Central mengikuti PackingReportController::buildQueryMutasiPacking,

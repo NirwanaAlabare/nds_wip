@@ -896,6 +896,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('packing-out-scan');
         Route::get('/create', 'create')->name('create-packing-out-scan');
         Route::get('/get-carton-data', 'getCartonData')->name('get-carton-data-packing-out-scan');
+        Route::get('/get-saldo-po', 'getSaldoPo')->name('get-saldo-po-packing-out-scan');
         Route::post('/store', 'store')->name('store-packing-out-scan');
         Route::post('/destroy', 'destroy')->name('destroy-packing-out-scan');    
     });
