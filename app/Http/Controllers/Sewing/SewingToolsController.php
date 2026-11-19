@@ -67,17 +67,20 @@ class SewingToolsController extends Controller
                 userpassword.line_id as actual_line_id,
                 master_plan.sewing_line as plan_sewing_line,
                 plan_line.line_id as plan_line_id,
-                actual_plan.id as actual_plan_id,
+                MAX(actual_plan.id) as actual_plan_id,
                 master_plan.id as plan_plan_id,
+                (so_det.id IS NOT NULL AND (so.id_cost != master_plan.id_ws OR TRIM(so_det.color) != TRIM(master_plan.color))) as plan_mismatch,
                 MAX(plan_user.id) as plan_user_id
             FROM
                 output_rfts
                 LEFT JOIN user_sb_wip on user_sb_wip.id = output_rfts.created_by
                 LEFT JOIN userpassword on userpassword.line_id = user_sb_wip.line_id
                 LEFT JOIN master_plan on master_plan.id = output_rfts.master_plan_id
+                LEFT JOIN so_det on so_det.id = output_rfts.so_det_id
+                LEFT JOIN so on so.id = so_det.id_so
                 LEFT JOIN userpassword plan_line on plan_line.username = master_plan.sewing_line
                 LEFT JOIN user_sb_wip plan_user on plan_user.line_id = plan_line.line_id
-                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = master_plan.id_ws and actual_plan.color = master_plan.color and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username and (actual_plan.cancel IS NULL OR actual_plan.cancel != 'Y')
+                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = COALESCE(so.id_cost, master_plan.id_ws) and TRIM(actual_plan.color) = COALESCE(TRIM(so_det.color), TRIM(master_plan.color)) and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username and (actual_plan.cancel IS NULL OR actual_plan.cancel != 'Y')
             WHERE
                 output_rfts.updated_at between '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
                 AND (userpassword.username != master_plan.sewing_line)
@@ -94,17 +97,20 @@ class SewingToolsController extends Controller
                 userpassword.line_id as actual_line_id,
                 master_plan.sewing_line as plan_sewing_line,
                 plan_line.line_id as plan_line_id,
-                actual_plan.id as actual_plan_id,
+                MAX(actual_plan.id) as actual_plan_id,
                 master_plan.id as plan_plan_id,
+                (so_det.id IS NOT NULL AND (so.id_cost != master_plan.id_ws OR TRIM(so_det.color) != TRIM(master_plan.color))) as plan_mismatch,
                 MAX(plan_user.id) as plan_user_id
             FROM
                 output_defects
                 LEFT JOIN user_sb_wip on user_sb_wip.id = output_defects.created_by
                 LEFT JOIN userpassword on userpassword.line_id = user_sb_wip.line_id
                 LEFT JOIN master_plan on master_plan.id = output_defects.master_plan_id
+                LEFT JOIN so_det on so_det.id = output_defects.so_det_id
+                LEFT JOIN so on so.id = so_det.id_so
                 LEFT JOIN userpassword plan_line on plan_line.username = master_plan.sewing_line
                 LEFT JOIN user_sb_wip plan_user on plan_user.line_id = plan_line.line_id
-                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = master_plan.id_ws and actual_plan.color = master_plan.color and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username and (actual_plan.cancel IS NULL OR actual_plan.cancel != 'Y')
+                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = COALESCE(so.id_cost, master_plan.id_ws) and TRIM(actual_plan.color) = COALESCE(TRIM(so_det.color), TRIM(master_plan.color)) and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username and (actual_plan.cancel IS NULL OR actual_plan.cancel != 'Y')
             WHERE
                 output_defects.updated_at between '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
                 AND (userpassword.username != master_plan.sewing_line)
@@ -121,17 +127,20 @@ class SewingToolsController extends Controller
                 userpassword.line_id as actual_line_id,
                 master_plan.sewing_line as plan_sewing_line,
                 plan_line.line_id as plan_line_id,
-                actual_plan.id as actual_plan_id,
+                MAX(actual_plan.id) as actual_plan_id,
                 master_plan.id as plan_plan_id,
+                (so_det.id IS NOT NULL AND (so.id_cost != master_plan.id_ws OR TRIM(so_det.color) != TRIM(master_plan.color))) as plan_mismatch,
                 MAX(plan_user.id) as plan_user_id
             FROM
                 output_rejects
                 LEFT JOIN user_sb_wip on user_sb_wip.id = output_rejects.created_by
                 LEFT JOIN userpassword on userpassword.line_id = user_sb_wip.line_id
                 LEFT JOIN master_plan on master_plan.id = output_rejects.master_plan_id
+                LEFT JOIN so_det on so_det.id = output_rejects.so_det_id
+                LEFT JOIN so on so.id = so_det.id_so
                 LEFT JOIN userpassword plan_line on plan_line.username = master_plan.sewing_line
                 LEFT JOIN user_sb_wip plan_user on plan_user.line_id = plan_line.line_id
-                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = master_plan.id_ws and actual_plan.color = master_plan.color and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username and (actual_plan.cancel IS NULL OR actual_plan.cancel != 'Y')
+                LEFT JOIN master_plan actual_plan on actual_plan.id_ws = COALESCE(so.id_cost, master_plan.id_ws) and TRIM(actual_plan.color) = COALESCE(TRIM(so_det.color), TRIM(master_plan.color)) and actual_plan.tgl_plan = master_plan.tgl_plan and actual_plan.sewing_line = userpassword.username and (actual_plan.cancel IS NULL OR actual_plan.cancel != 'Y')
             WHERE
                 output_rejects.updated_at between '".date("Y-m-d", strtotime(date("Y-m-d")." - 30 days"))." 00:00:00' AND '".date("Y-m-d")." 23:59:59'
                 AND (userpassword.username != master_plan.sewing_line)
@@ -166,6 +175,9 @@ class SewingToolsController extends Controller
                 } else {
                     array_push($fails, [$mu->id, "change output master plan"]);
                 }
+            } else if ($mu->plan_mismatch) {
+                // Warna/WS output tidak sesuai plan & tidak ada plan yang cocok di line aktual -> serahkan ke Miss Master Plan / Fix Output Master Plan
+                array_push($unavailable, [$mu->id, "plan color mismatch"]);
             } else if ($mu->plan_user_id) {
                 $updateRft = DB::connection("mysql_sb")->table("output_rfts")->where("id", $mu->id)->update([
                     "created_by" => $mu->plan_user_id
@@ -191,6 +203,8 @@ class SewingToolsController extends Controller
                 } else {
                     array_push($fails, [$muDef->id, "change output master plan"]);
                 }
+            } else if ($muDef->plan_mismatch) {
+                array_push($unavailable, [$muDef->id, "plan color mismatch defect"]);
             } else if ($muDef->plan_user_id) {
                 $updateDef = DB::connection("mysql_sb")->table("output_defects")->where("id", $muDef->id)->update([
                     "created_by" => $muDef->plan_user_id
@@ -216,6 +230,8 @@ class SewingToolsController extends Controller
                 } else {
                     array_push($fails, [$muRej->id, "change output master plan"]);
                 }
+            } else if ($muRej->plan_mismatch) {
+                array_push($unavailable, [$muRej->id, "plan color mismatch reject"]);
             } else if ($muRej->plan_user_id) {
                 $updateRej = DB::connection("mysql_sb")->table("output_rejects")->where("id", $muRej->id)->update([
                     "created_by" => $muRej->plan_user_id
@@ -867,13 +883,21 @@ class SewingToolsController extends Controller
         $department = 'packing_po';
 
         if ($ids) {
-            $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
+            $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel, ".$this->restorePlanMismatchSelect("output_undo_packing_po"))->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
 
             // Master Plan Cancel
             if ($restoreData->contains(fn ($restore) => $restore->plan_cancel == 'Y')) {
                 return response()->json([
                     'status' => 400,
                     'message' => 'Data tidak dapat direstore karena master plan sudah di-cancel.',
+                ], 400);
+            }
+
+            // Master Plan tidak sesuai WS / warna output
+            if ($mismatchMessage = $this->restorePlanMismatchMessage($restoreData)) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => $mismatchMessage,
                 ], 400);
             }
 
@@ -5987,7 +6011,7 @@ class SewingToolsController extends Controller
                                 $rejectModel = Reject::class;
                             }
 
-                            $restoreData = $undoModel->selectRaw("{$tableName}.*, {$tableName}.id as undo_id, master_plan.cancel as plan_cancel")
+                            $restoreData = $undoModel->selectRaw("{$tableName}.*, {$tableName}.id as undo_id, master_plan.cancel as plan_cancel, ".$this->restorePlanMismatchSelect($tableName))
                                 ->leftJoin("master_plan", "master_plan.id", "=", "{$tableName}.master_plan_id")
                                 ->where("{$tableName}.output_reject_id", $output->reject_id)
                                 ->first();
@@ -6001,6 +6025,12 @@ class SewingToolsController extends Controller
                             // Jika Master Plan Cancel, lewati proses
                             if ($restoreData->plan_cancel == 'Y') {
                                 array_push($result, "Reject In ".$output->kode_numbering." -> SKIPPED (master plan cancel) <br>");
+                                continue;
+                            }
+
+                            // Jika Master Plan tidak sesuai WS / warna output, lewati proses
+                            if ($restoreData->plan_mismatch == 1) {
+                                array_push($result, "Reject In ".$output->kode_numbering." -> SKIPPED (WS/warna master plan tidak sesuai) <br>");
                                 continue;
                             }
 
@@ -6377,11 +6407,11 @@ class SewingToolsController extends Controller
 
         if ($ids) {
             if ($department == "packing_po") {
-                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
+                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel, ".$this->restorePlanMismatchSelect("output_undo_packing_po"))->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.id in (".$ids.")")->get();
             } else if ($department == "packing") {
-                $restoreData = UndoPacking::selectRaw("*, output_undo_packing.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing.master_plan_id")->whereRaw("output_undo_packing.id in (".$ids.")")->get();
+                $restoreData = UndoPacking::selectRaw("*, output_undo_packing.id as undo_id, master_plan.cancel as plan_cancel, ".$this->restorePlanMismatchSelect("output_undo_packing"))->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing.master_plan_id")->whereRaw("output_undo_packing.id in (".$ids.")")->get();
             } else {
-                $restoreData = Undo::selectRaw("*, output_undo.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo.master_plan_id")->whereRaw("output_undo.id in (".$ids.")")->get();
+                $restoreData = Undo::selectRaw("*, output_undo.id as undo_id, master_plan.cancel as plan_cancel, ".$this->restorePlanMismatchSelect("output_undo"))->leftJoin("master_plan", "master_plan.id", "=", "output_undo.master_plan_id")->whereRaw("output_undo.id in (".$ids.")")->get();
             }
 
             // Master Plan Cancel
@@ -6389,6 +6419,14 @@ class SewingToolsController extends Controller
                 return [
                     "status" => 400,
                     "message" => "Data tidak dapat direstore karena master plan sudah di-cancel."
+                ];
+            }
+
+            // Master Plan tidak sesuai WS / warna output
+            if ($mismatchMessage = $this->restorePlanMismatchMessage($restoreData)) {
+                return [
+                    "status" => 400,
+                    "message" => $mismatchMessage
                 ];
             }
 
@@ -6878,6 +6916,38 @@ class SewingToolsController extends Controller
         return $excel->download($filename);
     }
 
+    // Flag 1 jika master plan pada data undo tidak sesuai WS / warna so_det-nya
+    // (mis. warna plan diedit setelah output di-undo). Dipakai bersama join master_plan pada query restore.
+    private function restorePlanMismatchSelect(string $undoTable): string
+    {
+        return "(
+            master_plan.id IS NOT NULL
+            AND {$undoTable}.so_det_id IS NOT NULL
+            AND NOT EXISTS (
+                SELECT 1
+                FROM so_det so_det_chk
+                JOIN so so_chk ON so_chk.id = so_det_chk.id_so
+                WHERE so_det_chk.id = {$undoTable}.so_det_id
+                    AND so_chk.id_cost = master_plan.id_ws
+                    AND TRIM(so_det_chk.color) = TRIM(master_plan.color)
+            )
+        ) as plan_mismatch";
+    }
+
+    // Pesan error restore jika ada data undo dengan master plan yang tidak sesuai
+    private function restorePlanMismatchMessage($restoreData): ?string
+    {
+        $mismatch = $restoreData->filter(fn ($restore) => $restore->plan_mismatch == 1);
+
+        if ($mismatch->isEmpty()) {
+            return null;
+        }
+
+        $labels = $mismatch->map(fn ($restore) => $restore->kode_numbering ?? ("ID ".$restore->undo_id))->unique()->implode(", ");
+
+        return "Data tidak dapat direstore karena WS/warna master plan tidak sesuai dengan output (master plan kemungkinan sudah diubah). <br> Data : ".$labels;
+    }
+
     // Undo lama dari modify packing po : keterangan berisi status & id packing po selalu di output_rft_id
     private function normalizePackingPoUndo($restore)
     {
@@ -6973,17 +7043,25 @@ class SewingToolsController extends Controller
 
         if ($kodeNumbering) {
             if ($department == "packing_po") {
-                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.kode_numbering is not null and output_undo_packing_po.kode_numbering in (".$kodeNumbering.")")->get();
+                $restoreData = UndoPackingPo::selectRaw("*, output_undo_packing_po.id as undo_id, master_plan.cancel as plan_cancel, ".$this->restorePlanMismatchSelect("output_undo_packing_po"))->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing_po.master_plan_id")->whereRaw("output_undo_packing_po.kode_numbering is not null and output_undo_packing_po.kode_numbering in (".$kodeNumbering.")")->get();
             } else if ($department == "packing") {
-                $restoreData = UndoPacking::selectRaw("*, output_undo_packing.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing.master_plan_id")->whereRaw("output_undo_packing.kode_numbering is not null and output_undo_packing.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo_packing.kode_numbering")->get();
+                $restoreData = UndoPacking::selectRaw("*, output_undo_packing.id as undo_id, master_plan.cancel as plan_cancel, ".$this->restorePlanMismatchSelect("output_undo_packing"))->leftJoin("master_plan", "master_plan.id", "=", "output_undo_packing.master_plan_id")->whereRaw("output_undo_packing.kode_numbering is not null and output_undo_packing.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo_packing.kode_numbering")->get();
             } else {
-                $restoreData = Undo::selectRaw("*, output_undo.id as undo_id, master_plan.cancel as plan_cancel")->leftJoin("master_plan", "master_plan.id", "=", "output_undo.master_plan_id")->whereRaw("output_undo.kode_numbering is not null and output_undo.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo.kode_numbering")->get();
+                $restoreData = Undo::selectRaw("*, output_undo.id as undo_id, master_plan.cancel as plan_cancel, ".$this->restorePlanMismatchSelect("output_undo"))->leftJoin("master_plan", "master_plan.id", "=", "output_undo.master_plan_id")->whereRaw("output_undo.kode_numbering is not null and output_undo.kode_numbering in (".$kodeNumbering.")")->groupBy("output_undo.kode_numbering")->get();
             }
             // Master Plan Cancel
             if ($restoreData->contains(fn ($restore) => $restore->plan_cancel == 'Y')) {
                 return [
                     "status" => 400,
                     "message" => "Data tidak dapat direstore karena master plan sudah di-cancel."
+                ];
+            }
+
+            // Master Plan tidak sesuai WS / warna output
+            if ($mismatchMessage = $this->restorePlanMismatchMessage($restoreData)) {
+                return [
+                    "status" => 400,
+                    "message" => $mismatchMessage
                 ];
             }
 
@@ -8105,6 +8183,12 @@ class SewingToolsController extends Controller
      *                        Dipakai untuk output packing, karena line pembuatnya adalah line
      *                        packing yang memang berbeda dari line sewing pada plan. Efeknya
      *                        pengecekan line dilewati untuk sumber ini.
+     *  - 'reject_in'       : sama seperti 'sewing_line', tapi fallback line dari line_id (output_reject_in).
+     *                        Reject in packing / finishing proses dicatat oleh line yang berbeda dari
+     *                        line sewing, jadi yang dicek hanya WS / warna.
+     *
+     * Secondary in/out & defect in/out tidak dimasukkan karena master plan & so_det-nya
+     * mengikuti output_rfts / output_defects asal yang sudah dicek di sini.
      */
     private function missMasterPlanSources(): array {
         return [
@@ -8115,6 +8199,7 @@ class SewingToolsController extends Controller
             'Packing RFT'    => ['table' => 'output_rfts_packing',    'line_from' => 'sewing_line'],
             'Packing Defect' => ['table' => 'output_defects_packing', 'line_from' => 'sewing_line'],
             'Packing Reject' => ['table' => 'output_rejects_packing', 'line_from' => 'sewing_line'],
+            'Reject In'      => ['table' => 'output_reject_in',       'line_from' => 'reject_in'],
             'Packing PO'     => ['table' => 'output_rfts_packing_po', 'line_from' => 'created_by_line'],
 
         ];
@@ -8156,6 +8241,9 @@ class SewingToolsController extends Controller
                 // Line diambil dari plan yang terpasang; fallback ke line pembuat output
                 // hanya jika output belum punya master plan sama sekali.
                 $lineSelect = "COALESCE(master_plan.sewing_line, userpassword.username, $table.created_by)";
+            } else if ($source['line_from'] == 'reject_in') {
+                $lineJoin   = "LEFT JOIN userpassword  ON userpassword.line_id   = $table.line_id";
+                $lineSelect = "COALESCE(master_plan.sewing_line, userpassword.username)";
             } else {
                 $lineColumn = $source['line_from'] == 'created_by_line' ? 'created_by_line' : 'created_by';
 
@@ -8257,6 +8345,19 @@ class SewingToolsController extends Controller
                 // Correct plan already exists — just point to it
                 $targetPlanId = $row->correct_plan_id;
                 $planAction   = 'use_existing';
+            } else if (!$row->actual_act_costing_id || !$row->color || !$row->line || !$row->tgl_plan) {
+                // so_det / line output tidak ditemukan — jangan buat master plan dengan WS / warna / line kosong
+                $failed++;
+                $logs[] = [
+                    'status'    => 'failed',
+                    'tipe'      => $row->tipe,
+                    'output_id' => $row->id,
+                    'line'      => $row->line,
+                    'tgl_plan'  => $row->tgl_plan,
+                    'reason'    => 'WS / warna / line output tidak ditemukan',
+                ];
+
+                continue;
             } else {
                 // Try to find or create a plan for actual ws+color+line+date
                 $cacheKey = $row->actual_act_costing_id . '|' . $row->color . '|' . $row->line . '|' . $row->tgl_plan;
