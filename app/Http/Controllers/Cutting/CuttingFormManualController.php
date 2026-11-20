@@ -232,6 +232,9 @@ class CuttingFormManualController extends Controller
                 foreach ($subs as $sub) {
                     $newRow = clone $row;
                     $newRow->size = $sub->size;
+                    $newRow->size_dest = $sub->size;
+                    // Order qty sub size diambil dari sub_size.qty (fallback ke qty so_det bila belum diisi)
+                    $newRow->order_qty = $sub->qty !== null ? $sub->qty : $row->order_qty;
 
                     $detail = optional($markerDetailsBySize->get($row->so_det_id))->firstWhere('size', $sub->size);
                     $newRow->ratio = $detail->ratio ?? 0;
