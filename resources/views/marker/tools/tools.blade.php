@@ -176,17 +176,6 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    {{-- Selection toolbar --}}
-                    <div id="subSizeSelectionBar" class="d-none justify-content-end align-items-center gap-2 mb-2">
-                        <small class="fw-bold"><span id="subSizeSelectedCount">0</span> baris dipilih</small>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSubSizeSelection()">
-                            <i class="fa fa-times fa-xs"></i> Batal
-                        </button>
-                        <button type="button" id="btnMassDeleteSubSize" class="btn btn-danger btn-sm" onclick="massDeleteSubSize()">
-                            <i class="fa fa-trash fa-xs"></i> Hapus Terpilih
-                        </button>
-                    </div>
-
                     {{-- DataTable --}}
                     <div class="table-responsive">
                         <table id="sub-size-table" class="table table-bordered table-sm w-100">
@@ -206,6 +195,17 @@
                             </thead>
                             <tbody></tbody>
                         </table>
+                    </div>
+
+                    {{-- Selection toolbar (muncul hanya saat ada baris dipilih) --}}
+                    <div id="subSizeSelectionBar" class="d-none justify-content-end align-items-center gap-2 mt-2">
+                        <small class="fw-bold"><span id="subSizeSelectedCount">0</span> baris dipilih</small>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSubSizeSelection()">
+                            <i class="fa fa-times fa-xs"></i> Batal
+                        </button>
+                        <button type="button" id="btnMassDeleteSubSize" class="btn btn-danger btn-sm" onclick="massDeleteSubSize()">
+                            <i class="fa fa-trash fa-xs"></i> Hapus Terpilih
+                        </button>
                     </div>
                 </div>
             </div>
