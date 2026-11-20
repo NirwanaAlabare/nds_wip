@@ -372,10 +372,6 @@
 
             evt.preventDefault();
 
-            clearModified();
-            e.reset();
-            datatablePre.clear().draw();
-
             $.ajax({
 
                 url: e.getAttribute('action'),
@@ -388,6 +384,11 @@
 
                     if (res.status == 200) {
                         console.log(res);
+
+                        // Reset form hanya ketika berhasil
+                        clearModified();
+                        e.reset();
+                        datatablePre.clear().draw();
 
                         Swal.fire({
                             icon: 'success',
