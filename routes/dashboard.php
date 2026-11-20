@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardWipLineController;
 use App\Http\Controllers\General\DashboardController;
 use App\Http\Controllers\WhsSoljer\DashboardRakController;
+use App\Http\Controllers\Cutting\DashboardRollBelumDipakaiController;
 
 // Dashboard
 Route::get('/dashboard-track', [DashboardController::class, 'track'])->middleware('auth')->name('dashboard-track');
@@ -58,6 +59,10 @@ Route::get('/cutting-output-list-all', [DashboardController::class, 'cuttingOutp
 Route::get('/cutting-output-list-panels', [DashboardController::class, 'cuttingOutputListPanels'])->middleware('auth')->name('cutting-output-list-panels');
 Route::get('/cutting-output-list-data', [DashboardController::class, 'cuttingOutputListData'])->middleware('auth')->name('cutting-output-list-data');
 Route::get('/cutting-stock-list-data', [DashboardController::class, 'cuttingStockListData'])->middleware('auth')->name('cutting-stock-list-data');
+Route::controller(DashboardRollBelumDipakaiController::class)->prefix('dashboard-roll-belum-dipakai')->middleware(['auth', 'role:cutting'])->group(function () {
+    Route::get('/', 'index')->name('dashboard-roll-belum-dipakai');
+    Route::get('/data', 'data')->name('dashboard-roll-belum-dipakai-data');
+});
 
 Route::get('/dashboard-stocker', [DashboardController::class, 'stocker'])->middleware('auth')->name('dashboard-stocker');
 Route::get('/dashboard-stocker/show/{actCostingId?}', [DashboardController::class, 'showStocker'])->middleware('auth')->name('dashboard-stocker-show');

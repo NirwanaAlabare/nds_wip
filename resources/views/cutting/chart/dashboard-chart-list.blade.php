@@ -42,6 +42,16 @@
                 </div>
             </a>
         </div>
+        <div class="col">
+            <a href="{{ route('dashboard-roll-belum-dipakai') }}" target="_blank" class="meja-list">
+                <div class="card">
+                    <div class="card-body">
+                        Dashboard
+                        <h5>ROLL BELUM DIPAKAI</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
 @endsection
 
