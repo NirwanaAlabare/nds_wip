@@ -255,5 +255,5 @@
 @endsection
 
 @section('custom-script')
-    @include('marker.marker.create-marker.create-marker-script')
+@include('marker.marker.create-marker.create-marker-script')
 @endsection

@@ -145,6 +145,7 @@ class MarkerController extends Controller
         if ($request->ajax()) {
             $markerDetail = MarkerDetail::selectRaw("
                     marker_input_detail.so_det_id,
+                    marker_input_detail.size,
                     marker_input.panel,
                     SUM(marker_input_detail.cut_qty) total_cut_qty
                 ")->
