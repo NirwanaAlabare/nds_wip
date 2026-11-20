@@ -167,6 +167,7 @@
                         <table id="sub-size-table" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
+                                    <th class="text-center">Action</th>
                                     <th class="text-center">#</th>
                                     <th class="text-center">No. WS</th>
                                     <th class="text-center">Color</th>
@@ -537,13 +538,13 @@
 
             subSizeTable = $('#sub-size-table').DataTable({
                 ordering: false,
-                searching: false,
                 processing: true,
                 serverSide: true,
                 ajax: {
                     url: '{{ route("marker-tools-split-size-list") }}',
                 },
                 columns: [
+                    { data: 'id' },
                     { data: 'id' },
                     { data: 'no_ws' },
                     { data: 'color' },
@@ -556,24 +557,36 @@
                     {
                         targets: [0],
                         className: 'text-center',
+                        render: (data, type, row, meta) => {
+                            let dataMessage = row.no_ws + " / " + row.color + " / " + row.sub_size;
+                            return `
+                                <button class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('marker-tools-split-size-delete') }}/`+row['id']+`' onclick='deleteData(this, null, "`+dataMessage+`")' data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Hapus Sub Size">
+                                    <i class='fa fa-trash'></i>
+                                </button>
+                            `;
+                        },
+                    },
+                    {
+                        targets: [1],
+                        className: 'text-center',
                         render: (data, type, row, meta) => meta.row + 1,
                     },
                     {
-                        targets: [1, 2, 3],
+                        targets: [2, 3, 4],
                         className: 'text-center text-nowrap',
                     },
                     {
-                        targets: [4],
+                        targets: [5],
                         className: 'text-center text-nowrap',
                         render: (data) => `<span class="badge badge-info">${data}</span>`,
                     },
                     {
-                        targets: [5],
+                        targets: [6],
                         className: 'text-center',
                         render: (data) => data ? data.substring(0, 19).replace('T', ' ') : '-',
                     },
                     {
-                        targets: [6],
+                        targets: [7],
                         className: 'text-center',
                         render: (data) => data ?? '<span class="text-muted">System</span>',
                     },

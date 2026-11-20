@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Marker;
 use App\Http\Controllers\Controller;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Marker\SubSize;
+use App\Models\MasterSbWs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -227,7 +228,8 @@ class MarkerToolsController extends Controller
                 sub_size.created_at
             ")->
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "sub_size.so_det_id")->
-            orderByDesc("sub_size.created_at");
+            orderByDesc("sub_size.created_at")->
+            get();
 
         return DataTables::of($data)->toJson();
     }
@@ -253,6 +255,40 @@ class MarkerToolsController extends Controller
             'success' => true,
             'message' => 'Sub size berhasil ditambahkan',
             'data'    => $subSizes,
+        ]);
+    }
+
+    public function removeSubSize(Request $request, $id = null)
+    {
+        $subSize = SubSize::find($id);
+
+        $dataMessage = '';
+        if ($subSize) {
+            // Order Info
+            $masterSbWs = MasterSbWs::where("id_so_det", $subSize->so_det_id)->first();
+            $ws = $masterSbWs ? $masterSbWs->ws : "-";
+            $color = $masterSbWs ? $masterSbWs->color : "-";
+            $size = $masterSbWs ? $masterSbWs->size : "-";
+            // Data Message
+            $dataMessage = $subSize->id . " - " . $ws . " / Color : " . $color . " / Size : " . $size . " / Sub : " . $subSize->size;
+            
+            // Delete Sub Size
+            $deleteSubSize = $subSize->delete();
+            if ($deleteSubSize) {
+                return  response()->json([
+                    'status'  => 200,
+                    'success' => true,
+                    'message' => "Sub size '".$dataMessage."' berhasil dihapus",
+                    'table'   => "sub-size-table"
+                ]);
+            }
+        }
+
+        return response()->json([
+            'status'  => 400,
+            'success' => false,
+            'message' => "Sub size '".$dataMessage."' gagal dihapus",
+            'table'   => "sub-size-table"
         ]);
     }
 }
