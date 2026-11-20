@@ -316,6 +316,10 @@
             background: #f8fbff;
         }
 
+        .t2-sizeMatrix td:first-child {
+            background: #fff;
+        }
+
         .t2-sizeMatrix th:nth-child(-n+4) {
             background: #f3f7fc;
             z-index: 3;
@@ -386,19 +390,6 @@
             font-size: 11px;
             color: #8290a4;
             margin-top: 3px;
-        }
-
-        .t2-sizeMatrix td:first-child,
-        .t2-sizeMatrix th:first-child {
-            position: sticky;
-            left: 0;
-            background: #fff;
-            z-index: 2;
-            min-width: 100px;
-        }
-
-        .t2-sizeMatrix th:first-child {
-            background: #f3f7fc;
         }
 
         .t2-footerActions {
