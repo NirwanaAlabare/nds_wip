@@ -322,7 +322,23 @@
 
         .t2-sizeMatrix th:nth-child(-n+4) {
             background: #f3f7fc;
+            z-index: 4;
+        }
+
+        /* freeze baris header saat tabel di-scroll ke bawah */
+        .t2-sizeWrap {
+            max-height: 65vh;
+        }
+
+        .t2-sizeMatrix thead th {
+            position: sticky;
+            top: 0;
             z-index: 3;
+            box-shadow: inset 0 -1px 0 #dce5ef;
+        }
+
+        .t2-sizeMatrix thead th:nth-child(4) {
+            box-shadow: inset 0 -1px 0 #dce5ef, 3px 0 4px -2px rgba(48, 70, 102, .18);
         }
 
         .t2-sizeMatrix th:nth-child(1),
@@ -798,7 +814,7 @@
                 User cukup isi Qty Packing pada size yang masuk ke carton.
             </div>
             <div class="t2-tabs" id="wsTabs"></div>
-            <div class="t2-tablewrap">
+            <div class="t2-tablewrap t2-sizeWrap">
                 <table class="t2-matrix t2-sizeMatrix">
                     <thead id="masterHead"></thead>
                     <tbody id="masterRows"></tbody>
