@@ -13046,7 +13046,7 @@ class ReportCuttingController extends Controller
                     panel,
                     panel_status,
                     part_detail_id,
-                    nama_part,
+                    COALESCE(NULLIF(nama_part, ''), '-') nama_part,
                     part_status,
                     m.size,
                     m.dest,

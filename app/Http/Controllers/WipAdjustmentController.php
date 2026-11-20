@@ -868,15 +868,18 @@ class WipAdjustmentController extends Controller
     {
         $textColumns = array_values($this->templateFields[$typeReport]['text']);
 
+        // Ekspresi SQL tiap kolom teks (part kosong/null tampil '-')
+        $columnExpression = fn ($column) => $column == 'part' ? "COALESCE(NULLIF(a.part, ''), '-')" : "a.$column";
+
         // Kolom teks sesuai template (DC ikut panel & part)
-        $keyColumns = implode(', ', array_map(fn ($column) => "a.$column", $textColumns));
+        $keyColumns = implode(', ', array_map(fn ($column) => $columnExpression($column) . " AS $column", $textColumns));
 
         $filters = [
             'tgl_saldo' => ["DATE_FORMAT(a.tgl_saldo, '%d-%m-%Y')", []],
         ];
 
         foreach (array_merge(['id', 'created_at', 'created_by_username'], $textColumns) as $column) {
-            $filters[$column] = ["a.$column", []];
+            $filters[$column] = [$columnExpression($column), []];
         }
 
         // Search status sesuai tulisan yang tampil di tabel, bukan kode Y/N

@@ -145,6 +145,7 @@ class MarkerController extends Controller
         if ($request->ajax()) {
             $markerDetail = MarkerDetail::selectRaw("
                     marker_input_detail.so_det_id,
+                    marker_input_detail.size,
                     marker_input.panel,
                     SUM(marker_input_detail.cut_qty) total_cut_qty
                 ")->
@@ -157,7 +158,7 @@ class MarkerController extends Controller
                     $markerDetail->where('marker_input.panel', $request->panel);
                 }
 
-            $markerDetailData = $markerDetail->groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
+            $markerDetailData = $markerDetail->groupBy("marker_input_detail.so_det_id", "marker_input_detail.size", "marker_input.panel")->get();
 
             return $markerDetailData;
         }
@@ -240,6 +241,8 @@ class MarkerController extends Controller
                     $newRow = clone $row;
                     $newRow->size = $sub->size;
                     $newRow->size_dest = $sub->size;
+                    // Order qty sub size diambil dari sub_size.qty (fallback ke qty so_det bila belum diisi)
+                    $newRow->order_qty = $sub->qty !== null ? $sub->qty : $row->order_qty;
 
                     $detail = optional($markerDetailsBySize->get($row->so_det_id))->firstWhere('size', $sub->size);
                     $newRow->ratio = $detail->ratio ?? 0;
