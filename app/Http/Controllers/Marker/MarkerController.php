@@ -158,7 +158,7 @@ class MarkerController extends Controller
                     $markerDetail->where('marker_input.panel', $request->panel);
                 }
 
-            $markerDetailData = $markerDetail->groupBy("marker_input_detail.so_det_id", "marker_input.panel")->get();
+            $markerDetailData = $markerDetail->groupBy("marker_input_detail.so_det_id", "marker_input_detail.size", "marker_input.panel")->get();
 
             return $markerDetailData;
         }

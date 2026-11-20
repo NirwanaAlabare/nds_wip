@@ -142,7 +142,7 @@
     // Calculate Remaining Cut Qty
     function remainingCutQty(orderQty, soDetId, size = null) {
         // Get Total Cut Qty Based on Order WS, Order Color and Order Panel ( to know remaining cut qty )
-        let sumCutQtyData = sumCutQty.find(o => o.so_det_id == soDetId && o.panel == $("#panel").val() && (o.size && o.size == size));
+        let sumCutQtyData = sumCutQty.find(o => o.so_det_id == soDetId && o.panel == $("#panel").val() && (size ? size == o.size : true));
 
         // Calculate Remaining Cut Qty
         let remain = orderQty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
