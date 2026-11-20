@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Marker\MarkerDetail;
 use App\Models\Marker\SubSize;
 use App\Models\MasterSbWs;
+use App\Imports\ImportSubSize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -224,6 +225,7 @@ class MarkerToolsController extends Controller
                 master_sb_ws.color,
                 master_sb_ws.size original_size,
                 sub_size.size sub_size,
+                sub_size.qty,
                 sub_size.created_by_username,
                 sub_size.created_at
             ")->
@@ -239,13 +241,22 @@ class MarkerToolsController extends Controller
         $request->validate([
             'so_det_id'    => 'required',
             'sub_size'     => 'required|array|min:1',
-            'sub_size.*'   => 'required|string',
+            'sub_size.*'   => 'required|string|max:20',
+            'qty'          => 'required|array|size:' . count((array) $request->sub_size),
+            'qty.*'        => 'required|integer|min:1',
+        ], [
+            'sub_size.*.max' => 'Sub size maksimal 20 karakter.',
+            'qty.*.required' => 'Qty wajib diisi.',
+            'qty.*.integer'  => 'Qty harus berupa angka bulat.',
+            'qty.*.min'      => 'Qty minimal 1.',
         ]);
 
-        $subSizes = collect($request->sub_size)->map(function ($size) use ($request) {
+        $qtys = array_values($request->qty);
+        $subSizes = collect(array_values($request->sub_size))->map(function ($size, $i) use ($request, $qtys) {
             return SubSize::create([
                 'so_det_id'           => $request->so_det_id,
                 'size'                => $size,
+                'qty'                 => (int) $qtys[$i],
                 'created_by'          => Auth::id(),
                 'created_by_username' => Auth::user()->username,
             ]);
@@ -264,6 +275,20 @@ class MarkerToolsController extends Controller
 
         $dataMessage = '';
         if ($subSize) {
+            // Marker Validation
+            // $markerDetail = MarkerDetail::where("so_det_id", $subSize->so_det_id)->first();
+            // $marker = $markerDetail ? $markerDetail->marker : null;
+            // $forms = $marker ? $marker->formCutInputs : null;
+            // foreach ($forms as $form) {
+            //     if (checkClosingDate($form->waktu_selesai)) {
+            //         return array(
+            //             "status" => 400,
+            //             "message" => "Data tidak dapat dihapus karena periode sudah ditutup.",
+            //             "additional" => "Closing"
+            //         );
+            //     }
+            // }
+
             // Order Info
             $masterSbWs = MasterSbWs::where("id_so_det", $subSize->so_det_id)->first();
             $ws = $masterSbWs ? $masterSbWs->ws : "-";
@@ -290,5 +315,195 @@ class MarkerToolsController extends Controller
             'message' => "Sub size '".$dataMessage."' gagal dihapus",
             'table'   => "sub-size-table"
         ]);
+    }
+
+    public function massRemoveSubSize(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'required|integer',
+        ]);
+
+        $ids = collect($request->ids)->map(fn ($id) => (int) $id)->unique()->values();
+
+        DB::beginTransaction();
+        try {
+            $subSizes = SubSize::whereIn('id', $ids)->lockForUpdate()->get();
+
+            $missing = $ids->diff($subSizes->pluck('id'));
+            if ($missing->isNotEmpty()) {
+                throw new \Exception("Sub size dengan ID " . $missing->implode(', ') . " tidak ditemukan (mungkin sudah dihapus).");
+            }
+
+            foreach ($subSizes as $subSize) {
+                if (!$subSize->delete()) {
+                    throw new \Exception("Sub size ID " . $subSize->id . " (" . $subSize->size . ") gagal dihapus.");
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status'  => 200,
+                'success' => true,
+                'message' => $subSizes->count() . " sub size berhasil dihapus",
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Mass delete sub size gagal: ' . $e->getMessage());
+
+            return response()->json([
+                'status'  => 400,
+                'success' => false,
+                'message' => "Hapus massal dibatalkan, tidak ada data yang dihapus. " . $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function importSubSize(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+        ]);
+
+        try {
+            $rows = Excel::toCollection(new ImportSubSize, $request->file('file'))->first() ?? collect();
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File tidak dapat dibaca: ' . $e->getMessage(),
+            ], 400);
+        }
+
+        // Normalisasi baris; nomor baris Excel = index + 2 (baris 1 = header)
+        $rows = $rows->map(function ($row, $i) {
+            return [
+                'line'     => $i + 2,
+                'ws'       => trim((string) ($row['ws'] ?? '')),
+                'color'    => trim((string) ($row['color'] ?? '')),
+                'size'     => trim((string) ($row['size'] ?? '')),
+                'sub_size' => trim((string) ($row['sub_size'] ?? '')),
+                'qty'      => trim((string) ($row['qty'] ?? '')),
+            ];
+        })->filter(function ($row) {
+            // Lewati baris yang benar-benar kosong
+            return $row['ws'] !== '' || $row['color'] !== '' || $row['size'] !== '' || $row['sub_size'] !== '' || $row['qty'] !== '';
+        })->values();
+
+        if ($rows->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File kosong atau header tidak sesuai. Header wajib: ws, color, size, sub_size, qty.',
+            ], 400);
+        }
+
+        $errors = [];
+        $key = fn ($ws, $color, $size) => strtolower($ws) . '|' . strtolower($color) . '|' . strtolower($size);
+
+        // Ambil master untuk semua WS di file sekaligus
+        $masters = MasterSbWs::select('id_so_det', 'ws', 'color', 'size')
+            ->whereIn('ws', $rows->pluck('ws')->filter()->unique()->values())
+            ->get()
+            ->groupBy(fn ($m) => $key(trim($m->ws), trim($m->color), trim($m->size)));
+
+        $seen = [];
+        $rows = $rows->map(function ($row) use (&$errors, &$seen, $masters, $key) {
+            $emptyCols = collect(['ws', 'color', 'size', 'sub_size', 'qty'])->filter(fn ($c) => $row[$c] === '');
+            if ($emptyCols->isNotEmpty()) {
+                $errors[] = "Baris {$row['line']}: kolom " . $emptyCols->implode(', ') . " kosong";
+                return $row;
+            }
+
+            $invalid = false;
+            if (mb_strlen($row['sub_size']) > 20) {
+                $errors[] = "Baris {$row['line']}: sub_size '{$row['sub_size']}' lebih dari 20 karakter";
+                $invalid = true;
+            }
+            if (!preg_match('/^\d+(\.0+)?$/', $row['qty']) || (int) $row['qty'] < 1) {
+                $errors[] = "Baris {$row['line']}: qty '{$row['qty']}' harus angka bulat minimal 1";
+                $invalid = true;
+            }
+            if ($invalid) {
+                return $row;
+            }
+            $row['qty'] = (int) $row['qty'];
+
+            $match = $masters->get($key($row['ws'], $row['color'], $row['size']));
+            if (!$match) {
+                $errors[] = "Baris {$row['line']}: id_so_det untuk WS '{$row['ws']}' / Color '{$row['color']}' / Size '{$row['size']}' tidak ditemukan";
+                return $row;
+            }
+
+            $row['so_det_id'] = $match->first()->id_so_det;
+
+            // Duplikat di dalam file
+            $dupKey = $row['so_det_id'] . '|' . strtolower($row['sub_size']);
+            if (isset($seen[$dupKey])) {
+                $errors[] = "Baris {$row['line']}: duplikat dengan baris {$seen[$dupKey]} ({$row['ws']} / {$row['color']} / {$row['size']} / {$row['sub_size']})";
+            } else {
+                $seen[$dupKey] = $row['line'];
+            }
+
+            return $row;
+        });
+
+        if (count($errors) > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Import dibatalkan, tidak ada data yang disimpan.',
+                'errors'  => $errors,
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $inserted = 0;
+            $skipped  = [];
+
+            foreach ($rows as $row) {
+                $exists = SubSize::where('so_det_id', $row['so_det_id'])->where('size', $row['sub_size'])->exists();
+                if ($exists) {
+                    $skipped[] = "Baris {$row['line']}: sub size '{$row['sub_size']}' sudah ada untuk {$row['ws']} / {$row['color']} / {$row['size']}";
+                    continue;
+                }
+
+                SubSize::create([
+                    'so_det_id'           => $row['so_det_id'],
+                    'size'                => $row['sub_size'],
+                    'qty'                 => $row['qty'],
+                    'created_by'          => Auth::id(),
+                    'created_by_username' => Auth::user()->username,
+                ]);
+                $inserted++;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $inserted . ' sub size berhasil diimport' . (count($skipped) ? ', ' . count($skipped) . ' baris dilewati karena sudah ada' : ''),
+                'skipped' => $skipped,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Import sub size gagal: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Import dibatalkan, tidak ada data yang disimpan. ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function templateSubSize()
+    {
+        $excel = FastExcel::create('Sub Size');
+        $sheet = $excel->getSheet();
+
+        $sheet->writeRow(['ws', 'color', 'size', 'sub_size', 'qty'])->applyFontStyleBold();
+        $sheet->writeRow(['CONTOH-WS-001', 'BLACK', 'XL', 'XL-A', 100]);
+        $sheet->writeRow(['CONTOH-WS-001', 'BLACK', 'XL', 'XL-B', 50]);
+
+        return $excel->download('Template_Import_Sub_Size.xlsx');
     }
 }
