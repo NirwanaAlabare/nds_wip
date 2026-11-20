@@ -384,6 +384,8 @@ class MarkerToolsController extends Controller
                 'size'     => trim((string) ($row['size'] ?? '')),
                 'sub_size' => trim((string) ($row['sub_size'] ?? '')),
                 'qty'      => trim((string) ($row['qty'] ?? '')),
+                // Opsional: dipakai bila ws/color/size punya lebih dari satu so_det (beda dest)
+                'dest'     => trim((string) ($row['dest'] ?? '')),
             ];
         })->filter(function ($row) {
             // Lewati baris yang benar-benar kosong
@@ -401,8 +403,10 @@ class MarkerToolsController extends Controller
         $key = fn ($ws, $color, $size) => strtolower($ws) . '|' . strtolower($color) . '|' . strtolower($size);
 
         // Ambil master untuk semua WS di file sekaligus
-        $masters = MasterSbWs::select('id_so_det', 'ws', 'color', 'size')
+        // so_det yang sudah cancel tidak ikut dicocokkan
+        $masters = MasterSbWs::select('id_so_det', 'ws', 'color', 'size', 'dest')
             ->whereIn('ws', $rows->pluck('ws')->filter()->unique()->values())
+            ->whereRaw("(cancel IS NULL OR cancel != 'Y')")
             ->get()
             ->groupBy(fn ($m) => $key(trim($m->ws), trim($m->color), trim($m->size)));
 
@@ -434,6 +438,22 @@ class MarkerToolsController extends Controller
                 return $row;
             }
 
+            // Bedakan berdasarkan dest bila diisi ('-' / kosong dianggap sama)
+            $normDest = fn ($d) => in_array(strtolower(trim((string) $d)), ['', '-'], true) ? '' : strtolower(trim((string) $d));
+            if ($row['dest'] !== '') {
+                $match = $match->filter(fn ($m) => $normDest($m->dest) === $normDest($row['dest']))->values();
+                if ($match->isEmpty()) {
+                    $errors[] = "Baris {$row['line']}: dest '{$row['dest']}' tidak ditemukan untuk WS '{$row['ws']}' / Color '{$row['color']}' / Size '{$row['size']}'";
+                    return $row;
+                }
+            }
+
+            if ($match->pluck('id_so_det')->unique()->count() > 1) {
+                $dests = $match->map(fn ($m) => $normDest($m->dest) === '' ? '-' : trim($m->dest))->unique()->implode(', ');
+                $errors[] = "Baris {$row['line']}: WS '{$row['ws']}' / Color '{$row['color']}' / Size '{$row['size']}' punya lebih dari satu so_det (dest: {$dests}). Isi kolom dest.";
+                return $row;
+            }
+
             $row['so_det_id'] = $match->first()->id_so_det;
 
             // Duplikat di dalam file
@@ -458,12 +478,19 @@ class MarkerToolsController extends Controller
         DB::beginTransaction();
         try {
             $inserted = 0;
+            $updated  = 0;
             $skipped  = [];
 
             foreach ($rows as $row) {
-                $exists = SubSize::where('so_det_id', $row['so_det_id'])->where('size', $row['sub_size'])->exists();
-                if ($exists) {
-                    $skipped[] = "Baris {$row['line']}: sub size '{$row['sub_size']}' sudah ada untuk {$row['ws']} / {$row['color']} / {$row['size']}";
+                $existing = SubSize::where('so_det_id', $row['so_det_id'])->where('size', $row['sub_size'])->first();
+                if ($existing) {
+                    // Sub size sudah ada: perbarui qty-nya (termasuk data lama yang qty-nya masih NULL)
+                    if ((int) $existing->qty !== (int) $row['qty'] || $existing->qty === null) {
+                        $existing->update(['qty' => $row['qty']]);
+                        $updated++;
+                    } else {
+                        $skipped[] = "Baris {$row['line']}: sub size '{$row['sub_size']}' sudah ada dengan qty yang sama untuk {$row['ws']} / {$row['color']} / {$row['size']}";
+                    }
                     continue;
                 }
 
@@ -481,7 +508,7 @@ class MarkerToolsController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $inserted . ' sub size berhasil diimport' . (count($skipped) ? ', ' . count($skipped) . ' baris dilewati karena sudah ada' : ''),
+                'message' => $inserted . ' sub size berhasil diimport' . ($updated ? ', ' . $updated . ' qty sub size diperbarui' : '') . (count($skipped) ? ', ' . count($skipped) . ' baris dilewati karena sudah ada dengan qty sama' : ''),
                 'skipped' => $skipped,
             ]);
         } catch (\Throwable $e) {
@@ -500,9 +527,9 @@ class MarkerToolsController extends Controller
         $excel = FastExcel::create('Sub Size');
         $sheet = $excel->getSheet();
 
-        $sheet->writeRow(['ws', 'color', 'size', 'sub_size', 'qty'])->applyFontStyleBold();
-        $sheet->writeRow(['CONTOH-WS-001', 'BLACK', 'XL', 'XL-A', 100]);
-        $sheet->writeRow(['CONTOH-WS-001', 'BLACK', 'XL', 'XL-B', 50]);
+        $sheet->writeRow(['ws', 'color', 'size', 'sub_size', 'qty', 'dest'])->applyFontStyleBold();
+        $sheet->writeRow(['CONTOH-WS-001', 'BLACK', 'XL', 'XL-A', 100, '']);
+        $sheet->writeRow(['CONTOH-WS-001', 'BLACK', 'XL', 'XL-B', 50, '']);
 
         return $excel->download('Template_Import_Sub_Size.xlsx');
     }

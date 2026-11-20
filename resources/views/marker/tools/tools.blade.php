@@ -287,7 +287,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="text-muted mb-3"><small><i class="fa-solid fa-circle-info"></i> Kolom (baris pertama sebagai header): <b>ws</b>, <b>color</b>, <b>size</b>, <b>sub_size</b>, <b>qty</b>. Jika ada satu baris saja yang ws/color/size-nya tidak ditemukan atau qty-nya tidak valid, seluruh import dibatalkan.</small></p>
+                        <p class="text-muted mb-3"><small><i class="fa-solid fa-circle-info"></i> Kolom (baris pertama sebagai header): <b>ws</b>, <b>color</b>, <b>size</b>, <b>sub_size</b>, <b>qty</b>, dan <b>dest</b> (opsional, wajib bila satu ws/color/size punya lebih dari satu dest). Jika ada satu baris saja yang ws/color/size-nya tidak ditemukan atau qty-nya tidak valid, seluruh import dibatalkan.</small></p>
                         <label class="drop-container">
                             <span class="drop-title">Pilih file Excel</span>
                             <input type="file" name="file" id="importSubSizeFile" accept=".xlsx,.xls,.csv" required>
