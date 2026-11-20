@@ -10836,7 +10836,7 @@ class ReportCuttingController extends Controller
                             panel,
                             panel_status,
                             part_detail_id,
-                            nama_part,
+                            NULLIF(NULLIF(TRIM(nama_part), ''), '-') nama_part,
                             part_status,
                             SUM(saldo_awal) saldo_awal,
                             SUM(switching_in_cutt_before) switching_in_cutt_before,
@@ -11175,7 +11175,7 @@ class ReportCuttingController extends Controller
                                 no_ws, style, color, size, panel, COALESCE(part, '')
                         ) cutting
                         group by
-                            ws, styleno, color, size, panel, nama_part
+                            ws, styleno, color, size, panel, NULLIF(NULLIF(TRIM(nama_part), ''), '-')
                         having
                             (
                                 saldo_awal_adjustment != 0 OR
