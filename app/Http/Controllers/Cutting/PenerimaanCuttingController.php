@@ -534,6 +534,7 @@ class PenerimaanCuttingController extends Controller
             ->where('whs_bppb_det.id_roll', $id)
             ->where('whs_bppb_det.no_bppb', 'NOT LIKE', 'MT/%')
             ->where("whs_bppb_h.tujuan", 'Production - Cutting')
+            ->whereRaw("COALESCE(whs_bppb_det.status, 'Y') <> 'N'")
             ->whereNull('penerimaan_cutting.id')
             ->orderBy('whs_bppb_det.id', 'DESC')
             ->first();

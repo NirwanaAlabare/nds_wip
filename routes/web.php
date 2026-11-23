@@ -12,6 +12,7 @@ use App\Http\Controllers\Exim\ExportImportController;
 use App\Http\Controllers\Exim\InvoiceEximController;
 use App\Http\Controllers\MasterData\MasterDataController;
 use App\Http\Controllers\MasterData\MasterItemController;
+use App\Http\Controllers\MasterData\MasterItemNewController;
 use App\Http\Controllers\MasterData\MasterGroupGeneralController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
@@ -1959,6 +1960,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/detail', 'detail')->name('master-data-item-detail');
         Route::post('/status', 'status')->name('master-data-item-status');
         Route::get('/gambar', 'gambar')->name('master-data-item-gambar');
+    });
+    // Master Item General - tab New (database nds). Tab Old = MasterItemController di atas.
+    Route::controller(MasterItemNewController::class)->prefix("master-data/item/new")->middleware('role:master_data')->group(function () {
+        Route::get('/', 'index')->name('master-data-item-new');
+        Route::get('/data', 'data')->name('master-data-item-new-list');
+        Route::get('/excel', 'excel')->name('master-data-item-new-excel');
+        Route::get('/create', 'create')->name('master-data-item-new-create');
+        Route::post('/simpan', 'simpan')->name('master-data-item-new-simpan');
+        Route::get('/edit', 'edit')->name('master-data-item-new-edit');
+        Route::post('/perbarui', 'perbarui')->name('master-data-item-new-perbarui');
+        Route::get('/detail', 'detail')->name('master-data-item-new-detail');
+        Route::post('/status', 'status')->name('master-data-item-new-status');
+        Route::get('/gambar', 'gambar')->name('master-data-item-new-gambar');
     });
     // Master Group General (master_general_groups & master_general_subgroups di database nds)
     Route::controller(MasterGroupGeneralController::class)->prefix("master-data/group-general")->middleware('role:master_data')->group(function () {

@@ -211,6 +211,20 @@
         .wt-cp.cp-done { background: var(--wt-green); } .wt-cp.cp-late { background: var(--wt-red); }
         .wt-cp.cp-progress { background: var(--wt-blue); animation: wt-pulse 1.8s ease-out infinite; }
         .wt-cp-label.cp-done { color: #0c7f3e; } .wt-cp-label.cp-late { color: #c21f30; } .wt-cp-label.cp-progress { color: #1b5fc1; }
+        /* Kerjaan selesai digabung jadi satu pos hanya kalau lintasannya terlalu sempit untuk label masing-masing */
+        .wt-cp-group { display: none; }
+        .wt-track.merge-done .cp-done-item { display: none; }
+        .wt-track.merge-done .wt-cp-group { display: block; }
+        .wt-track.merge-done button.wt-cp.wt-cp-group { display: grid; }
+        .wt-cp.wt-cp-group { width: auto; min-width: 20px; margin-left: 0; padding: 0 6px; border-radius: 10px; font-size: 10px; font-weight: 700; transform: translateX(-50%); grid-auto-flow: column; gap: 3px; }
+        .wt-cp.wt-cp-group:hover { transform: translateX(-50%) scale(1.15); }
+        .wt-cp-pop { position: absolute; z-index: 1060; width: 280px; max-width: calc(100vw - 32px); max-height: 300px; overflow: auto; padding: 6px; border-radius: 10px; background: #fff; box-shadow: 0 8px 28px rgba(8, 33, 73, .22); border: 1px solid var(--wt-line); }
+        .wt-cp-pop-head { padding: 4px 8px 6px; font-size: 12px; font-weight: 700; color: #0c7f3e; border-bottom: 1px solid var(--wt-line); margin-bottom: 4px; }
+        .wt-cp-pop button { display: flex; width: 100%; gap: 8px; align-items: baseline; padding: 5px 8px; border: 0; border-radius: 6px; background: none; text-align: left; font-size: 12.5px; color: var(--wt-ink); }
+        .wt-cp-pop button:hover { background: var(--wt-soft); }
+        .wt-cp-pop button i { color: var(--wt-green); font-size: 10px; }
+        .wt-cp-pop button span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .wt-cp-pop button small { flex: none; color: var(--wt-muted); }
         @keyframes wt-pulse { 0% { box-shadow: 0 0 0 0 rgba(47, 128, 237, .55); } 100% { box-shadow: 0 0 0 9px rgba(47, 128, 237, 0); } }
         .wt-lane-note { font-size: 12px; line-height: 1.35; }
         .wt-lane-note b { display: block; font-size: 12.5px; }
@@ -391,6 +405,9 @@
         .wt-kanban { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 6px; }
         .wt-col { background: var(--wt-soft); border-top: 3px solid var(--col); border-radius: 12px; padding: 10px; min-height: 240px; transition: outline .1s; }
         .wt-col.over { outline: 2px dashed var(--wt-blue); }
+        .wt-kmore { display: block; width: 100%; padding: 7px; border: 1px dashed #b7c2d3; border-radius: 10px; background: rgba(255, 255, 255, .6); font-size: 12.5px; font-weight: 600; color: var(--wt-navy-2); }
+        .wt-kmore:hover { background: #fff; border-color: var(--col); }
+        .wt-kmore span { font-weight: 400; color: var(--wt-muted); }
         .wt-col-head { display: flex; justify-content: space-between; font-weight: 700; font-size: 13px; padding: 2px 4px 9px; }
         .wt-kcard { background: #fff; border-radius: 10px; border-left: 5px solid var(--wt-gray); padding: 9px 11px; margin-bottom: 9px; font-size: 12.5px; box-shadow: 0 1px 4px rgba(8, 33, 73, .08); cursor: grab; transition: transform .14s, box-shadow .14s; }
         .wt-kcard:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(8, 33, 73, .16); }
@@ -1074,7 +1091,7 @@
             };
             const TIER_TITLE = { sprint: 'Ngebut!', jog: 'Jaga pace', walk: 'Ayo kejar!', rest: 'Belum ada kerjaan', finish: 'Semua beres!' };
 
-            const state = { timelineOpen: {}, tlMode: 'auto', tlFrom: null, tlTo: null, tlRange: null, tlZoom: null, tlScroll: null, tlExtending: false, tlPan: null, drag: null, justDragged: false, divisions: [], board: null, demo: false, view: 'list', selected: null, color: COLORS[0], current: null, pos: {}, jumpers: [], urgentIds: [], reportItems: [], reportTimer: null, reportSeq: 0, statusBeforeReport: null, estimateManual: false, tileValues: {}, ringPct: 0, formFiles: [], progressFiles: [], formPoints: [], formPointsReady: true, detail: null, attachPoint: null };
+            const state = { kanbanShown: {}, timelineOpen: {},tlMode: 'auto', tlFrom: null, tlTo: null, tlRange: null, tlZoom: null, tlScroll: null, tlExtending: false, tlPan: null, drag: null, justDragged: false, divisions: [], board: null, demo: false, view: 'list', selected: null, color: COLORS[0], current: null, pos: {}, jumpers: [], urgentIds: [], reportItems: [], reportTimer: null, reportSeq: 0, statusBeforeReport: null, estimateManual: false, tileValues: {}, ringPct: 0, formFiles: [], progressFiles: [], formPoints: [], formPointsReady: true, detail: null, attachPoint: null };
             const USER_NAME = @json(auth()->user()->name ?? '');
             // Samudra, Senja, Hutan, Anggur, Nirwana, Emas (sama dengan palet Action Points)
             const HERO_PALETTES = [['#2563eb', '#06b6d4'], ['#ea580c', '#e11d48'], ['#059669', '#65a30d'], ['#7c3aed', '#db2777'], ['#082149', '#1c5bb8'], ['#b45309', '#eab308']];
@@ -1734,23 +1751,77 @@
 
             function checkpointsHtml(p) {
                 const icons = { done: 'fa-check', late: 'fa-exclamation', progress: 'fa-wrench', todo: 'fa-hourglass-start' };
-                return p.checkpoints.map(function (c) {
+                const at = function (position) { return 'calc((100% - 72px) * ' + (position / 100) + ' + 27px)'; };
+                const done = p.checkpoints.filter(function (c) { return checkpointKind(c) === 'done'; });
+                const html = p.checkpoints.map(function (c) {
                     const kind = checkpointKind(c);
-                    const center = 'calc((100% - 72px) * ' + (c.position / 100) + ' + 27px)';
-                    const labelLeft = 'calc((100% - 72px) * ' + (c.start_position / 100) + ' + 27px)';
+                    const item = kind === 'done' ? ' cp-done-item' : '';
+                    const center = at(c.position);
                     const labelWidth = 'calc((100% - 72px) * ' + ((c.position - c.start_position) / 100) + ')';
                     const title = esc(c.code + ' ' + c.title + ' | ' + c.progress + '% | Target ' + fmt(c.target_date) + ' | ' + HEALTH_LABEL[c.health]);
-                    return '<button type="button" class="wt-cp-label cp-' + kind + '" data-item="' + c.id + '" title="' + title + '" style="left:' + labelLeft + ';width:' + labelWidth + '"><span>' + esc(c.title) + '</span></button>' +
-                        '<div class="wt-cp-pole" style="left:' + center + '"></div>' +
-                        '<button type="button" class="wt-cp cp-' + kind + '" data-item="' + c.id + '" title="' + title + '" aria-label="' + title + '" style="left:' + center + '"><i class="fa-solid ' + icons[kind] + '"></i></button>';
+                    return '<button type="button" class="wt-cp-label cp-' + kind + item + '" data-item="' + c.id + '" title="' + title + '" style="left:' + at(c.start_position) + ';width:' + labelWidth + '"><span>' + esc(c.title) + '</span></button>' +
+                        '<div class="wt-cp-pole' + item + '" style="left:' + center + '"></div>' +
+                        '<button type="button" class="wt-cp cp-' + kind + item + '" data-item="' + c.id + '" title="' + title + '" aria-label="' + title + '" style="left:' + center + '"><i class="fa-solid ' + icons[kind] + '"></i></button>';
                 }).join('');
+                if (done.length < 2) return html;
+
+                // Pos gabungan berdiri di ujung kerjaan selesai terakhir, labelnya membentang dari garis start
+                const last = done[done.length - 1];
+                const groupTitle = esc(done.length + ' kerjaan selesai. Klik untuk melihat daftarnya');
+                return html +
+                    '<button type="button" class="wt-cp-label cp-done wt-cp-group" data-done-group="' + p.id + '" title="' + groupTitle + '" style="left:' + at(0) + ';width:calc((100% - 72px) * ' + (last.position / 100) + ')"><span>' + done.length + ' kerjaan selesai</span></button>' +
+                    '<div class="wt-cp-pole wt-cp-group" style="left:' + at(last.position) + '"></div>' +
+                    '<button type="button" class="wt-cp cp-done wt-cp-group" data-done-group="' + p.id + '" title="' + groupTitle + '" aria-label="' + groupTitle + '" style="left:' + at(last.position) + '"><i class="fa-solid fa-check"></i>' + done.length + '</button>';
             }
 
-            // Nama kerjaan disembunyikan kalau ruangnya terlalu sempit, judul tetap muncul saat kursor diarahkan ke pos
+            // Kalau label kerjaan selesai tidak kebagian tempat, semuanya digabung jadi satu pos.
+            // Label lain yang masih terlalu sempit disembunyikan, judulnya tetap muncul saat kursor diarahkan ke pos.
             function fitCheckpointLabels() {
-                document.querySelectorAll('.wt-cp-label').forEach(function (label) {
-                    label.classList.remove('is-hidden');
-                    label.classList.toggle('is-hidden', label.clientWidth < 48);
+                closeDonePopover();
+                document.querySelectorAll('.wt-track').forEach(function (track) {
+                    track.classList.remove('merge-done');
+                    const labels = track.querySelectorAll('.wt-cp-label');
+                    labels.forEach(function (label) { label.classList.remove('is-hidden'); });
+                    const cramped = Array.prototype.some.call(track.querySelectorAll('.wt-cp-label.cp-done-item'), function (label) { return label.clientWidth < 48; });
+                    track.classList.toggle('merge-done', cramped && !!track.querySelector('.wt-cp-group'));
+                    labels.forEach(function (label) {
+                        if (label.offsetParent) label.classList.toggle('is-hidden', label.clientWidth < 48);
+                    });
+                });
+            }
+
+            function closeDonePopover() {
+                $('#wt-cp-pop').remove();
+                $(document).off('.wtCpPop');
+            }
+
+            function openDonePopover(anchor, programmerId) {
+                closeDonePopover();
+                const p = state.board.programmers.find(function (x) { return Number(x.id) === Number(programmerId); });
+                if (!p) return;
+                const done = p.checkpoints.filter(function (c) { return checkpointKind(c) === 'done'; }).slice().reverse();
+                const $pop = $('<div id="wt-cp-pop" class="wt-cp-pop" role="dialog"></div>').html(
+                    '<div class="wt-cp-pop-head">' + done.length + ' kerjaan selesai, ' + esc(p.name) + '</div>' +
+                    done.map(function (c) {
+                        return '<button type="button" data-item="' + c.id + '" title="' + esc(c.code + ' ' + c.title) + '"><i class="fa-solid fa-check"></i><span>' + esc(c.title) + '</span>' + (c.finished_at ? '<small>' + fmt(String(c.finished_at).slice(0, 10)) + '</small>' : '') + '</button>';
+                    }).join('')
+                ).appendTo('body');
+
+                const r = anchor.getBoundingClientRect();
+                const width = $pop.outerWidth();
+                const left = Math.max(16, Math.min(r.left + r.width / 2 - width / 2, document.documentElement.clientWidth - width - 16));
+                $pop.css({ left: left + window.scrollX, top: r.bottom + 6 + window.scrollY });
+
+                $pop.on('click', '[data-item]', function () {
+                    closeDonePopover();
+                    openDetail(Number(this.dataset.item));
+                });
+                setTimeout(function () {
+                    $(document).on('click.wtCpPop', function (e) {
+                        if (!$(e.target).closest('#wt-cp-pop').length) closeDonePopover();
+                    }).on('keydown.wtCpPop', function (e) {
+                        if (e.key === 'Escape') closeDonePopover();
+                    });
                 });
             }
 
@@ -1943,18 +2014,30 @@
                 return html;
             }
 
+            const KANBAN_PAGE = 8;
+            const KANBAN_STEP = 20;
+
             function renderKanban(items) {
                 const COLUMN_COLOR = { baru: '#8a94a6', dikerjakan: '#2f80ed', selesai: '#12a150', ditolak: '#dc3545' };
+                // Terbaru di atas: Baru menurut tanggal dibuat, Selesai menurut tanggal selesai, sisanya menurut update terakhir
+                const SORT_FIELD = { baru: 'created_at', dikerjakan: 'updated_at', selesai: 'finished_at', ditolak: 'updated_at' };
                 const html = Object.keys(STATUS_LABEL).map(function (status) {
-                    const own = items.filter(function (i) { return i.status === status; });
-                    const cards = own.map(function (i) {
+                    const field = SORT_FIELD[status];
+                    const own = items.filter(function (i) { return i.status === status; }).sort(function (a, b) {
+                        const da = String(a[field] || a.updated_at || ''), db = String(b[field] || b.updated_at || '');
+                        return da === db ? b.id - a.id : (da < db ? 1 : -1);
+                    });
+                    const shown = state.kanbanShown[status] || KANBAN_PAGE;
+                    const rest = own.length - shown;
+                    const more = rest > 0 ? '<button type="button" class="wt-kmore" data-kanban-more="' + status + '"><i class="fa-solid fa-chevron-down"></i> Tampilkan ' + Math.min(rest, KANBAN_STEP) + ' lagi <span>(sisa ' + rest + ')</span></button>' : '';
+                    const cards = own.slice(0, shown).map(function (i) {
                         return '<div class="wt-kcard b-' + esc(i.health) + '" draggable="true" data-id="' + i.id + '">' +
                             '<div class="d-flex justify-content-between gap-1 mb-1">' + typeChip(i) + levelChip(i) + '</div>' +
                             '<div class="wt-title mb-1">' + esc(i.title) + '</div>' +
                             '<div class="wt-bar mb-1"><span class="fill-' + esc(i.health) + '" style="width:' + Number(i.progress) + '%"></span></div>' +
                             '<div class="d-flex justify-content-between align-items-center wt-sub"><span>' + Number(i.progress) + '% · ' + fmt(i.target_date) + cardExtras(i) + '</span>' + (programmerOf(i) ? '<span class="wt-avatar wt-mini-avatar" title="' + esc(programmerOf(i).name) + '" style="background:' + esc(programmerOf(i).color) + '">' + esc(initials(programmerOf(i).name)) + '</span>' : '') + '</div></div>';
                     }).join('');
-                    return '<div class="wt-col" data-status="' + status + '" style="--col:' + COLUMN_COLOR[status] + '"><div class="wt-col-head"><span>' + STATUS_LABEL[status] + '</span><span class="text-muted">' + own.length + '</span></div>' + cards + '</div>';
+                    return '<div class="wt-col" data-status="' + status + '" style="--col:' + COLUMN_COLOR[status] + '"><div class="wt-col-head"><span>' + STATUS_LABEL[status] + '</span><span class="text-muted">' + own.length + '</span></div>' + cards + more + '</div>';
                 }).join('');
                 $view.html('<div class="wt-kanban">' + html + '</div>');
             }
@@ -2754,6 +2837,12 @@
                 openDetail(Number(this.dataset.item));
             });
 
+            $('#wt-lanes').on('click', '[data-done-group]', function (e) {
+                e.stopPropagation();
+                if ($('#wt-cp-pop').length) closeDonePopover();
+                else openDonePopover(this, this.dataset.doneGroup);
+            });
+
             $('#wt-division-chips').on('click', '[data-division]', function () {
                 const d = this.dataset.division;
                 let next = [];
@@ -2957,6 +3046,11 @@
             });
             $('.wt').on('change', '.wt-assign-select', function () {
                 if (String(this.value) !== String(this.dataset.current)) assignProgrammer(Number(this.dataset.id), this.value);
+            });
+            $view.on('click', '[data-kanban-more]', function () {
+                const status = this.dataset.kanbanMore;
+                state.kanbanShown[status] = (state.kanbanShown[status] || KANBAN_PAGE) + KANBAN_STEP;
+                renderView();
             });
             $view.on('dragstart', '.wt-kcard', function (e) { e.originalEvent.dataTransfer.setData('text/plain', this.dataset.id); });
             $view.on('dragover', '.wt-col', function (e) { e.preventDefault(); $(this).addClass('over'); });

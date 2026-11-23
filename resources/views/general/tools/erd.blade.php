@@ -128,6 +128,7 @@
     .colcard.active { border-color: var(--accent); background: #f2f7ff; }
     .colcard .name-input { flex: 1; min-width: 0; }
     .colcard .type-wrap { width: 140px; flex: none; }
+    .colcard .len-input { width: 72px; flex: none; }
     .col-ro { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-bottom: 1px solid #eef1f5; }
     .col-ro .k { width: 20px; font-size: 9.5px; font-weight: 700; }
     .col-ro .ty { margin-left: auto; font-family: Consolas, monospace; font-size: 11px; color: #8a94a6; }
@@ -396,7 +397,7 @@
     const HEAD = 32, ROW = 24, ADDROW = 26, PADB = 6, MINW = 190, GRID = 10;
     const POLL_MS = 20000;
     const COLORS = ['#082149', '#1565c0', '#00897b', '#6a1b9a', '#c62828', '#ef6c00', '#455a64', '#2e7d32'];
-    const TYPES = ['INT', 'INT UNSIGNED', 'BIGINT UNSIGNED', 'BIGINT', 'TINYINT', 'VARCHAR(50)', 'VARCHAR(100)', 'VARCHAR(255)', 'TEXT', 'DATE', 'DATETIME', 'TIMESTAMP', 'TIME', 'DECIMAL(15,2)', 'DOUBLE', 'BOOLEAN', 'JSON'];
+    const TYPES = ['INT', 'INT UNSIGNED', 'BIGINT UNSIGNED', 'BIGINT', 'TINYINT', 'CHAR', 'VARCHAR', 'TEXT', 'DATE', 'DATETIME', 'TIMESTAMP', 'TIME', 'DECIMAL(15,2)', 'DOUBLE', 'BOOLEAN', 'JSON'];
     const CARDS = { '1:1': 'Satu ke satu', '1:N': 'Satu ke banyak', 'N:1': 'Banyak ke satu', 'N:N': 'Banyak ke banyak' };
     const IDENT = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
     const TYPE_RE = /^(?:(?:TINYINT|SMALLINT|MEDIUMINT|INT|INTEGER|BIGINT)(?:\(\d{1,3}\))?(?: UNSIGNED)?(?: ZEROFILL)?|(?:VARCHAR|CHAR|BINARY|VARBINARY|BIT)\(\d{1,5}\)|(?:DECIMAL|NUMERIC|DOUBLE|FLOAT)(?:\(\d{1,2}, ?\d{1,2}\))?(?: UNSIGNED)?(?: ZEROFILL)?|(?:DATETIME|TIMESTAMP|TIME)(?:\([0-6]\))?|BOOLEAN|BOOL|DATE|YEAR(?:\(4\))?|TINYTEXT|TEXT|MEDIUMTEXT|LONGTEXT|JSON|TINYBLOB|BLOB|MEDIUMBLOB|LONGBLOB|(?:ENUM|SET)\('[^'\\]*'(?:, ?'[^'\\]*')*\))$/i;
@@ -1045,6 +1046,7 @@
                 <table class="table table-sm small mt-1 mb-2">
                     <tr><td><code>qty int nn =0</code></td><td>INT, wajib isi, default 0</td></tr>
                     <tr><td><code>kode varchar(50) uq</code></td><td>unik</td></tr>
+                    <tr><td><code>size char(5)</code></td><td>CHAR panjang tetap 5 (maks 255)</td></tr>
                     <tr><td><code>tgl date ix</code></td><td>diberi INDEX</td></tr>
                     <tr><td><code>status varchar(20) =aktif "status order"</code></td><td>default + keterangan</td></tr>
                     <tr><td><code>dibuat timestamp =now</code></td><td>default waktu sekarang</td></tr>
@@ -1143,11 +1145,15 @@
             </div>`;
 
         const typeOpts = (v) => [...new Set([...TYPES, v])].map((x) => `<option ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('');
-        const cols = t.columns.map((c, i) => `
+        const lenInput = (base, len) => (LEN_MAX[base]
+            ? `<input type="number" class="form-control form-control-sm len-input" data-f="c.len" min="1" max="${LEN_MAX[base]}" value="${esc(len)}" placeholder="panjang" title="Panjang ${base} (1–${LEN_MAX[base]})">`
+            : '');
+        const cols = t.columns.map((c, i) => { const { base, len } = splitType(c.type); return `
             <div class="colcard ${sel.col === c.id ? 'active' : ''}" data-c="${esc(c.id)}">
                 <div class="d-flex gap-1">
                     <input class="form-control form-control-sm name-input" data-f="c.name" value="${esc(c.name)}" placeholder="nama_kolom">
-                    <div class="type-wrap"><select class="s2 s2-tags" data-f="c.type">${typeOpts(c.type)}</select></div>
+                    <div class="type-wrap"><select class="s2 s2-tags" data-f="c.type">${typeOpts(base)}</select></div>
+                    ${lenInput(base, len)}
                 </div>
                 <div class="sub">
                     <input class="form-control form-control-sm def" data-f="c.def" value="${esc(c.def ?? '')}" placeholder="default" title="Nilai default. Ketik now untuk waktu sekarang, NULL untuk null.">
@@ -1164,7 +1170,7 @@
                     <button class="ic-btn" data-act="down" title="Turun" ${i === t.columns.length - 1 ? 'disabled' : ''}><i class="fa-solid fa-arrow-down"></i></button>
                     <button class="ic-btn danger" data-act="delcol" title="Hapus kolom"><i class="fa-solid fa-trash"></i></button>
                 </div>
-            </div>`).join('');
+            </div>`; }).join('');
 
         return `
             <div class="p-title"><i class="fa-solid fa-table" style="color:${t.color}"></i> Tabel Draft <span class="badge-draft ms-auto">BELUM DI DATABASE</span></div>
@@ -1388,7 +1394,7 @@
 
     // ===== Ketik kolom: "nama [tipe] [pk nn uq ix ai] [=default] ["keterangan"]" =====
     const TYPE_ALIAS = {
-        int: 'INT', integer: 'INT', bigint: 'BIGINT', tinyint: 'TINYINT', varchar: 'VARCHAR(255)', str: 'VARCHAR(255)', string: 'VARCHAR(255)',
+        int: 'INT', integer: 'INT', bigint: 'BIGINT', tinyint: 'TINYINT', varchar: 'VARCHAR(255)', char: 'CHAR(1)', str: 'VARCHAR(255)', string: 'VARCHAR(255)',
         text: 'TEXT', date: 'DATE', datetime: 'DATETIME', timestamp: 'TIMESTAMP', time: 'TIME', decimal: 'DECIMAL(15,2)',
         double: 'DOUBLE', float: 'DOUBLE', bool: 'BOOLEAN', boolean: 'BOOLEAN', json: 'JSON', id: 'BIGINT UNSIGNED', fk: 'BIGINT UNSIGNED',
     };
@@ -1407,6 +1413,13 @@
         if (/^(qty|jumlah|jml|total)/.test(n)) return 'INT';
         if (/keterangan|catatan|note|deskripsi|description|alamat/.test(n)) return 'TEXT';
         return 'VARCHAR(100)';
+    }
+
+    // CHAR/VARCHAR: tipe dan panjang diisi terpisah di panel kolom
+    const LEN_MAX = { CHAR: 255, VARCHAR: 65535 }, LEN_DEFAULT = { CHAR: 1, VARCHAR: 100 };
+    function splitType(type) {
+        const m = /^(VARCHAR|CHAR)\((\d+)\)$/i.exec(type);
+        return m ? { base: m[1].toUpperCase(), len: m[2] } : { base: type, len: '' };
     }
 
     function normalizeType(type) {
@@ -1441,6 +1454,8 @@
         if (!IDENT.test(c.name)) return `Nama kolom "${c.name}" tidak valid (huruf, angka, underscore; tidak diawali angka)`;
         if (others.some((x) => x.name.toLowerCase() === c.name.toLowerCase())) return `Kolom "${c.name}" sudah ada`;
         if (!TYPE_RE.test(c.type)) return `Tipe "${c.type}" tidak dikenal`;
+        const len = /^(VAR)?CHAR\((\d+)\)$/i.exec(c.type);
+        if (len && (+len[2] < 1 || +len[2] > (len[1] ? 65535 : 255))) return `Panjang ${c.type} tidak valid (CHAR 1–255, VARCHAR 1–65535)`;
         return null;
     }
 
@@ -1644,6 +1659,10 @@
             const c = col(t, e.target.closest('.colcard').dataset.c);
             if (!updateColumn(t, c, { ...c, name: e.target.value.trim() })) e.target.value = c.name;
             render(); renderPanel();
+        } else if (f === 'c.len') {
+            const c = col(t, e.target.closest('.colcard').dataset.c), { base, len } = splitType(c.type), n = parseInt(e.target.value, 10);
+            if (!n || !updateColumn(t, c, { ...c, type: `${base}(${n})` })) e.target.value = len;
+            render();
         } else if (f === 'c.def' || f === 'c.comment') {
             // Tanpa renderPanel supaya fokus tetap jalan saat pindah input pakai Tab
             const c = col(t, e.target.closest('.colcard').dataset.c), v = e.target.value.trim();
@@ -1660,8 +1679,14 @@
         }
         if (f === 'c.type') {
             const t = tbl(sel.id), c = col(t, this.closest('.colcard').dataset.c);
-            if (!updateColumn(t, c, { ...c, type: normalizeType(v) })) { renderPanel(); return; }
-            render(); return;
+            let type = normalizeType(v);
+            // Pilih CHAR/VARCHAR -> pakai panjang lama (kalau ada), kalau tidak pakai bawaan
+            if (LEN_MAX[type]) {
+                const old = +splitType(c.type).len;
+                type = `${type}(${old ? Math.min(old, LEN_MAX[type]) : LEN_DEFAULT[type]})`;
+            }
+            if (!updateColumn(t, c, { ...c, type })) { renderPanel(); return; }
+            render(); renderPanel(); return;
         }
         const r = rel(sel.id), [t, c] = v.split('|');
         r[f.slice(2)] = { t, c };
@@ -1768,7 +1793,7 @@
         const preview = c
             ? `<b>${esc(c.name)}</b> <span class="t ${TYPE_RE.test(c.type) ? '' : 'bad'}">${esc(c.type)}</span>${['pk', 'nn', 'uq', 'ix', 'ai'].filter((k) => c[k]).map((k) => `<span class="f">${k.toUpperCase()}</span>`).join('')}`
                 + `${c.def != null ? ` <span style="color:#fcd34d">default ${esc(c.def)}</span>` : ''}${c.comment ? `<br><span style="color:#9ca3af">💬 ${esc(c.comment)}</span>` : ''}`
-                + `${TYPE_RE.test(c.type) ? '' : '<br><span style="color:#fca5a5">Tipe tidak dikenal. Contoh: int, varchar(100), decimal(15,2), date</span>'}`
+                + `${TYPE_RE.test(c.type) ? '' : '<br><span style="color:#fca5a5">Tipe tidak dikenal. Contoh: int, varchar(100), char(5), decimal(15,2), date</span>'}`
             : 'Ketik <b>nama_kolom</b> lalu tipe (opsional), mis. <span class="t">qty int nn =0 "jumlah"</span>';
         editorHint.innerHTML = `${preview}<div class="keys">${keys}</div>`
             + '<div class="keys">Penanda: <b>pk</b> primary key &middot; <b>nn</b> wajib isi &middot; <b>uq</b> unik &middot; <b>ix</b> index &middot; <b>ai</b> auto increment</div>'
