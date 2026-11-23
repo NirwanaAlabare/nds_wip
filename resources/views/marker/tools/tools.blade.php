@@ -721,14 +721,22 @@
                 processData: false,
                 contentType: false,
                 success: function (res) {
-                    let skipped = (res.skipped || []).map(s => '<li>' + escapeHtml(s) + '</li>').join('');
+                    let skippedList = res.skipped || [];
+                    let skipped = skippedList.map(s => '<li class="text-danger">' + escapeHtml(s) + '</li>').join('');
                     $('#importSubSizeResult').html(
-                        '<div class="alert alert-success py-2 mb-0"><b>' + escapeHtml(res.message) + '</b>' +
-                        (skipped ? '<ul class="small mb-0 mt-1" style="max-height:200px;overflow:auto;">' + skipped + '</ul>' : '') +
-                        '</div>'
+                        '<div class="alert alert-success py-2 mb-2"><b>' + escapeHtml(res.message) + '</b></div>' +
+                        (skipped
+                            ? '<div class="alert alert-danger py-2 mb-0"><b><i class="fa fa-triangle-exclamation"></i> ' + skippedList.length + ' baris dilewati</b>' +
+                              '<ul class="small mb-0 mt-1" style="max-height:200px;overflow:auto;">' + skipped + '</ul></div>'
+                            : '')
                     );
                     $('#importSubSizeFile').val('');
-                    Swal.fire({ title: res.message, icon: 'success' });
+                    Swal.fire({
+                        title: res.message,
+                        html: skipped ? '<ul class="text-start small mb-0" style="max-height:250px;overflow:auto;">' + skipped + '</ul>' : '',
+                        icon: skipped ? 'warning' : 'success',
+                        width: skipped ? 700 : undefined,
+                    });
                     subSizeTableReload();
                 },
                 error: function (xhr) {
