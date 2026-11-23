@@ -586,8 +586,8 @@
                         document.body.classList.toggle('pc-tv', on);
                     })();
                 </script>
-                <select class="form-select form-select-sm" id="pc-month" title="Bulan BPPB"></select>
                 <a href="{{ route('create-old-penerimaan-cutting') }}" class="btn btn-outline-secondary btn-sm" title="Buka tampilan lama (scan → daftar → simpan)"><i class="fas fa-history"></i> Tampilan lama</a>
+                <select class="form-select form-select-sm" id="pc-month" title="Bulan BPPB"></select>
                 <a href="{{ route('penerimaan-cutting') }}" class="btn btn-primary btn-sm"><i class="fas fa-reply"></i> Kembali</a>
             </div>
         </div>
@@ -674,7 +674,7 @@
                         <div class="pc-map">
                             <div class="pc-map-head">
                                 <div class="t"><b>Penerimaan Fabric Cutting</b><span>Scan barcode kain dari gudang. Langsung tersimpan.</span></div>
-                                <div class="pc-map-z r" data-spot=".pc-head-r" data-lbl="Tombol di kanan atas"><a href="#pcg-atas" class="pc-map-n tip-l" aria-label="Tombol di kanan atas">2<span class="pc-map-tip" role="tooltip"><b>Tombol di kanan atas</b>Panduan, Animasi &amp; suara, Mode TV, pilihan bulan BPPB, Tampilan lama, dan Kembali.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i><i class="w"></i><i></i><i class="p"></i></div>
+                                <div class="pc-map-z r" data-spot=".pc-head-r" data-lbl="Tombol di kanan atas"><a href="#pcg-atas" class="pc-map-n tip-l" aria-label="Tombol di kanan atas">2<span class="pc-map-tip" role="tooltip"><b>Tombol di kanan atas</b>Panduan, Animasi &amp; suara, Mode TV, Tampilan lama, pilihan bulan BPPB dan Kembali.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i><i class="w"></i><i></i><i class="p"></i></div>
                             </div>
                             <div class="pc-map-grid">
                                 <div class="pc-map-col">
@@ -731,8 +731,8 @@
                             <tr><td><span class="pc-g-btn">Panduan</span></td><td>Membuka halaman ini.</td></tr>
                             <tr><td><span class="pc-g-btn">Animasi &amp; suara: ON/OFF</span></td><td>Menyalakan atau mematikan efek gerak dan bunyi saat scan. Pilihan tersimpan di browser ini. Bunyi tetap berguna sebagai tanda tanpa harus melihat layar.</td></tr>
                             <tr><td><span class="pc-g-btn">Mode TV: ON/OFF</span></td><td>Memperbesar font (minimal 15px, huruf Inter yang lebih tegas) untuk ditampilkan di layar TV. Pilihan tersimpan di browser ini. Bisa juga langsung lewat alamat halaman dengan tambahan <code>?tv=1</code> (atau <code>?tv=0</code> untuk mematikan).</td></tr>
-                            <tr><td><span class="pc-g-btn">BPPB [bulan]</span></td><td>Memilih bulan BPPB yang dipantau di kartu <i>Progres</i> dan <i>Sisa roll</i>. Tidak membatasi scan.</td></tr>
                             <tr><td><span class="pc-g-btn">Tampilan lama</span></td><td>Membuka tampilan lama (scan → daftar → simpan).</td></tr>
+                            <tr><td><span class="pc-g-btn">BPPB [bulan]</span></td><td>Memilih bulan BPPB yang dipantau di kartu <i>Progres</i> dan <i>Sisa roll</i>. Tidak membatasi scan.</td></tr>
                             <tr><td><span class="pc-g-btn">Kembali</span></td><td>Kembali ke daftar penerimaan.</td></tr>
                         </table>
                     </section>
@@ -1437,7 +1437,7 @@
             function gGo(id, smooth) { const t = gEl.querySelector(id); if (t) t.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }); }
             const STEPS = [
                 { sel: '.pc-head-r', sec: 'pcg-atas', lbl: 'Tombol di kanan atas',
-                  d: '<b>Panduan</b> membuka halaman ini · <b>Animasi &amp; suara</b> menyalakan/mematikan efek dan bunyi scan · <b>Mode TV</b> memperbesar font untuk layar TV · <b>BPPB [bulan]</b> memilih bulan yang dipantau · <b>Tampilan lama</b> membuka alur scan → daftar → simpan · <b>Kembali</b> ke daftar penerimaan.' },
+                  d: '<b>Panduan</b> membuka halaman ini · <b>Animasi &amp; suara</b> menyalakan/mematikan efek dan bunyi scan · <b>Mode TV</b> memperbesar font untuk layar TV · <b>Tampilan lama</b> membuka alur scan → daftar → simpan · <b>BPPB [bulan]</b> memilih bulan yang dipantau · <b>Kembali</b> ke daftar penerimaan.' },
                 { sel: '#pc-scan-card', sec: 'pcg-scan', lbl: 'Kartu Scan Barcode Fabric',
                   d: 'Pakai scanner, ketik lalu Enter/Get, atau kamera. Setiap scan langsung tersimpan.' },
                 { sel: '#pc-res', sec: 'pcg-hasil', lbl: 'Hasil scan muncul di sini',
