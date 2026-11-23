@@ -42,7 +42,9 @@
     .panel-tabs { display: flex; border-bottom: 1px solid var(--line); }
     .panel-tabs button { flex: 1; border: none; background: none; padding: 10px; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; }
     .panel-tabs button.active { color: var(--sb); border-bottom-color: var(--sb); }
-    .panel-body { overflow-y: auto; padding: 14px; flex: 1; }
+    /* position: relative supaya <select> tersembunyi milik select2 (position: absolute) tetap di dalam panel,
+       tidak memanjangkan halaman lalu menggeser seluruh layout saat scrollIntoView / focus */
+    .panel-body { overflow-y: auto; padding: 14px; flex: 1; min-height: 0; position: relative; overscroll-behavior: contain; }
     .side-sec { padding: 12px; border-bottom: 1px solid #eef1f5; }
     .side-title { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
     .table-list { overflow-y: auto; flex: 1; padding: 6px; }
@@ -1024,7 +1026,12 @@
 
         initSelect2(panel);
         const active = panel.querySelector('.colcard.active');
-        if (active) active.scrollIntoView({ block: 'nearest' });
+        // Geser panel saja (scrollIntoView juga ikut menggeser halaman)
+        if (active) {
+            const pb = panel.getBoundingClientRect(), ab = active.getBoundingClientRect();
+            if (ab.top < pb.top) panel.scrollTop += ab.top - pb.top;
+            else if (ab.bottom > pb.bottom) panel.scrollTop += Math.min(ab.bottom - pb.bottom, ab.top - pb.top);
+        }
     }
 
     function helpPanel() {
