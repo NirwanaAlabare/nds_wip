@@ -22,6 +22,7 @@ use App\Models\Part\PartForm;
 use App\Models\Stocker\Stocker;
 use App\Models\Stocker\StockerAdditional;
 use App\Models\SignalBit\ActCosting;
+use App\Models\MasterSbWs;
 use App\Services\StockerService;
 use App\Services\CuttingService;
 use App\Services\CuttingPieceService;
@@ -173,6 +174,39 @@ class CuttingToolsController extends Controller
             $form = FormCutInput::where("no_form", $noForm)->orderBy("created_at", "desc")->first();
 
             if ($form && $form->marker && $form->marker->markerDetails) {
+
+                // 1. Load existing details with relation (2 queries)
+                $existingDetails = $form->marker->markerDetails()
+                    ->with('masterSbWs')
+                    ->get();
+
+                $existingSoDetIds = $existingDetails->pluck('so_det_id');
+
+                // 2. Load only missing MasterSbWs rows (1 query) and wrap them as MarkerDetail
+                $missingDetails = MasterSbWs::where('id_act_cost', $form->marker->act_costing_id)
+                    ->where('color', $form->marker->color)
+                    ->whereNotIn('id_so_det', $existingSoDetIds)
+                    ->get()
+                    ->map(function ($sbWs) {
+                        $detail = new \App\Models\Marker\MarkerDetail([
+                            'id' => null,
+                            'marker_id' => null,
+                            'so_det_id' => $sbWs->id_so_det,
+                            'size' => $sbWs->size,
+                            'ratio' => null,
+                            'cut_qty' => 0,
+                            'cancel' => 'N',
+                        ]);
+
+                        // Attach the already-loaded MasterSbWs model directly as the relation
+                        $detail->setRelation('masterSbWs', $sbWs);
+
+                        return $detail;
+                    });
+
+                // 3. Merge into one collection
+                $ratios = $existingDetails->concat($missingDetails);
+
                 return array(
                     "form_id" => $form->id,
                     "kode_marker" => $form->marker->kode,
@@ -181,7 +215,7 @@ class CuttingToolsController extends Controller
                     "color" => $form->marker->color,
                     "panel" => $form->marker->panel,
                     "qty_ply" => $form->total_lembar ? ($form->qty_ply ? $form->qty_ply : 0) : 0,
-                    "ratio" => $form->marker->markerDetails()->with("masterSbWs")->get()
+                    "ratio" => $ratios
                 );
             }
 
