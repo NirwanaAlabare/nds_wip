@@ -292,6 +292,7 @@
         #mso thead tr.g th.g-det{background:#e3f6f5!important;color:#0b7f7e}
         #mso thead tr.g th.grp-qty{background:linear-gradient(90deg,#e0eaff,#efe7ff)!important;color:#4338ca}
         #mso thead tr.g th.g-prg{background:#e6f6ec!important;color:#15803d}
+        #mso thead tr.g th.g-det,#mso thead tr.g th.g-prg{text-align:center}
         #mso tr.h th.q{border-top:3px solid var(--qc,#2563eb);color:var(--qc,#2563eb)!important}
         #mso tbody tr:nth-child(even) td{background:#fbfcff}
         #mso tbody tr:nth-child(even) td.stk{background:#fbfcff}
