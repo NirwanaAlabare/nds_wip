@@ -9,8 +9,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Master Group General (database nds, koneksi mysql_nds):
  * - master_general_groups    : group (kode GG1, GG2, ...)
- * - master_general_subgroups : sub group + accounting & customs (kode GSG1, GSG2, ...)
- * Satu form: Group (pilih yang ada / ketik baru) + Sub Group + Accounting + Customs.
+ * - master_general_subgroups : sub group + accounting & customs. Kodenya diketik user (mis. ATK) dan
+ *                              jadi awalan Item Code item general New (ATK-1, ATK-2, ...)
+ * Satu form: Group (pilih yang ada / ketik baru) + Sub Group Code + Sub Group + Accounting + Customs.
  * Tidak ada hapus; Active / Inactive per sub group lewat kolom cancel ('Y' = Inactive).
  */
 class MasterGroupGeneralController extends Controller
@@ -20,7 +21,11 @@ class MasterGroupGeneralController extends Controller
     private const T_SUB = 'master_general_subgroups';
 
     private const AWALAN_GRUP = 'GG';
-    private const AWALAN_SUB = 'GSG';
+
+    // Kode sub group diketik user (bukan GSG otomatis) dan jadi awalan Item Code item general
+    // New: kode ATK -> item ATK-1, ATK-2, ... Hanya huruf besar & angka, 2 - 10 karakter.
+    private const POLA_KODE_SUB = '/^[A-Z0-9]{2,10}$/';
+    private const T_ITEM = 'master_item_generals';
 
     // Pilihan Accounting tetap (hardcode)
     private const ACCOUNTING = ['EXPENSE', 'ASSET'];
@@ -30,6 +35,7 @@ class MasterGroupGeneralController extends Controller
 
     private const PANJANG = [
         'group'      => ['Group', 100],
+        'sub_code'   => ['Sub Group Code', 10],
         'sub_group'  => ['Sub Group', 100],
         'accounting' => ['Accounting', 100],
         'customs'    => ['Customs', 100],
@@ -131,7 +137,12 @@ class MasterGroupGeneralController extends Controller
             ->orderBy('g.id')
             ->orderBy('s.id')
             ->select('s.id', 's.general_subgroup_code', 's.general_subgroup_name', 's.accounting_type', 's.customs_type', 's.cancel',
-                'g.id as group_id', 'g.general_group_code', 'g.general_group_name');
+                'g.id as group_id', 'g.general_group_code', 'g.general_group_name')
+            // Banyak item yang Item Code-nya memakai kode sub group ini - lebih dari 0 = kode dikunci di Edit
+            ->selectSub(fn ($q) => $q->from(self::T_ITEM . ' as i')
+                ->whereColumn('i.general_subgroup_id', 's.id')
+                ->whereRaw("i.general_code like concat(s.general_subgroup_code, '-%')")
+                ->selectRaw('count(*)'), 'item_terpakai');
 
         if (ctype_digit((string) $request->input('grup'))) {
             $q->where('g.id', (int) $request->input('grup'));
@@ -167,6 +178,9 @@ class MasterGroupGeneralController extends Controller
                 ->get(),
             'accounting' => self::ACCOUNTING,
             'customs'    => $nilai('customs_type'),
+            // Semua kode sub group (tanpa filter) - cek kode dobel langsung saat mengetik di form
+            'kodeSub'    => $this->db()->table(self::T_SUB)->whereNotNull('general_subgroup_code')->where('general_subgroup_code', '<>', '')
+                ->orderBy('id')->get(['id', 'general_subgroup_code as kode', 'general_subgroup_name as nama']),
         ];
     }
 
@@ -195,6 +209,8 @@ class MasterGroupGeneralController extends Controller
     {
         $v = [
             'group'      => mb_strtoupper($this->rapi($request->input('group'))),
+            // Spasi di tengah juga dibuang - kode tanpa spasi
+            'sub_code'   => mb_strtoupper(preg_replace('/\s+/u', '', (string) $request->input('sub_code'))),
             'sub_group'  => mb_strtoupper($this->rapi($request->input('sub_group'))),
             'accounting' => mb_strtoupper($this->rapi($request->input('accounting'))),
             'customs'    => mb_strtoupper($this->rapi($request->input('customs'))),
@@ -229,6 +245,32 @@ class MasterGroupGeneralController extends Controller
 
         if (! in_array($v['accounting'], self::ACCOUNTING, true)) {
             return response()->json(['message' => 'Accounting must be ' . implode(' or ', self::ACCOUNTING) . '.'], 422);
+        }
+
+        if (! preg_match(self::POLA_KODE_SUB, $v['sub_code'])) {
+            return response()->json(['message' => 'Sub Group Code must be 2 - 10 characters, letters and numbers only (e.g. ATK, MSN01).'], 422);
+        }
+
+        // Kode sub group unik di semua group
+        $kodeDobel = $this->db()->table(self::T_SUB)
+            ->where('general_subgroup_code', $v['sub_code'])
+            ->when($lama, fn ($q) => $q->where('id', '<>', $lama->id))
+            ->first(['general_subgroup_name']);
+        if ($kodeDobel) {
+            return response()->json([
+                'message' => 'Sub Group Code ' . $v['sub_code'] . ' is already used by sub group ' . $kodeDobel->general_subgroup_name . '.',
+            ], 409);
+        }
+
+        // Kode yang sudah jadi awalan Item Code tidak boleh diganti (awalan item harus sama dengan kode sub group-nya)
+        if ($lama && $v['sub_code'] !== (string) $lama->general_subgroup_code) {
+            $terpakai = $this->itemTerpakai($lama);
+            if ($terpakai > 0) {
+                return response()->json([
+                    'message' => 'Sub Group Code ' . $lama->general_subgroup_code . ' is locked: already used by ' . $terpakai
+                        . ' item(s) (' . $lama->general_subgroup_code . '-1, ...).',
+                ], 409);
+            }
         }
 
         // Sub group dobel dalam group yang sama (group baru belum punya sub group)
@@ -267,6 +309,7 @@ class MasterGroupGeneralController extends Controller
 
                 $data = [
                     'general_group_id'      => $grup->id,
+                    'general_subgroup_code' => $v['sub_code'],
                     'general_subgroup_name' => $v['sub_group'],
                     'accounting_type'       => $v['accounting'],
                     'customs_type'          => $v['customs'],
@@ -277,18 +320,20 @@ class MasterGroupGeneralController extends Controller
                     if ($berubah) {
                         $this->db()->table(self::T_SUB)->where('id', $lama->id)->update($berubah + ['updated_at' => $sekarang]);
                     }
-                    return ['berubah' => count($berubah) + ($gantiNama ? 1 : 0), 'kode' => $lama->general_subgroup_code];
+                    return ['berubah' => count($berubah) + ($gantiNama ? 1 : 0), 'kode' => $v['sub_code']];
                 }
 
-                $kode = $this->kodeBerikut(self::T_SUB, 'general_subgroup_code', self::AWALAN_SUB);
                 $this->db()->table(self::T_SUB)->insert($data + [
-                    'general_subgroup_code' => $kode,
-                    'created_at'            => $sekarang,
-                    'updated_at'            => $sekarang,
+                    'created_at' => $sekarang,
+                    'updated_at' => $sekarang,
                 ]);
-                return ['kode' => $kode];
+                return ['kode' => $v['sub_code']];
             });
         } catch (\Illuminate\Database\QueryException $e) {
+            // Kode sub group yang baru saja dipakai orang lain di antara pengecekan & simpan (kolom UNIQUE)
+            if (($e->errorInfo[1] ?? null) === 1062) {
+                return response()->json(['message' => 'Sub Group Code ' . $v['sub_code'] . ' is already used.'], 409);
+            }
             report($e);
             // Pesan database ditampilkan apa adanya supaya mudah dicek
             return response()->json(['message' => 'Database error: ' . ($e->errorInfo[2] ?? $e->getMessage())], 500);
@@ -315,7 +360,10 @@ class MasterGroupGeneralController extends Controller
                 ->selectRaw('count(*) as total')
                 ->selectRaw("sum(case when coalesce(cancel, '') <> ? then 1 else 0 end) as aktif", [self::BATAL])
                 ->first();
-            $grup = $db->table(self::T_GRUP)->count();
+            $grup = $db->table(self::T_GRUP)
+                ->selectRaw('count(*) as total')
+                ->selectRaw("sum(case when coalesce(cancel, '') <> ? then 1 else 0 end) as aktif", [self::BATAL])
+                ->first();
         } catch (\Throwable $e) {
             report($e);
             return null;
@@ -325,9 +373,17 @@ class MasterGroupGeneralController extends Controller
             'total'     => (int) $row->total,
             'aktif'     => (int) $row->aktif,
             'nonaktif'  => (int) $row->total - (int) $row->aktif,
-            'grup'      => $grup,
+            'grup'      => (int) $grup->total,
             'blokir'    => 0,
             'adaBlokir' => false,
+            // Angka group (induk) untuk kartu Group di dashboard
+            'angkaGrup' => [
+                'total'     => (int) $grup->total,
+                'aktif'     => (int) $grup->aktif,
+                'nonaktif'  => (int) $grup->total - (int) $grup->aktif,
+                'blokir'    => 0,
+                'adaBlokir' => false,
+            ],
         ];
     }
 
@@ -384,7 +440,21 @@ class MasterGroupGeneralController extends Controller
 
     // ===================================================================
 
-    // Kode berikutnya: awalan + (angka terbesar + 1), mis. GG1, GG2 ... / GSG1, GSG2 ...
+    // Banyak item general (New) yang Item Code-nya berawalan kode sub group ini (KODE-...)
+    private function itemTerpakai($sub)
+    {
+        $kode = (string) $sub->general_subgroup_code;
+        if ($kode === '') {
+            return 0;
+        }
+
+        return $this->db()->table(self::T_ITEM)
+            ->where('general_subgroup_id', $sub->id)
+            ->where('general_code', 'like', addcslashes($kode, '\\%_') . '-%')
+            ->count();
+    }
+
+    // Kode berikutnya: awalan + (angka terbesar + 1), mis. GG1, GG2 ...
     // Dibaca dengan kunci (dalam transaksi) supaya dua simpan bersamaan tidak dapat kode sama.
     private function kodeBerikut($tabel, $kolom, $awalan)
     {

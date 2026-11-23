@@ -12,7 +12,7 @@ class GeneralRequestController extends Controller
 {
     public function index()
     {
-        return view('purchasing.general_request.index', [
+        return view('purchasing.general_request.list-general-request', [
             'page' => 'dashboard-purchasing',
             'subPageGroup' => 'general-request',
             'subPage' => 'general-request',

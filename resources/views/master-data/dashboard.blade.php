@@ -187,6 +187,33 @@
 .md-kartu.is-supplier { --aksen: #0d9488; --aksen-muda: #e3f5f2; }
 .md-kartu.is-item     { --aksen: #7c3aed; --aksen-muda: #f0e9ff; }
 .md-kartu.is-grup     { --aksen: #d97706; --aksen-muda: #fef3e2; }
+.md-kartu.is-item-new { --aksen: #15803d; --aksen-muda: #e6f6ec; }
+.md-kartu.is-sub-grup { --aksen: #0284c7; --aksen-muda: #e0f2fe; }
+
+/* Judul bagian (grid General) - garis pemisah dari kartu di atasnya */
+.md-bagian-judul {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0 14px;
+  padding-top: 20px;
+  border-top: 1px dashed #d5dde8;
+  animation: md-muncul .5s ease both;
+  animation-delay: .3s;
+}
+.md-bagian-ikon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e3a5f;
+  color: #fff;
+  font-size: 15px;
+}
+.md-bagian-judul h2 { margin: 0; font-size: 16px; font-weight: 700; color: #0f2942; line-height: 1.2; }
+.md-bagian-judul p  { margin: 2px 0 0; font-size: 12px; color: #64748b; }
 
 .md-kartu {
   position: relative;
@@ -389,14 +416,23 @@
 @section('content')
 {{-- ===========================================================================
      Dashboard Master Data.
-     - Banner: sapaan, total semua data, pencarian cepat ke daftar Customer / Supplier / Item
+     - Banner: sapaan, total semua data, pencarian cepat ke daftar Customer / Supplier / Item Old / Item New / Group
        (dibuka dengan ?cari=, daftar memakai nilai itu sebagai pencarian awal). Tombol "/" = fokus cari.
+     - Dua bagian kartu: Customer / Supplier / Item General Old, lalu grid General (Item General New, Group, Sub Group).
      - Kartu per daftar: donut Active / Inactive (/ Blocked). Sorot ruas atau baris legenda untuk
        melihat angkanya di tengah donut; klik baris membuka daftar dengan filter status itu.
      =========================================================================== --}}
 @php
-    $semua = collect($kartu)->sum(fn ($k) => $k['angka']['total']);
-    $aktifSemua = collect($kartu)->sum(fn ($k) => $k['angka']['aktif']);
+    $semuaKartu = collect($kartu)->merge($kartuGeneral);
+    $semua = $semuaKartu->sum(fn ($k) => $k['angka']['total']);
+    $aktifSemua = $semuaKartu->sum(fn ($k) => $k['angka']['aktif']);
+    // Pencarian cepat: satu tombol per halaman daftar (kartu Group & Sub Group satu halaman -> cukup sekali)
+    $cakupanCari = $semuaKartu->reject(fn ($k) => ! empty($k['tanpaFilter']))->values();
+    // Dua bagian kartu: daftar utama, lalu grid General (database nds)
+    $bagian = [['judul' => null, 'kartu' => $kartu]];
+    if ($kartuGeneral) {
+        $bagian[] = ['judul' => 'General', 'ket' => 'Item General (new structure), Group & Sub Group - database NDS', 'kartu' => $kartuGeneral];
+    }
     $persenAktifSemua = $semua > 0 ? round($aktifSemua / $semua * 100, 1) : 0;
 @endphp
 <div class="nag-skin">
@@ -422,11 +458,12 @@
                         <kbd class="md-cari-kunci" title="Press / to search">/</kbd>
                         <button type="submit" class="md-cari-tombol">Search</button>
                     </div>
-                    <div class="md-cakupan" id="md-cakupan" role="tablist" style="--jumlah: {{ count($kartu) }}">
+                    <div class="md-cakupan" id="md-cakupan" role="tablist" style="--jumlah: {{ count($cakupanCari) }}">
                         <span class="md-cakupan-penanda"></span>
-                        @foreach ($kartu as $i => $k)
-                            <button type="button" role="tab" data-href="{{ route($k['rute']) }}" class="{{ $i === 0 ? 'is-pilih' : '' }}" aria-selected="{{ $i === 0 ? 'true' : 'false' }}">
-                                <i class="fa-solid {{ $k['ikon'] }}"></i>{{ $k['judul'] }}
+                        @foreach ($cakupanCari as $i => $k)
+                            <button type="button" role="tab" data-href="{{ route($k['rute']) }}" class="{{ $i === 0 ? 'is-pilih' : '' }}" aria-selected="{{ $i === 0 ? 'true' : 'false' }}"
+                                title="{{ $k['cari'] ?? $k['judul'] }}">
+                                <i class="fa-solid {{ $k['ikon'] }}"></i>{{ $k['cari'] ?? $k['judul'] }}
                             </button>
                         @endforeach
                     </div>
@@ -434,9 +471,19 @@
             </div>
         </section>
 
-        {{-- ===== Kartu per daftar ===== --}}
-        <div class="md-dash-grid {{ count($kartu) >= 4 ? 'is-empat' : '' }}" style="--kolom: {{ count($kartu) }}">
-            @foreach ($kartu as $k)
+        {{-- ===== Kartu per daftar, per bagian ===== --}}
+        @foreach ($bagian as $b)
+        @if ($b['judul'])
+            <div class="md-bagian-judul">
+                <span class="md-bagian-ikon"><i class="fa-solid fa-boxes-packing"></i></span>
+                <div>
+                    <h2>{{ $b['judul'] }}</h2>
+                    <p>{{ $b['ket'] }}</p>
+                </div>
+            </div>
+        @endif
+        <div class="md-dash-grid {{ count($b['kartu']) >= 4 ? 'is-empat' : '' }}" style="--kolom: {{ count($b['kartu']) }}">
+            @foreach ($b['kartu'] as $k)
                 @php
                     $a = $k['angka'];
                     $persen = fn ($n) => $a['total'] > 0 ? round($n / $a['total'] * 100, 1) : 0;
@@ -480,7 +527,7 @@
                         <ul class="md-rinci">
                             @foreach ($status as $s)
                                 <li>
-                                    <a href="{{ route($k['rute'], ['status' => $s['kelas']]) }}"
+                                    <a href="{{ empty($k['tanpaFilter']) ? route($k['rute'], ['status' => $s['kelas']]) : route($k['rute']) }}"
                                         data-status="{{ $s['kelas'] }}" data-label="{{ $s['label'] }}"
                                         data-nilai="{{ $s['nilai'] }}" data-persen="{{ $persen($s['nilai']) }}"
                                         title="Open {{ $k['judul'] }} list: {{ $s['label'] }}">
@@ -501,6 +548,7 @@
                 </div>
             @endforeach
         </div>
+        @endforeach
 
     </div>
 </div>

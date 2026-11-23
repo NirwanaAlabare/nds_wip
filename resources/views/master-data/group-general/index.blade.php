@@ -138,13 +138,47 @@
 /* Tanda kecil di bawah Group kalau namanya belum ada (akan dibuat baru) */
 .nag-skin .md-tanda-baru { display: block; margin-top: 4px; font-size: 11.5px; font-weight: 600; color: #1d4ed8; }
 .nag-skin .md-tanda-baru[hidden] { display: none; }
+
+/* Sub Group Code: huruf tebal berjarak seperti kode */
+.nag-skin .md-kode-sub { font-weight: 700; letter-spacing: .8px; }
+.nag-skin .md-kode-sub[readonly] { background: #f1f5f9; color: #475569; cursor: not-allowed; }
+/* Info di bawah kode: contoh Item Code yang akan terbentuk / kode terkunci */
+.nag-skin .md-kode-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: -6px 0 16px;
+  padding: 8px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 9px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.nag-skin .md-kode-info i { margin-top: 2px; }
+.nag-skin .md-kode-info b { color: #1e3a8a; }
+.nag-skin .md-kode-info code {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: #fff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a8a;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.nag-skin .md-kode-info.is-kunci { background: #fef3c7; border-color: #fde68a; color: #92400e; }
+.nag-skin .md-kode-info.is-kunci b { color: #78350f; }
+.nag-skin .md-kode-info.is-kunci code { border-color: #fde68a; color: #78350f; }
+.nag-skin .md-kode-info.is-salah { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
 </style>
 @endsection
 
 @section('content')
 {{-- ===========================================================================
      Master Group General (database nds): master_general_groups + master_general_subgroups.
-     Satu baris daftar = satu sub group. Kode otomatis: group GG1, GG2 ... / sub group GSG1, GSG2 ...
+     Satu baris daftar = satu sub group. Kode group otomatis (GG1, GG2 ...); kode sub group diketik user
+     dan jadi awalan Item Code item general New (ATK -> ATK-1, ATK-2 ...).
      Aksi per baris: Show, Active/Inactive (kolom cancel), Edit.
      =========================================================================== --}}
 <div class="nag-skin dn-kontrol-sm dn-daftar-grup">
@@ -252,10 +286,24 @@
                         </div>
                         <small class="md-tanda-baru" id="mf-tanda-grup" hidden><i class="fas fa-circle-plus"></i> New group - will be created when saved</small>
                     </div>
-                    <div class="form-group">
-                        <label for="mf-sub">Sub Group <span class="dn-wajib" title="Required">*</span></label>
-                        <input type="text" class="form-control md-besar" id="mf-sub" maxlength="100" placeholder="Sub group name" autocomplete="off">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label for="mf-kode-sub">Sub Group Code <span class="dn-wajib" title="Required">*</span></label>
+                                <input type="text" class="form-control md-besar md-kode-sub" id="mf-kode-sub" maxlength="10"
+                                    placeholder="e.g. ATK" autocomplete="off" spellcheck="false">
+                            </div>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="form-group">
+                                <label for="mf-sub">Sub Group <span class="dn-wajib" title="Required">*</span></label>
+                                <input type="text" class="form-control md-besar" id="mf-sub" maxlength="100" placeholder="Sub group name" autocomplete="off">
+                            </div>
+                        </div>
                     </div>
+                    {{-- Kode sub group = awalan Item Code item general: contoh langsung ikut yang diketik.
+                         Saat Edit, kode yang sudah dipakai item dikunci. --}}
+                    <div class="md-kode-info" id="mf-kode-info"></div>
                     <div class="row">
                         <div class="col-sm-6">
                             <div class="form-group mb-sm-0">
@@ -713,6 +761,9 @@ $(function () {
         d = d || {};
         $('#mf-group').val(d.general_group_name || '').trigger('change');
         $('#mf-tanda-grup').prop('hidden', true);
+        kodeKunci = parseInt(d.item_terpakai, 10) || 0;
+        $('#mf-kode-sub').val(d.general_subgroup_code || '').prop('readonly', kodeKunci > 0);
+        infoKode();
         $('#mf-sub').val(d.general_subgroup_name || '');
         isiPilihan('#mf-accounting', PILIHAN.accounting, d.accounting_type);
         $('#mf-customs').val(d.customs_type || '').trigger('change');
@@ -730,6 +781,48 @@ $(function () {
 
     function nilai(id) { return $.trim($(id).val() || ''); }
 
+    // ---------- Sub Group Code: awalan Item Code item general ----------
+    var POLA_KODE = /^[A-Z0-9]{2,10}$/;
+    var kodeKunci = 0;   // > 0 = kode sudah dipakai item (Edit), tidak bisa diganti
+
+    // Hanya huruf & angka, langsung huruf besar
+    $('#mf-kode-sub').on('input', function () {
+        var v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (v !== this.value) { this.value = v; }
+        infoKode();
+    });
+
+    // Sub group lain yang sudah memakai kode k (null = belum dipakai). Sub group yang sedang di-Edit tidak dihitung.
+    function kodeDobel(k) {
+        var idSendiri = ubah ? String(ubah.id) : '';
+        var hasil = null;
+        $.each(PILIHAN.kodeSub || [], function (_, s) {
+            if (String(s.kode).toUpperCase() === k && String(s.id) !== idSendiri) { hasil = s; return false; }
+        });
+        return hasil;
+    }
+
+    function infoKode() {
+        var k = nilai('#mf-kode-sub').toUpperCase();
+        var $i = $('#mf-kode-info').removeClass('is-kunci is-salah');
+        var dobel = (kodeKunci > 0 || k === '') ? null : kodeDobel(k);
+        if (kodeKunci > 0) {
+            $i.addClass('is-kunci').html('<i class="fas fa-lock"></i><span>Code <b>' + teks(k) + '</b> is locked - already used by '
+                + '<b>' + kodeKunci + ' item' + (kodeKunci > 1 ? 's' : '') + '</b> (<code>' + teks(k) + '-1</code>, ...).</span>');
+        } else if (k === '') {
+            $i.html('<i class="fas fa-circle-info"></i><span>This code becomes the <b>Item Code prefix</b> of general items in this sub group, '
+                + 'e.g. <code>ATK</code> &rarr; <code>ATK-1</code>, <code>ATK-2</code>, ...</span>');
+        } else if (!POLA_KODE.test(k)) {
+            $i.addClass('is-salah').html('<i class="fas fa-circle-exclamation"></i><span>Code must be <b>2 - 10</b> letters / numbers.</span>');
+        } else if (dobel) {
+            $i.addClass('is-salah').html('<i class="fas fa-circle-xmark"></i><span>Code <b>' + teks(k) + '</b> is already used by sub group <b>'
+                + teks(dobel.nama) + '</b>. Use another code.</span>');
+        } else {
+            $i.html('<i class="fas fa-circle-info"></i><span>Item Code of this sub group will be '
+                + '<code>' + teks(k) + '-1</code>, <code>' + teks(k) + '-2</code>, ...</span>');
+        }
+    }
+
     function teksGrup() {
         return rapiBesar($('#mf-group').val()) + (grupBaru() ? ' (new)' : '');
     }
@@ -738,6 +831,11 @@ $(function () {
         var K = kata();
         var kurang = [];
         if (!nilai('#mf-group'))      { kurang.push('Group'); }
+        if (!nilai('#mf-kode-sub'))   { kurang.push('Sub Group Code'); }
+        else if (!POLA_KODE.test(nilai('#mf-kode-sub').toUpperCase())) { kurang.push('Sub Group Code (2 - 10 letters / numbers)'); }
+        else if (kodeKunci === 0 && kodeDobel(nilai('#mf-kode-sub').toUpperCase())) {
+            kurang.push('Sub Group Code (' + teks(nilai('#mf-kode-sub').toUpperCase()) + ' is already used - use another code)');
+        }
         if (!nilai('#mf-sub'))        { kurang.push('Sub Group'); }
         if (!nilai('#mf-accounting')) { kurang.push('Accounting'); }
         if (!nilai('#mf-customs'))    { kurang.push('Customs'); }
@@ -793,6 +891,7 @@ $(function () {
             title: K.tanya + ' this sub group?',
             html: '<div class="dn-swal-ringkas">'
                 + '<div><span>Group</span><b>' + teks(teksGrup()) + '</b></div>'
+                + '<div><span>Sub Group Code</span><b>' + teks(nilai('#mf-kode-sub').toUpperCase()) + '</b></div>'
                 + '<div><span>Sub Group</span><b>' + teks(nilai('#mf-sub').toUpperCase()) + '</b></div>'
                 + '<div><span>Accounting</span><b>' + teks(nilai('#mf-accounting')) + '</b></div>'
                 + '<div><span>Customs</span><b>' + teks(rapiBesar(nilai('#mf-customs'))) + '</b></div>'
@@ -840,6 +939,7 @@ $(function () {
 
         var data = {
             group:      nilai('#mf-group'),
+            sub_code:   nilai('#mf-kode-sub').toUpperCase(),
             sub_group:  nilai('#mf-sub'),
             accounting: nilai('#mf-accounting'),
             customs:    nilai('#mf-customs')

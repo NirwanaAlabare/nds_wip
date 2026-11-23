@@ -159,20 +159,12 @@
 
 @section('content')
 {{-- ===========================================================================
-     Daftar Master Item General (masteritem mattype N / M di SB), server-side.
+     Tab OLD - Daftar Master Item General (masteritem mattype N / M di SB), server-side.
      Aksi per baris: Show (modal bertab), Active/Inactive, Edit.
      =========================================================================== --}}
 <div class="nag-skin dn-kontrol-sm dn-daftar-item">
 
-    <div class="dn-kepala-halaman">
-        <div class="dn-kepala-kiri">
-            <span class="dn-kepala-ikon"><i class="fas fa-boxes-stacked"></i></span>
-            <div>
-                <h1 class="dn-kepala-judul">Master Item General</h1>
-                <p class="dn-kepala-sub">List of general (non-production) items</p>
-            </div>
-        </div>
-    </div>
+    @include('master-data.item._tab-item', ['tabAktif' => 'old'])
 
     {{-- ===== Filter ===== --}}
     <div class="card dn-kartu-filter">
