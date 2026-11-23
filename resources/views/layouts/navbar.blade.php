@@ -883,8 +883,8 @@
                             class="nav-link dropdown-toggle {{ $subPageGroup == 'ppic-master' ? 'active' : '' }}">Master</a>
                         <ul aria-labelledby="dropdownSubMenu1" class="dropdown-menu border-0 shadow">
                             <li>
-                                <a href="{{ route('master-so') }}"
-                                    class="dropdown-item {{ $subPage == 'ppic-master-master-so' ? 'active' : '' }}">
+                                <a href="{{ route('master-so-new') }}"
+                                    class="dropdown-item {{ $subPage == 'ppic-master-master-so-new' ? 'active' : '' }}">
                                     Master Sales Order <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>

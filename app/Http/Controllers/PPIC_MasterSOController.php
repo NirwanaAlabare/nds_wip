@@ -167,6 +167,294 @@ order by ws asc");
         );
     }
 
+    // Tampilan baru Master SO PPIC
+    public function index_new(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = $this->dataMasterSoNew($request->dateFrom, $request->dateTo, $request->ws, $request->style);
+
+            return response()->json(['data' => $data]);
+        }
+
+        $user = Auth::user()->name;
+        $lihat_semua = $this->lihatSemuaDataPpic($user);
+        $cond_sql = $lihat_semua ? "1=1" : "created_by = ?";
+        $bindings = $lihat_semua ? [] : [$user];
+        $data_ws = DB::select("select ws isi, ws tampil from
+            (select * from ppic_master_so p
+            where $cond_sql) p
+            inner join master_sb_ws m on p.id_so_det = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
+            inner join signalbit_erp.so_det sd on sd.id = p.id_so_det
+            inner join signalbit_erp.so on sd.id_so = so.id
+            inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+            where COALESCE(ac.close_order, 'N') != 'Y'
+            group by ws
+            order by ws asc", $bindings);
+
+        return view(
+            'ppic.master_so_new',
+            [
+                'page' => 'dashboard-ppic',
+                "subPageGroup" => "ppic-master",
+                "subPage" => "ppic-master-master-so-new",
+                'data_ws' => $data_ws,
+                "containerFluid" => true,
+                "user" => $user
+            ]
+        );
+    }
+
+    // Query data Master SO PPIC (New) - dipakai List Master & Export Excel
+    private function dataMasterSoNew($tgl_awal, $tgl_akhir, $ws = null, $style = null, $status = null, $po = null)
+    {
+        // Filter tgl shipment (di CTE ppic)
+        $condition_tgl = "";
+        $bindings = [];
+        if (!empty($tgl_awal) && !empty($tgl_akhir)) {
+            $condition_tgl = "where p.tgl_shipment >= ? and p.tgl_shipment <= ?";
+            $bindings[] = $tgl_awal;
+            $bindings[] = $tgl_akhir;
+        }
+
+        // Filter WS / Style
+        $where = [];
+        if (!empty($ws)) {
+            $where[] = "kpno = ?";
+            $bindings[] = $ws;
+        }
+        if (!empty($style)) {
+            $where[] = "styleno = ?";
+            $bindings[] = $style;
+        }
+        if ($status === 'close') {
+            $where[] = "gmt.close_order = 'Y'";
+        } else if ($status === 'open') {
+            $where[] = "COALESCE(gmt.close_order, 'N') != 'Y'";
+        }
+        if (!empty($po)) {
+            $where[] = "p.po = ?";
+            $bindings[] = $po;
+        }
+        $condition = $where ? "where " . implode(" and ", $where) : "";
+
+        return DB::select("WITH ppic as (
+            select * from laravel_nds.ppic_master_so p
+            $condition_tgl
+            ),
+            gmt as (
+            select sd.id as id_so_det,id_jo,kpno,styleno, sd.*, Supplier buyer, product_group, ac.close_order from signalbit_erp.so_det sd
+            inner join signalbit_erp.so on sd.id_so = so.id
+            inner join signalbit_erp.act_costing ac on so.id_cost = ac.id
+            inner join signalbit_erp.jo_det jd on so.id = jd.id_so
+            inner join signalbit_erp.masterproduct mp on ac.id_product = mp.id
+            inner join signalbit_erp.mastersupplier ms on ac.id_buyer = ms.id_supplier
+            where sd.cancel = 'N' and so.cancel_h = 'N' and jd.cancel = 'N'
+            ),
+            pck_line as (
+            select po_id, count(*) qty_pck_line from signalbit_erp.output_rfts_packing_po
+            where po_id in (select id from ppic)
+            group by po_id
+            ),
+            pck_trf_gmt as (
+            select id_ppic_master_so, sum(qty) qty_trf from packing_trf_garment
+            group by id_ppic_master_so
+            ),
+            pck_in as (
+            select id_ppic_master_so, sum(qty) qty_pck_in from packing_packing_in where COALESCE(sumber, '') != 'Switching'
+            group by id_ppic_master_so
+            ),
+            switching_in AS (
+                SELECT tujuan_ppic_master_so_id AS id_ppic_master_so, SUM(qty_switch) AS qty_switch_in
+                FROM packing_central_switching
+                GROUP BY tujuan_ppic_master_so_id
+            ),
+            switching_out AS (
+                SELECT asal_ppic_master_so_id AS id_ppic_master_so, SUM(qty_switch) AS qty_switch_out
+                FROM packing_central_switching
+                GROUP BY asal_ppic_master_so_id
+            ),
+            pck_out as (
+            select id_ppic, count(*) qty_pck_out from packing_packing_out_scan
+            group by id_ppic
+            )
+
+            select
+                p.id,
+                p.id_so_det,
+                gmt.buyer,
+                p.tgl_shipment,
+                CONCAT(DATE_FORMAT(p.tgl_shipment, '%d'), '-', LEFT(DATE_FORMAT(p.tgl_shipment, '%M'), 3), '-', DATE_FORMAT(p.tgl_shipment, '%Y')) AS tgl_shipment_fix,
+                kpno ws,
+                styleno,
+                p.barcode,
+                reff_no,
+                p.desc,
+                p.po,
+                gmt.dest,
+                product_group,
+                gmt.color,
+                gmt.size,
+                p.qty_po,
+                coalesce(pck_line.qty_pck_line,0) qty_packing_line,
+                coalesce(pck_trf_gmt.qty_trf,0) qty_trf,
+                COALESCE(pck_in.qty_pck_in, 0) qty_packing_in,
+                COALESCE(switching_out.qty_switch_out, 0) qty_switching_out,
+                COALESCE(switching_in.qty_switch_in, 0) qty_switching_in,
+                coalesce(pck_out.qty_pck_out,0) qty_packing_out,
+                p.created_by,
+                p.created_at,
+                gmt.close_order
+            from ppic p
+            inner join gmt on p.id_so_det = gmt.id_so_det
+            left join pck_line on p.id = pck_line.po_id
+            left join pck_trf_gmt on p.id = pck_trf_gmt.id_ppic_master_so
+            left join pck_in on p.id = pck_in.id_ppic_master_so
+            left join pck_out on p.id = pck_out.id_ppic
+            LEFT JOIN switching_in ON p.id = switching_in.id_ppic_master_so
+            LEFT JOIN switching_out ON p.id = switching_out.id_ppic_master_so
+            LEFT JOIN signalbit_erp.master_size_new msn ON gmt.size = msn.size
+            $condition
+            ORDER BY
+                p.tgl_shipment DESC,
+                gmt.buyer ASC,
+                kpno ASC,
+                gmt.dest ASC,
+                gmt.color ASC,
+                msn.urutan ASC
+        ", $bindings);
+    }
+
+    // Export Excel Master SO PPIC (New) pakai FastExcel, kolom sama dengan tabel List Master
+    public function export_excel_master_so_new(Request $request)
+    {
+        $from = $request->dateFrom;
+        $to = $request->dateTo;
+        $rows = $this->dataMasterSoNew($from, $to, $request->ws, $request->style, $request->status, $request->po);
+
+        $excel = FastExcel::create('Master SO PPIC');
+        $sheet = $excel->getSheet();
+
+        $sheet->writeRow(['Laporan Master SO PPIC'])->applyFontStyleBold()->applyFontSize(16);
+        $periode = ($from && $to) ? date('d-M-Y', strtotime($from)) . ' s/d ' . date('d-M-Y', strtotime($to)) : '-';
+        $info = ['Tgl Shipment: ' . $periode];
+        if ($request->ws) $info[] = 'WS: ' . $request->ws;
+        if ($request->style) $info[] = 'Style: ' . $request->style;
+        if ($request->po) $info[] = 'PO: ' . $request->po;
+        if ($request->status) $info[] = 'Status Order: ' . ucfirst($request->status);
+        $sheet->writeRow([implode('  |  ', $info)]);
+        $sheet->writeRow(['']);
+
+        $sheet->setColWidths(array_fill_keys(range('A', 'W'), 20));
+
+        $sheet->writeRow([
+            'ID',
+            'Buyer',
+            'Tgl Shipment',
+            'WS',
+            'Style',
+            'Barcode',
+            'Reff',
+            'No. PO',
+            'Dest',
+            'Color',
+            'Desc',
+            'Size',
+            'Qty PO',
+            'Qty Packing Line',
+            'Qty Transfer Garment',
+            'Qty Packing In',
+            'Qty Switching Out',
+            'Qty Switching In',
+            'Qty Packing Out',
+            'Progres Out (%)',
+            'Status Order',
+            'User',
+            'Tgl Upload',
+        ])->applyFontStyleBold()->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        foreach ($rows as $r) {
+            $qty_po = (float) $r->qty_po;
+            $progres = $qty_po > 0 ? min(100, floor($r->qty_packing_out / $qty_po * 100)) : 0;
+
+            $sheet->writeRow([
+                $r->id,
+                $r->buyer,
+                $r->tgl_shipment_fix,
+                $r->ws,
+                $r->styleno,
+                (string) $r->barcode,
+                $r->reff_no,
+                (string) $r->po,
+                $r->dest,
+                $r->color,
+                $r->desc,
+                $r->size,
+                (float) $r->qty_po,
+                (float) $r->qty_packing_line,
+                (float) $r->qty_trf,
+                (float) $r->qty_packing_in,
+                (float) $r->qty_switching_out,
+                (float) $r->qty_switching_in,
+                (float) $r->qty_packing_out,
+                $progres,
+                $r->close_order == 'Y' ? 'Close' : 'Open',
+                $r->created_by,
+                $r->created_at,
+            ])->applyBorder(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        }
+
+        $filename = 'Laporan Master SO PPIC ' . ($from ?: '') . ' sd ' . ($to ?: '') . '.xlsx';
+
+        $tmpFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('xlsx_export_') . '.xlsx';
+        $excel->save($tmpFile);
+
+        return response()->download($tmpFile, $filename)->deleteFileAfterSend(true);
+    }
+
+    // Data semua PO Open tanpa batas tanggal (tidak ikut filter List Master). Dipakai di view untuk:
+    // - KPI & drawer per kartu: baris yang Packing Out < Qty PO
+    // - Notif "PO mendekati tanggal shipment": tgl shipment <= H+7 & Packing Out belum lengkap per PO
+    public function mepet_new(Request $request)
+    {
+        $data = $this->dataMasterSoNew(
+            null, // tanpa batas tanggal
+            null,
+            null,
+            null,
+            'open'
+        );
+
+        return response()->json(['data' => $data]);
+    }
+
+    // Opsi filter WS / Style / PO di Master SO PPIC (New), ikut rentang tgl shipment
+    public function opsi_filter_new(Request $request)
+    {
+        $tgl_awal = $request->dateFrom;
+        $tgl_akhir = $request->dateTo;
+
+        // Tanggal lengkap -> opsi sesuai rentang tgl shipment; tanggal kosong -> semua (seperti filter WS / Style di modul lama)
+        $condition_tgl = "";
+        $bindings = [];
+        if (!empty($tgl_awal) && !empty($tgl_akhir)) {
+            $condition_tgl = "AND p.tgl_shipment >= ? AND p.tgl_shipment <= ?";
+            $bindings = [$tgl_awal, $tgl_akhir];
+        }
+
+        $data = DB::select("
+            SELECT DISTINCT ac.kpno ws, ac.styleno, p.po
+            FROM laravel_nds.ppic_master_so p
+            INNER JOIN signalbit_erp.so_det sd ON p.id_so_det = sd.id
+            INNER JOIN signalbit_erp.so ON sd.id_so = so.id
+            INNER JOIN signalbit_erp.act_costing ac ON so.id_cost = ac.id
+            WHERE sd.cancel = 'N' AND so.cancel_h = 'N'
+            $condition_tgl
+            ORDER BY ac.kpno ASC, ac.styleno ASC, p.po ASC
+        ", $bindings);
+
+        return response()->json(['data' => $data]);
+    }
+
 
     public function show_tmp_ppic_so(Request $request)
     {
@@ -458,20 +746,32 @@ order by created_by asc
     {
         $timestamp = Carbon::now();
         $user = Auth::user()->name;
-        $tgl_shipment = date('Y-m-d', strtotime($request->txted_tgl_shipment));
-        // dd($tgl_shipment);
-        DB::update(
-            "update ppic_master_so
-            set
-            qty_po = '" . $request->txted_qty_po_skrg . "',
-            old_qty_po = '" . $request->txted_qty_po . "',
-            tgl_shipment = '" . $request->txted_tgl_shipment_skrg . "',
-            old_tgl_shipment = '" . $tgl_shipment . "',
-            tgl_update = '$timestamp',
-            user_update = '$user'
-            where id = '" . $request->txtid_c . "'
-            "
-        );
+        $tgl_baru = $request->txted_tgl_shipment_skrg;
+        $qty_baru = $request->txted_qty_po_skrg;
+
+        // Sama seperti Edit Multiple: nilai lama diambil dari DB (bukan dari teks tampilan),
+        // old_tgl_shipment / old_qty_po hanya diisi jika nilainya berubah (jika tidak, dibiarkan seperti semula),
+        // user_update / tgl_update hanya diisi jika ada yang berubah.
+        // UPDATE satu tabel -> SET dievaluasi kiri ke kanan, jadi kolom old_* membaca nilai sebelum diubah.
+        $berubah = "NOT (tgl_shipment <=> ?) OR NOT (qty_po <=> ?)";
+        DB::update("
+            update ppic_master_so set
+            old_tgl_shipment = IF(NOT (tgl_shipment <=> ?), tgl_shipment, old_tgl_shipment),
+            old_qty_po = IF(NOT (qty_po <=> ?), qty_po, old_qty_po),
+            user_update = IF($berubah, ?, user_update),
+            tgl_update = IF($berubah, ?, tgl_update),
+            tgl_shipment = ?,
+            qty_po = ?
+            where id = ?
+            ", [
+            $tgl_baru,
+            $qty_baru,
+            $tgl_baru, $qty_baru, $user,
+            $tgl_baru, $qty_baru, $timestamp,
+            $tgl_baru,
+            $qty_baru,
+            $request->txtid_c,
+        ]);
 
         return array(
             'status' => 200,
@@ -561,21 +861,26 @@ order by created_by asc
     }
 
 
+    // User yang boleh melihat data Master SO PPIC milik semua user (bukan hanya upload sendiri)
+    private function lihatSemuaDataPpic($user)
+    {
+        return in_array(strtolower(trim($user)), ['admin 01', 'it']);
+    }
+
     public function getpo_ppic_edit_tgl(Request $request)
     {
-        $tgl_skrg = date('Y-m-d');
-        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
+        // tanpa batas tgl shipment; admin 01 / it lihat semua user
         $user = Auth::user()->name;
-        if ($user == 'admin 01') {
-            $cond_sql = "";
+        if ($this->lihatSemuaDataPpic($user)) {
+            $cond_sql = "1=1";
         } else {
-            $cond_sql = "created_by = '$user' and";
+            $cond_sql = "created_by = '$user'";
         }
 
         $data_po = DB::select("
 select p.po isi, p.po tampil from
 (select * from ppic_master_so p
-where $cond_sql tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
+where $cond_sql ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
 where m.ws = '" . $request->cbows_edit_tgl . "'
 group by po
@@ -593,19 +898,18 @@ order by po asc
 
     public function getpo_ppic_hapus(Request $request)
     {
-        $tgl_skrg = date('Y-m-d');
-        $tgl_skrg_min_sebulan = date('Y-m-d', strtotime('-30 days'));
+        // tanpa batas tgl shipment; admin 01 / it lihat semua user
         $user = Auth::user()->name;
-        if ($user == 'admin 01') {
-            $cond_sql = "";
+        if ($this->lihatSemuaDataPpic($user)) {
+            $cond_sql = "1=1";
         } else {
-            $cond_sql = "created_by = '$user' and";
+            $cond_sql = "created_by = '$user'";
         }
 
         $data_po = DB::select("
 select p.po isi, p.po tampil from
 (select * from ppic_master_so p
-where $cond_sql tgl_shipment >= '$tgl_skrg_min_sebulan' ) p
+where $cond_sql ) p
 inner join master_sb_ws m on p.id_so_det = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
 where m.ws = '" . $request->cbows_hapus . "'
 group by po
@@ -709,14 +1013,32 @@ order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan a
                 $qty_po                         = $qty_poArray[$key];
                 $po                             = $poArray[$key]; {
 
+                    // Catat riwayat seperti edit per baris: old_tgl_shipment / old_qty_po / tgl_update / user_update.
+                    // Hanya diisi jika nilainya benar-benar berubah (baris yang tidak diubah ikut tersimpan ulang).
+                    // Kolom riwayat ditulis lebih dulu karena MySQL menilai SET dari kiri ke kanan (masih nilai lama).
+                    $berubah = "NOT (tgl_shipment <=> ?) OR NOT (qty_po <=> ?) OR NOT (barcode <=> ?) OR NOT (po <=> ?)";
                     $update =  DB::update("
             update ppic_master_so
             set
-            barcode = '$txtbarcode',
-            tgl_shipment = '$txttgl_shipment',
-            qty_po = '$qty_po',
-            po = '$po'
-            where id = '$txtid'");
+            old_tgl_shipment = IF(NOT (tgl_shipment <=> ?), tgl_shipment, old_tgl_shipment),
+            old_qty_po = IF(NOT (qty_po <=> ?), qty_po, old_qty_po),
+            user_update = IF($berubah, ?, user_update),
+            tgl_update = IF($berubah, ?, tgl_update),
+            barcode = ?,
+            tgl_shipment = ?,
+            qty_po = ?,
+            po = ?
+            where id = ?", [
+                        $txttgl_shipment,
+                        $qty_po,
+                        $txttgl_shipment, $qty_po, $txtbarcode, $po, $user,
+                        $txttgl_shipment, $qty_po, $txtbarcode, $po, $timestamp,
+                        $txtbarcode,
+                        $txttgl_shipment,
+                        $qty_po,
+                        $po,
+                        $txtid,
+                    ]);
                 }
             }
 
@@ -802,18 +1124,35 @@ order by tgl_shipment desc, buyer asc, ws asc, dest asc, color asc, msn.urutan a
     {
         $user = Auth::user()->name;
         $timestamp = Carbon::now();
-        $tgl_skrg = date('Y-m-d');
         $ws = $request->cbows_edit_tgl;
         $po = $request->cbopo_edit_tgl;
         $tgl_ubah = $request->tgl_ubah;
 
 
+        // Syarat baris: user (admin 01 / it boleh semua user, sama seperti pilihan PO-nya), WS, PO
+        // (tanpa batas tgl shipment, yang sudah lewat juga ikut diubah).
+        // Ditulis sebagai UPDATE satu tabel (WS lewat subquery) supaya urutan SET terjamin kiri -> kanan,
+        // sehingga old_tgl_shipment / tgl_update / user_update tercatat dari nilai lama, hanya jika tanggal berubah.
         $update_tgl = DB::update("
             update ppic_master_so p
-            inner join master_sb_ws m on p.id_so_det = m.id_so_det and (m.cancel IS NULL OR m.cancel != 'Y')
-            set p.tgl_shipment = '$tgl_ubah'
-            where p.created_by = '$user' and tgl_shipment >= '$tgl_skrg' and m.ws = '$ws' and po = '$po'
-            ");
+            set
+            p.old_tgl_shipment = IF(NOT (p.tgl_shipment <=> ?), p.tgl_shipment, p.old_tgl_shipment),
+            p.user_update = IF(NOT (p.tgl_shipment <=> ?), ?, p.user_update),
+            p.tgl_update = IF(NOT (p.tgl_shipment <=> ?), ?, p.tgl_update),
+            p.tgl_shipment = ?
+            where (? = 1 or p.created_by = ?) and p.po = ?
+            and p.id_so_det in (
+                select m.id_so_det from master_sb_ws m
+                where m.ws = ? and (m.cancel IS NULL OR m.cancel != 'Y')
+            )
+            ", [
+            $tgl_ubah,
+            $tgl_ubah, $user,
+            $tgl_ubah, $timestamp,
+            $tgl_ubah,
+            $this->lihatSemuaDataPpic($user) ? 1 : 0, $user, $po,
+            $ws,
+        ]);
 
         if ($update_tgl) {
             return array(
