@@ -1179,7 +1179,11 @@ Route::middleware('auth')->group(function () {
 
     // Master
     Route::controller(PPIC_MasterSOController::class)->prefix("master-so-ppic")->middleware('packing')->group(function () {
-        Route::get('/', 'index')->name('master-so');
+        // Route::get('/', 'index')->name('master-so');
+        Route::get('/new', 'index_new')->name('master-so-new');
+        Route::get('/new/opsi-filter', 'opsi_filter_new')->name('master-so-new-opsi-filter');
+        Route::get('/new/mepet', 'mepet_new')->name('master-so-new-mepet');
+        Route::get('/new/export-excel', 'export_excel_master_so_new')->name('export_excel_master_so_new');
         Route::post('/import-excel-so', 'import_excel_so')->name('import-excel-so');
         Route::get('/show_tmp_ppic_so', 'show_tmp_ppic_so')->name('show_tmp_ppic_so');
         Route::get('/data_cek_double_tmp_ppic_so', 'data_cek_double_tmp_ppic_so')->name('data_cek_double_tmp_ppic_so');
