@@ -56,7 +56,7 @@ class MasterItemController extends Controller
     {
         $form = request()->query('form');
 
-        return view('master-data.item.index', [
+        return view('master-data.item.list-item-general-old', [
             'kategori'       => $this->kategori(),
             'tipe'           => $this->tipeItem(),
             'awal'           => $this->keadaanDaftar(),
