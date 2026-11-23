@@ -312,7 +312,7 @@ class CuttingFormController extends Controller
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
             where("marker_input.kode", $formCutInputData->kode)->
             where("marker_input.cancel", "N")->
-            groupBy("marker_input_detail.id")->
+            groupBy("marker_input_detail.so_det_id", "marker_input_detail.size")->
             get();
 
         if (Auth::user()->type == "meja" && Auth::user()->id != $formCutInputData->no_meja) {

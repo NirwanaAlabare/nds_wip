@@ -1043,10 +1043,9 @@ class MarkerController extends Controller
             $timestamp = Carbon::now();
             $markerDetailData = [];
             for ($i = 0; $i < intval($request['jumlah_so_det']); $i++) {
-                $existingDetail = MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->first();
+                $existingDetail = MarkerDetail::where('marker_id', $id)->where('so_det_id', $request["so_det_id"][$i])->where('size', $request["size"][$i])->first();
                 if ($existingDetail) {
                     $existingDetail->update([
-                        "size"       => $request["size"][$i],
                         "ratio"      => $request["ratio"][$i],
                         "cut_qty"    => $request["cut_qty"][$i],
                         "cancel"     => 'N',

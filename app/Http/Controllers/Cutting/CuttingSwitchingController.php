@@ -389,6 +389,8 @@ class CuttingSwitchingController extends Controller
         $forms = FormCutInput::select("form_cut_input.id", "form_cut_input.no_form")->
             leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
             where("marker_input.act_costing_id", $request->act_costing_id)->
+            where("form_cut_input.status", "SELESAI PENGERJAAN")->
+            whereNotNull("form_cut_input.waktu_selesai")->
             get();
 
         return $forms;
@@ -400,6 +402,8 @@ class CuttingSwitchingController extends Controller
             leftJoin("marker_input_detail", "marker_input_detail.marker_id", "=", "marker_input.id")->
             where("form_cut_input.id", $request->form_cut_id)->
             // where("marker_input_detail.ratio", ">", 0)->
+            where("form_cut_input.status", "SELESAI PENGERJAAN")->
+            whereNotNull("form_cut_input.waktu_selesai")->
             groupBy("marker_input_detail.id")->
             get();
 
@@ -427,10 +431,15 @@ class CuttingSwitchingController extends Controller
         DB::beginTransaction();
         try {
             // 1. Ambil data output asal (Source)
-            $fromOutput = FormCutInputDetailOutput::find($validatedRequest["id"]);
+            $fromOutput = FormCutInputDetailOutput::lockForUpdate()->find($validatedRequest["id"]);
             if (!$fromOutput) {
                 DB::rollBack();
                 return response()->json(["status" => 404, "message" => "Data asal tidak ditemukan"], 404);
+            }
+
+            if (Stocker::where("form_cut_id", $fromOutput->form_cut_input_id)->exists()) {
+                DB::rollBack();
+                return response()->json(["status" => 400, "message" => "Form asal sudah memiliki Stocker."], 400);
             }
 
             // Ambil informasi form dan marker detail asal (untuk keperluan pesan sukses)
@@ -441,8 +450,14 @@ class CuttingSwitchingController extends Controller
                 DB::rollBack();
                 return response()->json(["status" => 400, "message" => "Informasi data asal tidak lengkap"], 400);
             }
+            if ($fromForm->status != 'SELESAI PENGERJAAN' || $fromForm->waktu_selesai == null) {
+                DB::rollBack();
+                return response()->json(["status" => 400, "message" => "Form belum selesai"], 400);
+            }
 
             if (checkClosingDate($fromForm->waktu_selesai)) {
+                DB::rollBack();
+
                 return array(
                     "status" => 400,
                     "message" => "Periode sudah ditutup."
@@ -457,8 +472,14 @@ class CuttingSwitchingController extends Controller
                 DB::rollBack();
                 return response()->json(["status" => 404, "message" => "Data tujuan tidak ditemukan"], 404);
             }
+            if ($toForm->status != 'SELESAI PENGERJAAN' || $toForm->waktu_selesai == null) {
+                DB::rollBack();
+                return response()->json(["status" => 400, "message" => "Form belum selesai"], 400);
+            }
 
             if (checkClosingDate($toForm->waktu_selesai)) {
+                DB::rollBack();
+
                 return array(
                     "status" => 400,
                     "message" => "Periode sudah ditutup."
@@ -548,6 +569,7 @@ class CuttingSwitchingController extends Controller
             foreach ($validatedRequest['transfers'] as $transfer) {
                 $checkStocker = Stocker::where("form_cut_id", $transfer['form_cut_id'])->first();
                 if ($checkStocker) {
+                    DB::rollBack();
                     return array(
                         "status" => 400,
                         "message" => "Form sudah memiliki Stocker."
@@ -555,10 +577,15 @@ class CuttingSwitchingController extends Controller
                 }
 
                 // 1. Ambil data output asal (Source)
-                $fromOutput = FormCutInputDetailOutput::find($transfer["id"]);
+                $fromOutput = FormCutInputDetailOutput::lockForUpdate()->find($transfer["id"]);
                 if (!$fromOutput) {
                     // This should not happen due to validation, but as a safeguard
                     continue;
+                }
+
+                if (Stocker::where("form_cut_id", $fromOutput->form_cut_input_id)->exists()) {
+                    DB::rollBack();
+                    return response()->json(["status" => 400, "message" => "Form asal sudah memiliki Stocker."], 400);
                 }
 
                 // Ambil informasi form dan marker detail asal
@@ -569,8 +596,13 @@ class CuttingSwitchingController extends Controller
                     DB::rollBack();
                     return response()->json(["status" => 400, "message" => "Informasi data asal tidak lengkap"], 400);
                 }
+                if ($fromForm->status != 'SELESAI PENGERJAAN' || $fromForm->waktu_selesai == null) {
+                    DB::rollBack();
+                    return response()->json(["status" => 400, "message" => "Form belum selesai"], 400);
+                }
 
                 if (checkClosingDate($fromForm->waktu_selesai)) {
+                    DB::rollBack();
                     return array(
                         "status" => 400,
                         "message" => "Periode sudah ditutup."
@@ -583,10 +615,15 @@ class CuttingSwitchingController extends Controller
 
                 if (!$toForm || !$toMarkerDetail) {
                     DB::rollBack();
-                    return response()->json(["status" => 400, "message" => "Informasi data asal tidak lengkap"], 400);
+                    return response()->json(["status" => 404, "message" => "Data tujuan tidak ditemukan"], 404);
+                }
+                if ($toForm->status != 'SELESAI PENGERJAAN' || $toForm->waktu_selesai == null) {
+                    DB::rollBack();
+                    return response()->json(["status" => 400, "message" => "Form belum selesai"], 400);
                 }
 
                 if (checkClosingDate($toForm->waktu_selesai)) {
+                    DB::rollBack();
                     return array(
                         "status" => 400,
                         "message" => "Periode sudah ditutup."
@@ -644,10 +681,14 @@ class CuttingSwitchingController extends Controller
         DB::beginTransaction();
         try {
             // 1. Find the log entry
-            $log = FormCutInputDetailOutputLog::find($id);
+            $log = FormCutInputDetailOutputLog::lockForUpdate()->find($id);
             if (!$log) {
                 DB::rollBack();
                 return response()->json(['status' => 404, 'message' => 'Log transfer tidak ditemukan.'], 404);
+            }
+            if (!$log->is_active) {
+                DB::rollBack();
+                return response()->json(['status' => 400, 'message' => 'Transfer ini sudah dibatalkan.'], 400);
             }
 
             $qty = $log->qty_transfer;
@@ -656,14 +697,21 @@ class CuttingSwitchingController extends Controller
             $fromForm = FormCutInput::with('marker')->find($log->form_cut_input_id_asal);
             $toForm = FormCutInput::with('marker')->find($log->form_cut_input_id_tujuan);
 
+            if (!$fromForm || !$toForm) {
+                DB::rollBack();
+                return response()->json(['status' => 404, 'message' => 'Form asal atau tujuan tidak ditemukan.'], 404);
+            }
+
             $checkStockerFrom = Stocker::where("form_cut_id", $log->form_cut_input_id_asal)->first();
             if ($checkStockerFrom) {
+                DB::rollBack();
                 return array(
                     "status" => 400,
                     "message" => "Form sudah memiliki Stocker."
                 );
             }
             if (checkClosingDate($fromForm->waktu_selesai)) {
+                DB::rollBack();
                 return array(
                     "status" => 400,
                     "message" => "Periode sudah ditutup."
@@ -671,21 +719,18 @@ class CuttingSwitchingController extends Controller
             }
             $checkStockerTo = Stocker::where("form_cut_id", $log->form_cut_input_id_tujuan)->first();
             if ($checkStockerTo) {
+                DB::rollBack();
                 return array(
                     "status" => 400,
                     "message" => "Form sudah memiliki Stocker."
                 );
             }
             if (checkClosingDate($toForm->waktu_selesai)) {
+                DB::rollBack();
                 return array(
                     "status" => 400,
                     "message" => "Periode sudah ditutup."
                 );
-            }
-
-            if (!$fromForm || !$toForm) {
-                DB::rollBack();
-                return response()->json(['status' => 404, 'message' => 'Form asal atau tujuan tidak ditemukan.'], 404);
             }
 
             // 3. Find source and destination marker details
