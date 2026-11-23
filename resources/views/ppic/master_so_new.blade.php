@@ -766,6 +766,7 @@
                 <div class="f"><label>&nbsp;</label>
                     <div class="acts">
                     <button class="mbtn pri" title="Cari" onclick="cari()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Cari</button>
+                    <button class="mbtn" title="Reset Filter" onclick="resetFilter()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
                     <button class="mbtn green" title="Export Excel" onclick="exportExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13l6 6M15 13l-6 6"/></svg></button>
                     <button class="mbtn amber" title="Edit Multiple" data-bs-toggle="modal" data-bs-target="#modalEditMassal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
                     </div>
@@ -1139,6 +1140,7 @@
                         <tr><td><b>Tgl Shipment Awal / Akhir</b></td><td>Awalnya terisi hari ini. Pilihan WS, Style, dan No. PO ikut menyesuaikan rentang tanggal ini.</td></tr>
                         <tr><td><b>WS / Style / No. PO</b></td><td>Saling terhubung: memilih salah satu akan menyesuaikan pilihan yang lain dan tgl shipment-nya.</td></tr>
                         <tr><td><b>Cari</b></td><td>Menampilkan data sesuai filter. Isi kedua tanggal, atau pilih WS / Style kalau tanggal dikosongkan.</td></tr>
+                        <tr><td><b>Reset Filter</b></td><td>Tombol putar (sebelah Cari): mengosongkan semua filter (Status All, Tgl Shipment, WS / Style / No. PO) dan pencarian.</td></tr>
                         <tr><td><b>Filter aktif</b></td><td>Ditampilkan sebagai label di bawah filter. Klik × untuk menghapus satu filter, atau <b>Hapus semua</b>.</td></tr>
                     </table>
                 </section>
@@ -1487,6 +1489,11 @@ function cari(){
   AF.d1=document.getElementById("fd1").value; AF.d2=document.getElementById("fd2").value;
   AF.status=document.getElementById("fstat").value; AF.ws=fws.value; AF.style=fst.value; AF.po=fpo.value;
   needFetch()?loadData():applyFilter();
+}
+function resetFilter(){
+  document.getElementById("q").value="";
+  document.querySelectorAll("#srow input").forEach(i=>i.value="");
+  unChip("all");
 }
 function drawChips(){
   const c=[];
