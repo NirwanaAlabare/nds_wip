@@ -662,6 +662,7 @@
         #mso .wip-t span{display:block;font-size:11px;color:#d7e5f7}
         #mso .wip-go{width:24px;height:24px;border-radius:7px;background:#ffffff26;display:grid;place-items:center;font-size:13px;flex:none}
         #mso .ph{align-items:center}
+        #mso .ph .crumb{margin-bottom:18px}
         #mso .wip-t b .mini-spin{width:18px;height:18px;border-width:2px;border-color:#ffffff55;border-top-color:#fff;vertical-align:-3px}
         @media(max-width:700px){#mso .wip{align-items:stretch;width:100%}#mso .wip-c{flex:1}}
     </style>
