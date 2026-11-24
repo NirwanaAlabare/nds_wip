@@ -1246,7 +1246,7 @@ function mapRow(r){
   return {id:esc(r.id),buyer:esc(r.buyer),ship:iso?(([y,m,d])=>d+"-"+BLN[+m-1]+"-"+y)(iso.split("-")):esc(r.tgl_shipment_fix||"-"),iso,days,
     ws:esc(r.ws),style:esc(r.styleno),reff:esc(r.reff_no),po:esc(r.po),desc:esc(r.desc),color:esc(r.color),size:esc(r.size),dest:esc(r.dest),barcode:esc(r.barcode),
     qpo:num(r.qty_po),pline:num(r.qty_packing_line),qtr:num(r.qty_trf),pin:num(r.qty_packing_in),so:num(r.qty_switching_out),si:num(r.qty_switching_in),pout:num(r.qty_packing_out),
-    user:esc(r.created_by),upl:ca.slice(0,10),uplt:ca.slice(11,19),status:r.close_order==="Y"?"close":"open"};
+    user:esc(r.created_by),upl:ca.slice(0,10),uplt:ca.slice(11,19),uplTxt:/^\d{4}-\d{2}-\d{2}/.test(ca)?(([y,m,d])=>+d+" "+BLN[+m-1]+" "+y)(ca.slice(0,10).split("-"))+" · "+ca.slice(11,16):"-",status:r.close_order==="Y"?"close":"open"};
 }
 const msg=t=>{document.getElementById("tb").innerHTML=`<tr><td colspan="17" style="text-align:center;color:var(--muted);height:90px">${t}</td></tr>`};
 // ===== Edit per baris (sama seperti Master SO lama) =====
@@ -1474,7 +1474,7 @@ function kpis(){
 }
 
 // search row
-const sfields=["id","buyer","ship","ws|style","po|dest","color|desc","size|barcode","qpo","pline","qtr","pin","so|si","pout","","user|upl|uplt","status",""];
+const sfields=["id","buyer","ship","ws|style","po|dest","color|desc","size|barcode","qpo","pline","qtr","pin","so|si","pout","","user|uplTxt","status",""];
 document.getElementById("srow").innerHTML=sfields.map((f,i)=>{
   let cls=i===0?"stk stk1":i===1?"stk stk2":"";
   if(i===7) cls+=" qfirst"; if(i===12) cls+=" qlast";
@@ -1551,7 +1551,7 @@ function render(){
     <td class="q sw"><span class="${r.so?"neg":"zero"}">${r.so?"−"+fmt(r.so):"0"}</span><span class="${r.si?"pos":"zero"}">${r.si?"+"+fmt(r.si):"0"}</span></td>
     ${qcell(r,"pout","qlast")}
     <td><div class="prog"><div class="bar"><i style="width:${p}%;background:${pc}"></i></div><small style="color:${pc}">${p}%</small></div></td>
-    <td class="two"><b style="font-weight:600">${r.user}</b><span>${r.upl?(([y,m,d])=>+d+" "+BLN[+m-1]+" "+y)(r.upl.split("-"))+" · "+r.uplt.slice(0,5):"-"}</span></td>
+    <td class="two"><b style="font-weight:600">${r.user}</b><span>${r.uplTxt}</span></td>
     <td><span class="st st-${r.status}">${ST[r.status]}</span></td>
     <td><button class="ab" title="Edit" data-bs-toggle="modal" data-bs-target="#exampleModalEdit" onclick="edit('${r.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></td>
     </tr>`}).join("") || `<tr><td colspan="17" style="text-align:center;color:var(--muted);height:90px">Data tidak ditemukan</td></tr>`;
