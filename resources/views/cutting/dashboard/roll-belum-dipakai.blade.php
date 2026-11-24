@@ -36,9 +36,9 @@
             --soft: #f7f7fb;
             --grid: #ececf2;
 
-            --red: #e5484d;     --red-lt: #ffeced;
+            --red: #e5484d;     --red-lt: #ffeced;     --red-bd: #f8c9cb;
             --amber: #e08a00;   --amber-lt: #fff4dd;
-            --green: #0fa676;   --green-lt: #e3f7ef;
+            --green: #0fa676;   --green-lt: #e3f7ef;   --green-bd: #b5e6d2;
             --indigo: #5b4ee6;  --indigo-lt: #efedff;
             --blue: #2a78d6;    --blue-lt: #e8f1fc;
 
@@ -57,9 +57,9 @@
                 --soft: #22222c;
                 --grid: #262630;
 
-                --red: #ff6b70;     --red-lt: #3a1c1f;
+                --red: #ff6b70;     --red-lt: #3a1c1f;     --red-bd: #5c2a2e;
                 --amber: #f2b23a;   --amber-lt: #352a12;
-                --green: #2cc794;   --green-lt: #13302a;
+                --green: #2cc794;   --green-lt: #13302a;   --green-bd: #1f4d3e;
                 --indigo: #8b80ff;  --indigo-lt: #26234a;
                 --blue: #4a95ea;    --blue-lt: #16253a;
 
@@ -79,9 +79,9 @@
             --soft: #22222c;
             --grid: #262630;
 
-            --red: #ff6b70;     --red-lt: #3a1c1f;
+            --red: #ff6b70;     --red-lt: #3a1c1f;     --red-bd: #5c2a2e;
             --amber: #f2b23a;   --amber-lt: #352a12;
-            --green: #2cc794;   --green-lt: #13302a;
+            --green: #2cc794;   --green-lt: #13302a;   --green-bd: #1f4d3e;
             --indigo: #8b80ff;  --indigo-lt: #26234a;
             --blue: #4a95ea;    --blue-lt: #16253a;
 
@@ -249,38 +249,29 @@
         .pilih-tema button.aktif { background: var(--ink); color: var(--card); }
 
         /* ==========================================================
-           Notifikasi (merah berkedip kalau ada roll lewat batas)
+           Notifikasi (warna lembut; merah muda kalau ada roll lewat batas)
            ========================================================== */
         .alert {
-            position: relative;
-            overflow: hidden;
             display: flex;
             align-items: center;
             flex-wrap: wrap;
             gap: 16px;
             padding: 14px 16px;
             border-radius: 16px;
-            color: #fff;
-            background: linear-gradient(120deg, #e5484d 0%, #f06a3f 55%, #f5a524 100%);
+            border: 1px solid var(--red-bd);
+            background: var(--red-lt);
+            color: var(--ink2);
         }
 
-        .alert::after {
-            content: "";
-            position: absolute;
-            right: -40px;
-            top: -70px;
-            width: 230px;
-            height: 230px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, .12);
+        .alert.aman {
+            border-color: var(--green-bd);
+            background: var(--green-lt);
         }
 
-        .alert.aman { background: linear-gradient(120deg, #0fa676, #2bbf8a); }
+        .alert h2 { margin: 0; font-size: 17px; font-weight: 800; color: var(--red); }
+        .alert p  { margin: 3px 0 0; font-size: 13.5px; }
 
-        .alert h2 { margin: 0; font-size: 17px; font-weight: 800; }
-        .alert p  { margin: 3px 0 0; opacity: .94; font-size: 13.5px; }
-
-        .alert-isi { position: relative; z-index: 1; }
+        .alert.aman h2 { color: var(--green); }
 
         .lonceng {
             flex: none;
@@ -289,48 +280,37 @@
             width: 42px;
             height: 42px;
             border-radius: 14px;
-            background: rgba(255, 255, 255, .22);
+            background: var(--card);
+            color: var(--red);
         }
 
+        .alert.aman .lonceng { color: var(--green); }
+
         .alert-tombol {
-            position: relative;
-            z-index: 1;
             margin-left: auto;
             padding: 11px 18px;
             border: 0;
             border-radius: 11px;
-            background: #fff;
-            color: #c2332f;
+            background: var(--red);
+            color: #fff;
             font-size: 13.5px;
             font-weight: 800;
             cursor: pointer;
         }
 
-        .alert.sirene            { animation: sirene .8s steps(1, end) infinite; }
-        .alert.sirene h2         { animation: teksSirene .8s steps(1, end) infinite; }
-        .alert.sirene .lonceng   { animation: goyangLonceng .6s ease-in-out infinite; }
-
-        @keyframes sirene {
-            0%  { background: linear-gradient(120deg, #ff2d2d, #ff5a1f); box-shadow: 0 0 0 4px #ff2d2d, 0 0 34px 10px rgba(255, 45, 45, .75); }
-            50% { background: linear-gradient(120deg, #8f0b10, #b3160f); box-shadow: 0 0 0 4px #ffd400, 0 0 10px 2px rgba(255, 212, 0, .5); }
-        }
-
-        @keyframes teksSirene {
-            0%  { color: #fff; }
-            50% { color: #ffe14d; }
-        }
+        /* Lonceng bergoyang pelan sesekali, tanpa kedip */
+        .alert.ada-lewat .lonceng svg { animation: goyangLonceng 3s ease-in-out infinite; }
 
         @keyframes goyangLonceng {
-            0%, 100% { transform: rotate(0) scale(1); }
-            20%      { transform: rotate(-22deg) scale(1.12); }
-            40%      { transform: rotate(20deg) scale(1.12); }
-            60%      { transform: rotate(-14deg); }
-            80%      { transform: rotate(10deg); }
+            0%, 80%, 100% { transform: rotate(0); }
+            85%           { transform: rotate(-14deg); }
+            90%           { transform: rotate(12deg); }
+            95%           { transform: rotate(-6deg); }
         }
 
         @media (prefers-reduced-motion: reduce) {
             .marquee-track { animation-duration: 240s; }
-            .alert.sirene, .alert.sirene h2, .alert.sirene .lonceng { animation: none; }
+            .alert.ada-lewat .lonceng svg { animation: none; }
         }
 
         /* ==========================================================
@@ -533,6 +513,7 @@
         .badge { display: inline-flex; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
         .badge.lewat  { background: var(--red-lt); color: var(--red); }
         .badge.normal { background: var(--amber-lt); color: var(--amber); }
+        .badge.baru   { background: var(--green-lt); color: var(--green); }
 
         .tabel-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
 
@@ -635,7 +616,7 @@
                 <h1>Roll Kain Belum Dipakai</h1>
                 <p class="subjudul">
                     Roll yang sudah diterima cutting tapi belum dipakai sama sekali
-                    (roll yang baru diterima hari ini tidak dihitung).
+                    (termasuk roll yang baru diterima hari ini).
                     Batas waktu: <b>{{ $batasHari }} hari</b>.
                 </p>
             </div>
@@ -658,7 +639,7 @@
         <div class="kpi-baris">
             <div class="alert" id="notifikasi">
                 <div class="lonceng">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
                         <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                     </svg>
@@ -667,7 +648,7 @@
                     <h2 id="notifikasi-judul">Memuat…</h2>
                     <p id="notifikasi-teks"></p>
                 </div>
-                <button class="alert-tombol" id="notifikasi-tombol" type="button">Lihat roll-nya →</button>
+                <button class="alert-tombol" id="notifikasi-tombol" type="button">Lihat daftar →</button>
             </div>
 
             <button class="kpi semua" data-filter="semua" type="button">
@@ -692,7 +673,8 @@
                 <p class="petunjuk">
                     Jumlah roll per umur sejak diterima.
                     <i class="kotak-warna" style="background: var(--red)"></i> <b>Merah</b> = ≥ {{ $batasHari }} hari, segera pakai ·
-                    <i class="kotak-warna" style="background: var(--amber)"></i> <b>Kuning</b> = di bawah {{ $batasHari }} hari
+                    <i class="kotak-warna" style="background: var(--amber)"></i> <b>Kuning</b> = 1–{{ $batasHari - 1 }} hari ·
+                    <i class="kotak-warna" style="background: var(--green)"></i> <b>Hijau</b> = 0 hari (hari ini)
                 </p>
                 <div id="grafik-umur"></div>
             </div>
@@ -946,13 +928,13 @@
             if (rollLewatBatas.length > 0) {
                 const umurTerlama = rollLewatBatas[0].umur;
 
-                notifikasi.className = "alert sirene";
-                el("notifikasi-judul").textContent = `⚠️ ${rollLewatBatas.length} roll belum dipakai ${BATAS_HARI} hari atau lebih!`;
-                el("notifikasi-teks").textContent = `Paling lama sudah ${umurTerlama} hari menunggu. Mohon segera dipakai atau dicek ke bagian cutting.`;
+                notifikasi.className = "alert ada-lewat";
+                el("notifikasi-judul").textContent = `Ada ${rollLewatBatas.length} roll yang belum dipakai ${BATAS_HARI} hari atau lebih`;
+                el("notifikasi-teks").textContent = `Paling lama ${umurTerlama} hari. Mohon dicek dan didahulukan pemakaiannya ya.`;
                 el("notifikasi-tombol").style.display = "";
             } else {
                 notifikasi.className = "alert aman";
-                el("notifikasi-judul").textContent = `Aman 👍 Tidak ada roll yang menunggu ${BATAS_HARI} hari atau lebih`;
+                el("notifikasi-judul").textContent = `Aman, tidak ada roll yang menunggu ${BATAS_HARI} hari atau lebih`;
                 el("notifikasi-teks").textContent = "Semua roll masih dalam batas waktu.";
                 el("notifikasi-tombol").style.display = "none";
             }
@@ -973,7 +955,7 @@
             const hariIni = new Date(tanggalHariIni + "T00:00:00");
 
             // Urutan kiri ke kanan: paling lama -> paling baru
-            for (let umur = UMUR_MAKS_GRAFIK; umur >= 1; umur--) {
+            for (let umur = UMUR_MAKS_GRAFIK; umur >= 0; umur--) {
                 const batangTerakhir = umur === UMUR_MAKS_GRAFIK;
                 const daftarRoll = semuaRoll.filter(roll => batangTerakhir ? roll.umur >= umur : roll.umur === umur);
 
@@ -1016,6 +998,7 @@
                 teks2: ambilWarnaCss("--ink2"),
                 merah: ambilWarnaCss("--red"),
                 kuning: ambilWarnaCss("--amber"),
+                hijau: ambilWarnaCss("--green"),
             };
 
             let svg = `<svg viewBox="0 0 ${lebar} ${tinggi}" width="100%" role="img" aria-label="Grafik umur roll">`;
@@ -1045,7 +1028,7 @@
                 const xBatang = jarak.kiri + lebarSlot * index + lebarSlot * .18;
                 const yBatang = tinggi - jarak.bawah - tinggiBatang;
                 const xTengah = jarak.kiri + lebarSlot * index + lebarSlot / 2;
-                const warnaBatang = k.umur >= BATAS_HARI ? warna.merah : warna.kuning;
+                const warnaBatang = k.umur >= BATAS_HARI ? warna.merah : (k.umur === 0 ? warna.hijau : warna.kuning);
                 const awalan = k.batangTerakhir ? "≥ " : "";
                 const labelTanggal = k.tanggal.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 
@@ -1068,7 +1051,8 @@
                 const awalan = k.batangTerakhir ? "≥ " : "";
 
                 batang.addEventListener("mousemove", event => {
-                    tampilkanTooltip(event, `<b>${k.daftarRoll.length} roll</b> sudah ${awalan}${k.umur} hari menunggu`);
+                    const teks = k.umur === 0 ? "diterima hari ini" : `sudah ${awalan}${k.umur} hari menunggu`;
+                    tampilkanTooltip(event, `<b>${k.daftarRoll.length} roll</b> ${teks}`);
                 });
 
                 batang.addEventListener("mouseleave", sembunyikanTooltip);
@@ -1078,10 +1062,15 @@
                     if (k.daftarRoll.length === 0) return;
 
                     const lewat = k.umur >= BATAS_HARI;
+                    const hariIni = k.umur === 0;
+                    let judul = `Roll menunggu ${k.umur} hari`;
+                    if (k.batangTerakhir) judul = `Roll menunggu ${UMUR_MAKS_GRAFIK} hari atau lebih`;
+                    if (hariIni) judul = "Roll diterima hari ini";
+
                     bukaModal({
-                        ikon: lewat ? "🚨" : "⏳",
-                        warnaIkon: lewat ? "var(--red-lt)" : "var(--amber-lt)",
-                        judul: k.batangTerakhir ? `Roll menunggu ${UMUR_MAKS_GRAFIK} hari atau lebih` : `Roll menunggu ${k.umur} hari`,
+                        ikon: lewat ? "🚨" : (hariIni ? "🆕" : "⏳"),
+                        warnaIkon: lewat ? "var(--red-lt)" : (hariIni ? "var(--green-lt)" : "var(--amber-lt)"),
+                        judul: judul,
                         subjudul: "Sudah diterima cutting, belum dipakai",
                         daftarRoll: k.daftarRoll,
                     });
@@ -1170,7 +1159,7 @@
         }
 
         function barisTabel(roll) {
-            const kelasBadge = rollSudahLewatBatas(roll) ? "lewat" : "normal";
+            const kelasBadge = rollSudahLewatBatas(roll) ? "lewat" : (roll.umur === 0 ? "baru" : "normal");
             const meter = roll.m == null
                 ? `<span class="satuan">–</span>`
                 : `${formatAngka(roll.m)} <span class="satuan">M</span>`;
