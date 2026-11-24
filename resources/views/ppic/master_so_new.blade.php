@@ -592,6 +592,8 @@
         .sg-map-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border-radius:.45rem;background:linear-gradient(120deg,#0b1f3f,#1d4ed8 60%,#0ea5a4)}
         .sg-map-head b{font-size:12px;color:#fff}
         .sg-map-head .sg-map-z i{display:block;width:54px;height:14px;border-radius:4px;background:#ffffff44}
+        .sg-map-head .sg-map-wip{display:flex;gap:4px;padding:2px;margin-left:auto}
+        .sg-map-head .sg-map-wip i{width:30px;height:14px}
         .sg-map-body{display:flex;flex-direction:column;gap:10px;margin-top:10px}
         .sg-map-up{height:20px;background:#fff;border:1px solid var(--g-line)}
         .sg-map-al{height:18px;background:#ffe4e8;border:1px solid #fecdd3}
@@ -680,7 +682,7 @@
             {{-- Cek stok WIP: total dari endpoint masing-masing modul (lihat loadWip) --}}
             <div class="wip">
                 <div class="wip-h"><span><b>Cek stok WIP</b> · klik untuk buka modul</span><button type="button" class="ph-guide" id="soGuideBtn"><i class="fas fa-book-open"></i> Panduan</button></div>
-                <div class="wip-l">
+                <div class="wip-l" id="wipBox">
                     <a class="wip-c" href="{{ route('wip_packing_line') }}" target="_blank" rel="noopener"><span class="wip-i" style="background:#38bdf8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span><span class="wip-t"><small>WIP Packing Line</small><b id="wipL"></b><span>pcs</span></span><span class="wip-go">↗</span></a>
                     <a class="wip-c" href="{{ route('transfer-garment') }}" target="_blank" rel="noopener"><span class="wip-i" style="background:#fbbf24"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/></svg></span><span class="wip-t"><small>WIP Temporary Packing</small><b id="wipT"></b><span>pcs</span></span><span class="wip-go">↗</span></a>
                     <a class="wip-c" href="{{ route('detail_transaksi_packing_central_switching') }}" target="_blank" rel="noopener"><span class="wip-i" style="background:#4ade80"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span class="wip-t"><small>WIP Packing Central</small><b id="wipC"></b><span>pcs</span></span><span class="wip-go">↗</span></a>
@@ -1087,7 +1089,7 @@
             </div>
             <div class="modal-body sg">
                 <nav class="sg-nav">
-                    <a href="#sg-peta">Peta halaman</a><a href="#sg-alur">Alur singkat</a><a href="#sg-upload">Upload</a><a href="#sg-notif">PO mendekati shipment</a>
+                    <a href="#sg-peta">Peta halaman</a><a href="#sg-alur">Alur singkat</a><a href="#sg-wip">Cek stok WIP</a><a href="#sg-upload">Upload</a><a href="#sg-notif">PO mendekati shipment</a>
                     <a href="#sg-kpi">Kartu KPI</a><a href="#sg-filter">Filter &amp; Cari</a><a href="#sg-tombol">Export &amp; Edit Multiple</a><a href="#sg-tabel">Tabel</a>
                     <a href="#sg-edit">Edit per baris</a><a href="#sg-tips">Tips &amp; FAQ</a>
                 </nav>
@@ -1098,26 +1100,27 @@
                     <div class="sg-map">
                         <div class="sg-map-head">
                             <b>Master SO PPIC</b>
+                            <div class="sg-map-z sg-map-wip" data-spot="#wipBox"><a href="#sg-wip" class="sg-map-n" aria-label="Cek stok WIP">2<span class="sg-map-tip" role="tooltip"><b>Cek stok WIP</b>Total stok WIP di Packing Line, Temporary Packing, dan Packing Central. Klik kartu untuk membuka modulnya.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i><i></i></div>
                             <div class="sg-map-z" data-spot="#soGuideBtn"><a href="#sg-peta" class="sg-map-n tip-l" aria-label="Tombol Panduan">1<span class="sg-map-tip" role="tooltip"><b>Panduan</b>Membuka halaman bantuan ini kapan saja.<small>Klik kotak untuk melihat di halaman</small></span></a><i></i></div>
                         </div>
                         <div class="sg-map-body">
-                            <div class="sg-map-z sg-map-up" data-spot="#upWrap"><a href="#sg-upload" class="sg-map-n" aria-label="Upload">2<span class="sg-map-tip" role="tooltip"><b>Upload Master SO PPIC</b>Upload file Excel, cek preview, lalu simpan.<small>Klik nomor untuk penjelasan lengkap</small></span></a></div>
-                            <div class="sg-map-z sg-map-al" data-spot="#alertBox"><a href="#sg-notif" class="sg-map-n" aria-label="PO mendekati shipment">3<span class="sg-map-tip" role="tooltip"><b>PO mendekati tanggal shipment</b>PO Open yang shipment-nya 7 hari lagi atau kurang dan Packing Out belum lengkap.<small>Klik nomor untuk penjelasan lengkap</small></span></a></div>
-                            <div class="sg-map-z sg-map-kp" data-spot="#kpis"><a href="#sg-kpi" class="sg-map-n" aria-label="Kartu KPI">4<span class="sg-map-tip" role="tooltip"><b>Kartu KPI</b>Total qty PO Open yang belum selesai, per tahap proses.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                            <div class="sg-map-z sg-map-up" data-spot="#upWrap"><a href="#sg-upload" class="sg-map-n" aria-label="Upload">3<span class="sg-map-tip" role="tooltip"><b>Upload Master SO PPIC</b>Upload file Excel, cek preview, lalu simpan.<small>Klik nomor untuk penjelasan lengkap</small></span></a></div>
+                            <div class="sg-map-z sg-map-al" data-spot="#alertBox"><a href="#sg-notif" class="sg-map-n" aria-label="PO mendekati shipment">4<span class="sg-map-tip" role="tooltip"><b>PO mendekati tanggal shipment</b>PO Open yang shipment-nya 7 hari lagi atau kurang dan Packing Out belum lengkap.<small>Klik nomor untuk penjelasan lengkap</small></span></a></div>
+                            <div class="sg-map-z sg-map-kp" data-spot="#kpis"><a href="#sg-kpi" class="sg-map-n" aria-label="Kartu KPI">5<span class="sg-map-tip" role="tooltip"><b>Kartu KPI</b>Total qty PO Open yang belum selesai, per tahap proses.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
                                 <i style="--c:#0b1f3f"></i><i style="--c:#0891b2"></i><i style="--c:#7c3aed"></i><i style="--c:#0284c7"></i><i style="--c:#16a34a"></i>
                             </div>
                             <div class="sg-map-card">
                                 <div class="sg-map-frow">
-                                    <div class="sg-map-z sg-map-fl" data-spot="#mso .filters"><a href="#sg-filter" class="sg-map-n" aria-label="Filter">5<span class="sg-map-tip" role="tooltip"><b>Filter &amp; Cari</b>Status order, tgl shipment, WS, style, dan No. PO.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                                    <div class="sg-map-z sg-map-ac" data-spot="#mso .f .acts"><a href="#sg-tombol" class="sg-map-n tip-l" aria-label="Tombol">6<span class="sg-map-tip" role="tooltip"><b>Cari, Export &amp; Edit Multiple</b>Tampilkan data, unduh Excel, atau ubah / hapus banyak baris sekaligus.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i style="background:#1d4ed8"></i><i style="background:#16a34a"></i><i style="background:#d97706"></i></div>
+                                    <div class="sg-map-z sg-map-fl" data-spot="#mso .filters"><a href="#sg-filter" class="sg-map-n" aria-label="Filter">6<span class="sg-map-tip" role="tooltip"><b>Filter &amp; Cari</b>Status order, tgl shipment, WS, style, dan No. PO.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                                    <div class="sg-map-z sg-map-ac" data-spot="#mso .f .acts"><a href="#sg-tombol" class="sg-map-n tip-l" aria-label="Tombol">7<span class="sg-map-tip" role="tooltip"><b>Cari, Export &amp; Edit Multiple</b>Tampilkan data, unduh Excel, atau ubah / hapus banyak baris sekaligus.<small>Klik nomor untuk penjelasan lengkap</small></span></a><i style="background:#1d4ed8"></i><i style="background:#16a34a"></i><i style="background:#d97706"></i></div>
                                 </div>
                                 <div class="sg-map-tbw">
-                                    <div class="sg-map-z sg-map-tb" data-spot="#mso .tw"><a href="#sg-tabel" class="sg-map-n" aria-label="Tabel">7<span class="sg-map-tip" role="tooltip"><b>Tabel List Master</b>Satu baris per size / barcode, dengan qty tiap tahap dan progres.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
+                                    <div class="sg-map-z sg-map-tb" data-spot="#mso .tw"><a href="#sg-tabel" class="sg-map-n" aria-label="Tabel">8<span class="sg-map-tip" role="tooltip"><b>Tabel List Master</b>Satu baris per size / barcode, dengan qty tiap tahap dan progres.<small>Klik nomor untuk penjelasan lengkap</small></span></a>
                                         <i class="th"></i><i class="th"></i><i class="th"></i><i class="th"></i><i class="th"></i><i class="th"></i><i class="th q"></i><i class="th q"></i><i class="th q"></i><i class="th q"></i><i class="th q"></i><i class="th q"></i><i class="th"></i>
                                         <i></i><i></i><i></i><i></i><i></i><i></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="ab"></i>
                                         <i></i><i></i><i></i><i></i><i></i><i></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="q"></i><i class="ab"></i>
                                     </div>
-                                    <div class="sg-map-z sg-map-abz" data-spot="#tb tr:first-child .ab"><a href="#sg-edit" class="sg-map-n tip-l" aria-label="Edit per baris">8<span class="sg-map-tip" role="tooltip"><b>Edit per baris</b>Ubah tgl shipment atau qty PO satu baris.<small>Klik nomor untuk penjelasan lengkap</small></span></a></div>
+                                    <div class="sg-map-z sg-map-abz" data-spot="#tb tr:first-child .ab"><a href="#sg-edit" class="sg-map-n tip-l" aria-label="Edit per baris">9<span class="sg-map-tip" role="tooltip"><b>Edit per baris</b>Ubah tgl shipment atau qty PO satu baris.<small>Klik nomor untuk penjelasan lengkap</small></span></a></div>
                                 </div>
                             </div>
                         </div>
@@ -1135,6 +1138,20 @@
                     <ul>
                         <li>Kalau ada perubahan tgl shipment / qty PO, pakai tombol <b>Edit</b> di baris tabel atau <b>Edit Multiple</b> untuk satu PO sekaligus.</li>
                         <li>PO yang shipment-nya sudah dekat tapi belum lengkap muncul di kotak merah <b>PO mendekati tanggal shipment</b>.</li>
+                    </ul>
+                </section>
+
+                <section id="sg-wip">
+                    <h6><span>Cek stok WIP</span> <button type="button" class="sg-show" data-spot="#wipBox"><i class="fa fa-crosshairs"></i> Tunjukkan di halaman</button></h6>
+                    <p class="sg-note">Tiga kartu di kanan atas header. Angkanya total keseluruhan saat ini, tidak ikut filter List Master. Klik kartu untuk membuka modulnya di tab baru.</p>
+                    <table class="table table-sm sg-t">
+                        <tr><td><span class="sg-dot" style="background:#38bdf8"></span><b>WIP Packing Line</b></td><td>Saldo akhir WIP di packing line, sama dengan total di modul <b>WIP Packing Line</b>.</td></tr>
+                        <tr><td><span class="sg-dot" style="background:#fbbf24"></span><b>WIP Temporary Packing</b></td><td>Stok di Temporary Packing, sama dengan total stok temporary di modul <b>Transfer Garment</b>.</td></tr>
+                        <tr><td><span class="sg-dot" style="background:#4ade80"></span><b>WIP Packing Central</b></td><td>Sisa qty di Packing Central, sama dengan total di modul <b>Packing Central Switching</b>. Kartu membuka halaman <b>Detail Transaksi</b>.</td></tr>
+                    </table>
+                    <ul class="mt-2">
+                        <li>Selama data dimuat, kartu menampilkan putaran kecil. Packing Central biasanya paling lama karena menghitung semua PO.</li>
+                        <li>Kalau muncul tanda <b>–</b>, data gagal dimuat. Refresh halaman untuk mencoba lagi.</li>
                     </ul>
                 </section>
 
@@ -1916,6 +1933,7 @@ const gEl=document.getElementById("soGuide"), gBs=bootstrap.Modal.getOrCreateIns
 const TOUR_KEY="mso_new_tour_seen_{{ Auth::id() }}";
 const STEPS=[
   {sel:"#soGuideBtn",sec:"sg-peta",lbl:"Panduan",d:"Tombol <b>Panduan</b> membuka halaman bantuan ini kapan saja."},
+  {sel:"#wipBox",sec:"sg-wip",lbl:"Cek stok WIP",d:"Total stok WIP di <b>Packing Line</b>, <b>Temporary Packing</b>, dan <b>Packing Central</b>. Klik kartu untuk membuka modulnya."},
   {sel:"#upWrap",sec:"sg-upload",lbl:"Upload Master SO PPIC",d:"Klik untuk membuka, upload file Excel, cek preview. <b>Simpan</b> aktif kalau semua baris berstatus Ok."},
   {sel:"#alertBox",sec:"sg-notif",lbl:"PO mendekati tanggal shipment",d:"PO <b>Open</b> dengan shipment 7 hari lagi atau kurang dan Packing Out belum lengkap. Klik untuk rincian per PO."},
   {sel:"#kpis",sec:"sg-kpi",lbl:"Kartu KPI",d:"Total qty PO Open yang Packing Out-nya belum lengkap, per tahap. Klik kartu untuk rincian per PO."},
