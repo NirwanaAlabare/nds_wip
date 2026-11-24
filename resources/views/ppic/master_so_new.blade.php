@@ -51,7 +51,7 @@
         #mso .bar i{display:block;height:100%;border-radius:99px}
 
         /* CARD */
-        #mso .mcard{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px #1018280a}
+        #mso .mcard{background:rgba(247,249,252,.88);border:1px solid #dde5ef;border-radius:16px;box-shadow:0 6px 24px rgba(63,95,143,.08)}
         #mso .upload{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer}
         #mso .upload .l{display:flex;align-items:center;gap:12px}
         #mso .ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center}
@@ -60,13 +60,13 @@
         #mso .upload span{font-size:12.5px;color:var(--muted)}
         #mso .upbody{display:none;border-top:1px dashed var(--line);padding:18px}
         #mso .upload-wrap.open .upbody{display:block}
-        #mso .drop{border:2px dashed #c7d2e0;border-radius:12px;padding:26px;text-align:center;color:var(--muted);background:#fafcff}
+        #mso .drop{border:2px dashed #c7d2e0;border-radius:12px;padding:26px;text-align:center;color:var(--muted);background:#f9fbfd}
         #mso .drop b{color:var(--ink)}
 
         /* FILTER */
-        #mso .filters{padding:16px 18px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:150px 1fr 1fr 1.1fr 1.1fr 1.1fr auto;gap:12px;align-items:end}
+        #mso .filters{margin:14px 18px;padding:16px 18px;background:#eef3f9;border:1px solid #dde5ef;border-radius:14px;display:grid;grid-template-columns:150px 1fr 1fr 1.1fr 1.1fr 1.1fr auto;gap:12px;align-items:end}
         #mso .f label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
-        #mso .f input,#mso .f select{width:100%;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:#fff;outline:none}
+        #mso .f input,#mso .f select{width:100%;height:40px;border:1px solid #d9e2ed;border-radius:10px;padding:0 12px;background:#f9fbfd;outline:none}
         #mso .f input:focus,#mso .f select:focus{border-color:var(--teal);box-shadow:0 0 0 3px #0ea5a422}
         #mso .f .acts{display:flex;gap:8px}
         #mso .chips{display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line);align-items:center}
@@ -87,7 +87,7 @@
         #mso .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 
         /* TABLE */
-        #mso .tw{overflow:auto;max-height:560px;border-top:1px solid var(--line)}
+        #mso .tw{overflow:auto;max-height:560px;margin:0 18px 14px;border:1px solid var(--line);border-radius:14px}
         #mso table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
         #mso th,#mso td{padding:0 12px;white-space:nowrap;text-align:left}
         #mso thead th{position:sticky;background:#f8fafc;z-index:3;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:#475467;font-weight:700}
@@ -150,7 +150,7 @@
 
 
         /* ===== UPLOAD v2 ===== */
-        #mso .upbody{padding:0 18px 18px;border-top:1px solid var(--line)}
+        #mso .upbody{padding:0 18px 18px;border-top:1px solid #dde5ef}
         #mso .steps{display:flex;gap:10px;padding:14px 0 16px;flex-wrap:wrap}
         #mso .step{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--muted)}
         #mso .step i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;background:var(--line-2)}
@@ -158,14 +158,14 @@
         #mso .step.done i{background:var(--green-lt);color:var(--green)}
         #mso .step-sep{width:36px;height:2px;background:var(--line);align-self:center;border-radius:2px}
         #mso .up-top{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
-        #mso .drop{text-align:left;border:2px dashed #c7d2e0;border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px;background:#fafcff;cursor:pointer;transition:.15s}
+        #mso .drop{text-align:left;border:2px dashed #c7d2e0;border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px;background:#f9fbfd;cursor:pointer;transition:.15s}
         #mso .drop:hover{border-color:var(--teal);background:#f3fbfb}
         #mso .drop .ico{width:46px;height:46px;border-radius:12px;background:var(--green-lt);color:var(--green);flex:none}
         #mso .drop .fn{font-weight:700}
         #mso .drop .fm{font-size:12.5px;color:var(--muted)}
         #mso .drop .chg{margin-left:auto}
         #mso .helpers{display:grid;gap:10px}
-        #mso .helper{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-decoration:none;color:inherit}
+        #mso .helper{display:flex;align-items:center;gap:12px;background:#f9fbfd;border:1px solid #dde5ef;border-radius:12px;padding:10px 12px;text-decoration:none;color:inherit}
         #mso .helper:hover{background:#fafbfc}
         #mso .helper .ico{width:34px;height:34px;border-radius:9px;flex:none}
         #mso .helper .ico svg{width:17px;height:17px}
@@ -346,7 +346,7 @@
 
 
         /* ===== Undo / Batal Upload ===== */
-        #mso .pv-empty{margin-top:18px;border:2px dashed #dbe3ee;border-radius:14px;padding:30px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;color:var(--muted);background:#fafcff}
+        #mso .pv-empty{margin-top:18px;border:2px dashed #dbe3ee;border-radius:14px;padding:30px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;color:var(--muted);background:#f9fbfd}
         #mso .pv-empty b{color:var(--ink);font-size:15px}
         #mso .pv-empty .mbtn{margin-top:8px}
         #mso .pe-ico{width:46px;height:46px;border-radius:12px;background:#e0f2fe;color:#0369a1;display:grid;place-items:center;margin-bottom:4px}
@@ -477,7 +477,7 @@
         #mso .pod td{font-size:12.5px!important}
         #mso .pod td.okk{font-size:14px!important}
         /* select2 filter: samakan tinggi dengan input tanggal */
-        #mso .f .select2-container--bootstrap4 .select2-selection{height:40px!important;border-radius:10px!important;border-color:var(--line);padding:0!important}
+        #mso .f .select2-container--bootstrap4 .select2-selection{height:40px!important;border-radius:10px!important;border-color:#d9e2ed;background-color:#f9fbfd;padding:0!important}
         #mso .f .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered{line-height:38px;padding-left:12px}
         #mso .f .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow{height:38px;top:0;right:6px}
         #mso .f .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow b{top:50%;margin-top:-2px}
@@ -633,6 +633,20 @@
         .sg-spot-l kbd{font-size:10px;padding:0 4px}
         @media(max-width:576px){.sg-t td:first-child{width:auto;white-space:normal}.sg-flow>i{display:none}}
 
+        /* ===== Warna drawer & modal (sama seperti General Request) ===== */
+        #mso .drw{background:#f1f5fa}
+        #mso .drw-h{border-bottom-color:#dde5ef}
+        #mso .drw-s div{background:#f9fbfd;border:1px solid #dde5ef}
+        #mso .porow{background:#f9fbfd;border-color:#dde5ef}
+        #mso .porow:hover{background:#fff}
+        #mso .pod{background:#fff;border-color:#dde5ef}
+        #mso .drw-pg{border-top-color:#dde5ef}
+        #mso .cfm{background:#f1f5fa}
+        .me-modal .modal-content{background:#f1f5fa}
+        .me-modal .me-h,.me-modal .modal-footer{border-color:#dde5ef}
+        .mm-tabs button:not(.on){background:#f9fbfd;border-color:#dde5ef}
+        .mm-tw{background:#f9fbfd;border-color:#dde5ef}
+        .mm-t th{border-bottom-color:#dde5ef}
     </style>
 @endsection
 

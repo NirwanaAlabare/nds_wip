@@ -316,11 +316,10 @@ order by ws asc");
             $condition
             ORDER BY
                 p.tgl_shipment DESC,
-                gmt.buyer ASC,
-                kpno ASC,
-                gmt.dest ASC,
+                p.po ASC,
                 gmt.color ASC,
-                msn.urutan ASC
+                msn.urutan ASC,
+                gmt.size ASC
         ", $bindings);
     }
 
