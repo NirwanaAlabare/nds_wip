@@ -23,6 +23,7 @@
         #mso{background:var(--bg);font-family:"Plus Jakarta Sans",Arial,sans-serif;color:var(--ink);font-size:14px}
         #mso button,#mso input,#mso select{font-family:inherit;font-size:14px;color:inherit}
         #mso .mono{font-family:"JetBrains Mono",monospace;font-size:12.5px}
+        #mso .pono{font-family:"Plus Jakarta Sans",Arial,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:.2px}
 
         #mso .wrap{max-width:none;width:100%;margin:0;padding:22px 20px 40px}
 
@@ -1529,9 +1530,9 @@ function render(){
     <td class="stk stk2 buyer"><b>${r.buyer}</b></td>
     <td><span class="date" title="${hlabel(r.days)}"><span class="d ${r.status==="close"?"gry":r.days<=3?"red":r.days<=7?"amb":"grn"}"></span>${r.ship}</span></td>
     <td class="two"><b class="ws">${r.ws}</b><span>${r.style}</span></td>
-    <td class="two"><b class="mono">${r.po}</b><span><span class="dest">${r.dest}</span></span></td>
+    <td class="two"><b class="pono">${r.po}</b><span><span class="dest">${r.dest}</span></span></td>
     <td class="two"><b>${r.color}</b><span>${r.desc}</span></td>
-    <td class="two"><b><span class="size">${r.size}</span></b><span class="mono">${r.barcode}</span></td>
+    <td class="two"><b><span class="size">${r.size}</span></b><span class="pono">${r.barcode}</span></td>
     ${qcell(r,"qpo","qfirst")}${qcell(r,"pline")}${qcell(r,"qtr")}${qcell(r,"pin")}
     <td class="q sw"><span class="${r.so?"neg":"zero"}">${r.so?"−"+fmt(r.so):"0"}</span><span class="${r.si?"pos":"zero"}">${r.si?"+"+fmt(r.si):"0"}</span></td>
     ${qcell(r,"pout","qlast")}
@@ -1601,8 +1602,8 @@ function pvRender(){
   const rows=PV.filter(r=>(pvf==="all"||r.st===pvf)&&(!q||Object.values(r).join(" ").toLowerCase().includes(q)));
   const cls={ok:"",dbl:"warn",inv:"bad",ada:"ada"};
   document.getElementById("pvtb").innerHTML=rows.map(r=>`<tr class="${cls[r.st]}">
-    <td class="mono ${r.badId?"err":""}" style="${r.badId?"":"color:var(--muted)"}">${r.idso||"—"}</td><td class="ws">${r.ws}</td><td>${r.style}</td><td>${r.desc}</td><td class="mono">${r.po}</td>
-    <td>${r.color}</td><td><span class="size">${r.size}</span></td><td><span class="dest">${r.dest||"-"}</span></td><td><span class="mono">${r.barcode}</span></td>
+    <td class="mono ${r.badId?"err":""}" style="${r.badId?"":"color:var(--muted)"}">${r.idso||"—"}</td><td class="ws">${r.ws}</td><td>${r.style}</td><td>${r.desc}</td><td class="pono">${r.po}</td>
+    <td>${r.color}</td><td><span class="size">${r.size}</span></td><td><span class="dest">${r.dest||"-"}</span></td><td><span class="pono">${r.barcode}</span></td>
     <td class="q" style="font-weight:700">${fmt(r.total)}</td><td>${r.buyer}</td><td class="${r.badShip?"err":""}">${r.ship}</td>
     <td><span class="tag ${r.st}" title="${PVST[r.st][1]}">${PVST[r.st][0]}</span></td>
     <td><div class="ket">${r.ket||"<span style='color:#98a2b3'>—</span>"}</div></td>
@@ -1814,7 +1815,7 @@ function drawDrawer(){
     const sz=g.rows.map(r=>{const d=r.qpo-r[k];return d>0?`<span>${r.size} (-${fmt(d)})</span>`:`<span class="okz">${r.size} ✓</span>`}).join("");
     const op=dOpen.has(g.po);
     const det=op?`<div class="pod" onclick="event.stopPropagation()"><table><thead><tr><th>Size<small>Barcode</small></th><th class="q" style="--qc:#0b1f3f">Qty<small>PO</small></th><th class="q" style="--qc:#0891b2">Packing<small>Line</small></th><th class="q" style="--qc:#7c3aed">Transfer<small>Garment</small></th><th class="q" style="--qc:#0284c7">Packing<small>In</small></th><th class="q" style="--qc:#e11d48">Switching<small>Out / In</small></th><th class="q" style="--qc:#15803d">Packing<small>Out</small></th><th class="q" style="--qc:#e11d48">Kurang<small>pcs</small></th></tr></thead><tbody>${
-      g.rows.map(r=>{const d=r.qpo-r[k];return `<tr class="${d>0?"":"okr"}"><td class="sb"><span class="size">${r.size}</span><span class="mono">${r.barcode}</span></td><td class="q">${fmt(r.qpo)}</td><td class="q">${fmt(r.pline)}</td><td class="q">${fmt(r.qtr)}</td><td class="q">${fmt(r.pin)}</td><td class="q sw2"><span class="${r.so?"swo":"z"}">${r.so?"−"+fmt(r.so):"0"}</span><span class="${r.si?"swi":"z"}">${r.si?"+"+fmt(r.si):"0"}</span></td><td class="q">${fmt(r.pout)}</td><td class="q ${d>0?"kr":"okk"}">${d>0?fmt(d):"✓"}</td></tr>`}).join("")
+      g.rows.map(r=>{const d=r.qpo-r[k];return `<tr class="${d>0?"":"okr"}"><td class="sb"><span class="size">${r.size}</span><span class="pono">${r.barcode}</span></td><td class="q">${fmt(r.qpo)}</td><td class="q">${fmt(r.pline)}</td><td class="q">${fmt(r.qtr)}</td><td class="q">${fmt(r.pin)}</td><td class="q sw2"><span class="${r.so?"swo":"z"}">${r.so?"−"+fmt(r.so):"0"}</span><span class="${r.si?"swi":"z"}">${r.si?"+"+fmt(r.si):"0"}</span></td><td class="q">${fmt(r.pout)}</td><td class="q ${d>0?"kr":"okk"}">${d>0?fmt(d):"✓"}</td></tr>`}).join("")
     }</tbody><tfoot><tr><td>Total</td><td class="q">${fmt(g.qpo)}</td><td class="q">${fmt(g.pline)}</td><td class="q">${fmt(g.qtr)}</td><td class="q">${fmt(g.pin)}</td><td class="q sw2"><span>−${fmt(g.so)}</span><span>+${fmt(g.si)}</span></td><td class="q">${fmt(g.pout)}</td><td class="q kr">${kur>0?fmt(kur):"0"}</td></tr></tfoot></table></div>`:"";
     return `<div class="porow ${op?"open":""}" onclick="togPO('${g.po}')">
       <div class="r1"><b>PO ${g.po}</b><span class="hx ${g.status==="close"?"ok":hcls(g.days)}">${hlabel(g.days)}</span><span class="st st-${g.status}">${ST[g.status]}</span><span class="sp"></span><span class="go">${op?"Tutup rincian ▴":"Lihat rincian ▾"}</span></div>
