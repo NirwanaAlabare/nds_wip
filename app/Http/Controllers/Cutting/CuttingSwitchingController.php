@@ -21,14 +21,28 @@ use DB;
 
 class CuttingSwitchingController extends Controller
 {
-    // Kolom hasil query log switching (urutan sama dengan tabel & export)
+    // Kolom hasil query log switching => header export (urutan sama dengan tabel di view)
     private $switchingLogColumns = [
-        'group_roll', 'no_form', 'tanggal_form', 'ws', 'styleno', 'color', 'size', 'panel', 'part',
-        'total_out', 'total_in', 'is_active', 'created_by', 'created_at', 'updated_at',
+        'tanggal_form_asal' => 'Tgl Saldo Asal', 'no_form_asal' => 'No. Form Asal', 'ws_asal' => 'WS Asal', 'buyer_asal' => 'Buyer Asal',
+        'styleno_asal' => 'Style Asal', 'color_asal' => 'Color Asal', 'size_asal' => 'Size Asal',
+        'panel_asal' => 'Panel Asal', 'part_asal' => 'Part Asal', 'total_out' => 'Qty Asal',
+        'tanggal_form_tujuan' => 'Tgl Saldo Tujuan', 'no_form_tujuan' => 'No. Form Tujuan', 'ws_tujuan' => 'WS Tujuan', 'buyer_tujuan' => 'Buyer Tujuan',
+        'styleno_tujuan' => 'Style Tujuan', 'color_tujuan' => 'Color Tujuan', 'size_tujuan' => 'Size Tujuan',
+        'panel_tujuan' => 'Panel Tujuan', 'part_tujuan' => 'Part Tujuan', 'total_in' => 'Qty Tujuan',
+        'is_active' => 'Status',
     ];
 
+    // BACKUP: kolom query log switching versi lama
+    private $switchingLogColumnsBackup = [
+        'group_roll' => 'Group Roll', 'no_form' => 'No Form', 'tanggal_form' => 'Tgl Form', 'ws' => 'WS',
+        'styleno' => 'Style', 'color' => 'Color', 'size' => 'Size', 'panel' => 'Panel', 'part' => 'Part',
+        'total_out' => 'Total Out', 'total_in' => 'Total In', 'is_active' => 'Status',
+        'created_by' => 'Created By', 'created_at' => 'Created At', 'updated_at' => 'Updated At',
+    ];
+
+    // BACKUP: query log switching versi lama (dipakai halaman & export backup)
     // Log switching per form/size/part: sisi asal = out, sisi tujuan = in
-    private function switchingLogQuery($dateFrom, $dateTo)
+    private function switchingLogQueryBackup($dateFrom, $dateTo)
     {
         $start = $dateFrom . " 00:00:00";
         $end = $dateTo . " 23:59:59";
@@ -240,24 +254,302 @@ class CuttingSwitchingController extends Controller
             ->orderBy('part');
     }
 
+    private function switchingLogMergeQuery($dateFrom, $dateTo)
+    {
+        $start = $dateFrom . " 00:00:00";
+        $end = $dateTo . " 23:59:59";
+
+        // Log masuk periode jika waktu selesai form asal / form tujuan / update log ada di rentang tanggal.
+        // Dipakai di kedua sisi UNION supaya out & in dari log yang sama selalu ikut bersamaan.
+        $logFilter = "
+            form_cut_input_detail_output_logs.id IN (
+                SELECT l.id
+                FROM form_cut_input_detail_output_logs l
+                LEFT JOIN form_cut_input fa ON fa.id = l.form_cut_input_id_asal
+                LEFT JOIN form_cut_input ft ON ft.id = l.form_cut_input_id_tujuan
+                WHERE l.created_at BETWEEN ? AND ?
+            )
+        ";
+        $logFilterBindings = [$start, $end];
+
+        $sql = "
+            SELECT
+                id,
+                MAX(group_roll_asal) group_roll_asal,
+                MAX(no_form_asal) no_form_asal,
+                MAX(DATE(created_at)) tanggal_form_asal,
+                MAX(ws_asal) ws_asal,
+                MAX(buyer_asal) buyer_asal,
+                MAX(styleno_asal) styleno_asal,
+                MAX(color_asal) color_asal,
+                MAX(size_asal) size_asal,
+                GROUP_CONCAT(DISTINCT panel_asal SEPARATOR ', ') panel_asal,
+                GROUP_CONCAT(DISTINCT part_asal SEPARATOR ', ') part_asal,
+                MAX(group_roll_tujuan) group_roll_tujuan,
+                MAX(no_form_tujuan) no_form_tujuan,
+                MAX(DATE(created_at)) tanggal_form_tujuan,
+                MAX(ws_tujuan) ws_tujuan,
+                MAX(buyer_tujuan) buyer_tujuan,
+                MAX(styleno_tujuan) styleno_tujuan,
+                MAX(color_tujuan) color_tujuan,
+                MAX(size_tujuan) size_tujuan,
+                GROUP_CONCAT(DISTINCT panel_tujuan SEPARATOR ', ') panel_tujuan,
+                GROUP_CONCAT(DISTINCT part_tujuan SEPARATOR ', ') part_tujuan,
+                -- Satu log bisa muncul di beberapa baris (per part), jadi pakai MAX bukan SUM
+                MAX(`out`) total_out,
+                MAX(`in`) total_in,
+                MAX(is_active) is_active,
+                MAX(created_at) created_at
+            FROM (
+                /* -------------------------------------------------------------
+                1. LOGS ASAL (OUT) - Standard Form
+                ------------------------------------------------------------- */
+                SELECT
+                        form_cut_input_detail_output_logs.id,
+                        form_cut_input_detail_output_logs.group_roll_asal group_roll_asal,
+                        form_asal.no_form no_form_asal,
+                        DATE(form_asal.waktu_selesai) tanggal_form_asal,
+                        msb_asal.ws ws_asal,
+                        msb_asal.buyer buyer_asal,
+                        msb_asal.styleno styleno_asal,
+                        msb_asal.color color_asal,
+                        msb_asal.size size_asal,
+                        (CASE WHEN COALESCE(pcust.set_part_status, pd_asal.part_status) = 'complement' THEN COALESCE(p_com.panel, part_asal.panel) ELSE part_asal.panel END) panel_asal,
+                        mp_asal.nama_part part_asal,
+                        null as group_roll_tujuan,
+                        null as no_form_tujuan,
+                        null as tanggal_form_tujuan,
+                        null as ws_tujuan,
+                        null as buyer_tujuan,
+                        null as styleno_tujuan,
+                        null as color_tujuan,
+                        null as size_tujuan,
+                        null as panel_tujuan,
+                        null as part_tujuan,
+                        form_cut_input_detail_output_logs.qty_transfer `out`,
+                        0 `in`,
+                        form_cut_input_detail_output_logs.`is_active`,
+                        form_cut_input_detail_output_logs.created_by,
+                        form_cut_input_detail_output_logs.created_at,
+                        form_cut_input_detail_output_logs.updated_at
+                FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        LEFT JOIN marker_input marker_asal ON marker_asal.id = form_asal.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_asal ON marker_detail_asal.marker_id = marker_asal.id AND marker_detail_asal.size = form_cut_input_detail_output_logs.size_asal
+                        LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_asal IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_asal ELSE marker_detail_asal.so_det_id END)
+                        LEFT JOIN part part_asal ON part_asal.act_costing_id = marker_asal.act_costing_id AND part_asal.panel = marker_asal.panel
+                        LEFT JOIN part_detail pd_asal ON pd_asal.part_id = part_asal.id AND (pd_asal.status IS NULL OR pd_asal.status = 'active')
+                        LEFT JOIN part_detail pd_com ON pd_com.id = pd_asal.from_part_detail AND pd_asal.part_status = 'complement'
+                        LEFT JOIN master_part mp_asal ON mp_asal.id = pd_asal.master_part_id
+                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                        LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                        LEFT JOIN part_custom pcust ON pcust.part_detail_id = pd_asal.id AND pcust.color = msb_asal.color
+                WHERE
+                        (pd_asal.part_status != 'complement' OR pd_asal.part_status IS NULL)
+                        AND ".$logFilter."
+
+                UNION ALL
+
+                /* -------------------------------------------------------------
+                2. LOGS TUJUAN (IN) - Standard Form
+                ------------------------------------------------------------- */
+                SELECT
+                        form_cut_input_detail_output_logs.id,
+                        null as group_roll_asal,
+                        null as no_form_asal,
+                        null as tanggal_form_asal,
+                        null as ws_asal,
+                        null as buyer_asal,
+                        null as styleno_asal,
+                        null as color_asal,
+                        null as size_asal,
+                        null as panel_asal,
+                        null as part_asal,
+                        form_cut_input_detail_output_logs.group_roll_asal group_roll,
+                        form_tujuan.no_form no_form,
+                        DATE(form_tujuan.waktu_selesai) tanggal_form,
+                        msb_tujuan.ws ws,
+                        msb_tujuan.buyer buyer,
+                        msb_tujuan.styleno styleno,
+                        msb_tujuan.color color,
+                        msb_tujuan.size size,
+                        (CASE WHEN COALESCE(pcust.set_part_status, pd_tujuan.part_status) = 'complement' THEN COALESCE(p_com.panel, part_tujuan.panel) ELSE part_tujuan.panel END) panel,
+                        mp_tujuan.nama_part part,
+                        0 `out`,
+                        form_cut_input_detail_output_logs.qty_transfer `in`,
+                        form_cut_input_detail_output_logs.`is_active`,
+                        form_cut_input_detail_output_logs.created_by,
+                        form_cut_input_detail_output_logs.created_at,
+                        form_cut_input_detail_output_logs.updated_at
+                FROM
+                        form_cut_input_detail_output_logs
+                        LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        LEFT JOIN marker_input marker_tujuan ON marker_tujuan.id = form_tujuan.marker_id
+                        LEFT JOIN marker_input_detail marker_detail_tujuan ON marker_detail_tujuan.marker_id = marker_tujuan.id AND marker_detail_tujuan.size = form_cut_input_detail_output_logs.size_tujuan
+                        LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = (CASE WHEN form_cut_input_detail_output_logs.so_det_id_tujuan IS NOT NULL THEN form_cut_input_detail_output_logs.so_det_id_tujuan ELSE marker_detail_tujuan.so_det_id END)
+                        LEFT JOIN part part_tujuan ON part_tujuan.act_costing_id = marker_tujuan.act_costing_id AND part_tujuan.panel = marker_tujuan.panel
+                        LEFT JOIN part_detail pd_tujuan ON pd_tujuan.part_id = part_tujuan.id AND (pd_tujuan.status IS NULL OR pd_tujuan.status = 'active')
+                        LEFT JOIN part_detail pd_com ON pd_com.id = pd_tujuan.from_part_detail AND pd_tujuan.part_status = 'complement'
+                        LEFT JOIN master_part mp_tujuan ON mp_tujuan.id = pd_tujuan.master_part_id
+                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                        LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                        LEFT JOIN part_custom pcust ON pcust.part_detail_id = pd_tujuan.id AND pcust.color = msb_tujuan.color
+                WHERE
+                        (pd_tujuan.part_status != 'complement' OR pd_tujuan.part_status IS NULL)
+                        AND ".$logFilter."
+
+                UNION ALL
+
+                /* -------------------------------------------------------------
+                3. LOGS ASAL (OUT) - Additional Stocker (stocker_ws_additional)
+                ------------------------------------------------------------- */
+                SELECT
+                        form_cut_input_detail_output_logs.id,
+                        form_cut_input_detail_output_logs.group_roll_asal group_roll,
+                        form_asal.no_form no_form,
+                        DATE(form_asal.waktu_selesai) tanggal_form,
+                        stocker_ws_additional_asal.act_costing_ws ws,
+                        stocker_ws_additional_asal.buyer buyer,
+                        stocker_ws_additional_asal.style styleno,
+                        stocker_ws_additional_asal.color color,
+                        stocker_ws_additional_detail_asal.size size,
+                        (CASE WHEN COALESCE(pcust.set_part_status, pd_asal.part_status) = 'complement' THEN COALESCE(p_com.panel, part_asal.panel) ELSE part_asal.panel END) panel,
+                        mp_asal.nama_part part,
+                        null as group_roll_tujuan,
+                        null as no_form_tujuan,
+                        null as tanggal_form_tujuan,
+                        null as ws_tujuan,
+                        null as buyer_tujuan,
+                        null as styleno_tujuan,
+                        null as color_tujuan,
+                        null as size_tujuan,
+                        null as panel_tujuan,
+                        null as part_tujuan,
+                        form_cut_input_detail_output_logs.qty_transfer `out`,
+                        0 `in`,
+                        form_cut_input_detail_output_logs.`is_active`,
+                        form_cut_input_detail_output_logs.created_by,
+                        form_cut_input_detail_output_logs.created_at,
+                        form_cut_input_detail_output_logs.updated_at
+                FROM
+                        form_cut_input_detail_output_logs
+                        INNER JOIN stocker_ws_additional stocker_ws_additional_asal ON stocker_ws_additional_asal.form_cut_id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        INNER JOIN stocker_ws_additional_detail stocker_ws_additional_detail_asal ON stocker_ws_additional_detail_asal.stocker_additional_id = stocker_ws_additional_asal.id
+                                AND stocker_ws_additional_detail_asal.so_det_id = form_cut_input_detail_output_logs.so_det_id_asal
+                        LEFT JOIN form_cut_input form_asal ON form_asal.id = form_cut_input_detail_output_logs.form_cut_input_id_asal
+                        LEFT JOIN master_sb_ws msb_asal ON msb_asal.id_so_det = stocker_ws_additional_detail_asal.so_det_id
+                        LEFT JOIN part part_asal ON part_asal.act_costing_ws = stocker_ws_additional_asal.act_costing_ws AND part_asal.panel = stocker_ws_additional_asal.panel
+                        LEFT JOIN part_detail pd_asal ON pd_asal.part_id = part_asal.id AND (pd_asal.status IS NULL OR pd_asal.status = 'active')
+                        LEFT JOIN part_detail pd_com ON pd_com.id = pd_asal.from_part_detail AND pd_asal.part_status = 'complement'
+                        LEFT JOIN master_part mp_asal ON mp_asal.id = pd_asal.master_part_id
+                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                        LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                        LEFT JOIN part_custom pcust ON pcust.part_detail_id = pd_asal.id AND pcust.color = stocker_ws_additional_asal.color
+                WHERE
+                        (pd_asal.part_status != 'complement' OR pd_asal.part_status IS NULL)
+                        AND ".$logFilter."
+
+                UNION ALL
+
+                /* -------------------------------------------------------------
+                4. LOGS TUJUAN (IN) - Additional Stocker (stocker_ws_additional)
+                ------------------------------------------------------------- */
+                SELECT
+                        form_cut_input_detail_output_logs.id,
+                        null as group_roll_asal,
+                        null as no_form_asal,
+                        null as tanggal_form_asal,
+                        null as ws_asal,
+                        null as buyer_asal,
+                        null as styleno_asal,
+                        null as color_asal,
+                        null as size_asal,
+                        null as panel_asal,
+                        null as part_asal,
+                        form_cut_input_detail_output_logs.group_roll_asal group_roll,
+                        form_tujuan.no_form no_form,
+                        DATE(form_tujuan.waktu_selesai) tanggal_form,
+                        stocker_ws_additional_tujuan.act_costing_ws ws,
+                        stocker_ws_additional_tujuan.buyer buyer,
+                        stocker_ws_additional_tujuan.style styleno,
+                        stocker_ws_additional_tujuan.color color,
+                        stocker_ws_additional_detail_tujuan.size size,
+                        (CASE WHEN COALESCE(pcust.set_part_status, pd_tujuan.part_status) = 'complement' THEN COALESCE(p_com.panel, part_tujuan.panel) ELSE part_tujuan.panel END) panel,
+                        mp_tujuan.nama_part part,
+                        0 `out`,
+                        form_cut_input_detail_output_logs.qty_transfer `in`,
+                        form_cut_input_detail_output_logs.`is_active`,
+                        form_cut_input_detail_output_logs.created_by,
+                        form_cut_input_detail_output_logs.created_at,
+                        form_cut_input_detail_output_logs.updated_at
+                FROM
+                        form_cut_input_detail_output_logs
+                        INNER JOIN stocker_ws_additional stocker_ws_additional_tujuan ON stocker_ws_additional_tujuan.form_cut_id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        INNER JOIN stocker_ws_additional_detail stocker_ws_additional_detail_tujuan ON stocker_ws_additional_detail_tujuan.stocker_additional_id = stocker_ws_additional_tujuan.id
+                                AND stocker_ws_additional_detail_tujuan.so_det_id = form_cut_input_detail_output_logs.so_det_id_tujuan
+                        LEFT JOIN form_cut_input form_tujuan ON form_tujuan.id = form_cut_input_detail_output_logs.form_cut_input_id_tujuan
+                        LEFT JOIN master_sb_ws msb_tujuan ON msb_tujuan.id_so_det = stocker_ws_additional_detail_tujuan.so_det_id
+                        LEFT JOIN part part_tujuan ON part_tujuan.act_costing_ws = stocker_ws_additional_tujuan.act_costing_ws AND part_tujuan.panel = stocker_ws_additional_tujuan.panel
+                        LEFT JOIN part_detail pd_tujuan ON pd_tujuan.part_id = part_tujuan.id AND (pd_tujuan.status IS NULL OR pd_tujuan.status = 'active')
+                        LEFT JOIN part_detail pd_com ON pd_com.id = pd_tujuan.from_part_detail AND pd_tujuan.part_status = 'complement'
+                        LEFT JOIN master_part mp_tujuan ON mp_tujuan.id = pd_tujuan.master_part_id
+                        LEFT JOIN part p_com ON p_com.id = pd_com.part_id
+                        LEFT JOIN master_part mp_com ON mp_com.id = pd_com.master_part_id
+                        LEFT JOIN part_custom pcust ON pcust.part_detail_id = pd_tujuan.id AND pcust.color = stocker_ws_additional_tujuan.color
+                WHERE
+                        (pd_tujuan.part_status != 'complement' OR pd_tujuan.part_status IS NULL)
+                        AND ".$logFilter."
+        ) form_cut_input_detail_output_logs
+        GROUP BY
+            form_cut_input_detail_output_logs.id,
+            -- Baris asal hanya berisi kolom *_asal, baris tujuan hanya *_tujuan.
+            -- COALESCE jadi kunci bersama supaya asal & tujuan dengan panel/part yang sama jadi 1 baris.
+            COALESCE(panel_asal, panel_tujuan),
+            COALESCE(part_asal, part_tujuan)
+        ";
+
+        return DB::query()
+            ->fromRaw("($sql) as switching_log", array_merge($logFilterBindings, $logFilterBindings, $logFilterBindings, $logFilterBindings))
+            ->orderBy('created_at')
+            ->orderBy('id');
+    }
+
+    // Datatable log switching dari query yang diberikan
+    private function switchingLogDataTable($query, $columns) {
+        $dataTable = DataTables::query($query);
+
+        // Search global & per kolom langsung ke kolom hasil query (binding, tanpa prefix tabel)
+        foreach (array_keys($columns) as $column) {
+            $dataTable->filterColumn($column, function ($query, $keyword) use ($column) {
+                $query->whereRaw("CAST(`$column` AS CHAR) LIKE ?", ['%' . $keyword . '%']);
+            });
+        }
+
+        return $dataTable->toJson();
+    }
+
     public function index(Request $request) {
         if ($request->ajax()) {
             $dateFrom = $request->dateFrom ?? date("Y-m-d");
             $dateTo = $request->dateTo ?? date("Y-m-d");
 
-            $dataTable = DataTables::query($this->switchingLogQuery($dateFrom, $dateTo));
-
-            // Search global & per kolom langsung ke kolom hasil query (binding, tanpa prefix tabel)
-            foreach ($this->switchingLogColumns as $column) {
-                $dataTable->filterColumn($column, function ($query, $keyword) use ($column) {
-                    $query->whereRaw("CAST(`$column` AS CHAR) LIKE ?", ['%' . $keyword . '%']);
-                });
-            }
-
-            return $dataTable->toJson();
+            return $this->switchingLogDataTable($this->switchingLogMergeQuery($dateFrom, $dateTo), $this->switchingLogColumns);
         }
 
         return view('cutting.switching.index', ["page" => "dashboard-cutting"]);
+    }
+
+    // BACKUP: halaman log switching versi lama
+    public function indexBackup(Request $request) {
+        if ($request->ajax()) {
+            $dateFrom = $request->dateFrom ?? date("Y-m-d");
+            $dateTo = $request->dateTo ?? date("Y-m-d");
+
+            return $this->switchingLogDataTable($this->switchingLogQueryBackup($dateFrom, $dateTo), $this->switchingLogColumnsBackup);
+        }
+
+        return view('cutting.switching.index-backup', ["page" => "dashboard-cutting"]);
     }
 
     public function create(Request $request) {
@@ -789,17 +1081,29 @@ class CuttingSwitchingController extends Controller
     }
 
     public function exportFormCutInputDetailOutputLog(Request $request) {
-        // 1. Filter tanggal & keyword (keyword = search global tabel)
         $dateFrom = $request->dateFrom ?? date("Y-m-d");
         $dateTo = $request->dateTo ?? date("Y-m-d");
 
-        $query = $this->switchingLogQuery($dateFrom, $dateTo);
+        return $this->switchingLogExport($request, $this->switchingLogMergeQuery($dateFrom, $dateTo), $this->switchingLogColumns, $dateFrom, $dateTo);
+    }
+
+    // BACKUP: export log switching versi lama
+    public function exportFormCutInputDetailOutputLogBackup(Request $request) {
+        $dateFrom = $request->dateFrom ?? date("Y-m-d");
+        $dateTo = $request->dateTo ?? date("Y-m-d");
+
+        return $this->switchingLogExport($request, $this->switchingLogQueryBackup($dateFrom, $dateTo), $this->switchingLogColumnsBackup, $dateFrom, $dateTo);
+    }
+
+    // Export excel log switching dari query yang diberikan ($columns = kolom => header)
+    private function switchingLogExport(Request $request, $query, $columns, $dateFrom, $dateTo) {
+        // 1. Filter keyword (keyword = search global tabel)
 
         if ($request->filled('keyword')) {
             $keyword = $request->keyword;
 
-            $query->where(function ($q) use ($keyword) {
-                foreach ($this->switchingLogColumns as $column) {
+            $query->where(function ($q) use ($keyword, $columns) {
+                foreach (array_keys($columns) as $column) {
                     $q->orWhereRaw("CAST(`$column` AS CHAR) LIKE ?", ['%' . $keyword . '%']);
                 }
             });
@@ -832,52 +1136,28 @@ class CuttingSwitchingController extends Controller
 
         $sheet->writeRow(['']);
 
-        // Header tabel disesuaikan dengan data hasil SQL Query
-        $header = [
-            'Group Roll',
-            'No Form',
-            'Tgl Form',
-            'WS',
-            'Style',
-            'Color',
-            'Size',
-            'Panel',
-            'Part',
-            'Total Out',
-            'Total In',
-            'Status',
-            'Created By',
-            'Created At',
-            'Updated At'
-        ];
-
-        $sheet->writeRow($header,
+        // Header tabel sesuai daftar kolom
+        $sheet->writeRow(array_values($columns),
             [
                 'font-style' => 'bold',
                 'border'     => 'thin',
             ]
         );
 
-        // Loop data dari variabel $data_spreading
-        foreach ($data_spreading as$row) {
-            // Urutan kolom sama dengan $header
-            $rows = [
-                $row->group_roll ?? '',
-                $row->no_form ?? '',
-                $row->tanggal_form ?? '',
-                $row->ws ?? '',
-                $row->styleno ?? '',
-                $row->color ?? '',
-                $row->size ?? '',
-                (string) $row->panel,
-                (string) $row->part,
-                (int) ($row->total_out ?? 0),
-                (int) ($row->total_in ?? 0),
-                ($row->is_active > 0 || $row->is_active === null) ? 'Aktif' : 'Tidak Aktif',
-                $row->created_by ?? '',
-                $row->created_at ?? '',
-                $row->updated_at ?? '',
-            ];
+        // Loop data, urutan kolom sama dengan header
+        foreach ($data_spreading as $row) {
+            $rows = [];
+            foreach (array_keys($columns) as $column) {
+                $value = $row->$column ?? null;
+
+                if ($column == 'total_out' || $column == 'total_in') {
+                    $rows[] = (int) ($value ?? 0);
+                } else if ($column == 'is_active') {
+                    $rows[] = ($value > 0 || $value === null) ? 'Aktif' : 'Tidak Aktif';
+                } else {
+                    $rows[] = (string) ($value ?? '');
+                }
+            }
 
             $sheet->writeRow($rows,
                 [
@@ -887,8 +1167,8 @@ class CuttingSwitchingController extends Controller
         }
 
         // Mengatur lebar kolom agar tampilan Excel rapi
-        foreach (range('A', 'O') as $col) {
-            $sheet->setColWidth($col, 18);
+        for ($i = 0; $i < count($columns); $i++) {
+            $sheet->setColWidth(chr(65 + $i), 18);
         }
 
         return $excel->download();

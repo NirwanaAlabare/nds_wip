@@ -45,7 +45,7 @@ class DashboardRollBelumDipakaiController extends Controller
     }
 
     /**
-     * Penerimaan terakhir per roll (sebelum hari ini) yang belum punya pemakaian.
+     * Penerimaan terakhir per roll (sampai hari ini, umur 0 = diterima hari ini) yang belum punya pemakaian.
      *
      * Batas waktu pemakaian:
      * - penerimaan pertama roll -> pemakaian kapan pun dianggap sudah dipakai
@@ -115,7 +115,7 @@ class DashboardRollBelumDipakaiController extends Controller
             WHERE 1 = 1
             {$notUsed}
             ORDER BY pc.tanggal_terima ASC, pc.id ASC
-        ", [self::MIN_TGL_TERIMA, $today->format('Y-m-d')]);
+        ", [self::MIN_TGL_TERIMA, $today->copy()->addDay()->format('Y-m-d')]);
 
         $styles = $this->stylePerJo(collect($rows)->pluck('id_jo'));
 
