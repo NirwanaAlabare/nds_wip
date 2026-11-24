@@ -227,7 +227,10 @@
                     data: 'earning'
                 },
                 {
-                    data: 'kurs_tengah'
+                    data: 'kurs_tengah',
+                    render: function(data) {
+                        return (data === null || data === '') ? '' : parseFloat(data).toFixed(2);
+                    }
                 },
                 {
                     data: 'tot_earning_rupiah'

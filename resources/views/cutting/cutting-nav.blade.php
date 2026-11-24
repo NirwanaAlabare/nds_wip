@@ -150,13 +150,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('cutting-dashboard-list') }}"
-                        class="dropdown-item {{ $subPage == 'form-cut-piping' ? 'active' : '' }}"
-                        target="_blank">
-                        Dashboard <i class="fa-solid fa-pager"></i>
-                    </a>
-                </li>
-                <li>
                     <a href="{{ route('report_cutting_mutasi_fabric') }}"
                         class="dropdown-item {{ $routeName == 'report_cutting_mutasi_fabric' ? 'active' : '' }}">
                         Mutasi Fabric <i class="fa fa-list"></i>
@@ -306,6 +299,13 @@
     </a>
 </li>
 @endrole --}}
+<li class="nav-item">
+    <a href="{{ route('cutting-dashboard-list') }}"
+        class="nav-link {{ $routeName == 'cutting-dashboard-list' ? 'active' : '' }}"
+        target="_blank">
+        <i class="fa-solid fa-pager"></i>
+    </a>
+</li>
 @role('superadmin')
     <li class="nav-item">
         <a href="{{ route('cutting-tools') }}"

@@ -51,6 +51,15 @@
         color: #222;
         }
 
+        .sub-size-checkbox {
+        position: static;
+        margin: 0;
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+        cursor: pointer;
+        }
+
         .drop-title {
         color: #444;
         font-size: 20px;
@@ -156,9 +165,14 @@
                         <h5 class="card-title fw-bold mb-0">
                             <i class="fa-solid fa-scissors"></i> Split Size
                         </h5>
-                        <button type="button" class="btn btn-primary btn-sm float-end" data-bs-toggle="modal" data-bs-target="#modalSplitSize">
-                            <i class="fa fa-plus fa-xs"></i> Tambah Sub Size
-                        </button>
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportSubSize">
+                                <i class="fa fa-file-excel fa-xs"></i> Import
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalSplitSize">
+                                <i class="fa fa-plus fa-xs"></i> Tambah Sub Size
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body">
@@ -167,17 +181,31 @@
                         <table id="sub-size-table" class="table table-bordered table-sm w-100">
                             <thead>
                                 <tr>
+                                    <th class="text-center align-middle" style="width:40px;"><input type="checkbox" id="subSizeCheckAll" class="sub-size-checkbox" title="Pilih semua di halaman ini"></th>
+                                    <th class="text-center">Action</th>
                                     <th class="text-center">#</th>
                                     <th class="text-center">No. WS</th>
                                     <th class="text-center">Color</th>
                                     <th class="text-center">Size Asli</th>
                                     <th class="text-center">Sub Size</th>
+                                    <th class="text-center">Qty</th>
                                     <th class="text-center">Dibuat</th>
                                     <th class="text-center">Oleh</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
+                    </div>
+
+                    {{-- Selection toolbar (muncul hanya saat ada baris dipilih) --}}
+                    <div id="subSizeSelectionBar" class="d-none justify-content-end align-items-center gap-2 mt-2">
+                        <small class="fw-bold"><span id="subSizeSelectedCount">0</span> baris dipilih</small>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSubSizeSelection()">
+                            <i class="fa fa-times fa-xs"></i> Batal
+                        </button>
+                        <button type="button" id="btnMassDeleteSubSize" class="btn btn-danger btn-sm" onclick="massDeleteSubSize()">
+                            <i class="fa fa-trash fa-xs"></i> Hapus Terpilih
+                        </button>
                     </div>
                 </div>
             </div>
@@ -222,7 +250,7 @@
                         <hr>
 
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label mb-0"><small><b>Nama Sub Size</b></small></label>
+                            <label class="form-label mb-0"><small><b>Nama Sub Size &amp; Qty</b></small></label>
                             <button type="button" id="btnAddSubSize" class="btn btn-outline-primary btn-sm" disabled>
                                 <i class="fa fa-plus fa-xs"></i> Tambah Baris
                             </button>
@@ -230,7 +258,8 @@
                         <div id="subSizeRows">
                             <div class="input-group input-group-sm mb-2 sub-size-row">
                                 <span class="input-group-text bg-light text-muted sub-size-row-number">1</span>
-                                <input type="text" name="sub_size[]" class="form-control" placeholder="Sub Size" required disabled>
+                                <input type="text" name="sub_size[]" class="form-control" placeholder="Sub Size" maxlength="20" required disabled>
+                                <input type="number" name="qty[]" class="form-control" placeholder="Qty" min="1" step="1" style="max-width:120px;" required disabled>
                                 <button type="button" class="btn btn-outline-danger btn-remove-sub-size" disabled>
                                     <i class="fa fa-trash fa-xs"></i>
                                 </button>
@@ -241,6 +270,39 @@
                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" id="btnSubmitSplitSize" class="btn btn-primary btn-sm" disabled>
                             <i class="fa fa-save fa-xs"></i> Simpan Sub Size
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal: Import Sub Size --}}
+    <div class="modal fade" id="modalImportSubSize" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="formImportSubSize" enctype="multipart/form-data">
+                    <div class="modal-header bg-sb-secondary">
+                        <h5 class="modal-title fw-bold"><i class="fa fa-file-excel"></i> Import Sub Size</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted mb-3"><small><i class="fa-solid fa-circle-info"></i> Kolom (baris pertama sebagai header): <b>ws</b>, <b>color</b>, <b>size</b>, <b>sub_size</b>, <b>qty</b>, dan <b>dest</b> (opsional, wajib bila satu ws/color/size punya lebih dari satu dest). Jika ada satu baris saja yang ws/color/size-nya tidak ditemukan atau qty-nya tidak valid, seluruh import dibatalkan.</small></p>
+                        <label class="drop-container">
+                            <span class="drop-title">Pilih file Excel</span>
+                            <input type="file" name="file" id="importSubSizeFile" accept=".xlsx,.xls,.csv" required>
+                        </label>
+                        <div class="mt-2">
+                            <a href="{{ route('marker-tools-split-size-template') }}" class="btn btn-sb-secondary btn-sm">
+                                <i class="fa fa-download fa-xs"></i> Download Template
+                            </a>
+                        </div>
+                        <div id="importSubSizeResult" class="mt-3"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" id="btnSubmitImportSubSize" class="btn btn-success btn-sm">
+                            <i class="fa fa-upload fa-xs"></i> Import
                         </button>
                     </div>
                 </form>
@@ -326,7 +388,7 @@
             let unlocked = !!this.value;
             $('#btnAddSubSize').prop('disabled', !unlocked);
             $('#btnSubmitSplitSize').prop('disabled', !unlocked);
-            $('#subSizeRows input[name="sub_size[]"]').prop('disabled', !unlocked);
+            $('#subSizeRows input[name="sub_size[]"], #subSizeRows input[name="qty[]"]').prop('disabled', !unlocked);
         });
 
         // Renumber Sub Size rows
@@ -342,7 +404,8 @@
             let $row = $(`
                 <div class="input-group input-group-sm mb-2 sub-size-row">
                     <span class="input-group-text bg-light text-muted sub-size-row-number"></span>
-                    <input type="text" name="sub_size[]" class="form-control" placeholder="Sub Size" required>
+                    <input type="text" name="sub_size[]" class="form-control" placeholder="Sub Size" maxlength="20" required>
+                    <input type="number" name="qty[]" class="form-control" placeholder="Qty" min="1" step="1" style="max-width:120px;" required>
                     <button type="button" class="btn btn-outline-danger btn-remove-sub-size">
                         <i class="fa fa-trash fa-xs"></i>
                     </button>
@@ -375,7 +438,7 @@
                     $('#subSizeRows .sub-size-row:gt(0)').remove();
                     $('#split_ws_id').val('').trigger('change');
                     $('#split_color, #split_size').prop('disabled', true).html('<option value="">Pilih Color</option>').trigger('change');
-                    $('#btnAddSubSize, #btnSubmitSplitSize, #subSizeRows input[name="sub_size[]"]').prop('disabled', true);
+                    $('#btnAddSubSize, #btnSubmitSplitSize, #subSizeRows input[name="sub_size[]"], #subSizeRows input[name="qty[]"]').prop('disabled', true);
                     $('#modalSplitSize').modal('hide');
                     subSizeTableReload();
                 },
@@ -532,48 +595,247 @@
             });
         }
 
+        // ===== Sub Size: selection & mass delete =====
+        let subSizeSelected = new Map(); // id => label
+
+        function escapeHtml(str) {
+            return $('<div>').text(str ?? '').html();
+        }
+
+        function updateSubSizeSelectionUI() {
+            let count = subSizeSelected.size;
+            $('#subSizeSelectedCount').text(count);
+            $('#subSizeSelectionBar').toggleClass('d-none', count === 0).toggleClass('d-flex', count > 0);
+
+            // Sinkronkan checkbox baris & header dengan halaman yang tampil
+            let $rowChecks = $('#sub-size-table tbody .sub-size-check');
+            $rowChecks.each(function () {
+                let checked = subSizeSelected.has(String($(this).val()));
+                this.checked = checked;
+                $(this).closest('tr').toggleClass('table-active', checked);
+            });
+            let checkedOnPage = $rowChecks.filter(':checked').length;
+            $('#subSizeCheckAll')
+                .prop('checked', $rowChecks.length > 0 && checkedOnPage === $rowChecks.length)
+                .prop('indeterminate', checkedOnPage > 0 && checkedOnPage < $rowChecks.length);
+        }
+
+        function setSubSizePageSelection(checked) {
+            if (!subSizeTable) return;
+            subSizeTable.rows({ page: 'current' }).data().each(function (row) {
+                if (checked) {
+                    subSizeSelected.set(String(row.id), row.no_ws + ' / ' + row.color + ' / ' + row.original_size + ' / ' + row.sub_size);
+                } else {
+                    subSizeSelected.delete(String(row.id));
+                }
+            });
+            updateSubSizeSelectionUI();
+        }
+
+        function clearSubSizeSelection() {
+            subSizeSelected.clear();
+            updateSubSizeSelectionUI();
+        }
+
+        $('#subSizeCheckAll').on('click', function (e) {
+            e.stopPropagation();
+            setSubSizePageSelection(this.checked);
+        });
+
+        $('#sub-size-table tbody').on('change', '.sub-size-check', function () {
+            let row = subSizeTable.row($(this).closest('tr')).data();
+            if (this.checked) {
+                subSizeSelected.set(String(row.id), row.no_ws + ' / ' + row.color + ' / ' + row.original_size + ' / ' + row.sub_size);
+            } else {
+                subSizeSelected.delete(String(row.id));
+            }
+            updateSubSizeSelectionUI();
+        });
+
+        // Klik baris (selain tombol/input) juga toggle pilihan
+        $('#sub-size-table tbody').on('click', 'tr', function (e) {
+            if ($(e.target).closest('button, a, input, .sub-size-check').length) return;
+            let $check = $(this).find('.sub-size-check');
+            if ($check.length) $check.prop('checked', !$check.prop('checked')).trigger('change');
+        });
+
+        function massDeleteSubSize() {
+            if (subSizeSelected.size === 0) return;
+
+            let list = Array.from(subSizeSelected.values()).slice(0, 20).map(l => '<li>' + escapeHtml(l) + '</li>').join('');
+            let more = subSizeSelected.size > 20 ? '<li>... dan ' + (subSizeSelected.size - 20) + ' lainnya</li>' : '';
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Hapus ' + subSizeSelected.size + ' sub size?',
+                html: '<ul class="text-start small mb-0" style="max-height:200px;overflow:auto;">' + list + more + '</ul>',
+                showCancelButton: true,
+                confirmButtonText: 'Hapus',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#dc3545',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({ title: 'Please Wait...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route("marker-tools-split-size-mass-delete") }}',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        ids: Array.from(subSizeSelected.keys()),
+                    },
+                    success: function (res) {
+                        Swal.fire({ title: res.message, icon: 'success' });
+                        clearSubSizeSelection();
+                        subSizeTable.ajax.reload(null, false);
+                    },
+                    error: function (xhr) {
+                        Swal.fire({ title: 'Gagal', text: xhr.responseJSON?.message ?? 'Gagal menghapus sub size', icon: 'error' });
+                        subSizeTable.ajax.reload(null, false);
+                    },
+                });
+            });
+        }
+
+        // ===== Sub Size: import =====
+        $('#modalImportSubSize').on('hidden.bs.modal', function () {
+            $('#formImportSubSize')[0].reset();
+            $('#importSubSizeResult').html('');
+        });
+
+        $('#formImportSubSize').on('submit', function (e) {
+            e.preventDefault();
+
+            let $btn = $('#btnSubmitImportSubSize');
+            let formData = new FormData(this);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            $btn.prop('disabled', true);
+            $('#importSubSizeResult').html('<div class="text-muted small"><i class="fa fa-spinner fa-spin"></i> Memproses import...</div>');
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ route("marker-tools-split-size-import") }}',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    let skippedList = res.skipped || [];
+                    let skipped = skippedList.map(s => '<li class="text-danger">' + escapeHtml(s) + '</li>').join('');
+                    $('#importSubSizeResult').html(
+                        '<div class="alert alert-success py-2 mb-2"><b>' + escapeHtml(res.message) + '</b></div>' +
+                        (skipped
+                            ? '<div class="alert alert-danger py-2 mb-0"><b><i class="fa fa-triangle-exclamation"></i> ' + skippedList.length + ' baris dilewati</b>' +
+                              '<ul class="small mb-0 mt-1" style="max-height:200px;overflow:auto;">' + skipped + '</ul></div>'
+                            : '')
+                    );
+                    $('#importSubSizeFile').val('');
+                    Swal.fire({
+                        title: res.message,
+                        html: skipped ? '<ul class="text-start small mb-0" style="max-height:250px;overflow:auto;">' + skipped + '</ul>' : '',
+                        icon: skipped ? 'warning' : 'success',
+                        width: skipped ? 700 : undefined,
+                    });
+                    subSizeTableReload();
+                },
+                error: function (xhr) {
+                    let res = xhr.responseJSON || {};
+                    let message = res.message ?? 'Import gagal';
+
+                    // Error validasi Laravel (mis. file salah format)
+                    if (xhr.status === 422 && res.errors && !Array.isArray(res.errors)) {
+                        res.errors = Object.values(res.errors).flat();
+                    }
+
+                    let details = (res.errors || []).map(s => '<li>' + escapeHtml(s) + '</li>').join('');
+                    $('#importSubSizeResult').html(
+                        '<div class="alert alert-danger py-2 mb-0"><b>' + escapeHtml(message) + '</b>' +
+                        (details ? '<ul class="small mb-0 mt-1" style="max-height:250px;overflow:auto;">' + details + '</ul>' : '') +
+                        '</div>'
+                    );
+                    Swal.fire({
+                        title: message,
+                        html: details ? '<ul class="text-start small mb-0" style="max-height:250px;overflow:auto;">' + details + '</ul>' : '',
+                        icon: 'error',
+                        width: 700,
+                    });
+                },
+                complete: function () {
+                    $btn.prop('disabled', false);
+                },
+            });
+        });
+
         function subSizeTableReload() {
             if (subSizeTable) subSizeTable.destroy();
 
             subSizeTable = $('#sub-size-table').DataTable({
                 ordering: false,
-                searching: false,
                 processing: true,
                 serverSide: true,
                 ajax: {
                     url: '{{ route("marker-tools-split-size-list") }}',
                 },
                 columns: [
-                    { data: 'id' },
+                    { data: 'id', searchable: false },
+                    { data: 'id', searchable: false },
+                    { data: 'id', searchable: false },
                     { data: 'no_ws' },
                     { data: 'color' },
                     { data: 'original_size' },
                     { data: 'sub_size' },
+                    { data: 'qty' },
                     { data: 'created_at' },
                     { data: 'created_by_username' },
                 ],
+                drawCallback: function () {
+                    updateSubSizeSelectionUI();
+                },
                 columnDefs: [
                     {
                         targets: [0],
-                        className: 'text-center',
-                        render: (data, type, row, meta) => meta.row + 1,
+                        className: 'text-center align-middle',
+                        render: (data) => `<input type="checkbox" class="sub-size-checkbox sub-size-check" value="${data}">`,
                     },
                     {
-                        targets: [1, 2, 3],
+                        targets: [1],
+                        className: 'text-center',
+                        render: (data, type, row, meta) => {
+                            let dataMessage = row.no_ws + " / " + row.color + " / " + row.sub_size;
+                            return `
+                                <button class='btn btn-danger btn-sm' data='`+JSON.stringify(row)+`' data-url='{{ route('marker-tools-split-size-delete') }}/`+row['id']+`' onclick='deleteData(this, null, "`+dataMessage+`")' data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Hapus Sub Size">
+                                    <i class='fa fa-trash'></i>
+                                </button>
+                            `;
+                        },
+                    },
+                    {
+                        targets: [2],
+                        className: 'text-center',
+                        render: (data, type, row, meta) => meta.settings._iDisplayStart + meta.row + 1,
+                    },
+                    {
+                        targets: [3, 4, 5],
                         className: 'text-center text-nowrap',
                     },
                     {
-                        targets: [4],
+                        targets: [6],
                         className: 'text-center text-nowrap',
                         render: (data) => `<span class="badge badge-info">${data}</span>`,
                     },
                     {
-                        targets: [5],
+                        targets: [7],
+                        className: 'text-end text-nowrap',
+                        render: (data) => (data === null || data === undefined) ? '-' : Number(data).toLocaleString('id-ID'),
+                    },
+                    {
+                        targets: [8],
                         className: 'text-center',
                         render: (data) => data ? data.substring(0, 19).replace('T', ' ') : '-',
                     },
                     {
-                        targets: [6],
+                        targets: [9],
                         className: 'text-center',
                         render: (data) => data ?? '<span class="text-muted">System</span>',
                     },
@@ -582,6 +844,20 @@
                         defaultContent: '-',
                     },
                 ],
+            });
+
+            // Header filter — skip kolom checkbox, Action, #
+            const subSizeSkipCols = [0, 1, 2];
+            $('#sub-size-table thead tr:eq(1)').remove();
+            $('#sub-size-table thead tr:eq(0)').clone(false).appendTo('#sub-size-table thead');
+            $('#sub-size-table thead tr:eq(1) th').each(function (i) {
+                if (subSizeSkipCols.includes(i)) { $(this).html(''); return; }
+                $(this).html('<input type="text" class="form-control form-control-sm" style="width:100%;">');
+                $('input', this).on('keyup change', function () {
+                    if (subSizeTable.column(i).search() !== this.value) {
+                        subSizeTable.column(i).search(this.value).draw();
+                    }
+                });
             });
         }
     </script>

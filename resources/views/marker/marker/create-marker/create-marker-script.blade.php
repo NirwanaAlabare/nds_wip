@@ -201,9 +201,9 @@
     }
 
     // Calculate Remaining Cut Qty
-    function remainingCutQty(orderQty, soDetId) {
+    function remainingCutQty(orderQty, soDetId, size = null) {
         // Get Total Cut Qty Based on Order WS, Order Color and Order Panel ( to know remaining cut qty )
-        let sumCutQtyData = sumCutQty.find(o => o.so_det_id == soDetId && o.panel == $("#panel").val());
+        let sumCutQtyData = sumCutQty.find(o => o.so_det_id == soDetId && o.panel == $("#panel").val() && (size ? size == o.size : true));
 
         // Calculate Remaining Cut Qty
         let remain = orderQty - (sumCutQtyData ? sumCutQtyData.total_cut_qty : 0);
@@ -275,7 +275,7 @@
                 targets: [5],
                 render: (data, type, row, meta) => {
                     // Calculate Remaining Cut Qty
-                    let remain = remainingCutQty(row.order_qty, row.so_det_id);
+                    let remain = remainingCutQty(row.order_qty, row.so_det_id, row.size);
 
                     return remain;
                 }
@@ -285,7 +285,7 @@
                 targets: [6],
                 render: (data, type, row, meta) => {
                     // Calculate Remaining Cut Qty
-                    let remain = remainingCutQty(row.order_qty, row.so_det_id);
+                    let remain = remainingCutQty(row.order_qty, row.so_det_id, row.size);
 
                     // Calculate Percentage
                     let percentage = Number(row.order_qty) > 0 ? ((Number(row.order_qty)-Number(remain))/Number(row.order_qty)*100) : 0;
@@ -314,7 +314,7 @@
                 targets: [8],
                 render: (data, type, row, meta) => {
                     // Calculate Remaining Cut Qty
-                    let remain = remainingCutQty(row.order_qty, row.so_det_id);
+                    let remain = remainingCutQty(row.order_qty, row.so_det_id, row.size);
 
                     // Conditional Based on Remaining Cut Qty
                     // let readonly = remain < 1 ? "readonly" : "";

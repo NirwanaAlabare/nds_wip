@@ -115,7 +115,8 @@ class MasterDataController extends Controller
         'Email'            => ['E-Mail', 50],
     ];
 
-    // Pintu masuk modul (kartu di home & logo navbar): kartu ringkasan Customer, Supplier & Item General
+    // Pintu masuk modul (kartu di home & logo navbar): kartu ringkasan Customer, Supplier & Item General Old,
+    // lalu grid General (database nds): Item General New, Group, Sub Group
     public function dashboard()
     {
         $sb = DB::connection('mysql_sb');
@@ -168,7 +169,8 @@ class MasterDataController extends Controller
             [
                 'kunci' => 'item',
                 'judul' => 'Item General',
-                'sub'   => 'General goods',
+                'sub'   => 'Old structure - Signalbit',
+                'cari'  => 'Item Old',
                 'ikon'  => 'fa-boxes-stacked',
                 'rute'  => 'master-data-item',
                 'buat'  => route('master-data-item-create'),
@@ -182,12 +184,58 @@ class MasterDataController extends Controller
             ],
         ];
 
+        // Grid General (database nds): Item General New, Group, Sub Group. Kalau database nds tidak terbaca,
+        // kartunya dilewati supaya dashboard tetap tampil.
+        $kartuGeneral = [];
+        $itemNew = MasterItemNewController::ringkasan();
+        if ($itemNew !== null) {
+            $kartuGeneral[] = [
+                'kunci' => 'item-new',
+                'judul' => 'Item General',
+                'sub'   => 'New structure - database NDS',
+                'cari'  => 'Item New',
+                'ikon'  => 'fa-boxes-stacked',
+                'rute'  => 'master-data-item-new',
+                'buat'  => route('master-data-item-new-create'),
+                'angka' => $itemNew,
+            ];
+        }
+        $grup = MasterGroupGeneralController::ringkasan();
+        if ($grup !== null) {
+            // Group & Sub Group dikelola di halaman yang sama (Master Group General)
+            $kartuGeneral[] = [
+                'kunci'      => 'grup',
+                'judul'      => 'Group',
+                'sub'        => 'Group General',
+                'ikon'       => 'fa-layer-group',
+                'rute'       => 'master-data-group-general',
+                'buat'       => route('master-data-group-general', ['form' => 'baru']),
+                'satuan'     => 'groups',
+                'angka'      => $grup['angkaGrup'],
+                // Filter status di halaman itu berlaku untuk sub group, jadi legenda group tidak membawa ?status=
+                'tanpaFilter' => true,
+            ];
+            $kartuGeneral[] = [
+                'kunci'  => 'sub-grup',
+                'judul'  => 'Sub Group',
+                'sub'    => 'In ' . number_format($grup['grup']) . ' groups',
+                'cari'   => 'Group',
+                'ikon'   => 'fa-sitemap',
+                'rute'   => 'master-data-group-general',
+                'buat'   => route('master-data-group-general', ['form' => 'baru']),
+                'satuan' => 'sub groups',
+                'angka'  => $grup,
+            ];
+        }
+
         return view('master-data.dashboard', [
-            'kartu'        => $kartu,
-            'nama'         => Auth::user()->name ?? '',
-            'page'         => 'dashboard-master-data',
-            'subPageGroup' => 'master-data',
-            'subPage'      => 'dashboard',
+            'kartu'          => $kartu,
+            'kartuGeneral'   => $kartuGeneral,
+            'nama'           => Auth::user()->name ?? '',
+            'page'           => 'dashboard-master-data',
+            'subPageGroup'   => 'master-data',
+            'subPage'        => 'dashboard',
+            'containerFluid' => true,
         ]);
     }
 

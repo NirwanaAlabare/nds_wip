@@ -784,6 +784,11 @@ class WipAdjustmentController extends Controller
             $columns[] = [$this->exportLabel($field), $field, true];
         }
 
+        // Keterangan kecocokan dengan master_sb_ws (report fabric tidak punya)
+        if (!isset($this->fabricTables[$typeReport])) {
+            $columns[] = ['Keterangan', 'keterangan', false];
+        }
+
         $columns[] = ['Waktu Import', 'created_at', false];
         $columns[] = ['User Import', 'created_by_username', false];
         $columns[] = ['Status', 'status', false];
@@ -868,15 +873,18 @@ class WipAdjustmentController extends Controller
     {
         $textColumns = array_values($this->templateFields[$typeReport]['text']);
 
+        // Ekspresi SQL tiap kolom teks (part kosong/null tampil '-')
+        $columnExpression = fn ($column) => $column == 'part' ? "COALESCE(NULLIF(a.part, ''), '-')" : "a.$column";
+
         // Kolom teks sesuai template (DC ikut panel & part)
-        $keyColumns = implode(', ', array_map(fn ($column) => "a.$column", $textColumns));
+        $keyColumns = implode(', ', array_map(fn ($column) => $columnExpression($column) . " AS $column", $textColumns));
 
         $filters = [
             'tgl_saldo' => ["DATE_FORMAT(a.tgl_saldo, '%d-%m-%Y')", []],
         ];
 
         foreach (array_merge(['id', 'created_at', 'created_by_username'], $textColumns) as $column) {
-            $filters[$column] = ["a.$column", []];
+            $filters[$column] = [$columnExpression($column), []];
         }
 
         // Search status sesuai tulisan yang tampil di tabel, bukan kode Y/N
@@ -932,6 +940,20 @@ class WipAdjustmentController extends Controller
         $typeColumn = $this->hasProses($typeMap) ? "CONCAT_WS(' - ', a.type_report, a.proses)" : 'a.type_report';
         $filters['type_report'] = [$typeColumn, []];
 
+        // Keterangan kecocokan dengan master_sb_ws (SEWING pakai koneksi lain, jadi nama database ditulis lengkap)
+        $master = config('database.connections.mysql.database') . '.master_sb_ws';
+        $keteranganColumn = "
+            CASE
+                WHEN EXISTS (SELECT 1 FROM $master m WHERE m.ws = a.no_ws AND m.color = a.color AND m.size = a.size)
+                    THEN 'OK - cocok dengan data'
+                WHEN EXISTS (SELECT 1 FROM $master m WHERE m.ws = a.no_ws AND m.color = a.color)
+                    THEN 'SALAH - size tidak ada di SO'
+                WHEN EXISTS (SELECT 1 FROM $master m WHERE m.ws = a.no_ws)
+                    THEN 'SALAH - color tidak cocok dengan SO'
+                ELSE 'SALAH - WS tidak ada di data'
+            END";
+        $filters['keterangan'] = [$keteranganColumn, []];
+
         // 1 baris per id wip_adjustment, qty ditaruh di kolom sesuai type_report-nya
         return DB::connection($this->connection($typeReport))
             ->table('wip_adjustment as a')
@@ -942,6 +964,7 @@ class WipAdjustmentController extends Controller
                 $typeColumn AS type_report,
                 $keyColumns,
                 " . implode(",\n                ", $pivot) . ",
+                $keteranganColumn AS keterangan,
                 a.created_at,
                 a.created_by_username,
                 a.status

@@ -19,6 +19,27 @@
         };
     }
 
+    // Esc menutup modal paling atas yang sedang terbuka. Perlu karena modal form dibuat dengan { focus: false }
+    // (supaya swal di atasnya bisa difokus), jadi fokus tidak di dalam modal dan Esc bawaan Bootstrap tidak tertangkap.
+    // Dipasang di fase capture supaya bisa melihat dulu: kalau swal tampil atau dropdown select2 sedang terbuka,
+    // Esc dibiarkan untuk mereka (menutup swal / dropdown), modalnya tidak ikut tertutup.
+    if (!window.mdEscModal) {
+        window.mdEscModal = true;
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape' && e.key !== 'Esc') { return; }
+            if (window.Swal && Swal.isVisible()) { return; }
+            if (document.querySelector('.select2-container--open')) { return; }
+
+            var terbuka = document.querySelectorAll('.modal.show');
+            if (!terbuka.length) { return; }
+            var el = terbuka[terbuka.length - 1];
+            // Fokus di dalam modal: Esc bawaan Bootstrap sudah menutupnya
+            if (el.contains(document.activeElement)) { return; }
+            var m = bootstrap.Modal.getInstance(el);
+            if (m) { m.hide(); }
+        }, true);
+    }
+
     // Tombol aksi per baris: tiga tombol berjajar di layar lebar, satu tombol menu (titik tiga) di HP.
     // Keduanya memakai kelas yang sama (md-btn-lihat, md-btn-status, md-ke-form), jadi handler-nya sama.
     // b = { id, aktif, urlEdit, status } - status (ACTIVE / INACTIVE / BLOCKED) diisi kalau status baru dipilih

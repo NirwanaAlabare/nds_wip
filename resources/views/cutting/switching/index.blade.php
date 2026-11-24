@@ -1,4 +1,4 @@
-@extends('layouts.index', ["containerFluid" => false])
+@extends('layouts.index', ["containerFluid" => true])
 
 @section('custom-link')
     <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
@@ -48,8 +48,9 @@
                 <table id="datatable" class="table table-bordered table-hover table-sm w-100">
                     <thead>
                         <tr>
-                            <th>Group Roll</th><th>No. Form</th><th>Tgl Form</th><th>WS</th><th>Style</th><th>Color</th><th>Size</th><th>Panel</th><th>Part</th>
-                            <th>Total Out</th><th>Total In</th><th>Status</th><th>Created By</th><th>Created At</th><th>Updated At</th>
+                            <th>Tgl Saldo Asal</th><th>No. Form Asal</th><th>WS Asal</th><th>Buyer Asal</th><th>Style Asal</th><th>Color Asal</th><th>Size Asal</th><th>Panel Asal</th><th>Part Asal</th><th>Qty Asal</th>
+                            <th>Tgl Saldo Tujuan</th><th>No. Form Tujuan</th><th>WS Tujuan</th><th>Buyer Tujuan</th><th>Style Tujuan</th><th>Color Tujuan</th><th>Size Tujuan</th><th>Panel Tujuan</th><th>Part Tujuan</th><th>Qty Tujuan</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                 </table>
@@ -75,7 +76,7 @@
         });
 
         const selectFilterColumns = {
-            11: [
+            18: [
                 { value: '', label: 'Semua' },
                 { value: '1', label: 'Active' },
                 { value: '0', label: 'Cancel' },
@@ -113,21 +114,20 @@
             },
             columns: [
                 // Sama dengan kolom export (switchingLogColumns di controller)
-                { data: 'group_roll' }, { data: 'no_form' }, { data: 'tanggal_form' }, { data: 'ws' },
-                { data: 'styleno' }, { data: 'color' }, { data: 'size' }, { data: 'panel' }, { data: 'part' },
-                { data: 'total_out', className: 'text-end' }, { data: 'total_in', className: 'text-end' },
-                { data: 'is_active', className: 'text-center' }, { data: 'created_by' }, { data: 'created_at' }, { data: 'updated_at' },
+                { data: 'tanggal_form_asal' }, { data: 'no_form_asal' }, { data: 'ws_asal' }, { data: 'buyer_asal' }, { data: 'styleno_asal' },
+                { data: 'color_asal' }, { data: 'size_asal' }, { data: 'panel_asal' }, { data: 'part_asal' },
+                { data: 'total_out', className: 'text-end' },
+                { data: 'tanggal_form_tujuan' }, { data: 'no_form_tujuan' }, { data: 'ws_tujuan' }, { data: 'buyer_tujuan' }, { data: 'styleno_tujuan' },
+                { data: 'color_tujuan' }, { data: 'size_tujuan' }, { data: 'panel_tujuan' }, { data: 'part_tujuan' },
+                { data: 'total_in', className: 'text-end' },
+                { data: 'is_active', className: 'text-center' },
             ],
             columnDefs: [
                 {
-                    targets: [11],
+                    targets: [18],
                     render: (data) => (data === null || Number(data) === 1)
                         ? '<span class="badge bg-success">Active</span>'
                         : '<span class="badge bg-secondary">Cancel</span>',
-                },
-                {
-                    targets: [13, 14],
-                    render: (data) => data ? formatDateTime(data) : '-',
                 },
                 {
                     targets: '_all',

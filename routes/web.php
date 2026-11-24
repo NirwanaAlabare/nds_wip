@@ -12,6 +12,8 @@ use App\Http\Controllers\Exim\ExportImportController;
 use App\Http\Controllers\Exim\InvoiceEximController;
 use App\Http\Controllers\MasterData\MasterDataController;
 use App\Http\Controllers\MasterData\MasterItemController;
+use App\Http\Controllers\MasterData\MasterItemNewController;
+use App\Http\Controllers\MasterData\MasterGroupGeneralController;
 use App\Http\Controllers\FGStokBPBController;
 use App\Http\Controllers\FGStokBPPBController;
 use App\Http\Controllers\FGStokLaporanController;
@@ -1178,7 +1180,11 @@ Route::middleware('auth')->group(function () {
 
     // Master
     Route::controller(PPIC_MasterSOController::class)->prefix("master-so-ppic")->middleware('packing')->group(function () {
-        Route::get('/', 'index')->name('master-so');
+        // Route::get('/', 'index')->name('master-so');
+        Route::get('/new', 'index_new')->name('master-so-new');
+        Route::get('/new/opsi-filter', 'opsi_filter_new')->name('master-so-new-opsi-filter');
+        Route::get('/new/mepet', 'mepet_new')->name('master-so-new-mepet');
+        Route::get('/new/export-excel', 'export_excel_master_so_new')->name('export_excel_master_so_new');
         Route::post('/import-excel-so', 'import_excel_so')->name('import-excel-so');
         Route::get('/show_tmp_ppic_so', 'show_tmp_ppic_so')->name('show_tmp_ppic_so');
         Route::get('/data_cek_double_tmp_ppic_so', 'data_cek_double_tmp_ppic_so')->name('data_cek_double_tmp_ppic_so');
@@ -1954,6 +1960,29 @@ Route::middleware('auth')->group(function () {
         Route::get('/detail', 'detail')->name('master-data-item-detail');
         Route::post('/status', 'status')->name('master-data-item-status');
         Route::get('/gambar', 'gambar')->name('master-data-item-gambar');
+    });
+    // Master Item General - tab New (database nds). Tab Old = MasterItemController di atas.
+    Route::controller(MasterItemNewController::class)->prefix("master-data/item/new")->middleware('role:master_data')->group(function () {
+        Route::get('/', 'index')->name('master-data-item-new');
+        Route::get('/data', 'data')->name('master-data-item-new-list');
+        Route::get('/excel', 'excel')->name('master-data-item-new-excel');
+        Route::get('/create', 'create')->name('master-data-item-new-create');
+        Route::post('/simpan', 'simpan')->name('master-data-item-new-simpan');
+        Route::get('/edit', 'edit')->name('master-data-item-new-edit');
+        Route::post('/perbarui', 'perbarui')->name('master-data-item-new-perbarui');
+        Route::get('/detail', 'detail')->name('master-data-item-new-detail');
+        Route::post('/status', 'status')->name('master-data-item-new-status');
+        Route::get('/gambar', 'gambar')->name('master-data-item-new-gambar');
+    });
+    // Master Group General (master_general_groups & master_general_subgroups di database nds)
+    Route::controller(MasterGroupGeneralController::class)->prefix("master-data/group-general")->middleware('role:master_data')->group(function () {
+        Route::get('/', 'index')->name('master-data-group-general');
+        Route::get('/data', 'data')->name('master-data-group-general-list');
+        Route::get('/excel', 'excel')->name('master-data-group-general-excel');
+        Route::post('/simpan', 'simpan')->name('master-data-group-general-simpan');
+        Route::post('/perbarui', 'perbarui')->name('master-data-group-general-perbarui');
+        Route::post('/status', 'status')->name('master-data-group-general-status');
+        Route::post('/hapus-grup', 'hapusGrup')->name('master-data-group-general-hapus-grup');
     });
 
     // Export Import (EXIM)

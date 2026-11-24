@@ -329,6 +329,7 @@ class WorkTrackerService
                 'health' => $item['health'],
                 'progress' => (int) $item['progress'],
                 'target_date' => $item['target_date'],
+                'finished_at' => $item['finished_at'],
                 'start_position' => round($start / $totalWeight * 100, 2),
                 'position' => round($cumulative / $totalWeight * 100, 2),
             ];

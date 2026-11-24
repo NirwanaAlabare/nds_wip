@@ -10428,11 +10428,11 @@ class ReportCuttingController extends Controller
                                             a.tgl_trans,
                                             s.act_costing_ws,
                                             s.color,
-                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
-                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.style ELSE p.style END as style,
-                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel ELSE p.panel END as panel,
-                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.id ELSE p.id  END as part_id,
-                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
+                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.buyer, p.buyer) ELSE p.buyer END as buyer,
+                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.style, p.style) ELSE p.style END as style,
+                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel, p.panel) ELSE p.panel END as panel,
+                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.id, p.id) ELSE p.id  END as part_id,
+                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel_status, p.panel_status) ELSE p.panel_status END as panel_status,
                                             s.so_det_id,
                                             s.ratio,
                                             a.qty_awal,
@@ -10557,11 +10557,11 @@ class ReportCuttingController extends Controller
                                             a.tgl_trans,
                                             s.act_costing_ws,
                                             s.color,
-                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.buyer ELSE p.buyer END as buyer,
-                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.style ELSE p.style END as style,
-                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel ELSE p.panel END as panel,
-                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.id ELSE p.id  END as part_id,
-                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN pcom.panel_status ELSE p.panel_status END as panel_status,
+                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.buyer, p.buyer) ELSE p.buyer END as buyer,
+                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.style, p.style) ELSE p.style END as style,
+                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel, p.panel) ELSE p.panel END as panel,
+                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.id, p.id) ELSE p.id  END as part_id,
+                                            CASE WHEN COALESCE(pcust.set_part_status, pd.part_status) = 'complement' THEN COALESCE(pcom.panel_status, p.panel_status) ELSE p.panel_status END as panel_status,
                                             s.so_det_id,
                                             s.ratio,
                                             a.qty_awal,
@@ -10836,7 +10836,7 @@ class ReportCuttingController extends Controller
                             panel,
                             panel_status,
                             part_detail_id,
-                            nama_part,
+                            NULLIF(NULLIF(TRIM(nama_part), ''), '-') nama_part,
                             part_status,
                             SUM(saldo_awal) saldo_awal,
                             SUM(switching_in_cutt_before) switching_in_cutt_before,
@@ -11175,7 +11175,7 @@ class ReportCuttingController extends Controller
                                 no_ws, style, color, size, panel, COALESCE(part, '')
                         ) cutting
                         group by
-                            ws, styleno, color, size, panel, nama_part
+                            ws, styleno, color, size, panel, NULLIF(NULLIF(TRIM(nama_part), ''), '-')
                         having
                             (
                                 saldo_awal_adjustment != 0 OR
@@ -13046,7 +13046,7 @@ class ReportCuttingController extends Controller
                     panel,
                     panel_status,
                     part_detail_id,
-                    nama_part,
+                    COALESCE(NULLIF(nama_part, ''), '-') nama_part,
                     part_status,
                     m.size,
                     m.dest,

@@ -955,7 +955,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND type_report = 'TRANSIT_PACKING'
                     AND status = 'Y'
                 GROUP BY
-                    ws, color, size, panel, part
+                    ws, buyer, style, color, size, panel, part
 
                 UNION ALL
                 select
@@ -1017,7 +1017,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND type_report = 'PACKING'
                     AND status = 'Y'
                 GROUP BY
-                    ws, color, size, panel, part
+                    ws, buyer, style, color, size, panel, part
                 UNION ALL
                 select
                     null urutan,
@@ -1077,7 +1077,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     from_tgl_saldo <= '{$tgl_akhir}' and
                     type_report = 'PACKING'
                 GROUP BY
-                    from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
+                    from_no_ws, from_buyer, from_style, from_color, from_size, from_panel, from_part, no_ws, buyer, style, color, size, panel, part
                 UNION ALL
                 select
                     null urutan,
@@ -1137,8 +1137,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     tgl_saldo <= '{$tgl_akhir}' and
                     type_report = 'PACKING'
                 GROUP BY
-                    from_no_ws, from_color, from_size, from_panel, from_part,
-                    no_ws, color, size, panel, part
+                    from_no_ws, from_buyer, from_style, from_color, from_size, from_panel, from_part,
+                    no_ws, buyer, style, color, size, panel, part
 
                 UNION ALL
                 select
@@ -1200,7 +1200,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND type_report = 'PACKING_CENTRAL'
                     AND status = 'Y'
                 GROUP BY
-                    ws, color, size, panel, part
+                    ws, buyer, style, color, size, panel, part
                 UNION ALL
                 select
                     null urutan,
@@ -1260,7 +1260,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     from_tgl_saldo <= '{$tgl_akhir}' and
                     type_report = 'PACKING_CENTRAL'
                 GROUP BY
-                    from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
+                    from_no_ws, from_buyer, from_style, from_color, from_size, from_panel, from_part, no_ws, buyer, style, color, size, panel, part
                 UNION ALL
                 select
                     null urutan,
@@ -1320,8 +1320,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     tgl_saldo <= '{$tgl_akhir}' and
                     type_report = 'PACKING_CENTRAL'
                 GROUP BY
-                    from_no_ws, from_color, from_size, from_panel, from_part,
-                    no_ws, color, size, panel, part
+                    from_no_ws, from_buyer, from_style, from_color, from_size, from_panel, from_part,
+                    no_ws, buyer, style, color, size, panel, part
                 UNION ALL
                 SELECT
                     null urutan,
@@ -1882,7 +1882,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND type_report = 'PACKING_TEMPORARY'
                     AND status = 'Y'
                 GROUP BY
-                    ws, color, size, panel, part
+                    ws, buyer, style, color, size, panel, part
             ) a
             GROUP BY ws, color, style, size, buyer ORDER BY ws, color, buyer
         ");
@@ -2095,7 +2095,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     AND type_report = 'PACKING'
                     AND status = 'Y'
                 GROUP BY
-                    ws, color, size, panel, part
+                    ws, buyer, style, color, size, panel, part
 
                 UNION ALL
 
@@ -2112,7 +2112,7 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     from_tgl_saldo <= '{$tgl_akhir}' and
                     type_report = 'PACKING'
                 GROUP BY
-                    from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
+                    from_no_ws, from_buyer, from_style, from_color, from_size, from_panel, from_part, no_ws, buyer, style, color, size, panel, part
 
                 UNION ALL
 
@@ -2129,8 +2129,8 @@ ORDER BY a.po ASC, m.buyer ASC, a.no_carton ASC;
                     tgl_saldo <= '{$tgl_akhir}' and
                     type_report = 'PACKING'
                 GROUP BY
-                    from_no_ws, from_color, from_size, from_panel, from_part,
-                    no_ws, color, size, panel, part
+                    from_no_ws, from_buyer, from_style, from_color, from_size, from_panel, from_part,
+                    no_ws, buyer, style, color, size, panel, part
 
                 UNION ALL
 

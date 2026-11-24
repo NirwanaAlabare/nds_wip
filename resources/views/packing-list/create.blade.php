@@ -303,6 +303,64 @@
             min-width: 125px;
         }
 
+        /* freeze kolom Worksheet s/d Dest saat tabel di-scroll horizontal */
+        .t2-sizeMatrix {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .t2-sizeMatrix th:nth-child(-n+4),
+        .t2-sizeMatrix td:nth-child(-n+4) {
+            position: sticky;
+            z-index: 2;
+            background: #f8fbff;
+        }
+
+        .t2-sizeMatrix td:first-child {
+            background: #fff;
+        }
+
+        .t2-sizeMatrix th:nth-child(-n+4) {
+            background: #f3f7fc;
+            z-index: 4;
+        }
+
+        /* freeze baris header saat tabel di-scroll ke bawah */
+        .t2-sizeWrap {
+            max-height: 65vh;
+        }
+
+        .t2-sizeMatrix thead th {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            box-shadow: inset 0 -1px 0 #dce5ef;
+        }
+
+        .t2-sizeMatrix thead th:nth-child(4) {
+            box-shadow: inset 0 -1px 0 #dce5ef, 3px 0 4px -2px rgba(48, 70, 102, .18);
+        }
+
+        .t2-sizeMatrix th:nth-child(1),
+        .t2-sizeMatrix td:nth-child(1) { left: 0; width: 110px; min-width: 110px; max-width: 110px; }
+        .t2-sizeMatrix th:nth-child(2),
+        .t2-sizeMatrix td:nth-child(2) { left: 110px; width: 150px; min-width: 150px; max-width: 150px; }
+        .t2-sizeMatrix th:nth-child(3),
+        .t2-sizeMatrix td:nth-child(3) { left: 260px; width: 115px; min-width: 115px; max-width: 115px; }
+        .t2-sizeMatrix th:nth-child(4),
+        .t2-sizeMatrix td:nth-child(4) {
+            left: 375px; width: 100px; min-width: 100px; max-width: 100px;
+            box-shadow: 3px 0 4px -2px rgba(48, 70, 102, .18);
+            border-right: 1px solid #dce5ef;
+        }
+
+        /* baris "Pilih PO terlebih dahulu" (colspan) jangan ikut sticky */
+        .t2-sizeMatrix td[colspan] {
+            position: static;
+            width: auto; min-width: 0; max-width: none;
+            box-shadow: none; border-right: 0;
+        }
+
         .t2-sizeCell {
             text-align: center;
             background: #fbfdff;
@@ -348,19 +406,6 @@
             font-size: 11px;
             color: #8290a4;
             margin-top: 3px;
-        }
-
-        .t2-sizeMatrix td:first-child,
-        .t2-sizeMatrix th:first-child {
-            position: sticky;
-            left: 0;
-            background: #fff;
-            z-index: 2;
-            min-width: 100px;
-        }
-
-        .t2-sizeMatrix th:first-child {
-            background: #f3f7fc;
         }
 
         .t2-footerActions {
@@ -769,7 +814,7 @@
                 User cukup isi Qty Packing pada size yang masuk ke carton.
             </div>
             <div class="t2-tabs" id="wsTabs"></div>
-            <div class="t2-tablewrap">
+            <div class="t2-tablewrap t2-sizeWrap">
                 <table class="t2-matrix t2-sizeMatrix">
                     <thead id="masterHead"></thead>
                     <tbody id="masterRows"></tbody>

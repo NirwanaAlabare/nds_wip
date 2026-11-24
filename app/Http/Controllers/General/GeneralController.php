@@ -1275,6 +1275,7 @@ class GeneralController extends Controller
                     AND whs_bppb_h.tujuan = 'Production - Cutting'
                     AND cast(whs_bppb_det.qty_out AS DECIMAL ( 11, 3 )) > 0.000
                     AND whs_bppb_det.no_bppb LIKE '%GK/OUT%'
+                    AND COALESCE(whs_bppb_det.status, 'Y') <> 'N'
                 GROUP BY
                     whs_bppb_det.id
             ) item

@@ -523,6 +523,16 @@
                 ...listColumns[type].map(([title, data, isNumber]) => ({
                     title, data, className: isNumber ? 'text-end' : ''
                 })),
+                // Keterangan kecocokan dengan master_sb_ws (report fabric tidak punya color/size)
+                ...(['CUTTING_FABRIC', 'CUTTING_FABRIC_BARCODE'].includes(type) ? [] : [{
+                    title: 'Keterangan',
+                    data: 'keterangan',
+                    render: function (data) {
+                        return data === 'OK - cocok dengan data'
+                            ? `<span class="badge-soft badge-soft-success">${data}</span>`
+                            : `<span class="badge-soft badge-soft-danger">${data ?? '-'}</span>`;
+                    }
+                }]),
                 { title: 'Waktu Import', data: 'created_at' },
                 { title: 'User Import', data: 'created_by_username' },
                 {

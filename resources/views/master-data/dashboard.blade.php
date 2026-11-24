@@ -10,7 +10,8 @@
    Animasi sengaja tidak dibatasi prefers-reduced-motion (PC kantor
    mematikan animation effects, tapi animasi tetap diminta tampil).
    ===================================================================== */
-.md-dash { max-width: 1200px; margin: 0 auto; padding-bottom: 24px; }
+/* Selebar layar (containerFluid) - tidak dibatasi di tengah */
+.md-dash { padding-bottom: 24px; }
 
 /* ---------- Banner ---------- */
 .md-hero {
@@ -122,9 +123,10 @@
 
 /* Pilihan daftar tujuan: segmen dengan penanda yang bergeser */
 .md-cakupan {
+  --jumlah: 3;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--jumlah), 1fr);
   margin-top: 10px;
   padding: 3px;
   border-radius: 10px;
@@ -135,7 +137,7 @@
   top: 3px;
   bottom: 3px;
   left: 3px;
-  width: calc((100% - 6px) / 3);
+  width: calc((100% - 6px) / var(--jumlah));
   border-radius: 8px;
   background: rgba(255, 255, 255, .95);
   transition: transform .3s cubic-bezier(.22, 1, .36, 1);
@@ -149,27 +151,69 @@
   color: #dbe7f5;
   font-size: 12px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: color .2s ease;
 }
 .md-cakupan button i { margin-right: 4px; font-size: 11px; }
 .md-cakupan button.is-pilih { color: #1e3a5f; }
 
 /* ---------- Kartu ---------- */
+/* Jumlah kolom = jumlah kartu (--kolom, diisi dari Blade). Empat kartu berjajar di layar lebar,
+   2 x 2 di layar sedang (kartu terlalu sempit untuk donut + legenda), satu kolom di HP. */
 .md-dash-grid {
+  --kolom: 3;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--kolom), minmax(0, 1fr));
   gap: 18px;
 }
+@media (max-width: 1399.98px) { .md-dash-grid.is-empat { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 991.98px) { .md-dash-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 575.98px) {
-  .md-dash-grid { grid-template-columns: 1fr; }
+  .md-dash-grid,
+  .md-dash-grid.is-empat { grid-template-columns: 1fr; }
   .md-hero { padding: 20px 18px; }
+}
+/* Empat kolom di layar 1400-1699px: donut sedikit lebih kecil supaya legenda tetap muat */
+@media (min-width: 1400px) and (max-width: 1699.98px) {
+  .md-dash-grid.is-empat .md-donut { width: 112px; height: 112px; }
+  .md-dash-grid.is-empat .md-kartu-tengah { gap: 12px; }
+  .md-dash-grid.is-empat .md-donut-angka { font-size: 20px; }
 }
 
 .md-kartu { --aksen: #1e3a5f; --aksen-muda: #e8eef6; --mx: 50%; --my: 0%; }
 .md-kartu.is-customer { --aksen: #2563eb; --aksen-muda: #e7efff; }
 .md-kartu.is-supplier { --aksen: #0d9488; --aksen-muda: #e3f5f2; }
 .md-kartu.is-item     { --aksen: #7c3aed; --aksen-muda: #f0e9ff; }
+.md-kartu.is-grup     { --aksen: #d97706; --aksen-muda: #fef3e2; }
+.md-kartu.is-item-new { --aksen: #15803d; --aksen-muda: #e6f6ec; }
+.md-kartu.is-sub-grup { --aksen: #0284c7; --aksen-muda: #e0f2fe; }
+
+/* Judul bagian (grid General) - garis pemisah dari kartu di atasnya */
+.md-bagian-judul {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 28px 0 14px;
+  padding-top: 20px;
+  border-top: 1px dashed #d5dde8;
+  animation: md-muncul .5s ease both;
+  animation-delay: .3s;
+}
+.md-bagian-ikon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #1e3a5f;
+  color: #fff;
+  font-size: 15px;
+}
+.md-bagian-judul h2 { margin: 0; font-size: 16px; font-weight: 700; color: #0f2942; line-height: 1.2; }
+.md-bagian-judul p  { margin: 2px 0 0; font-size: 12px; color: #64748b; }
 
 .md-kartu {
   position: relative;
@@ -189,6 +233,7 @@
 .md-kartu:nth-child(1) { animation-delay: .08s; }
 .md-kartu:nth-child(2) { animation-delay: .16s; }
 .md-kartu:nth-child(3) { animation-delay: .24s; }
+.md-kartu:nth-child(4) { animation-delay: .32s; }
 .md-kartu::before {
   content: "";
   position: absolute;
@@ -310,8 +355,9 @@
 .md-rinci-panah { font-size: 10px; color: #cbd5e1; transition: color .15s ease, transform .15s ease; }
 .md-rinci a:hover .md-rinci-panah { color: var(--aksen); transform: translateX(2px); }
 
-/* Aksi bawah */
+/* Aksi bawah - selalu di dasar kartu walau legenda kartu sebelahnya lebih panjang */
 .md-kartu-bawah {
+  margin-top: auto;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -370,14 +416,23 @@
 @section('content')
 {{-- ===========================================================================
      Dashboard Master Data.
-     - Banner: sapaan, total semua data, pencarian cepat ke daftar Customer / Supplier / Item
+     - Banner: sapaan, total semua data, pencarian cepat ke daftar Customer / Supplier / Item Old / Item New / Group
        (dibuka dengan ?cari=, daftar memakai nilai itu sebagai pencarian awal). Tombol "/" = fokus cari.
+     - Dua bagian kartu: Customer / Supplier / Item General Old, lalu grid General (Item General New, Group, Sub Group).
      - Kartu per daftar: donut Active / Inactive (/ Blocked). Sorot ruas atau baris legenda untuk
        melihat angkanya di tengah donut; klik baris membuka daftar dengan filter status itu.
      =========================================================================== --}}
 @php
-    $semua = collect($kartu)->sum(fn ($k) => $k['angka']['total']);
-    $aktifSemua = collect($kartu)->sum(fn ($k) => $k['angka']['aktif']);
+    $semuaKartu = collect($kartu)->merge($kartuGeneral);
+    $semua = $semuaKartu->sum(fn ($k) => $k['angka']['total']);
+    $aktifSemua = $semuaKartu->sum(fn ($k) => $k['angka']['aktif']);
+    // Pencarian cepat: satu tombol per halaman daftar (kartu Group & Sub Group satu halaman -> cukup sekali)
+    $cakupanCari = $semuaKartu->reject(fn ($k) => ! empty($k['tanpaFilter']))->values();
+    // Dua bagian kartu: daftar utama, lalu grid General (database nds)
+    $bagian = [['judul' => null, 'kartu' => $kartu]];
+    if ($kartuGeneral) {
+        $bagian[] = ['judul' => 'General', 'ket' => 'Item General (new structure), Group & Sub Group - database NDS', 'kartu' => $kartuGeneral];
+    }
     $persenAktifSemua = $semua > 0 ? round($aktifSemua / $semua * 100, 1) : 0;
 @endphp
 <div class="nag-skin">
@@ -403,11 +458,12 @@
                         <kbd class="md-cari-kunci" title="Press / to search">/</kbd>
                         <button type="submit" class="md-cari-tombol">Search</button>
                     </div>
-                    <div class="md-cakupan" id="md-cakupan" role="tablist">
+                    <div class="md-cakupan" id="md-cakupan" role="tablist" style="--jumlah: {{ count($cakupanCari) }}">
                         <span class="md-cakupan-penanda"></span>
-                        @foreach ($kartu as $i => $k)
-                            <button type="button" role="tab" data-href="{{ route($k['rute']) }}" class="{{ $i === 0 ? 'is-pilih' : '' }}" aria-selected="{{ $i === 0 ? 'true' : 'false' }}">
-                                <i class="fa-solid {{ $k['ikon'] }}"></i>{{ $k['judul'] }}
+                        @foreach ($cakupanCari as $i => $k)
+                            <button type="button" role="tab" data-href="{{ route($k['rute']) }}" class="{{ $i === 0 ? 'is-pilih' : '' }}" aria-selected="{{ $i === 0 ? 'true' : 'false' }}"
+                                title="{{ $k['cari'] ?? $k['judul'] }}">
+                                <i class="fa-solid {{ $k['ikon'] }}"></i>{{ $k['cari'] ?? $k['judul'] }}
                             </button>
                         @endforeach
                     </div>
@@ -415,9 +471,19 @@
             </div>
         </section>
 
-        {{-- ===== Kartu per daftar ===== --}}
-        <div class="md-dash-grid">
-            @foreach ($kartu as $k)
+        {{-- ===== Kartu per daftar, per bagian ===== --}}
+        @foreach ($bagian as $b)
+        @if ($b['judul'])
+            <div class="md-bagian-judul">
+                <span class="md-bagian-ikon"><i class="fa-solid fa-boxes-packing"></i></span>
+                <div>
+                    <h2>{{ $b['judul'] }}</h2>
+                    <p>{{ $b['ket'] }}</p>
+                </div>
+            </div>
+        @endif
+        <div class="md-dash-grid {{ count($b['kartu']) >= 4 ? 'is-empat' : '' }}" style="--kolom: {{ count($b['kartu']) }}">
+            @foreach ($b['kartu'] as $k)
                 @php
                     $a = $k['angka'];
                     $persen = fn ($n) => $a['total'] > 0 ? round($n / $a['total'] * 100, 1) : 0;
@@ -429,7 +495,8 @@
                         $status[] = ['kelas' => 'blokir', 'label' => 'Blocked', 'nilai' => $a['blokir']];
                     }
                 @endphp
-                <div class="md-kartu is-{{ $k['kunci'] }}" role="link" tabindex="0" data-href="{{ route($k['rute']) }}" data-total="{{ $a['total'] }}">
+                <div class="md-kartu is-{{ $k['kunci'] }}" role="link" tabindex="0" data-href="{{ route($k['rute']) }}" data-total="{{ $a['total'] }}"
+                    data-satuan="{{ $k['satuan'] ?? 'records' }}">
                     <div class="md-kartu-atas">
                         <span class="md-kartu-ikon"><i class="fa-solid {{ $k['ikon'] }}"></i></span>
                         <div>
@@ -453,14 +520,14 @@
                             </svg>
                             <div class="md-donut-tengah">
                                 <span class="md-donut-angka" data-angka="{{ $a['total'] }}">{{ number_format($a['total']) }}</span>
-                                <span class="md-donut-label">records</span>
+                                <span class="md-donut-label">{{ $k['satuan'] ?? 'records' }}</span>
                             </div>
                         </div>
 
                         <ul class="md-rinci">
                             @foreach ($status as $s)
                                 <li>
-                                    <a href="{{ route($k['rute'], ['status' => $s['kelas']]) }}"
+                                    <a href="{{ empty($k['tanpaFilter']) ? route($k['rute'], ['status' => $s['kelas']]) : route($k['rute']) }}"
                                         data-status="{{ $s['kelas'] }}" data-label="{{ $s['label'] }}"
                                         data-nilai="{{ $s['nilai'] }}" data-persen="{{ $persen($s['nilai']) }}"
                                         title="Open {{ $k['judul'] }} list: {{ $s['label'] }}">
@@ -481,6 +548,7 @@
                 </div>
             @endforeach
         </div>
+        @endforeach
 
     </div>
 </div>
@@ -558,7 +626,7 @@
         } else {
             delete kartu.dataset.fokus;
             angka.textContent = format.format(kartu.dataset.total);
-            label.textContent = 'records';
+            label.textContent = kartu.dataset.satuan || 'records';
         }
         tengah.classList.remove('is-ganti');
         void tengah.offsetWidth;

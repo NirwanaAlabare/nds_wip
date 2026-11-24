@@ -232,6 +232,9 @@ class CuttingFormManualController extends Controller
                 foreach ($subs as $sub) {
                     $newRow = clone $row;
                     $newRow->size = $sub->size;
+                    $newRow->size_dest = $sub->size;
+                    // Order qty sub size diambil dari sub_size.qty (fallback ke qty so_det bila belum diisi)
+                    $newRow->order_qty = $sub->qty !== null ? $sub->qty : $row->order_qty;
 
                     $detail = optional($markerDetailsBySize->get($row->so_det_id))->firstWhere('size', $sub->size);
                     $newRow->ratio = $detail->ratio ?? 0;
@@ -417,7 +420,11 @@ class CuttingFormManualController extends Controller
 
         $markerDetailData = MarkerDetail::selectRaw("
                 marker_input.kode kode_marker,
-                concat(master_sb_ws.size, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN ' - ' ELSE '' END, CASE WHEN (master_sb_ws.dest != '-' AND master_sb_ws.dest is not null) THEN master_sb_ws.dest ELSE '' END) size,
+                CASE
+                    WHEN marker_input_detail.size IS NOT NULL THEN marker_input_detail.size
+                    WHEN master_sb_ws.dest IS NOT NULL AND master_sb_ws.dest != '-' THEN CONCAT(master_sb_ws.size, ' - ', master_sb_ws.dest)
+                    ELSE master_sb_ws.size
+                END size,
                 marker_input_detail.so_det_id,
                 marker_input_detail.ratio,
                 marker_input_detail.cut_qty
@@ -426,7 +433,7 @@ class CuttingFormManualController extends Controller
             leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "marker_input_detail.so_det_id")->
             where("marker_input.kode", $formCutInputData->kode)->
             where("marker_input.cancel", "N")->
-            groupBy("marker_input_detail.so_det_id")->
+            groupBy("marker_input_detail.so_det_id", "marker_input_detail.size")->
             get();
 
         if ((Auth::user()->roles->where("nama_role", "meja")->count() > 0) && Auth::user()->id != $formCutInputData->no_meja) {
