@@ -1,236 +1,146 @@
 @extends('layouts.index')
 
 @section('custom-link')
-    <!-- DataTables -->
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/datatables-buttons/css/buttons.bootstrap4.min.css') }}">
-
-    <!-- Select2 -->
-    <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<link rel="stylesheet" href="{{ asset('plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+@include('export-import._laporan_ceisa_skin')
 @endsection
 
 @section('content')
-    <form action="{{ route('export_excel_pemasukanroll') }}" method="get">
-        <div class="card card-sb">
-            <div class="card-header">
-                <h5 class="card-title fw-bold mb-0"><i class="fas fa-file-alt fa-sm"></i> Data BC SignalBit</h5>
+{{-- ===========================================================================
+     Data BC Signalbit - baris BPB & BPPB yang punya dokumen BC, per tanggal daftar.
+     Tampilannya mengikuti daftar Invoice EXIM (lihat ../_laporan_ceisa_skin).
+     =========================================================================== --}}
+<div class="nag-skin dn-kontrol-sm">
+
+    {{-- ===== Kepala halaman ===== --}}
+    <div class="dn-kepala-halaman">
+        <div class="dn-kepala-kiri">
+            <span class="dn-kepala-ikon"><i class="fas fa-database"></i></span>
+            <div>
+                <h1 class="dn-kepala-judul">Data BC SignalBit</h1>
+                <p class="dn-kepala-sub">Barang masuk (BPB) &amp; keluar (BPPB) Signalbit beserta dokumen BC-nya</p>
             </div>
-            <div class="card-body">
-                <div class="d-flex align-items-end gap-3 mb-3">
-                    <div class="mb-3">
-                        <label class="form-label"><small>From</small></label>
-                        <input type="date" class="form-control form-control-sm" id="from" name="from"
-                            value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label"><small>To</small></label>
-                        <input type="date" class="form-control form-control-sm" id="to" name="to"
-                            value="{{ date('Y-m-d') }}">
-                    </div>
-                    <div class="mb-3">
-                        {{-- <button class="btn btn-primary btn-sm" onclick="export_excel()">Search</button> --}}
-                        <input type='button' class='btn btn-primary btn-sm' onclick="dataTableReload();" value="Tampilkan">
-                        <!-- <button type='submit' name='submit' class='btn btn-success btn-sm'>
-                            <i class="fas fa-file-excel"></i> Export</button> -->
-                            <a onclick="export_excel()" class="btn btn-success position-relative btn-sm">
-                        <i class="fas fa-file-excel"></i>
-                        Export
-                    </a>
+        </div>
+    </div>
+
+    {{-- ===== Filter ===== --}}
+    <div class="card dn-kartu-filter">
+        <div class="card-body">
+            <div class="dn-filter-petak">
+                <div class="form-group dn-f-tgl">
+                    <label for="from">From</label>
+                    {{-- Tampil '24 Nov 2026'; nilainya diambil lewat tglIso() - lihat invoice/_kalender. --}}
+                    <input type="text" class="form-control dn-tgl" id="from" name="from"
+                        value="{{ now()->format('j M Y') }}" autocomplete="off">
+                </div>
+                <div class="form-group dn-f-tgl">
+                    <label for="to">To</label>
+                    <input type="text" class="form-control dn-tgl" id="to" name="to"
+                        value="{{ now()->format('j M Y') }}" autocomplete="off">
+                </div>
+                <div class="dn-filter-tombol">
+                    <button type="button" class="btn btn-dn-utama" id="lap-btn-cari">
+                        <i class="fa fa-search"></i> Search
+                    </button>
+                    <span class="dn-filter-pisah"></span>
+                    <button type="button" class="btn btn-dn-excel" id="lap-btn-export">
+                        <i class="fas fa-file-excel"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ===== Tabel ===== --}}
+    <div class="card dn-kartu-tabel">
+        <div class="card-body">
+            <div class="dn-list-area" id="lap-area">
+                <div class="dn-loader-overlay">
+                    <div class="dn-loader-kartu">
+                        <span class="dn-loader-putar"></span> Loading...
                     </div>
                 </div>
-    </form>
-    <!-- <div class="d-flex justify-content-between">
-            <div class="ml-auto">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <table id="datatable" class="dn-table dn-tabel-daftar dn-lap-tabel" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>No BPB</th>
+                            <th>BPB Date</th>
+                            <th>Jenis Dokumen</th>
+                            <th>No Daftar</th>
+                            <th>Tgl Daftar</th>
+                            <th>No Aju</th>
+                            <th>Tgl Aju</th>
+                            <th>Id Item</th>
+                            <th>Item Descriptions</th>
+                            <th>Unit</th>
+                            <th>Qty</th>
+                            <th>Curr</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                            <th>Rate</th>
+                            <th>Nilai IDR</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
-                <input type="text"  id="cari_item" name="cari_item" autocomplete="off" placeholder="Search Data..." onkeyup="caridata()">
-        </div> -->
-    <div class="table-responsive">
-        <table id="datatable" class="table table-bordered table-striped table-head-fixed 100 text-nowrap">
-            <thead>
-                <tr>
-                    <th>No BPB</th>
-                    <th>BPB Date</th>
-                    <th>Jenis Dokumen</th>
-                    <th>No Daftar</th>
-                    <th>Tgl Daftar</th>
-                    <th>No Aju</th>
-                    <th>Tgl Aju</th>
-                    <th>Id Item</th>
-                    <th>Item Descriptions</th>
-                    <th>Unit</th>
-                    <th>Qty</th>
-                    <th>Curr</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                    <th>Rate</th>
-                    <th>Nilai IDR</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+        </div>
     </div>
-    </div>
-    </div>
+</div>
 @endsection
 
 @section('custom-script')
-    <!-- DataTables  & Plugins -->
-    <script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script>
+$(function () {
+    // ---------- tanggal & pembantu ----------
+    @include('export-import.invoice._kalender')
+    @include('export-import._laporan_ceisa_js')
 
-    <!-- Select2 -->
-    <script src="{{ asset('plugins/select2/js/select2.full.min.js') }}"></script>
-    <script>
-        let datatable = $("#datatable").DataTable({
-            ordering: false,
-            processing: true,
-            serverSide: true,
-            paging: true,
-            searching: true,
-            scrollY: '300px',
-            scrollX: '300px',
-            scrollCollapse: true,
-            ajax: {
-                url: '{{ route('report-signalbit-bc') }}',
-                data: function(d) {
-                    d.dateFrom = $('#from').val();
-                    d.dateTo = $('#to').val();
-                },
-            },
-            columns: [{
-                    data: 'bpbno_int'
-                },
-                {
-                    data: 'bpbdate'
-                },
-                {
-                    data: 'jenis_dok'
-                },
-                {
-                    data: 'no_daftar'
-                },
-                {
-                    data: 'bcdate'
-                },
-                {
-                    data: 'nomor_aju'
-                },
-                {
-                    data: 'tanggal_aju'
-                },
-                {
-                    data: 'id_item'
-                },
-                {
-                    data: 'itemdesc'
-                },
-                {
-                    data: 'satuan'
-                },
-                {
-                    data: 'qty'
-                },
-                {
-                    data: 'curr'
-                },
-                {
-                    data: 'price'
-                },
-                {
-                    data: 'total'
-                },
-                {
-                    data: 'rate',
-                    render: (data) => data === null ? '-' : data
-                },
-                {
-                    data: 'nilai_idr',
-                    render: (data) => data === null ? '-' : data
-                }
-            ],
-            columnDefs: [
-            // {
-            //     targets: [21],
-            //     className: "d-none",
-            //     render: (data, type, row, meta) => data ? data : "-"
-            // },
-            ]
-        });
+    pasangLoader('#datatable', '#lap-area');
 
-        function dataTableReload() {
-            datatable.ajax.reload();
-        }
-
-        function export_excel() {
-    let from = document.getElementById("from").value;
-    let to = document.getElementById("to").value;
-
-    Swal.fire({
-        title: 'Please Wait,',
-        html: 'Exporting Data...',
-        didOpen: () => {
-            Swal.showLoading()
+    // Barisnya bisa ribuan per bulan - halaman & pencarian dikerjakan server.
+    // Tgl Daftar / Tgl Aju sudah '-' dari server kalau nomornya kosong.
+    var datatable = $('#datatable').DataTable(opsiTabel({
+        serverSide: true,
+        ajax: {
+            url: @json(route('report-signalbit-bc')),
+            data: function (d) {
+                d.dateFrom = tglIso('#from');
+                d.dateTo = tglIso('#to');
+            }
         },
-        allowOutsideClick: false,
-    });
+        columns: [
+            { data: 'bpbno_int', render: rTeks },
+            { data: 'bpbdate', render: rTgl },
+            { data: 'jenis_dok', render: rTeks },
+            { data: 'no_daftar', render: rKunci },
+            { data: 'bcdate', render: rTgl },
+            { data: 'nomor_aju', render: rTeks },
+            { data: 'tanggal_aju', render: rTgl },
+            { data: 'id_item', render: rTeks },
+            { data: 'itemdesc', render: rLipatLebar },
+            { data: 'satuan', render: rTeks },
+            { data: 'qty', className: 'dn-angka', render: rAngka(0, 4) },
+            { data: 'curr', render: rTeks },
+            { data: 'price', className: 'dn-angka', render: rAngka(2, 4) },
+            { data: 'total', className: 'dn-angka', render: rAngka(2, 2) },
+            { data: 'rate', className: 'dn-angka', render: rAngka(0, 2) },
+            { data: 'nilai_idr', className: 'dn-angka dn-nilai', render: rAngka(2, 2) }
+        ]
+    }));
 
-    $.ajax({
-        type: "get",
-        url: '{{ route('export-excel-report-signalbit-bc') }}',
-        data: {
+    $('#lap-btn-cari').on('click', function () { datatable.ajax.reload(); });
+
+    $('#lap-btn-export').on('click', function () {
+        var from = tglIso('#from');
+        var to = tglIso('#to');
+        unduhExcel(@json(route('export-excel-report-signalbit-bc')), {
             from: from,
             to: to
-        },
-        xhrFields: {
-            responseType: 'blob'
-        },
-        success: function(response) {
-            {
-                swal.close();
-                Swal.fire({
-                    title: 'Data Berhasil Di Export!',
-                    icon: "success",
-                    showConfirmButton: true,
-                    allowOutsideClick: false
-                });
-                var blob = new Blob([response]);
-                var link = document.createElement('a');
-                link.href = window.URL.createObjectURL(blob);
-                link.download = "Laporan Data BC Signalbit Dari  " + from + " sampai " +
-                to + ".xlsx";
-                link.click();
-
-            }
-        },
+        }, 'Laporan Data BC Signalbit Dari  ' + from + ' sampai ' + to + '.xlsx');
     });
-}
-
-        function caridata() {
-        // Declare variables
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("cari_item");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("datatable");
-        tr = table.getElementsByTagName("tr");
-
-        // Loop through all table rows, and hide those who don't match the search query
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[21]; //kolom ke berapa
-            if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
-        }
-    }
-    </script>
+});
+</script>
 @endsection
