@@ -201,7 +201,7 @@ class TrackOrderOutput extends Component
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "rfts.act_id_ws")->
             leftJoin("master_plan", "master_plan.id", "=", "rfts.master_plan_id");
-            if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('-120 days', strtotime($this->dateFromFilter))));
+            if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('360 days', strtotime($this->dateFromFilter))));
             if ($this->dateToFilter) $orderFilterSql->where('master_plan.tgl_plan', '<=', $this->dateToFilter);
             if ($this->groupBy == "size") $orderFilterSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
             if ($this->groupBy == "size" && $this->sizeFilter) $orderFilterSql->where('so_det.size', $this->sizeFilter);
