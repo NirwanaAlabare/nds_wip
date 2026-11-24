@@ -664,6 +664,13 @@
                 <div class="kpi-angka" id="kpi-lewat-angka">–</div>
                 <div class="kpi-detail" id="kpi-lewat-detail"></div>
             </button>
+
+            <button class="kpi normal" data-filter="normal" type="button" style="display: none;">
+                <div class="kpi-garis"></div>
+                <div class="kpi-judul"><span class="kpi-ikon">🚨</span>Kurang dari {{ $batasHari }}</div>
+                <div class="kpi-angka" id="kpi-normal-angka">–</div>
+                <div class="kpi-detail" id="kpi-normal-detail"></div>
+            </button>
         </div>
 
         {{-- Grafik --}}
@@ -829,6 +836,10 @@
 
         function ambilWarnaCss(nama) {
             return getComputedStyle(document.documentElement).getPropertyValue(nama).trim();
+        }
+
+        function rollBelumLewatBatas(roll) {
+            return roll.umur < BATAS_HARI;
         }
 
         function rollSudahLewatBatas(roll) {
@@ -1219,7 +1230,7 @@
             const pilihan = [
                 ["semua", "Semua", semuaRoll.length],
                 ["lewat", `🚨 ≥ ${BATAS_HARI} hari`, rollLewatBatas.length],
-                ["normal", `⏳ < ${BATAS_HARI} hari`, rollNormal.length],
+                ["normal", `⏳ &lt; ${BATAS_HARI} hari`, rollNormal.length],
             ];
 
             el("tabel-filter").innerHTML = pilihan.map(([kunci, label, jumlah]) => `
@@ -1305,20 +1316,23 @@
         function gambarIsiModal() {
             const semua = urutkanDariPalingLama(modalAktif.daftarRoll);
             const lewat = semua.filter(rollSudahLewatBatas);
-            const ditampilkan = modalAktif.filter === "lewat" ? lewat : semua;
+            const normal = semua.filter(rollBelumLewatBatas);
+            const ditampilkan = modalAktif.filter === "lewat" ? lewat : (modalAktif.filter === "normal" ? normal : semua);
 
             el("modal-ringkasan").innerHTML = `
                 <div><b>${semua.length}</b>roll belum dipakai</div>
                 <div><b style="color: var(--red)">${lewat.length}</b>roll ≥ ${BATAS_HARI} hari</div>
+                <div><b style="color: var(--amber)">${normal.length}</b>roll &lt; ${BATAS_HARI} hari</div>
                 <div><b style="color: var(--blue)">≈ ${formatAngka(totalMeter(semua))} m</b>${totalPerSatuan(semua)}</div>`;
 
             // Tombol filter hanya muncul kalau isinya campuran (ada yang lewat batas & ada yang belum)
-            const perluFilter = modalAktif.pakaiFilter && lewat.length > 0 && lewat.length < semua.length;
+            const perluFilter = modalAktif.pakaiFilter && ((lewat.length > 0 && lewat.length < semua.length) || (normal.length > 0 && normal.length < semua.length));
             const wadahFilter = el("modal-filter");
 
             wadahFilter.innerHTML = !perluFilter ? "" : [
                 ["semua", "Semua", semua.length],
                 ["lewat", `🚨 ≥ ${BATAS_HARI} hari`, lewat.length],
+                ["normal", `⏳ &lt; ${BATAS_HARI} hari`, normal.length],
             ].map(([kunci, label, jumlah]) => `
                 <button type="button" class="tombol-filter ${modalAktif.filter === kunci ? "aktif" : ""}" data-filter="${kunci}">
                     ${label}<span class="jumlah">${jumlah}</span>
@@ -1371,6 +1385,7 @@
                 tampilkanNotifikasi();
                 tampilkanKartuAngka("kpi-semua-angka", "kpi-semua-detail", semuaRoll);
                 tampilkanKartuAngka("kpi-lewat-angka", "kpi-lewat-detail", rollLewatBatas);
+                tampilkanKartuAngka("kpi-normal-angka", "kpi-lewat-detail", rollNormal);
                 gambarGrafikUmur();
                 gambarGrafikStyle();
                 gambarTabel();
