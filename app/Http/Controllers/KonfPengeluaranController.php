@@ -18,6 +18,7 @@ use App\Imports\ImportLokasiMaterial;
 use App\Models\Journal;
 use App\Models\BpbSB;
 use App\Http\Controllers\Traits\LogsActivity;
+use App\Http\Controllers\Traits\ChecksNomorDaftar;
 use DB;
 use QrCode;
 use DNS1D;
@@ -25,7 +26,7 @@ use PDF;
 
 class KonfPengeluaranController extends Controller
 {
-    use LogsActivity;
+    use LogsActivity, ChecksNomorDaftar;
 
     /**
      * Display a listing of the resource.
@@ -38,7 +39,9 @@ class KonfPengeluaranController extends Controller
             $additionalQuery = "";
             $keywordQuery = "";
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select a.no_bppb,tgl_bppb,no_req,no_jo,buyer,tujuan,dok_bc,jenis_pengeluaran,no_invoice,no_daftar,tgl_daftar,CONCAT(a.created_by,' (',a.created_at, ') ') user_create,a.status,a.id, SUM(qty_out) qty, b.satuan from whs_bppb_h a inner join whs_bppb_det b on b.no_bppb = a.no_bppb where a.status = 'Pending' and a.tgl_bppb >= '2026-01-01' GROUP BY a.no_bppb order by no_bppb asc");
+            // belum_daftar = 1: selain INHOUSE, nomor daftar di bppb masih kosong -> tetap tampil, tapi tidak bisa diapprove
+            $bppb_belum_daftar = $this->sqlNoIntBelumDaftar('bppb', "select no_bppb from whs_bppb_h where status = 'Pending' and tgl_bppb >= '2026-01-01'");
+            $data_inmaterial = DB::connection('mysql_sb')->select("select a.no_bppb,tgl_bppb,no_req,no_jo,buyer,tujuan,dok_bc,jenis_pengeluaran,no_invoice,no_daftar,tgl_daftar,CONCAT(a.created_by,' (',a.created_at, ') ') user_create,a.status,a.id, SUM(qty_out) qty, b.satuan, if(nd.no_int is null,0,1) belum_daftar from whs_bppb_h a inner join whs_bppb_det b on b.no_bppb = a.no_bppb left join ($bppb_belum_daftar) nd on nd.no_int = a.no_bppb where a.status = 'Pending' and a.tgl_bppb >= '2026-01-01' GROUP BY a.no_bppb order by no_bppb asc");
 
 
             return DataTables::of($data_inmaterial)->toJson();
@@ -114,6 +117,13 @@ left join (select id_jo,kpno,styleno from act_costing ac inner join so on ac.id=
     foreach ($request->id_bpb as $i => $id_bpb) {
         $check = $request->chek_id[$i] ?? 0;
         if ($check <= 0) continue;
+
+        // selain INHOUSE wajib sudah ada nomor daftar (update dokumen pabean di signalbit), yang masih kosong tidak diapprove
+        if ($this->belumNomorDaftar('bppb', $id_bpb)) {
+            // keterangan ditampilkan di daftar gagal (view), dan dokumennya tidak ikut "Coba Lagi"
+            $failed[] = ['id_bpb' => $id_bpb, 'message' => 'Nomor daftar masih kosong', 'keterangan' => 'No. Daftar masih kosong'];
+            continue;
+        }
 
         try {
             DB::connection('mysql_sb')->beginTransaction();

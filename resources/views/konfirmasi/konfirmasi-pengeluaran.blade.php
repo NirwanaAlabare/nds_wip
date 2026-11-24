@@ -46,7 +46,7 @@
                                 <th class="text-center" style="width: 8%;">Qty</th>
                                 <th class="text-center" style="width: 7%;">Satuan</th>
                                 <th class="text-center" style="width: 14%;">Create By</th>
-                                <th class="text-center" style="width: 5%;"><input type="checkbox" id="check_all" title="Check semua data"></th>
+                                <th class="text-center" style="width: 5%;"><input type="checkbox" id="check_all" title="Check semua data yang nomor daftarnya sudah terisi"></th>
                                 <th style="display:none;">Check</th>
                                 <th class="text-center" style="width: 6%;">Detail</th>
                             </tr>
@@ -133,12 +133,14 @@
             }
         });
 
-        // Check all: pengeluaran tidak punya status lokasi seperti pemasukan, jadi semua baris eligible.
+        // Check all: pengeluaran tidak punya status lokasi seperti pemasukan, jadi semua baris eligible,
+        // kecuali yang nomor daftarnya masih kosong (belum_daftar == 1, selain INHOUSE wajib ada nomor daftar).
         $(document).on('change', '#check_all', function() {
             let checked = this.checked;
 
             datatable.rows().every(function() {
                 let row = this.data();
+                if (row.belum_daftar == 1) return;
                 if (checked) {
                     checkedApprove[row.no_bppb] = true;
                 } else {
@@ -205,19 +207,21 @@
                     dataTableReload();
                 });
             } else {
-                let listHtml = failed.map(f => '<li>' + f.id_bpb + '</li>').join('');
+                // yang punya keterangan (mis. No. Daftar masih kosong) ditampilkan alasannya dan tidak ikut dicoba lagi
+                let listHtml = failed.map(f => '<li>' + f.id_bpb +
+                    (f.keterangan ? ' <small class="text-danger"><i>(' + $('<span>').text(f.keterangan).html() + ')</i></small>' : '') + '</li>').join('');
+                let retryIds = failed.filter(f => !f.keterangan).map(f => f.id_bpb);
                 Swal.fire({
                     icon: 'warning',
                     title: 'Sebagian Data Gagal Diapprove',
                     html: 'Berhasil: <b>' + approvedCount + '</b> dari <b>' + totalChecked + '</b> data.<br>' +
                         'Gagal: <b>' + failed.length + '</b><ul style="text-align:left;">' + listHtml + '</ul>',
-                    showCancelButton: true,
-                    confirmButtonText: 'Coba Lagi',
+                    showCancelButton: retryIds.length > 0,
+                    confirmButtonText: retryIds.length > 0 ? 'Coba Lagi' : 'Tutup',
                     cancelButtonText: 'Tutup',
                 }).then((result) => {
                     dataTableReload();
-                    if (result.isConfirmed) {
-                        let retryIds = failed.map(f => f.id_bpb);
+                    if (result.isConfirmed && retryIds.length > 0) {
                         doApprove(retryIds);
                     }
                 });
@@ -335,6 +339,12 @@
 
             ],
             columnDefs: [{
+                // selain INHOUSE wajib ada nomor daftar: yang masih kosong diberi keterangan kecil di bawah No BPPB
+                targets: [0],
+                render: (data, type, row, meta) => (type === 'display' && row.belum_daftar == 1)
+                    ? data + '<br><small class="text-danger"><i>No. Daftar masih kosong</i></small>' : data
+            },
+            {
                 targets: [2],
                 render: (data, type, row, meta) => data ? data : "-"
             },
@@ -353,6 +363,8 @@
             {
                 targets: [7],
                 render: (data, type, row, meta) => {
+                    // nomor daftar masih kosong (selain INHOUSE): tidak bisa dicentang
+                    if (row.belum_daftar == 1) return '';
                     let isChecked = checkedApprove[row.no_bppb] ? 'checked' : '';
                     return '<div class="d-flex gap-1 justify-content-center" style="padding-top:5px;"><input type="checkbox" id="chek_id' + meta.row +
                     '" name="chek_id[' + meta.row + ']" class="flat" data-idbppb="' + row.no_bppb + '" value="1" ' + isChecked + '></div>';
