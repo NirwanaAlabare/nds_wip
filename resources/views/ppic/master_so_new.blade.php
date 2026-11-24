@@ -647,6 +647,23 @@
         .mm-tabs button:not(.on){background:#f9fbfd;border-color:#dde5ef}
         .mm-tw{background:#f9fbfd;border-color:#dde5ef}
         .mm-t th{border-bottom-color:#dde5ef}
+        /* ===== Cek stok WIP di header ===== */
+        #mso .wip{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+        #mso .wip-h{display:flex;align-items:center;gap:10px;font-size:12px;color:#d7e5f7}
+        #mso .wip-h b{color:#fff}
+        #mso .wip-l{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+        #mso .wip-c{display:flex;align-items:center;gap:10px;min-width:210px;padding:10px 12px;border-radius:14px;background:#ffffff1a;border:1px solid #ffffff33;color:#fff;text-decoration:none;transition:.15s}
+        #mso .wip-c:hover,#mso .wip-c:focus-visible{background:#ffffff2e;border-color:#ffffffaa;color:#fff;outline:none;transform:translateY(-1px)}
+        #mso .wip-i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;color:#0b1f3f}
+        #mso .wip-i svg{width:18px;height:18px}
+        #mso .wip-t{flex:1;line-height:1.15}
+        #mso .wip-t small{display:block;font-size:11.5px;font-weight:600;color:#e3ecf8}
+        #mso .wip-t b{font-size:20px;font-weight:800}
+        #mso .wip-t span{display:block;font-size:11px;color:#d7e5f7}
+        #mso .wip-go{width:24px;height:24px;border-radius:7px;background:#ffffff26;display:grid;place-items:center;font-size:13px;flex:none}
+        #mso .ph{align-items:center}
+        #mso .wip-t b .mini-spin{width:18px;height:18px;border-width:2px;border-color:#ffffff55;border-top-color:#fff;vertical-align:-3px}
+        @media(max-width:700px){#mso .wip{align-items:stretch;width:100%}#mso .wip-c{flex:1}}
     </style>
 @endsection
 
@@ -659,7 +676,15 @@
                 <h1>Master SO PPIC</h1>
                 <p>Daftar order (SO) dari PPIC beserta progres qty dari PO sampai Packing Out.</p>
             </div>
-            <button type="button" class="ph-guide" id="soGuideBtn"><i class="fas fa-book-open"></i> Panduan</button>
+            {{-- Cek stok WIP: total dari endpoint masing-masing modul (lihat loadWip) --}}
+            <div class="wip">
+                <div class="wip-h"><span><b>Cek stok WIP</b> · klik untuk buka modul</span><button type="button" class="ph-guide" id="soGuideBtn"><i class="fas fa-book-open"></i> Panduan</button></div>
+                <div class="wip-l">
+                    <a class="wip-c" href="{{ route('wip_packing_line') }}" target="_blank" rel="noopener"><span class="wip-i" style="background:#38bdf8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span><span class="wip-t"><small>WIP Packing Line</small><b id="wipL"></b><span>pcs</span></span><span class="wip-go">↗</span></a>
+                    <a class="wip-c" href="{{ route('transfer-garment') }}" target="_blank" rel="noopener"><span class="wip-i" style="background:#fbbf24"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/></svg></span><span class="wip-t"><small>WIP Temporary Packing</small><b id="wipT"></b><span>pcs</span></span><span class="wip-go">↗</span></a>
+                    <a class="wip-c" href="{{ route('detail_transaksi_packing_central_switching') }}" target="_blank" rel="noopener"><span class="wip-i" style="background:#4ade80"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></span><span class="wip-t"><small>WIP Packing Central</small><b id="wipC"></b><span>pcs</span></span><span class="wip-go">↗</span></a>
+                </div>
+            </div>
         </div>
 
         <!-- UPLOAD (collapsible) -->
@@ -1865,7 +1890,25 @@ function drawAlert(){
   const TICK_SPEED=100;
   tk.style.animationDuration=Math.max(15,tk.scrollWidth/TICK_SPEED)+"s";
 }
-drawChips(); kpis(); drawAlert(); loadOpsi(); loadData(); loadOpen();
+// ===== Cek stok WIP (header) =====
+// Total diambil dari endpoint yang dipakai modul aslinya, jadi angkanya sama dengan di modul:
+// Packing Line = total_wip (wip_packing_line_data), Temporary = total_stok (get_stok_temporary_count),
+// Central = total_qty_sisa (summary_wip_po_packing_central_switching)
+function loadWip(){
+  const W=[
+    ["wipL","{{ route('wip_packing_line_data') }}",r=>r.total_wip],
+    ["wipT","{{ route('get_stok_temporary_count') }}",r=>r.total_stok],
+    ["wipC","{{ route('summary_wip_po_packing_central_switching') }}",r=>r.total_qty_sisa],
+  ];
+  W.forEach(([id,url,ambil])=>{
+    const el=document.getElementById(id);
+    el.innerHTML='<span class="mini-spin"></span>';
+    $.ajax({url,type:"GET",dataType:"json",
+      success:r=>{el.textContent=fmt(num(r&&ambil(r)))},
+      error:()=>{el.textContent="–";el.title="Gagal memuat data"}});
+  });
+}
+drawChips(); kpis(); drawAlert(); loadOpsi(); loadData(); loadOpen(); loadWip();
 
 // ===== Panduan: sorot elemen asli + tur langkah demi langkah (pola sama seperti Packing List) =====
 const gEl=document.getElementById("soGuide"), gBs=bootstrap.Modal.getOrCreateInstance(gEl);
