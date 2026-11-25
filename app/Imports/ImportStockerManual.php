@@ -305,6 +305,8 @@ class ImportStockerManual implements ToCollection, WithStartRow
                     "part_status_notes" => ($part->panel_status == 'complement' && $mainComplement == 'main' ? 'main' : 'regular'),
                     "from_part_detail" => ($fromPartDetail ? $fromPartDetail->id : null),
                     "status" => ($partStatus ? $partStatus : 'inactive'),
+                    // default is ignore when creating
+                    "ignore_part" => 1,
                     "created_at" => Carbon::now(),
                     "updated_at" => Carbon::now(),
                 ]);

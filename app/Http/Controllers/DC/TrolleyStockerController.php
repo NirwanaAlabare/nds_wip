@@ -1021,6 +1021,14 @@ class TrolleyStockerController extends Controller
 
         // When Loading to Line
         if ($request->destination != "trolley") {
+            // Check Line Data
+            if (!$lineData) {
+                return array(
+                    'status' => 400,
+                    'message' => "Line tidak ditemukan. Harap tentukan Line"
+                );
+            }
+
             foreach ($request->selectedStocker as $req) {
                 $loadingStockArr = [];
 

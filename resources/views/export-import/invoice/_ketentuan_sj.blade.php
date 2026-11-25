@@ -28,15 +28,7 @@
                     <li>Tipe pengeluaran:
                         <b>FG/OUT</b>, <b>GK/OUT</b>, <b>GEN/OUT</b>, <b>WIP/OUT</b>,
                         <b>GACC/OUT</b>, <b>SCR/OUT</b>, <b>SPCK/OUT</b>.</li>
-                    {{-- Pengecualian FG/OUT bertanggal sebelum 1 Agu 2026 memang
-                         masih berlaku di sjGarment(), tapi sengaja TIDAK
-                         ditampilkan: itu aturan peralihan untuk data lama, dan
-                         menampilkannya cuma bikin bingung user yang menagih
-                         SJ hari ini. --}}
-                    <li>Jenis transaksi: <b>Penjualan</b>,
-                        <b>Pengiriman ke Subkontraktor CMT</b>,
-                        <b>Pengiriman Sample</b>, atau
-                        <b>Retur Pembelian Impor</b>.</li>
+                    <li>Jenis transaksi: <b>semua jenis</b>.</li>
                     <li>Khusus FG/OUT: penerimanya harus customer.</li>
                 </ul>
             </div>
