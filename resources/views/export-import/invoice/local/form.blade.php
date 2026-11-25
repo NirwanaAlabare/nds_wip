@@ -71,14 +71,17 @@
                             <div class="form-group">
                                 <label for="inv-tgl">Invoice Date <span class="dn-wajib" title="Required">*</span></label>
                                 {{-- Tanggal dokumen - ini yang tampil di daftar, modal & cetakan.
-                                     Tidak diketik: ikut tanggal SJ yang dipilih (satu invoice =
-                                     satu tanggal SJ), jadi kotaknya readonly. --}}
-                                <input type="text" class="form-control dn-tgl dn-tgl-ikut" id="inv-tgl" name="tgl_invoice"
+                                     Terisi dari tanggal SJ yang dipilih, tapi boleh diubah: waktu
+                                     disimpan, tanggal SJ (bppb.bppbdate) yang ikut tanggal ini.
+                                     Tanggal SJ aslinya tersimpan di bppbdate_ori. --}}
+                                <input type="text" class="form-control dn-tgl" id="inv-tgl" name="tgl_invoice"
                                     value="{{ $ubah && !empty($ubahPot['tgl_invoice'])
                                         ? date('j M Y', strtotime($ubahPot['tgl_invoice']))
-                                        : now()->format('j M Y') }}" autocomplete="off" readonly
-                                    title="Follows the SJ date">
-                                <small class="dn-tgl-ket"><i class="fas fa-truck"></i> Follows the SJ date</small>
+                                        : now()->format('j M Y') }}" autocomplete="off"
+                                    title="Filled from the SJ date. If you change it, the SJ date follows it when the invoice is saved.">
+                                <small class="dn-tgl-ket"><i class="fas fa-truck"></i> SJ date follows this date</small>
+                                {{-- Muncul kalau tanggal SJ akan ikut berubah waktu disimpan. --}}
+                                <small class="dn-tgl-pindah" id="inv-tgl-sj" hidden></small>
                             </div>
                         </div>
                         <div class="col-md-5">
@@ -1536,12 +1539,23 @@ $(function () {
         return teks;
     }
 
-    /* ---- Satu invoice = satu tanggal SJ ----
-     * Boleh beberapa SJ, tapi tanggalnya harus sama. Begitu ada satu yang
-     * dicentang, SJ bertanggal lain dikunci; kalau semuanya dilepas, kuncinya
-     * hilang lagi jadi tanggal lain tetap bisa dipilih. */
+    /* ---- Tanggal SJ ----
+     * SJ bertanggal berbeda boleh digabung dalam satu invoice: waktu disimpan,
+     * tanggal semua SJ-nya ikut Invoice Date (tanggal aslinya tersimpan di
+     * bppb.bppbdate_ori). Jadi tidak ada SJ yang dikunci karena tanggalnya -
+     * keterangan di modal cuma memberi tahu kalau tanggalnya berbeda-beda. */
     function tglSj(r) {
         return String((r && r.bppbdate) || '').slice(0, 10);
+    }
+
+    /** "2026-09-10" -> "10 Sep 2026", sama dengan yang tertulis di kotak tanggal. */
+    function tglTampil(iso) {
+        var p = String(iso || '').slice(0, 10).split('-');
+        if (p.length !== 3) { return String(iso || ''); }
+        var bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var b = bulan[parseInt(p[1], 10) - 1];
+        return b ? (parseInt(p[2], 10) + ' ' + b + ' ' + p[0]) : String(iso || '');
     }
 
     /** Baris yang akan jadi isi invoice kalau Apply ditekan sekarang - sama
@@ -1563,43 +1577,25 @@ $(function () {
         return hasil;
     }
 
-    /** Tanggal yang sedang dipakai invoice ini - '' kalau belum ada. */
-    function tanggalTerpakai() {
-        var tgl = '';
-        barisProspek().forEach(function (r) { if (!tgl) { tgl = tglSj(r); } });
-        return tgl;
-    }
-
-    /** Tanggal SJ yang berbeda-beda di sekumpulan baris. */
+    /** Tanggal SJ yang berbeda-beda di sekumpulan baris, urut dari yang terlama. */
     function tanggalBeda(daftar) {
         var ada = [];
         (daftar || []).forEach(function (r) {
             var t = tglSj(r);
             if (t && ada.indexOf(t) === -1) { ada.push(t); }
         });
-        return ada;
+        return ada.sort();
     }
 
+    /** Keterangan tanggal di modal. Namanya peninggalan aturan lama "satu
+     *  invoice = satu tanggal SJ" - sekarang tidak ada yang dikunci lagi. */
     function aturKunciTanggal() {
-        var tgl = tanggalTerpakai();
-        var terkunci = 0;
-        $('#so-table-sj tbody .so-cek').each(function () {
-            var g = sjGrup[parseInt($(this).data('g'), 10)];
-            if (!g) { return; }
-            var beda = !!tgl && !!g.tgl && g.tgl !== tgl;
-            $(this).prop('disabled', beda);
-            $(this).closest('tr').toggleClass('is-kunci-tgl', beda);
-            if (beda) { terkunci++; }
-        });
-
+        var beda = tanggalBeda(barisProspek());
         var $ket = $('#so-tgl-info');
-        if (tgl && terkunci) {
-            $ket.html('<i class="fas fa-calendar-day"></i> One invoice = one SJ date. Locked to <b>'
-                + teksAman(tgl) + '</b> - <b>' + terkunci + '</b> SJ of another date have no tick box. '
-                + 'Untick everything to pick another date.').prop('hidden', false);
-        } else if (tgl) {
-            $ket.html('<i class="fas fa-calendar-day"></i> One invoice = one SJ date. This invoice uses <b>'
-                + teksAman(tgl) + '</b>.').prop('hidden', false);
+        if (beda.length > 1) {
+            $ket.html('<i class="fas fa-calendar-day"></i> The ticked SJ have <b>' + beda.length
+                + '</b> different dates (' + teksAman(beda.map(tglTampil).join(', ')) + ').'
+                + ' When the invoice is saved, all of them take the Invoice Date.').prop('hidden', false);
         } else {
             $ket.prop('hidden', true).html('');
         }
@@ -1853,18 +1849,13 @@ $(function () {
         g.baris.forEach(function (r) { r._disc = d; });
         hitungRingkasan();
     });
-    // Centang-semua hanya untuk kelompok yang sedang terlihat, dan hanya yang
-    // tanggalnya sama - satu invoice cuma boleh memuat satu tanggal SJ.
+    // Centang-semua hanya untuk kelompok yang sedang terlihat. Tanggalnya
+    // boleh berbeda - waktu disimpan semuanya ikut Invoice Date.
     $('#so-cek-semua').on('change', function () {
         var on = $(this).is(':checked');
-        var tgl = on ? tanggalTerpakai() : '';
-        if (on && !tgl) {
-            var g0 = sjGrup[parseInt($('#so-table-sj tbody .so-cek').first().data('g'), 10)];
-            tgl = g0 ? g0.tgl : '';
-        }
         $('#so-table-sj tbody .so-cek').each(function () {
             var g = sjGrup[parseInt($(this).data('g'), 10)];
-            var pilih = on && (!tgl || !g || !g.tgl || g.tgl === tgl);
+            var pilih = on;
             pilihKelompok(g, pilih);
             this.indeterminate = false;
             $(this).prop('checked', pilih).closest('tr').toggleClass('is-pilih', pilih);
@@ -2111,13 +2102,70 @@ $(function () {
         hitungDetail();
     }
 
-    /** Invoice Date ikut tanggal SJ - kotaknya readonly, jadi tidak ada yang
-     *  perlu diketik. Kalau SJ-nya belum ada, tanggal bawaannya dibiarkan. */
-    function segarkanTanggalInvoice() {
+    /* ---- Invoice Date & tanggal SJ ----
+     * Invoice Date terisi sendiri dari tanggal SJ (yang paling akhir kalau
+     * tanggalnya berbeda-beda) SELAMA belum diubah sendiri. Begitu diubah,
+     * tanggal itu yang dipakai, dan waktu disimpan tanggal SJ (bppbdate) yang
+     * ikut - lihat tglSjIkutInvoice() di InvoiceEximController.
+     *
+     * Di layar Edit tanggal yang tersimpan dianggap sudah dipilih sendiri,
+     * jadi tidak tergeser oleh SJ yang ditambah/dibuang. */
+    var TGL_TANGAN = MODE_UBAH;
+    // Isi kotak yang terakhir sah - ketikan yang dikembalikan _kalender
+    // (bukan tanggal) tidak dihitung sebagai perubahan.
+    var TGL_TERAKHIR = tglIso('#inv-tgl');
+
+    /** Tanggal SJ paling akhir di Detail SJ - '' kalau belum ada SJ. */
+    function tglSjTerakhir() {
         var tgl = '';
-        invBaris.forEach(function (r) { if (!tgl) { tgl = tglSj(r); } });
-        if (tgl && tgl !== tglIso('#inv-tgl')) { tglSet('#inv-tgl', tgl); }
+        invBaris.forEach(function (r) {
+            var t = tglSj(r);
+            if (/^\d{4}-\d{2}-\d{2}$/.test(t) && t > tgl) { tgl = t; }
+        });
+        return tgl;
     }
+
+    function segarkanTanggalInvoice() {
+        var tgl = tglSjTerakhir();
+        if (tgl && !TGL_TANGAN && tgl !== tglIso('#inv-tgl')) {
+            tglSet('#inv-tgl', tgl);
+            TGL_TERAKHIR = tgl;
+        }
+        segarkanCatatanTglSj();
+    }
+
+    /** SJ yang tanggalnya akan ikut berubah waktu disimpan. */
+    function sjPindahTanggal() {
+        var tgl = tglIso('#inv-tgl');
+        var pindah = invBaris.filter(function (r) { return tgl && tglSj(r) && tglSj(r) !== tgl; });
+        return { tgl: tgl, jumlah: hitungSj(pindah), dari: tanggalBeda(pindah) };
+    }
+
+    function segarkanCatatanTglSj() {
+        var p = sjPindahTanggal();
+        if (!p.jumlah) {
+            $('#inv-tgl-sj').prop('hidden', true).html('');
+            return;
+        }
+        $('#inv-tgl-sj').html('<i class="fas fa-circle-info"></i> On save, the date of <b>' + p.jumlah
+            + '</b> SJ changes from <b>' + teksAman(p.dari.map(tglTampil).join(', ')) + '</b> to <b>'
+            + teksAman(tglTampil(p.tgl)) + '</b>.').prop('hidden', false);
+    }
+
+    // Diubah sendiri: mulai sekarang Invoice Date tidak lagi ikut SJ. Kalau
+    // dipilih persis tanggal SJ-nya, dianggap kembali ikut SJ. Ditunda
+    // sebentar supaya ketikan yang bukan tanggal sudah dikembalikan _kalender
+    // (waktu blur) sebelum dibaca.
+    $('#inv-tgl').on('change', function () {
+        setTimeout(function () {
+            var tgl = tglIso('#inv-tgl');
+            if (tgl && tgl !== TGL_TERAKHIR) {
+                TGL_TERAKHIR = tgl;
+                TGL_TANGAN = tgl !== tglSjTerakhir();
+            }
+            segarkanCatatanTglSj();
+        }, 0);
+    });
 
     // Baris jumlah di kaki Detail SJ: berapa SJ dan total qty-nya.
     function segarkanJumlahSj() {
@@ -2238,20 +2286,8 @@ $(function () {
             return;
         }
 
-        // Pengaman terakhir: satu invoice = satu tanggal SJ. Kotak centangnya
-        // sudah dikunci, tapi invoice lama bisa saja sudah tercampur.
-        var bedaTgl = tanggalBeda(sisa);
-        if (bedaTgl.length > 1) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'One invoice = one SJ date',
-                html: 'The selected SJ carry <b>' + bedaTgl.length + '</b> different dates ('
-                    + teksAman(bedaTgl.join(', ')) + '). Keep only the SJ of one date.',
-                customClass: { popup: 'dn-swal' }
-            });
-            return;
-        }
-
+        // Tanggal SJ yang berbeda-beda tidak lagi ditolak: waktu disimpan,
+        // semuanya ikut Invoice Date - lihat segarkanTanggalInvoice().
         invBaris = sisa;
         // DP & Return dibawa dari modal, sama seperti duplicate_data_so() di AR.
         $('#inv-dp').val($('#so-dp').val() || '');
@@ -2384,6 +2420,7 @@ $(function () {
             + '<div><span>Profit Center</span><b>' + teksAman($('#inv-pc').find(':selected').text()) + '</b></div>'
             + '<div><span>Document</span><b>' + teksAman($('#inv-doc-type').val())
             + ($('#inv-doc-number').val() ? ' / ' + teksAman($('#inv-doc-number').val()) : '') + '</b></div>'
+            + '<div><span>Invoice Date</span><b>' + teksAman($('#inv-tgl').val()) + '</b></div>'
             + '<div><span>SJ rows</span><b>' + invBaris.length + '</b></div>'
             + '<div class="dn-swal-grand"><span>Grand Total</span><b>' + teksAman($('#inv-grandtotal').val()) + '</b></div>'
             + '</div>'
@@ -2392,6 +2429,14 @@ $(function () {
                     + ' The previous SJ rows will be replaced by the list above.</p>'
                 : '<p class="dn-swal-catatan">The invoice number is assigned when it is saved,'
                     + ' so it may differ from the one shown on the form. It will be saved with status DRAFT.</p>');
+        // Tanggal SJ yang ikut berubah disebut di sini juga - itu mengubah
+        // data SJ di gudang, bukan cuma invoicenya.
+        var pindah = sjPindahTanggal();
+        if (pindah.jumlah) {
+            ringkas += '<p class="dn-swal-catatan">The SJ date of <b>' + pindah.jumlah + '</b> SJ will change from <b>'
+                + teksAman(pindah.dari.map(tglTampil).join(', ')) + '</b> to <b>' + teksAman(tglTampil(pindah.tgl))
+                + '</b>. The original SJ date is kept.</p>';
+        }
 
         Swal.fire({
             icon: 'question',

@@ -1925,6 +1925,11 @@ class InvoiceEximController extends Controller
         if ($currCampur !== null) {
             return $salah($currCampur, 422);
         }
+        // Invoice Date boleh diubah - tanggal SJ-nya yang ikut.
+        $pesanTgl = $this->tanggalSjIkut($asli, $tglInvoice);
+        if ($pesanTgl !== null) {
+            return $salah($pesanTgl, 422);
+        }
 
         // ---- semua angka dihitung di sini ----
         // Warna yang punya baris SO dihitung dari baris SO; baris SJ cuma
@@ -2311,6 +2316,8 @@ class InvoiceEximController extends Controller
                     $db->table(self::TABEL_POT)->insert($this->barisPotongan($idBook, $noInvoice, $s, $user, $now));
                     $this->tulisPotonganTagih($db, $idBook, $noInvoice, $s, $user, $now);
 
+                    // Tanggal SJ ikut Invoice Date - sebelum invno ditulis.
+                    $this->tglSjIkutInvoice($db, $idBook, $noInvoice, $s['tgl_invoice'], $user, $now);
                     // Nomor invoicenya ikut ditulis ke SJ-nya di bppb.
                     $this->selaraskanInvno($db, $idBook, $noInvoice);
                     $this->catatRiwayat($db, $idBook, $noInvoice, self::SHIPP_LOCAL, 'CREATE', $user, $now);
@@ -2428,6 +2435,8 @@ class InvoiceEximController extends Controller
                         + $s['header'] + array('created_by' => $user, 'created_at' => $now)
                     );
                     $this->tulisIsiExport($db, $idBook, $noInvoice, $s, $user, $now);
+                    // Tanggal SJ ikut Invoice Date - sebelum invno ditulis.
+                    $this->tglSjIkutInvoice($db, $idBook, $noInvoice, $s['tgl_invoice'], $user, $now);
                     // Nomor invoicenya ikut ditulis ke SJ-nya di bppb.
                     $this->selaraskanInvno($db, $idBook, $noInvoice);
                     $this->catatRiwayat($db, $idBook, $noInvoice, self::SHIPP_EXPORT, 'CREATE', $user, $now);
@@ -2641,6 +2650,11 @@ class InvoiceEximController extends Controller
         $currCampur = $this->pesanCurrCampur($sumber);
         if ($currCampur !== null) {
             return $salah($currCampur, 422);
+        }
+        // Invoice Date boleh diubah - tanggal SJ-nya yang ikut.
+        $pesanTgl = $this->tanggalSjIkut($sumber, $tgl);
+        if ($pesanTgl !== null) {
+            return $salah($pesanTgl, 422);
         }
 
         $perId = array();
@@ -3333,6 +3347,8 @@ class InvoiceEximController extends Controller
                     $db->table($t)->where('id_book_invoice', $idBook)->delete();
                 }
                 $this->tulisIsiExport($db, $idBook, $noInvoice, $s, $user, $now);
+                // Tanggal SJ ikut Invoice Date - sebelum invno ditulis.
+                $this->tglSjIkutInvoice($db, $idBook, $noInvoice, $s['tgl_invoice'], $user, $now);
                 // Nomor invoicenya ikut ditulis ke SJ-nya di bppb.
                 $this->selaraskanInvno($db, $idBook, $noInvoice);
                 $this->catatRiwayat($db, $idBook, $noInvoice, self::SHIPP_EXPORT, 'UPDATE', $user, $now);
@@ -4273,6 +4289,8 @@ class InvoiceEximController extends Controller
 
                 // Barisnya baru saja ditulis ulang, jadi keadaan sebelumnya hanya
                 // tersimpan di riwayat - potretnya diambil sesudah semuanya masuk.
+                // Tanggal SJ ikut Invoice Date - sebelum invno ditulis.
+                $this->tglSjIkutInvoice($db, $idBook, $noInvoice, $s['tgl_invoice'], $user, $now);
                 // Nomor invoicenya ikut ditulis ke SJ-nya di bppb.
                 $this->selaraskanInvno($db, $idBook, $noInvoice);
                 $this->catatRiwayat($db, $idBook, $noInvoice, self::SHIPP_LOCAL, 'UPDATE', $user, $now);
@@ -4488,6 +4506,155 @@ class InvoiceEximController extends Controller
         }
         return $out;
     }
+    /**
+     * Kolom bppb untuk "tanggal SJ ikut Invoice Date" - dibuat lewat
+     * database/sql/2026_11_23_bppb_tgl_ikut_invoice.sql.
+     */
+    const KOLOM_TGL_SJ = array('bppbdate_ori', 'create_invoice_by', 'create_invoice_date');
+
+    /** Hasil tglSjSiap() - cukup diperiksa sekali per request. */
+    private $tglSjSiap = null;
+
+    /** Ketiga kolom KOLOM_TGL_SJ sudah ada di bppb. */
+    private function tglSjSiap()
+    {
+        if ($this->tglSjSiap === null) {
+            $this->tglSjSiap = true;
+            foreach (self::KOLOM_TGL_SJ as $k) {
+                if (!$this->kolomAda('bppb', $k)) {
+                    $this->tglSjSiap = false;
+                    break;
+                }
+            }
+        }
+        return $this->tglSjSiap;
+    }
+
+    /**
+     * Baris SJ dibawa ke Invoice Date sebelum disimpan.
+     *
+     * Invoice Date di layar boleh diubah, dan tanggal SJ-nya yang mengikuti -
+     * lihat tglSjIkutInvoice(). Jadi tanggal SJ yang tercatat di detail
+     * invoice (sj_date) juga Invoice Date, karena memang itu tanggal SJ-nya
+     * sesudah disimpan.
+     *
+     * Selama kolom cadangannya belum ada di bppb, Invoice Date yang berbeda
+     * dari tanggal SJ ditolak: tanggal SJ tidak boleh diubah tanpa tanggal
+     * aslinya ikut tersimpan.
+     *
+     * @return string|null pesan penolakan; null = boleh lanjut
+     */
+    private function tanggalSjIkut(array &$asli, $tgl)
+    {
+        $beda = false;
+        foreach ($asli as $r) {
+            if (substr((string) $r['bppbdate'], 0, 10) !== (string) $tgl) {
+                $beda = true;
+                break;
+            }
+        }
+        if (!$beda) {
+            return null;
+        }
+        if (!$this->tglSjSiap()) {
+            return 'Invoice Date is different from the SJ date, but the SJ date cannot follow it yet'
+                . ' (run database/sql/2026_11_23_bppb_tgl_ikut_invoice.sql first).'
+                . ' Set Invoice Date back to the SJ date for now.';
+        }
+        foreach ($asli as &$r) {
+            $r['bppbdate'] = $tgl;
+        }
+        unset($r);
+        return null;
+    }
+
+    /**
+     * Tanggal SJ (bppb.bppbdate) ikut Invoice Date.
+     *
+     * Tanggal SJ yang asli disimpan SEKALI di bppbdate_ori dan tidak pernah
+     * ditimpa: SJ 1 Nov, invoice dibuat 2 Nov, lalu di-edit jadi 3 Nov ->
+     * bppbdate 3 Nov, bppbdate_ori tetap 1 Nov. Cadangan dan penggantiannya
+     * sengaja dua UPDATE terpisah supaya tidak bergantung pada urutan
+     * penugasan kolom di MariaDB.
+     *
+     * create_invoice_by/_date diisi waktu SJ-nya MASUK invoice ini (Create,
+     * atau ditambahkan waktu Edit). SJ yang memang sudah ada di invoice ini
+     * tidak ditimpa oleh siapa pun yang meng-edit sesudahnya - jejak edit ada
+     * di riwayat invoice. Karena itu fungsi ini harus dipanggil SEBELUM
+     * selaraskanInvno(): invno yang belum bernomor invoice ini yang menandai
+     * SJ baru masuk.
+     *
+     * Barisnya: garment lewat id (bppb.id = id_bppb), knitting lewat nomor SJ
+     * di bppbno / bppbno_int - sama dengan selaraskanInvno(). Yang diubah cuma
+     * bppb: tanggal di database knitting dan whs_bppb_h tidak ikut.
+     *
+     * SJ yang dilepas dari invoice (dibuang waktu Edit, atau invoicenya
+     * dibatalkan) tanggalnya TIDAK dikembalikan - aslinya tetap ada di
+     * bppbdate_ori.
+     */
+    private function tglSjIkutInvoice($db, $idBook, $noInvoice, $tglInvoice, $user, $now)
+    {
+        if ($this->tanggal($tglInvoice) === null || !$this->tglSjSiap()) {
+            return;
+        }
+
+        $id = array();
+        foreach ($db->select(
+            "SELECT DISTINCT id_bppb FROM " . self::TABEL_DET . "
+              WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAG'",
+            array((int) $idBook)
+        ) as $r) {
+            $v = trim((string) $r->id_bppb);
+            if ($v !== '' && ctype_digit($v)) {
+                $id[$v] = true;
+            }
+        }
+        // Nomor SJ knitting harus nomor sungguhan (OFC/OUT/..., GG/OUT/...):
+        // nomor kosong atau '0' akan mengenai ribuan baris bppb lain.
+        foreach (array('bppbno', 'bppbno_int') as $kolom) {
+            foreach ($db->select(
+                "SELECT b.id FROM bppb b
+                   JOIN (SELECT DISTINCT bppb_number FROM " . self::TABEL_DET . "
+                          WHERE id_book_invoice = ? AND UPPER(IFNULL(asal, '')) = 'NAK'
+                            AND bppb_number LIKE '%/%') d
+                     ON d.bppb_number = b.$kolom",
+                array((int) $idBook)
+            ) as $r) {
+                $id[(string) $r->id] = true;
+            }
+        }
+        if (!$id) {
+            return;
+        }
+
+        $adaInvno = $this->kolomAda('bppb', 'invno');
+        foreach (array_chunk(array_keys($id), 500) as $bagian) {
+            $in = implode(',', array_map('intval', $bagian));
+
+            // 1. Siapa & kapan - cuma SJ yang baru masuk invoice ini.
+            if ($adaInvno) {
+                $db->update(
+                    "UPDATE bppb SET create_invoice_by = ?, create_invoice_date = ?
+                      WHERE id IN ($in) AND (IFNULL(invno, '') <> ? OR create_invoice_by IS NULL)",
+                    array($user, $now, (string) $noInvoice)
+                );
+            } else {
+                $db->update(
+                    "UPDATE bppb SET create_invoice_by = ?, create_invoice_date = ?
+                      WHERE id IN ($in) AND create_invoice_by IS NULL",
+                    array($user, $now)
+                );
+            }
+            // 2. Cadangan tanggal asli - sekali saja, tidak pernah ditimpa.
+            $db->update("UPDATE bppb SET bppbdate_ori = bppbdate WHERE id IN ($in) AND bppbdate_ori IS NULL");
+            // 3. Baru tanggal SJ-nya diganti.
+            $db->update(
+                "UPDATE bppb SET bppbdate = ? WHERE id IN ($in) AND NOT (bppbdate <=> ?)",
+                array($tglInvoice, $tglInvoice)
+            );
+        }
+    }
+
     /**
      * Tandai SJ garment dengan nomor invoicenya di tabel asalnya (bppb.invno).
      *

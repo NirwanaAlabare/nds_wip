@@ -48,7 +48,7 @@
                                 <th class="text-center" style="width: 6%;">Qty</th>
                                 <th class="text-center" style="width: 5%;">Satuan</th>
                                 <th class="text-center" style="width: 5%;">Lokasi</th>
-                                <th class="text-center" style="width: 5%;"><input type="checkbox" id="check_all" title="Check semua data yang lokasinya sudah lengkap (hijau)"></th>
+                                <th class="text-center" style="width: 5%;"><input type="checkbox" id="check_all" title="Check semua data yang lokasinya sudah lengkap (hijau) dan nomor daftarnya sudah terisi"></th>
                                 <th style="display:none;">Check</th>
                                 <th class="text-center" style="width: 6%;">Detail</th>
                             </tr>
@@ -136,7 +136,8 @@
             }
         });
 
-        // Check all hanya menandai baris yang lokasinya sudah lengkap (qty_balance == 0 / ikon hijau).
+        // Check all hanya menandai baris yang lokasinya sudah lengkap (qty_balance == 0 / ikon hijau)
+        // dan nomor daftarnya sudah terisi (belum_daftar != 1, selain INHOUSE wajib ada nomor daftar).
         // Dengan deferRender:false (default), DataTables sudah membangun node DOM semua baris
         // sejak awal (bukan cuma halaman yang sedang tampil), jadi pindah halaman saja tidak akan
         // memicu render ulang. invalidate() memaksa semua baris (semua halaman) dirender ulang
@@ -146,7 +147,7 @@
 
             datatable.rows().every(function() {
                 let row = this.data();
-                if (row.qty_balance == 0) {
+                if (row.qty_balance == 0 && row.belum_daftar != 1) {
                     if (checked) {
                         checkedApprove[row.no_dok] = true;
                     } else {
@@ -214,19 +215,21 @@
                     dataTableReload();
                 });
             } else {
-                let listHtml = failed.map(f => '<li>' + f.id_bpb + '</li>').join('');
+                // yang punya keterangan (mis. No. Daftar masih kosong) ditampilkan alasannya dan tidak ikut dicoba lagi
+                let listHtml = failed.map(f => '<li>' + f.id_bpb +
+                    (f.keterangan ? ' <small class="text-danger"><i>(' + $('<span>').text(f.keterangan).html() + ')</i></small>' : '') + '</li>').join('');
+                let retryIds = failed.filter(f => !f.keterangan).map(f => f.id_bpb);
                 Swal.fire({
                     icon: 'warning',
                     title: 'Sebagian Data Gagal Diapprove',
                     html: 'Berhasil: <b>' + approvedCount + '</b> dari <b>' + totalChecked + '</b> data.<br>' +
                         'Gagal: <b>' + failed.length + '</b><ul style="text-align:left;">' + listHtml + '</ul>',
-                    showCancelButton: true,
-                    confirmButtonText: 'Coba Lagi',
+                    showCancelButton: retryIds.length > 0,
+                    confirmButtonText: retryIds.length > 0 ? 'Coba Lagi' : 'Tutup',
                     cancelButtonText: 'Tutup',
                 }).then((result) => {
                     dataTableReload();
-                    if (result.isConfirmed) {
-                        let retryIds = failed.map(f => f.id_bpb);
+                    if (result.isConfirmed && retryIds.length > 0) {
                         doApprove(retryIds);
                     }
                 });
@@ -350,6 +353,12 @@
 
             ],
             columnDefs: [{
+                // selain INHOUSE wajib ada nomor daftar: yang masih kosong diberi keterangan kecil di bawah No BPB
+                targets: [0],
+                render: (data, type, row, meta) => (type === 'display' && row.belum_daftar == 1)
+                    ? data + '<br><small class="text-danger"><i>No. Daftar masih kosong</i></small>' : data
+            },
+            {
                 targets: [4],
                 render: (data, type, row, meta) => data ? data.toUpperCase() : "-"
             },
@@ -387,7 +396,8 @@
             targets: [9],
             render: (data, type, row, meta) => {
                 // if (row.no_po != '') {
-                    if (row.qty_balance == 0) {
+                    // nomor daftar masih kosong (selain INHOUSE): tidak bisa dicentang
+                    if (row.qty_balance == 0 && row.belum_daftar != 1) {
                         let isChecked = checkedApprove[row.no_dok] ? 'checked' : '';
                         return '<div class="d-flex gap-1 justify-content-center" style="padding-top:5px;"><input type="checkbox" id="chek_id' + meta.row +
                         '" name="chek_id[' + meta.row + ']" class="flat" data-idbpb="' + row.no_dok + '" value="1" ' + isChecked + '></div>';

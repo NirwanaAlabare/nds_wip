@@ -397,7 +397,10 @@ class PackingListController extends Controller
                     ];
                 })->all();
 
-                DB::table('packing_master_packing_list')->insert($insert);
+                // dipecah per 1000 baris, batas placeholder MySQL 65535 (18 kolom x 1000 = 18000)
+                foreach (array_chunk($insert, 1000) as $chunk) {
+                    DB::table('packing_master_packing_list')->insert($chunk);
+                }
             });
         } catch (\Exception $e) {
             return response()->json([
