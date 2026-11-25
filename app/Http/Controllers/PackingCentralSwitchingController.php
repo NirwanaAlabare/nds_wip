@@ -907,12 +907,18 @@ class PackingCentralSwitchingController extends Controller
         return $excel->download();
     }
 
-    public function summaryWipPo(Request $request){
+    // Ringkasan panel WIP (FG In): sama dengan summaryWipPo tetapi dari Detail Transaksi WIP
+    public function summaryWipPoFgIn(Request $request)
+    {
+        return $this->summaryWipPo($request, 'wip');
+    }
+
+    public function summaryWipPo(Request $request, $mode = 'central'){
         ini_set('memory_limit', '2048M');
 
         // Mengikuti Detail Transaksi per hari ini: PO dihitung dari baris Tersedia, 'TANPA PO' bukan PO.
         $today = date('Y-m-d');
-        $dataPo = collect($this->buildQueryDetailTransaksi($today, $today, '', null));
+        $dataPo = collect($this->buildQueryDetailTransaksi($today, $today, '', null, $mode));
 
         $totalPo = $dataPo
             ->filter(function ($row) {
@@ -928,7 +934,13 @@ class PackingCentralSwitchingController extends Controller
         ]);
     }
 
-    public function detailTransaksi(Request $request)
+    // Detail Transaksi WIP: sama dengan Detail Transaksi Central, Packing Scan FG In dari BPB
+    public function detailTransaksiWip(Request $request)
+    {
+        return $this->detailTransaksi($request, 'wip');
+    }
+
+    public function detailTransaksi(Request $request, $mode = 'central')
     {
         $dataPo = DB::select("
             SELECT DISTINCT po FROM ppic_master_so
@@ -945,14 +957,16 @@ class PackingCentralSwitchingController extends Controller
         if ($request->ajax()) {
             ini_set('memory_limit', '2048M');
 
-            $start_date = date('Y-m-d', strtotime($request->input('start_date') ?: 'today'));
-            $end_date = date('Y-m-d', strtotime($request->input('end_date') ?: 'today'));
+            // Filter cukup 1 tanggal: start_date = end_date = tanggal
+            $start_date = date('Y-m-d', strtotime($request->input('tanggal') ?: 'today'));
+            $end_date = $start_date;
 
             $rawData = $this->buildQueryDetailTransaksi(
                 $start_date,
                 $end_date,
                 $request->input('status'),
-                $request->input('po')
+                $request->input('po'),
+                $mode
             );
 
             return DataTables::of($rawData)->toJson();
@@ -960,7 +974,9 @@ class PackingCentralSwitchingController extends Controller
 
         // For non-AJAX (initial page load)
         return view(
-            'packing.detail_transaksi_packing_central_switching',
+            $mode === 'wip'
+                ? 'packing.detail_transaksi_wip_packing_central_switching'
+                : 'packing.detail_transaksi_packing_central_switching',
             [
                 'page' => 'dashboard-packing',
                 "subPageGroup" => "packing-packing-in",
@@ -1107,7 +1123,9 @@ class PackingCentralSwitchingController extends Controller
 
     // Sumber dan perhitungan kolom Packing Central mengikuti PackingReportController::buildQueryMutasiPacking,
     // tetapi dipecah per PO. Transaksi yang tidak punya PO masuk ke baris 'TANPA PO'.
-    private function buildQueryDetailTransaksi($tgl_awal, $tgl_akhir, $status, $po)
+    // $mode 'central' : kolom packing_scan_fg_in dari Packing Out Scan (Saldo Akhir Central)
+    // $mode 'wip'     : kolom packing_scan_fg_in dari BPB FG In (Saldo Akhir WIP), sisanya sama persis
+    private function buildQueryDetailTransaksi($tgl_awal, $tgl_akhir, $status, $po, $mode = 'central')
     {
         // Saldo awal dari saldo_wip_packing_central (posisi akhir hari tgl ini), transaksi dihitung mulai besoknya
         $tgl_saldo = self::WIP_TGL_SALDO;
@@ -1134,6 +1152,49 @@ class PackingCentralSwitchingController extends Controller
             $po = is_array($po) ? $po : [$po];
             $poCondition = "AND po IN (" . implode(',', array_fill(0, count($po), '?')) . ")";
             $bindings = array_merge($bindings, $po);
+        }
+
+        if ($mode === 'wip') {
+            $sqlKeluarPacking = "
+            /* ================= PACKING SCAN FG IN (BPB, sama dengan report mutasi) ================= */
+                SELECT
+                    NULL, NULL, msw.ws, msw.styleno, msw.color, msw.size, msw.dest, NULL,
+                    -SUM(IF(b.bpbdate < '{$tgl_awal} 00:00:00', b.qty, 0)),
+                    0, 0, 0, 0,
+                    SUM(IF(b.bpbdate >= '{$tgl_awal} 00:00:00', b.qty, 0)),
+                    0, 0, 0, 0
+                FROM
+                    signalbit_erp.bpb b
+                    INNER JOIN master_sb_ws msw ON msw.id_so_det = b.id_so_det
+                WHERE
+                    b.id_so_det IS NOT NULL
+                    AND b.bpbno_int LIKE '%FG%'
+                    AND b.bpbdate >= '{$mulai} 00:00:00'
+                    AND b.bpbdate <= '{$tgl_akhir} 23:59:59'
+                    AND b.id_supplier IN (357, 435)
+                    AND b.id_item != 0
+                GROUP BY
+                    msw.ws, msw.styleno, msw.color, msw.size, msw.dest
+            ";
+        } else {
+            $sqlKeluarPacking = "
+            /* ================= PACKING SCAN FG IN (PACKING OUT SCAN, 1 scan = 1 pcs) ================= */
+                SELECT
+                    s.id_ppic, NULL, msw.ws, msw.styleno, msw.color, msw.size, msw.dest, NULL,
+                    -SUM(s.tgl_trans < '{$tgl_awal}'),
+                    0, 0, 0, 0,
+                    SUM(s.tgl_trans >= '{$tgl_awal}'),
+                    0, 0, 0, 0
+                FROM
+                    packing_packing_out_scan s
+                    LEFT JOIN master_sb_ws msw ON msw.id_so_det = s.id_so_det
+                WHERE
+                    s.id_ppic IS NOT NULL
+                    AND s.tgl_trans >= '{$mulai}'
+                    AND s.tgl_trans <= '{$tgl_akhir}'
+                GROUP BY
+                    s.id_ppic, msw.ws, msw.styleno, msw.color, msw.size, msw.dest
+            ";
         }
 
         return DB::select("
@@ -1204,22 +1265,8 @@ class PackingCentralSwitchingController extends Controller
 
                 UNION ALL
 
-            /* ================= PACKING SCAN FG IN (PACKING OUT SCAN, 1 scan = 1 pcs) ================= */
-                SELECT
-                    s.id_ppic, NULL, msw.ws, msw.styleno, msw.color, msw.size, msw.dest, NULL,
-                    -SUM(s.tgl_trans < '{$tgl_awal}'),
-                    0, 0, 0, 0,
-                    SUM(s.tgl_trans >= '{$tgl_awal}'),
-                    0, 0, 0, 0
-                FROM
-                    packing_packing_out_scan s
-                    LEFT JOIN master_sb_ws msw ON msw.id_so_det = s.id_so_det
-                WHERE
-                    s.id_ppic IS NOT NULL
-                    AND s.tgl_trans >= '{$mulai}'
-                    AND s.tgl_trans <= '{$tgl_akhir}'
-                GROUP BY
-                    s.id_ppic, msw.ws, msw.styleno, msw.color, msw.size, msw.dest
+            /* ================= PACKING SCAN FG IN: central = Packing Out Scan, wip = BPB ================= */
+                {$sqlKeluarPacking}
 
                 UNION ALL
 
@@ -1462,12 +1509,20 @@ class PackingCentralSwitchingController extends Controller
         ", $bindings);
     }
 
-    public function export_detail_transaksi_packing_central_switching(Request $request)
+    public function export_detail_transaksi_wip_packing_central_switching(Request $request)
     {
+        return $this->export_detail_transaksi_packing_central_switching($request, 'wip');
+    }
+
+    public function export_detail_transaksi_packing_central_switching(Request $request, $mode = 'central')
+    {
+        $isWip = $mode === 'wip';
+
         ini_set('memory_limit', '2048M');
 
-        $start_date = date('Y-m-d', strtotime($request->start_date ?: 'today'));
-        $end_date = date('Y-m-d', strtotime($request->end_date ?: 'today'));
+        // Filter cukup 1 tanggal: start_date = end_date = tanggal
+        $start_date = date('Y-m-d', strtotime($request->tanggal ?: 'today'));
+        $end_date = $start_date;
         $status = $request->status;
         $po = $request->po;
 
@@ -1480,16 +1535,16 @@ class PackingCentralSwitchingController extends Controller
             $poList = "'" . implode("','", $po) . "'";
         }
 
-        $data = $this->buildQueryDetailTransaksi($start_date, $end_date, $status, $po);
+        $data = $this->buildQueryDetailTransaksi($start_date, $end_date, $status, $po, $mode);
 
-        $fileName = 'detail-transaksi-wip-po';
+        $fileName = $isWip ? 'detail-transaksi-wip-fg-in' : 'detail-transaksi-wip-po';
 
         $excel = FastExcel::create($fileName);
 
         $sheet = $excel->sheet();
 
         $sheet->writeRow(
-            ['Detail Transaksi WIP PO'],
+            [$isWip ? 'Detail Transaksi Saldo WIP' : 'Detail Transaksi Saldo Central'],
             [
                 'font-style' => 'bold',
                 'font-size'  => 14,
@@ -1498,9 +1553,7 @@ class PackingCentralSwitchingController extends Controller
 
         $sheet->writeRow(
             [
-                !empty($start_date) && !empty($end_date)
-                    ? 'Periode : ' . $start_date . ' s/d ' . $end_date
-                    : 'Periode : '
+                'Tanggal : ' . $start_date
             ],
             [
                 'font-size' => 12,
@@ -1534,17 +1587,17 @@ class PackingCentralSwitchingController extends Controller
             'Color',
             'Size',
             'Dest',
-            'Saldo Awal',
+            $isWip ? 'Saldo Awal WIP' : 'Saldo Awal Central',
             'Terima Packing Line',
             'Terima Temporary Packing',
             'Terima Return',
             'Terima Gudang Stok',
-            'Packing Scan FG In',
+            $isWip ? 'Packing Scan FG In' : 'Packing Out',
             'Keluar Gudang Stok',
             'Switching OUT',
             'Switching IN',
             'Adjustment',
-            'Saldo Akhir',
+            $isWip ? 'Saldo Akhir WIP' : 'Saldo Akhir Central',
             'Status',
         ];
 

@@ -3660,8 +3660,7 @@ class ReportMutasiOutputController extends Controller
                     color,
                     size,
                     CASE WHEN sewing_loading_inject.tanggal < '$start_date' THEN SUM(sewing_loading_inject.loading_diff) ELSE 0 END AS loading_inject_bef,
-                    -- CASE WHEN sewing_loading_inject.tanggal >= '$start_date' THEN SUM(sewing_loading_inject.loading_diff) ELSE 0 END AS loading_inject
-                    0 AS loading_inject
+                    CASE WHEN sewing_loading_inject.tanggal >= '$start_date' THEN SUM(sewing_loading_inject.loading_diff) ELSE 0 END AS loading_inject
                 FROM laravel_nds.sewing_loading_inject
                 LEFT JOIN laravel_nds.master_sb_ws msb on msb.id_so_det = sewing_loading_inject.so_det_id
                 WHERE sewing_loading_inject.tanggal <= '$end_date'
@@ -3787,7 +3786,7 @@ class ReportMutasiOutputController extends Controller
                             color,
                             size,
                             SUM( saldo_awal_sewing + (qty_in_before - qty_out_before) + (terima_gudang_before) + loading_inject_bef) saldo_awal_sewing,
-                            SUM( qty_loading) qty_loading,
+                            SUM( qty_loading + loading_inject ) qty_loading,
                             SUM( terima_gudang ) terima_gudang,
                             SUM( qty_in ) qty_in_subcont,
                             SUM( input_rework_sewing ) input_rework_sewing,
@@ -4459,6 +4458,7 @@ class ReportMutasiOutputController extends Controller
                         'DEFECT MENDING',
                         'QC REJECT'
                     )
+                    and (no_ws is not null or color is not null or size is not null)
                 GROUP BY
                     from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
 
@@ -4609,6 +4609,7 @@ class ReportMutasiOutputController extends Controller
                         'DEFECT MENDING',
                         'QC REJECT'
                     )
+                    and (from_no_ws is not null or from_color is not null or from_size is not null)
                 GROUP BY
                     from_no_ws, from_color, from_size, from_panel, from_part, no_ws, color, size, panel, part
             ),

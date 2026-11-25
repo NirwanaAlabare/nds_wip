@@ -100,24 +100,17 @@
 @section('content')
     <div class="card card-sb">
         <div class="card-header">
-            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Detail Transaksi WIP PO</h5>
+            <h5 class="card-title fw-bold mb-0"><i class="fas fa-list"></i> Detail Transaksi Saldo Central</h5>
         </div>
 
         <div class="card-body" id="detail-transaksi-wip">
             <div class="row align-items-end g-3 mb-3">
-                <!-- Start Date -->
+                <!-- Tanggal (start & end date sama, diatur di controller) -->
                 <div class="col-md-2">
                     <label class="form-label">
-                        <small><b>Start Date</b></small>
+                        <small><b>Tanggal</b></small>
                     </label>
-                    <input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="{{ date('Y-m-d') }}" min="2026-03-01">
-                </div>
-                <!-- End Date -->
-                <div class="col-md-2">
-                    <label class="form-label">
-                        <small><b>End Date</b></small>
-                    </label>
-                    <input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ date('Y-m-d') }}" min="2026-03-01">
+                    <input type="date" class="form-control form-control-sm" id="tanggal" name="tanggal" value="{{ date('Y-m-d') }}" disabled>
                 </div>
 
                 <div class="col-md-3">
@@ -172,17 +165,17 @@
                             <th class="text-center align-middle">Color</th>
                             <th class="text-center align-middle">Size</th>
                             <th class="text-center align-middle">Dest</th>
-                            <th class="text-center align-middle">Saldo Awal</th>
+                            <th class="text-center align-middle">Saldo Awal Central</th>
                             <th class="text-center align-middle">Terima Packing Line</th>
                             <th class="text-center align-middle">Terima Temporary Packing</th>
                             <th class="text-center align-middle">Terima Return</th>
                             <th class="text-center align-middle">Terima Gudang Stok</th>
-                            <th class="text-center align-middle">Packing Scan FG In</th>
+                            <th class="text-center align-middle">Packing Out</th>
                             <th class="text-center align-middle">Keluar Gudang Stok</th>
                             <th class="text-center align-middle">Switching OUT</th>
                             <th class="text-center align-middle">Switching IN</th>
                             <th class="text-center align-middle">Adjustment</th>
-                            <th class="text-center align-middle">Saldo Akhir</th>
+                            <th class="text-center align-middle">Saldo Akhir Central</th>
                             <th class="text-center align-middle">Status</th>
                         </tr>
                     </thead>
@@ -266,8 +259,7 @@
         });
 
         function dataTableReload() {
-            let start_date = $('#start_date').val();
-            let end_date = $('#end_date').val();
+            let tanggal = $('#tanggal').val();
 
             Swal.fire({
                 title: 'Loading...',
@@ -296,8 +288,7 @@
                 ajax: {
                     url: '{{ route('detail_transaksi_packing_central_switching') }}',
                     data(d) {
-                        d.start_date = start_date;
-                        d.end_date = end_date;
+                        d.tanggal = tanggal;
                         d.status = $("#status").val();
                         d.po = $("#po").val();
                     },
@@ -415,8 +406,7 @@
 
 
         function export_excel() {
-            let start_date = $('#start_date').val();
-            let end_date = $('#end_date').val();
+            let tanggal = $('#tanggal').val();
 
             Swal.fire({
                 title: 'Please Wait...',
@@ -431,8 +421,7 @@
                 type: "get",
                 url: '{{ route('export_detail_transaksi_packing_central_switching') }}',
                 data: {
-                    start_date: start_date,
-                    end_date: end_date,
+                    tanggal: tanggal,
                     status: $("#status").val(),
                     po: $("#po").val(),
                 },
@@ -451,7 +440,7 @@
                     var blob = new Blob([response]);
                     var link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
-                    link.download = "Detail Transaksi WIP PO " + start_date + " _ " + end_date + ".xlsx";
+                    link.download = "Detail Transaksi Saldo Central " + tanggal + ".xlsx";
                     link.click();
                 },
                 error: function(xhr, status, error) {
