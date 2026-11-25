@@ -869,6 +869,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/summary-wip-po', 'summaryWipPo')->name('summary_wip_po_packing_central_switching');
         Route::get('/detail-transaksi', 'detailTransaksi')->name('detail_transaksi_packing_central_switching');
         Route::get('/export-detail-transaksi', 'export_detail_transaksi_packing_central_switching')->name('export_detail_transaksi_packing_central_switching');
+        Route::get('/summary-wip-po-fg-in', 'summaryWipPoFgIn')->name('summary_wip_po_fg_in_packing_central_switching');
+        Route::get('/detail-transaksi-wip', 'detailTransaksiWip')->name('detail_transaksi_wip_packing_central_switching');
+        Route::get('/export-detail-transaksi-wip', 'export_detail_transaksi_wip_packing_central_switching')->name('export_detail_transaksi_wip_packing_central_switching');
     });
 
     // Packing Out

@@ -61,115 +61,154 @@
         #tbl-preview tbody tr:hover { background: #eef4ff !important; cursor: default; }
 
         /* ===============================
-        SUMMARY WIP PO
+        SUMMARY WIP PO (Central & WIP)
         ================================ */
-        .summary-content {
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        /* warna per kartu: Central biru, WIP hijau */
+        .stat-card {
+            --bg: #eef4ff;
+            --border: #d3e0f7;
+            --accent: #2f6fd6;
+            --value: #1e3a7b;
+            --icon-bg: #d9e5fb;
+            display: block;
+            padding: 18px 22px 20px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg);
+            color: inherit;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(30, 50, 90, .06);
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+
+        .stat-card:hover,
+        .stat-card:focus {
+            color: inherit;
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 50, 90, .10);
+        }
+
+        .stat-wip {
+            --bg: #eaf7f0;
+            --border: #c6e8d6;
+            --accent: #1f9a64;
+            --value: #17694a;
+            --icon-bg: #d3efe1;
+        }
+
+        .stat-head {
             display: flex;
-            align-items: stretch;
-            gap: 15px;
+            align-items: center;
+            gap: 14px;
         }
 
-        .summary-box {
-            width: 250px;
-            min-height: 100px;
-            padding: 13px 18px;
-            border-radius: 10px;
-        }
-
-        .summary-blue {
-            border: 1px solid #a9d7ff;
-            background: #f0f8ff;
-        }
-
-        .summary-yellow {
-            border: 1px solid #f1d477;
-            background: #fffaf0;
-        }
-
-        .summary-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #68778d;
-            margin-bottom: 4px;
-        }
-
-        .summary-value {
-            font-size: 34px;
-            line-height: 38px;
-            font-weight: 700;
-            color: #0879c9;
-            margin-top: 6px;
-        }
-
-        .summary-yellow .summary-value {
-            color: #d97900;
-        }
-
-        .summary-value span {
-            font-size: 16px;
-            font-weight: 500;
-            margin-left: 3px;
-        }
-
-        /* BUTTON AREA */
-        .summary-action {
-            flex: 1;
-            min-height: 100px;
-            border: 1px dashed #5794ff;
-            border-radius: 9px;
+        .stat-icon {
+            flex: 0 0 46px;
+            height: 46px;
+            border-radius: 50%;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #fbfdff;
+            background: var(--icon-bg);
+            color: var(--accent);
+            font-size: 18px;
         }
 
-        .summary-action-text {
-            color: #718096;
-            font-size: 12px;
-            margin-bottom: 7px;
-        }
-
-        .btn-detail-po {
-            border-radius: 7px;
-            font-size: 13px;
+        .stat-title {
+            font-size: 18px;
             font-weight: 600;
-            padding: 7px 20px;
-            background: #2864df;
-            border-color: #2864df;
-        }
-        .btn-detail-po:hover {
-            background: #1d52c2;
-            border-color: #1d52c2;
+            line-height: 1.25;
+            color: #1f2937;
         }
 
+        .stat-sub {
+            font-size: 13px;
+            margin-top: 2px;
+            color: #5b6576;
+        }
 
-        /* TABLET */
-        @media (min-width: 577px) and (max-width: 991px) {
-            .summary-content {
-                flex-wrap: wrap;
-            }
-            .summary-box {
-                flex: 1 1 0;
-                min-width: 0;
-            }
-            .summary-action {
-                flex: 0 0 100%;
-                width: 100%;
+        .stat-link {
+            align-self: flex-start;
+            margin-left: auto;
+            margin-top: 4px;
+            white-space: nowrap;
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .stat-link i {
+            transition: transform .15s ease;
+        }
+
+        .stat-card:hover .stat-link i {
+            transform: translateX(3px);
+        }
+
+        .stat-metrics {
+            display: flex;
+            align-items: stretch;
+            margin-top: 22px;
+        }
+
+        .stat-metric {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        .stat-metric + .stat-metric {
+            padding-left: 22px;
+            margin-left: 22px;
+            border-left: 1px solid rgba(30, 50, 90, .12);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: .2px;
+            text-transform: uppercase;
+            color: #6b7585;
+        }
+
+        .stat-value {
+            margin-top: 2px;
+            font-size: 32px;
+            line-height: 1.15;
+            font-weight: 700;
+            color: var(--value);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-value span {
+            font-size: 15px;
+            font-weight: 500;
+            color: #4b5563;
+            margin-left: 4px;
+        }
+
+        /* TABLET & MOBILE: kartu bertumpuk */
+        @media (max-width: 991px) {
+            .stat-grid {
+                grid-template-columns: 1fr;
             }
         }
 
-        /* MOBILE */
-        @media (max-width: 576px) {
-            .summary-content {
+        @media (max-width: 400px) {
+            .stat-metrics {
                 flex-direction: column;
+                gap: 10px;
             }
-            .summary-box {
-                width: 100%;
-            }
-            .summary-action {
-                width: 100%;
-                min-height: 100px;
+            .stat-metric + .stat-metric {
+                padding-left: 0;
+                margin-left: 0;
+                border-left: 0;
             }
         }
     </style>
@@ -185,32 +224,62 @@
             </h5>
         </div>
         <div class="card-body">
-            <div class="summary-content">
-                <div class="summary-box summary-blue">
-                    <div class="summary-label">JUMLAH WIP PO</div>
-                    <div class="summary-value" id="totalPo">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <span>PO</span>
+            <div class="stat-grid">
+                {{-- CENTRAL: saldo berkurang saat Packing Out scan --}}
+                <a href="{{ route('detail_transaksi_packing_central_switching') }}" class="stat-card">
+                    <div class="stat-head">
+                        <span class="stat-icon"><i class="fas fa-boxes"></i></span>
+                        <div>
+                            <div class="stat-title">Saldo Central</div>
+                            <div class="stat-sub">Summary saldo Packing Central dari scan Packing Out</div>
+                        </div>
+                        <span class="stat-link">Lihat Detail <i class="fas fa-arrow-right ml-1"></i></span>
                     </div>
-                </div>
-
-                <div class="summary-box summary-yellow">
-                    <div class="summary-label">TOTAL QTY WIP SISA</div>
-                    <div class="summary-value" id="totalQtySisa">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <span>Pcs</span>
+                    <div class="stat-metrics">
+                        <div class="stat-metric">
+                            <div class="stat-label">Jumlah PO</div>
+                            <div class="stat-value" id="totalPo">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>PO</span>
+                            </div>
+                        </div>
+                        <div class="stat-metric">
+                            <div class="stat-label">Total Qty Sisa</div>
+                            <div class="stat-value" id="totalQtySisa">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Pcs</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </a>
 
-                <div class="summary-action">
-                    <div class="summary-action-text">
-                        Klik tombol di bawah untuk membuka rincian:
+                {{-- WIP: saldo berkurang saat FG In (BPB) --}}
+                <a href="{{ route('detail_transaksi_wip_packing_central_switching') }}" class="stat-card stat-wip">
+                    <div class="stat-head">
+                        <span class="stat-icon"><i class="fas fa-warehouse"></i></span>
+                        <div>
+                            <div class="stat-title">Saldo WIP</div>
+                            <div class="stat-sub">Summary saldo WIP PO dari penerimaan FG IN (BPB)</div>
+                        </div>
+                        <span class="stat-link">Lihat Detail <i class="fas fa-arrow-right ml-1"></i></span>
                     </div>
-
-                    <a href="{{ route('detail_transaksi_packing_central_switching') }}" class="btn btn-primary btn-detail-po">
-                        Buka Detail Transaksi PO
-                    </a>
-                </div>
+                    <div class="stat-metrics">
+                        <div class="stat-metric">
+                            <div class="stat-label">Jumlah PO</div>
+                            <div class="stat-value" id="totalPoWip">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>PO</span>
+                            </div>
+                        </div>
+                        <div class="stat-metric">
+                            <div class="stat-label">Total Qty Sisa</div>
+                            <div class="stat-value" id="totalQtySisaWip">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Pcs</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
@@ -220,7 +289,7 @@
     <form id="form-switching" method="post" action="{{ route('store_packing_central_switching') }}">
         @csrf
 
-        <div class="card card-secondary">
+        <div class="card card-sb">
             <div class="card-header">
                 <h5 class="card-title fw-bold mb-0">
                     <i class="fas fa-random"></i> Packing Central Switching
@@ -431,6 +500,7 @@
     <script>
         $(document).ready(function() {
             loadSummaryWipPo();
+            loadSummaryWipFgIn();
         });
 
         /* ── Select2 ── */
@@ -438,6 +508,26 @@
             document.querySelector('.select2-search__field').focus();
         });
         $('.select2bs4').select2({ theme: 'bootstrap4' });
+
+        // Panel WIP (FG In): sama dengan panel Central, sumber dari Detail Transaksi WIP
+        function loadSummaryWipFgIn() {
+            $('#totalPoWip').html(`<i class="fas fa-spinner fa-spin"></i> <span>PO</span>`);
+            $('#totalQtySisaWip').html(`<i class="fas fa-spinner fa-spin"></i> <span>Pcs</span>`);
+
+            $.ajax({
+                url: "{{ route('summary_wip_po_fg_in_packing_central_switching') }}",
+                type: "GET",
+                dataType: "json",
+                success: function(response) {
+                    $('#totalPoWip').html(Number(response.total_po).toLocaleString('id-ID') + ' <span>PO</span>');
+                    $('#totalQtySisaWip').html(Number(response.total_qty_sisa).toLocaleString('id-ID') + ' <span>Pcs</span>');
+                },
+                error: function() {
+                    $('#totalPoWip').html(`<span class="text-danger">Error</span> <span>PO</span>`);
+                    $('#totalQtySisaWip').html(`<span class="text-danger">Error</span> <span>Pcs</span>`);
+                }
+            });
+        }
 
         function loadSummaryWipPo() {
             $('#totalPo').html(`
