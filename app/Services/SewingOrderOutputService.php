@@ -15,7 +15,7 @@ class SewingOrderOutputService
     /**
      * Batas mundur master_plan.tgl_plan dari dateFrom, untuk output yang plan-nya sudah lama
      */
-    protected $planLookbackDays = 120;
+    protected $planLookbackDays = 360;
 
     /**
      * outputType menjadi bagian nama tabel (output_rfts{outputType}), jadi hanya

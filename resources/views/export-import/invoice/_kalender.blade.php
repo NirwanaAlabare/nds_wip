@@ -35,9 +35,9 @@
         $i.data('tglSah', $i.val());
         $i.datepicker({
             dateFormat: FORMAT_TGL,
-            // Kotak readonly (mis. Invoice Date yang ikut tanggal SJ) tetap
-            // dipasangi datepicker supaya tglIso()/tglSet() jalan, tapi
-            // kalendernya tidak pernah terbuka sendiri.
+            // Kotak readonly tetap dipasangi datepicker supaya
+            // tglIso()/tglSet() jalan, tapi kalendernya tidak pernah
+            // terbuka sendiri.
             showOn: $i.prop('readonly') ? 'off' : 'focus',
             showOtherMonths: true,
             selectOtherMonths: true,
