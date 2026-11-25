@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Traits;
 use DB;
 
 /**
- * Konfirmasi pemasukan / pengeluaran: selain INHOUSE, dokumen wajib sudah terisi nomor daftar (bcno)
- * lewat update dokumen pabean di signalbit (aturan sama dengan menu konfirmasi di signalbit_erp).
+ * Konfirmasi pemasukan: selain INHOUSE, dokumen wajib sudah terisi nomor daftar (bcno) lewat update dokumen pabean
+ * di signalbit (aturan sama dengan konfirmasi penerimaan di signalbit_erp). Konfirmasi pengeluaran tidak dibatasi.
  * Acuannya tabel bpb / bppb yang diupdate exim, dicari lewat nomor internal (bpbno_int / bppbno_int).
  */
 trait ChecksNomorDaftar
