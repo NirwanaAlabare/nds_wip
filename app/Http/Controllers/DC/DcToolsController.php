@@ -295,6 +295,36 @@ class DcToolsController extends Controller
             $stocker = Stocker::selectRaw("stocker_input.*, master_sb_ws.buyer master_act_costing_buyer, master_sb_ws.id_act_cost master_act_costing_id, master_sb_ws.ws master_act_costing_ws, master_sb_ws.styleno master_act_costing_style, master_sb_ws.color master_act_costing_color")->leftJoin("master_sb_ws", "master_sb_ws.id_so_det", "=", "stocker_input.so_det_id")->where("id_qr_stocker", $request->id_qr_stocker)->first();
 
             if ($stocker) {
+                // Validasi Line Loading (sebelum ada data yang diubah)
+                $loadingLine = LoadingLine::where("stocker_id", $stocker->id)->first();
+                $loadingLineId = null;
+                $loadingLineName = null;
+                if ($loadingLine) {
+                    if ($request->filled("line_id")) {
+                        $lineData = UserLine::where("line_id", $request->line_id)->first();
+                        if (!$lineData) {
+                            return array(
+                                "status" => 400,
+                                "message" => "Line tidak ditemukan. Harap tentukan Line yang valid.",
+                            );
+                        }
+
+                        $loadingLineId = $lineData->line_id;
+                        $loadingLineName = $lineData->username;
+                    } else {
+                        // Line tidak diisi, pertahankan line sebelumnya
+                        $loadingLineId = $loadingLine->line_id;
+                        $loadingLineName = $loadingLine->nama_line;
+                    }
+
+                    if (!$loadingLineId) {
+                        return array(
+                            "status" => 400,
+                            "message" => "Line Loading kosong. Harap tentukan Line.",
+                        );
+                    }
+                }
+
                 // DC in
                 $dc = DcIn::where("id_qr_stocker", $request->id_qr_stocker)->first();
                 if ($dc) {
@@ -324,9 +354,8 @@ class DcToolsController extends Controller
                     $secondaryIn->save();
                 }
 
-                $loadingLine = LoadingLine::where("stocker_id", $stocker->id)->first();
                 if ($loadingLine) {
-                    $loadingLinePlan = LoadingLinePlan::where("line_id", $request->line_id)->where("act_costing_id", $stocker->master_act_costing_id)->where("color", $stocker->master_act_costing_color)->where("tanggal", $request->line_tanggal)->first();
+                    $loadingLinePlan = LoadingLinePlan::where("line_id", $loadingLineId)->where("act_costing_id", $stocker->master_act_costing_id)->where("color", $stocker->master_act_costing_color)->where("tanggal", $request->line_tanggal)->first();
 
                     if (!$loadingLinePlan) {
                         $lastLoadingPlan = LoadingLinePlan::selectRaw("MAX(kode) latest_kode")->first();
@@ -335,7 +364,7 @@ class DcToolsController extends Controller
 
                         $loadingLinePlan = LoadingLinePlan::create([
                             "kode" => $kodeLoadingPlan,
-                            "line_id" => $request->line_id,
+                            "line_id" => $loadingLineId,
                             "buyer" => $stocker->master_act_costing_buyer,
                             "act_costing_id" => $stocker->master_act_costing_id,
                             "act_costing_ws" => $stocker->master_act_costing_ws,
@@ -362,8 +391,8 @@ class DcToolsController extends Controller
 
                         $loadingLinesUpdate = LoadingLine::whereIn("stocker_id", $stockerIds)->update([
                             "loading_plan_id" => $loadingLinePlan->id,
-                            "line_id" => $request->line_id,
-                            "nama_line" => $request->line_name,
+                            "line_id" => $loadingLineId,
+                            "nama_line" => $loadingLineName,
                             "tanggal_loading" => $request->line_tanggal,
                             "qty" => $request->line_qty,
                         ]);
