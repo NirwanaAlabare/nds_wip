@@ -216,9 +216,14 @@
                                 <label>Line</label>
                                 <select class="form-select form-select-sm" name="line" id="line" wire:model="lineFilter">
                                     <option value="">Pilih Line</option>
-                                    @if ($orderFilter)
+                                    {{-- @if ($orderFilter)
                                         @foreach ($orderFilter->groupBy('sewing_line') as $color)
                                             <option value="{{ $color->first()->sewing_line }}">{{ $color->first()->sewing_line }}</option>
+                                        @endforeach
+                                    @endif --}}
+                                    @if ($lines)
+                                        @foreach ($lines as $line)
+                                            <option value="{{ $line->username }}">{{ $line->username }}</option>
                                         @endforeach
                                     @endif
                                 </select>
