@@ -417,7 +417,7 @@
         #mso .ab{width:30px;height:30px}
         #mso tr.h th.q{--qc:#2563eb}
         #mso tr.h th.q:nth-child(8){--qc:#0b1f3f} #mso tr.h th.q:nth-child(9){--qc:#0891b2} #mso tr.h th.q:nth-child(10){--qc:#7c3aed}
-        #mso tr.h th.q:nth-child(11){--qc:#0284c7} #mso tr.h th.q:nth-child(12){--qc:#e11d48} #mso tr.h th.q:nth-child(13){--qc:#15803d}
+        #mso tr.h th.q:nth-child(11){--qc:#0284c7} #mso tr.h th.q:nth-child(12){--qc:#e11d48} #mso tr.h th.q:nth-child(13){--qc:#d97706} #mso tr.h th.q:nth-child(14){--qc:#15803d}
 
 
         /* detail per size compact */
@@ -848,14 +848,14 @@
                             <th class="stk stk1 grp-info g-ord"></th>
                             <th class="stk stk2 grp-info g-ord">Order</th>
                             <th class="grp-info g-det" colspan="5">Detail Order</th>
-                            <th class="grp-qty qfirst qlast" colspan="6">Quantity (pcs)</th>
+                            <th class="grp-qty qfirst qlast" colspan="7">Quantity (pcs)</th>
                             <th colspan="4" class="grp-info g-prg">Progres &amp; Upload</th>
                         </tr>
                         <tr class="h">
                             <th class="stk stk1">ID</th>
                             <th class="stk stk2">Buyer</th>
                             <th>Tgl Shipment</th><th>WS<small>Style</small></th><th>No. PO<small>Dest</small></th><th>Color<small>Desc</small></th><th>Size<small>Barcode</small></th>
-                            <th class="q qfirst">Qty<small>PO</small></th><th class="q">Packing<small>Line</small></th><th class="q">Transfer<small>Garment</small></th><th class="q">Packing<small>In</small></th><th class="q">Switching<small>Out / In</small></th><th class="q qlast">Packing<small>Out</small></th>
+                            <th class="q qfirst">Qty<small>PO</small></th><th class="q">Packing<small>Line</small></th><th class="q">Transfer<small>Garment</small></th><th class="q">Packing<small>In</small></th><th class="q">Switching<small>Out / In</small></th><th class="q">Packing<small>List</small></th><th class="q qlast">Packing<small>Out</small></th>
                             <th>Progres<small>Out</small></th><th>User<small>Tgl Upload</small></th><th>Status<small>Order</small></th><th></th>
                         </tr>
                         <tr class="s" id="srow"></tr>
@@ -1197,7 +1197,7 @@
                     <table class="table table-sm sg-t">
                         <tr><td><b>Status Order</b></td><td>All, Open, atau Close.</td></tr>
                         <tr><td><b>Tgl Shipment Awal / Akhir</b></td><td>Awalnya terisi hari ini. Pilihan WS, Style, dan No. PO ikut menyesuaikan rentang tanggal ini.</td></tr>
-                        <tr><td><b>WS / Style / No. PO</b></td><td>Saling terhubung: memilih salah satu akan menyesuaikan pilihan yang lain dan tgl shipment-nya.</td></tr>
+                        <tr><td><b>WS / Style / No. PO</b></td><td>Saling terhubung: memilih salah satu akan menyesuaikan pilihan yang lain. Tgl shipment tidak ikut terisi otomatis.</td></tr>
                         <tr><td><b>Cari</b></td><td>Menampilkan data sesuai filter. Isi kedua tanggal, atau pilih WS / Style kalau tanggal dikosongkan.</td></tr>
                         <tr><td><b>Reset Filter</b></td><td>Tombol putar (sebelah Cari): mengosongkan semua filter (Status All, Tgl Shipment, WS / Style / No. PO) dan pencarian.</td></tr>
                         <tr><td><b>Filter aktif</b></td><td>Ditampilkan sebagai label di bawah filter. Klik × untuk menghapus satu filter, atau <b>Hapus semua</b>.</td></tr>
@@ -1288,10 +1288,10 @@ function mapRow(r){
   const ca=String(r.created_at||"");
   return {id:esc(r.id),buyer:esc(r.buyer),ship:iso?(([y,m,d])=>d+"-"+BLN[+m-1]+"-"+y)(iso.split("-")):esc(r.tgl_shipment_fix||"-"),iso,days,
     ws:esc(r.ws),style:esc(r.styleno),reff:esc(r.reff_no),po:esc(r.po),desc:esc(r.desc),color:esc(r.color),size:esc(r.size),dest:esc(r.dest),barcode:esc(r.barcode),
-    qpo:num(r.qty_po),pline:num(r.qty_packing_line),qtr:num(r.qty_trf),pin:num(r.qty_packing_in),so:num(r.qty_switching_out),si:num(r.qty_switching_in),pout:num(r.qty_packing_out),
+    qpo:num(r.qty_po),pline:num(r.qty_packing_line),qtr:num(r.qty_trf),pin:num(r.qty_packing_in),so:num(r.qty_switching_out),si:num(r.qty_switching_in),plist:num(r.qty_packing_list),pout:num(r.qty_packing_out),
     user:esc(r.created_by),upl:ca.slice(0,10),uplt:ca.slice(11,19),uplTxt:/^\d{4}-\d{2}-\d{2}/.test(ca)?(([y,m,d])=>+d+" "+BLN[+m-1]+" "+y)(ca.slice(0,10).split("-"))+" · "+ca.slice(11,16):"-",status:r.close_order==="Y"?"close":"open"};
 }
-const msg=t=>{document.getElementById("tb").innerHTML=`<tr><td colspan="17" style="text-align:center;color:var(--muted);height:90px">${t}</td></tr>`};
+const msg=t=>{document.getElementById("tb").innerHTML=`<tr><td colspan="18" style="text-align:center;color:var(--muted);height:90px">${t}</td></tr>`};
 // ===== Edit per baris (sama seperti Master SO lama) =====
 function edit(id_c){
   $("#form_edit")[0].reset();
@@ -1517,10 +1517,10 @@ function kpis(){
 }
 
 // search row
-const sfields=["id","buyer","ship","ws|style","po|dest","color|desc","size|barcode","qpo","pline","qtr","pin","so|si","pout","","user|uplTxt","status",""];
+const sfields=["id","buyer","ship","ws|style","po|dest","color|desc","size|barcode","qpo","pline","qtr","pin","so|si","plist","pout","","user|uplTxt","status",""];
 document.getElementById("srow").innerHTML=sfields.map((f,i)=>{
   let cls=i===0?"stk stk1":i===1?"stk stk2":"";
-  if(i===7) cls+=" qfirst"; if(i===12) cls+=" qlast";
+  if(i===7) cls+=" qfirst"; if(i===13) cls+=" qlast";
   return `<th class="${cls}">${f?`<input size="3" data-f="${f}" placeholder="cari">`:""}</th>`}).join("");
 
 let page=1, per=10, filtered=DATA.slice();
@@ -1592,19 +1592,19 @@ function render(){
     <td class="two"><b><span class="size">${r.size}</span></b><span class="pono">${r.barcode}</span></td>
     ${qcell(r,"qpo","qfirst")}${qcell(r,"pline")}${qcell(r,"qtr")}${qcell(r,"pin")}
     <td class="q sw"><span class="${r.so?"neg":"zero"}">${r.so?"−"+fmt(r.so):"0"}</span><span class="${r.si?"pos":"zero"}">${r.si?"+"+fmt(r.si):"0"}</span></td>
-    ${qcell(r,"pout","qlast")}
+    ${qcell(r,"plist")}${qcell(r,"pout","qlast")}
     <td><div class="prog"><div class="bar"><i style="width:${p}%;background:${pc}"></i></div><small style="color:${pc}">${p}%</small></div></td>
     <td class="two"><b style="font-weight:600">${r.user}</b><span>${r.uplTxt}</span></td>
     <td><span class="st st-${r.status}">${ST[r.status]}</span></td>
     <td><button class="ab" title="Edit" data-bs-toggle="modal" data-bs-target="#exampleModalEdit" onclick="edit('${r.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></td>
-    </tr>`}).join("") || `<tr><td colspan="17" style="text-align:center;color:var(--muted);height:90px">Data tidak ditemukan</td></tr>`;
+    </tr>`}).join("") || `<tr><td colspan="18" style="text-align:center;color:var(--muted);height:90px">Data tidak ditemukan</td></tr>`;
 
   const t=k=>filtered.reduce((a,r)=>a+r[k],0);
   document.getElementById("tf").innerHTML=`
     <td class="stk stk1 tl">Total</td><td class="stk stk2 tl">${filtered.length} baris</td>
     <td colspan="5"></td>
     ${["qpo","pline","qtr","pin"].map(k=>`<td class="q">${fmt(t(k))}</td>`).join("")}
-    <td class="q sw"><span>−${fmt(t("so"))}</span><span>+${fmt(t("si"))}</span></td><td class="q">${fmt(t("pout"))}</td>
+    <td class="q sw"><span>−${fmt(t("so"))}</span><span>+${fmt(t("si"))}</span></td><td class="q">${fmt(t("plist"))}</td><td class="q">${fmt(t("pout"))}</td>
     <td>${t("qpo")?Math.round(t("pout")/t("qpo")*100):0}%</td><td colspan="3"></td>`;
 
   const n=filtered.length, pages=Math.max(1,Math.ceil(n/per));
@@ -1797,14 +1797,10 @@ fillWS("");fillST("","");fillPO("","","");
 // Select2 (standar seperti Master SO lama)
 $(document).on("select2:open",()=>{const x=document.querySelector(".select2-container--open .select2-search__field");if(x)x.focus()});
 $("#mso .select2bs4").select2({theme:"bootstrap4",width:"100%",containerCssClass:"form-control-sm rounded"});
-function syncDates(){const ws=fws.value,st=fst.value,po=fpo.value;
-  const rows=DATA.filter(r=>(!ws||r.ws===ws)&&(!st||r.style===st)&&(!po||r.po===po));
-  if(!rows.length)return;const ds=rows.map(r=>r.iso).sort();
-  const d1=document.getElementById("fd1"),d2=document.getElementById("fd2");
-  if(d1.value!==ds[0]||d2.value!==ds[ds.length-1]){d1.value=ds[0];d2.value=ds[ds.length-1];flash(d1);flash(d2)}}
-$(fws).on("change",()=>{const ws=fws.value;const list=ws&&WSST[ws]?[...WSST[ws]]:[];const st=list.length===1?list[0]:"";fillST(ws,st);fillPO(ws,st,"");flash(fst);flash(fpo);syncDates()});
-$(fst).on("change",()=>{const st=fst.value;if(!st){fillPO(fws.value,"","");return}const ws=STWS[st];fillWS(ws);fillST(ws,st);fillPO(ws,st,"");flash(fws);flash(fpo);syncDates()});
-$(fpo).on("change",()=>{const po=fpo.value;if(!po)return;const m=POM[po];fillWS(m.ws);fillST(m.ws,m.style);fillPO(m.ws,m.style,po);flash(fws);flash(fst);syncDates()});
+// Pilih WS / Style / PO tidak mengisi Tgl Shipment otomatis (satu WS bisa punya beberapa tgl shipment)
+$(fws).on("change",()=>{const ws=fws.value;const list=ws&&WSST[ws]?[...WSST[ws]]:[];const st=list.length===1?list[0]:"";fillST(ws,st);fillPO(ws,st,"");flash(fst);flash(fpo)});
+$(fst).on("change",()=>{const st=fst.value;if(!st){fillPO(fws.value,"","");return}const ws=STWS[st];fillWS(ws);fillST(ws,st);fillPO(ws,st,"");flash(fws);flash(fpo)});
+$(fpo).on("change",()=>{const po=fpo.value;if(!po)return;const m=POM[po];fillWS(m.ws);fillST(m.ws,m.style);fillPO(m.ws,m.style,po);flash(fws);flash(fst)});
 function flash(el){const s2=$(el).next(".select2-container").find(".select2-selection")[0];if(s2)el=s2;el.style.transition="none";el.style.boxShadow="0 0 0 3px #0ea5a455";el.style.borderColor="var(--teal)";setTimeout(()=>{el.style.transition="box-shadow .6s,border-color .6s";el.style.boxShadow="";el.style.borderColor=""},500)}
 
 // ===== Detail per PO (drawer) & notif mepet =====
