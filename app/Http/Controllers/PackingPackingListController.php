@@ -948,10 +948,10 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
             left join master_sb_ws m on p.id_so_det = m.id_so_det
             left join master_size_new msn on a.size = msn.size
             left join (
-            select po, barcode, dest, no_carton, count(barcode) qty_scan from packing_packing_out_scan
+            select po, id_ppic, dest, no_carton, count(*) qty_scan from packing_packing_out_scan
             where po = '$po' and dest = '$dest'
-            group by po, barcode, dest, no_carton
-            ) b on a.po = b.po and a.barcode = b.barcode and a.dest = b.dest and a.no_carton = b.no_carton
+            group by po, id_ppic, dest, no_carton
+            ) b on a.po = b.po and a.id_ppic_master_so = b.id_ppic and a.dest = b.dest and a.no_carton = b.no_carton
             left join
             (
             -- Qty FG IN dari BPB FG (signalbit_erp.bpb), global per PO + id_so_det (tanpa karton)
@@ -959,8 +959,8 @@ select 'VERTICAL' isi,'VERTICAL' tampil ");
             ) c on p.id_so_det = c.id_so_det
             left join
             (
-            select po, barcode, dest, no_carton, sum(qty) qty_fg_out from fg_fg_out g where po = '$po' and dest = '$dest' and g.status = 'NORMAL' GROUP BY po, barcode, dest, no_carton
-            ) d on a.po = d.po and a.barcode = d.barcode and a.dest = d.dest and a.no_carton = d.no_carton
+            select po, id_ppic_master_so, dest, no_carton, sum(qty) qty_fg_out from fg_fg_out g where po = '$po' and dest = '$dest' and g.status = 'NORMAL' GROUP BY po, id_ppic_master_so, dest, no_carton
+            ) d on a.po = d.po and a.id_ppic_master_so = d.id_ppic_master_so and a.dest = d.dest and a.no_carton = d.no_carton
             where a.po = '$po' and a.dest = '$dest'
             order by m.color asc, msn.urutan asc, p.id_so_det asc, cast(a.no_carton as unsigned) asc
         ");
