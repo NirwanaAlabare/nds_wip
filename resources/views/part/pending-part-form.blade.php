@@ -547,7 +547,7 @@
 
             const $toolbar = $(`
                 <div class="form-filter mb-2">
-                    <div class="d-flex flex-wrap align-items-center gap-2">
+                    <div class="d-flex flex-wrap flex-row-reverse align-items-center gap-2">
                         <button type="button" class="btn btn-outline-secondary btn-sm form-filter-toggle" data-bs-toggle="collapse" data-bs-target="#${panelId}" aria-expanded="false">
                             <i class="fa-solid fa-filter"></i> Filter
                             <span class="badge rounded-pill bg-danger ms-1 form-filter-count d-none">0</span>

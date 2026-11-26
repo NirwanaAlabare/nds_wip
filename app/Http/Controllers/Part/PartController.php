@@ -2637,6 +2637,7 @@ class PartController extends Controller
         }
     }
 
+    // Pending part form
     public function pendingPartForm(Request $request)
     {
         return view("part.pending-part-form", ["page" => "dashboard-stocker"]);
