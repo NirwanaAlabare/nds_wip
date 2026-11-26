@@ -8,6 +8,12 @@
 <!-- Select2 -->
 <link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+<style>
+/* Pilih Rak Saldo: pilihan rak bersusun ke bawah, besar untuk disentuh di tablet */
+.so-pilih-rak .swal2-radio { flex-direction: column; align-items: flex-start; gap: 6px; padding: 0 1.5em; }
+.so-pilih-rak .swal2-radio label { margin: 0; font-size: 1.05em; padding: 6px 0; cursor: pointer; }
+.so-pilih-rak .swal2-radio input { transform: scale(1.3); margin-right: 10px; }
+</style>
 @endsection
 
 @section('content')
@@ -344,6 +350,7 @@
                         <div class="form-group">
                             <label>No Barcode</label>
                             <input type="text" class="form-control " id="mdl_barcode" name="mdl_barcode" value="" readonly>
+                            <input type="hidden" id="mdl_id_temp" name="mdl_id_temp" value="">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -752,6 +759,38 @@ function sendForceBarcode(barcode) {
 }
 
 
+// === rak sama? (kode rak di master huruf besar, di saldo bisa campur - mis. "Area Duckdown")
+function samaRak(a, b) {
+    return String(a ?? '').trim().toUpperCase() === String(b ?? '').trim().toUpperCase();
+}
+
+function teksAman(v) {
+    return $('<div>').text(String(v ?? '')).html();
+}
+
+// === barcode yang saldonya di beberapa rak, di-scan di rak lain: user memilih rak saldo yang
+// qty-nya sesuai barang fisik. Hasil: baris saldo yang dipilih, atau null kalau dilewati.
+function pilihRakSaldo(barcode, rakScan, pilihan) {
+    let opsi = {};
+    pilihan.forEach((r, i) => {
+        opsi[i] = r.kode_lok + ' — ' + Number(r.qty).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' ' + (r.unit || '');
+    });
+    return Swal.fire({
+        icon: 'question',
+        title: 'Pilih Rak Saldo',
+        html: 'Barcode <b>' + teksAman(barcode) + '</b> punya saldo di ' + pilihan.length + ' rak dan di-scan di rak <b>'
+            + teksAman(rakScan) + '</b>.<br>Pilih yang qty-nya sesuai barang fisik:',
+        input: 'radio',
+        inputOptions: opsi,
+        inputValidator: (v) => (v === null || v === '') ? 'Pilih salah satu rak.' : undefined,
+        showCancelButton: true,
+        confirmButtonText: 'Pilih',
+        cancelButtonText: 'Lewati',
+        allowOutsideClick: false,
+        customClass: { popup: 'so-pilih-rak' }
+    }).then((h) => h.isConfirmed ? pilihan[Number(h.value)] : null);
+}
+
 // === ambil data barcode
 function getdatabarcode(no_barcode = null) {
     let barcode = no_barcode ?? $('#txt_barcode').val();
@@ -764,7 +803,8 @@ function getdatabarcode(no_barcode = null) {
         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
         url: '{{ route("get-data-barcodeso") }}',
         type: 'get',
-        data: { no_barcode: barcode, no_transaksi: no_transaksi },
+        // lokasi_scan: barcode yang saldonya di dua rak diambil saldo rak yang sedang di-scan
+        data: { no_barcode: barcode, no_transaksi: no_transaksi, lokasi_scan: txt_lokasi_h },
         dataType: 'json'
     }).then(function (res) {
         if (!res || res.length === 0) {
@@ -793,15 +833,28 @@ function getdatabarcode(no_barcode = null) {
             });
         }
 
+        // Semua rak saldo barcode ini; yang pertama pilihan bawaan dari server
+        let semua = res;
         res = res[0];
-        let rak_lain = false;
         let lokasi_rak = res.kode_lok;
 
-        if (res.barcode_so == null && txt_lokasi_h == res.kode_lok) {
+        if (res.barcode_so == null && samaRak(txt_lokasi_h, res.kode_lok)) {
+            // di raknya sendiri: langsung saldo rak ini, tidak perlu memilih
             return { status: 'ok', barcode, rawData: res, rak_lain: false, lokasi_rak: lokasi_rak };
-        } else if (res.barcode_so == null && txt_lokasi_h != res.kode_lok) {
-            rak_lain = true;
-            return { status: 'ok', barcode, rawData: res, rak_lain: true, lokasi_rak: lokasi_rak };
+        } else if (res.barcode_so == null) {
+            // di rak lain: kalau rak saldo yang belum di-SO & belum di-scan siapa pun lebih dari satu,
+            // user yang memilih (barcode tidak memuat qty, jadi sistem tidak tahu potongan yang mana)
+            let pilihan = semua.filter(r => r.barcode_so == null && Number(r.ada_temp) == 0);
+            if (pilihan.length < 2) {
+                return { status: 'ok', barcode, rawData: res, rak_lain: true, lokasi_rak: lokasi_rak };
+            }
+            return pilihRakSaldo(barcode, txt_lokasi_h, pilihan).then((dipilih) => {
+                if (!dipilih) {
+                    resetBarcodeInputs();
+                    return { status: 'lewati', barcode };
+                }
+                return { status: 'ok', barcode, rawData: dipilih, rak_lain: true, lokasi_rak: dipilih.kode_lok, dipilih: true };
+            });
         } else {
             Swal.fire({ icon: 'error', title: 'Gagal', text: 'Barcode ' + barcode + ' Sudah diinput!' });
             resetBarcodeInputs();
@@ -876,7 +929,8 @@ $('#txt_barcode').on('keydown', function(e) {
                     no_roll: d.no_roll,
                     unit: d.unit
                 }).then(h => {
-                    if (h.ok && h.hasil !== 'sudah' && res.rak_lain) {
+                    // rak yang dipilih sendiri lewat "Pilih Rak Saldo" tidak perlu diingatkan lagi
+                    if (h.ok && h.hasil !== 'sudah' && res.rak_lain && !res.dipilih) {
                         Swal.fire({ icon: 'warning', title: 'Info', text: 'Barcode ' + code + ' berada di rak ' + d.kode_lok });
                     }
                 });
@@ -900,18 +954,22 @@ $('#btnSendBarcode').on('click', function () {
 
     let uniqueBarcodes = [...new Set(barcodes)];
 
+    const tampilMemproses = () => Swal.fire({
+        title: 'Sedang memproses...',
+        html: 'Tunggu sebentar, jangan tutup halaman.',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
     (async () => {
-        Swal.fire({
-            title: 'Sedang memproses...',
-            html: 'Tunggu sebentar, jangan tutup halaman.',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
+        tampilMemproses();
 
         let results = [];
 
         for (let bc of uniqueBarcodes) {
             let res = await getdatabarcode(bc);
+            // sesudah ada popup di tengah jalan (mis. Pilih Rak Saldo), tanda memproses dimunculkan lagi
+            if (!Swal.isLoading()) tampilMemproses();
 
             if (res.status === 'ok' && res.rawData) {
                 let d = res.rawData;
@@ -948,6 +1006,7 @@ $('#btnSendBarcode').on('click', function () {
         let duplicate = results.filter(r => r.status === 'duplicate').map(r => r.barcode);
         let notfound = results.filter(r => r.status === 'notfound').map(r => r.barcode);
         let force = results.filter(r => r.status === 'force').map(r => r.barcode);
+        let lewati = results.filter(r => r.status === 'lewati').map(r => r.barcode);
         let errors = results.filter(r => r.status === 'error').map(r => r.barcode + (r.msg ? " (" + r.msg + ")" : ""));
 
         let msg = "";
@@ -956,6 +1015,7 @@ $('#btnSendBarcode').on('click', function () {
         if (duplicate.length) msg += "❌ Duplikat: " + duplicate.join(", ") + "<br>";
         if (notfound.length) msg += "❌ Tidak ditemukan: " + notfound.join(", ") + "<br>";
         if (force.length) msg += "⚠️ Tetap proses: " + force.join(", ") + "<br>";
+        if (lewati.length) msg += "⏭️ Dilewati (rak belum dipilih): " + lewati.join(", ") + "<br>";
         if (errors.length) msg += "❌ Error: " + errors.join(", ") + "<br>";
 
         Swal.fire({ icon: 'info', title: 'Hasil Proses', html: msg });
@@ -1091,8 +1151,8 @@ $('#btnSendBarcode').on('click', function () {
                     render: (data, type, row, meta) => {
                    // if (row.qty_balance == 0) {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='editdata("` + row.no_barcode + `","` + row.qty_scan + `","` + row.qty_old + `")'><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='delete_scan("` + row.no_barcode + `")'><i class="fa-solid fa-trash"></i></i></button>
+                    <button type='button' class='btn btn-sm btn-warning' href='javascript:void(0)' onclick='editdata("` + row.id + `","` + row.no_barcode + `","` + row.qty_scan + `","` + row.qty_old + `")'><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button type='button' class='btn btn-sm btn-danger' href='javascript:void(0)' onclick='delete_scan("` + row.id + `","` + row.no_barcode + `")'><i class="fa-solid fa-trash"></i></i></button>
                     </div>`;
                 // }
             }
@@ -1159,7 +1219,7 @@ $('#btnSendBarcode').on('click', function () {
                     render: (data, type, row, meta) => {
                    // if (row.qty_balance == 0) {
                     return `<div class='d-flex gap-1 justify-content-center'>
-                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='undo_scan("` + row.no_barcode + `")'><i class="fa-solid fa-undo"></i></i></button>
+                    <button type='button' class='btn btn-sm btn-info' href='javascript:void(0)' onclick='undo_scan("` + row.id + `","` + row.no_barcode + `")'><i class="fa-solid fa-undo"></i></i></button>
                     </div>`;
                 // }
             }
@@ -1274,7 +1334,8 @@ $('#btnSendBarcode').on('click', function () {
                 });
             }
 
-            function delete_scan($no_barcode){
+            // Hapus / undo / edit per baris scan (id): barcode yang saldonya di dua rak punya dua baris
+            function delete_scan($id, $no_barcode){
                 let no_barcode = $no_barcode;
                 return $.ajax({
                     headers: {
@@ -1283,6 +1344,7 @@ $('#btnSendBarcode').on('click', function () {
                     url: '{{ route("delete-so-temp") }}',
                     type: 'get',
                     data: {
+                        id: $id,
                         no_barcode: no_barcode,
                     },
                     success: function (res) {
@@ -1314,7 +1376,7 @@ $('#btnSendBarcode').on('click', function () {
 
             }
 
-            function undo_scan($no_barcode){
+            function undo_scan($id, $no_barcode){
                 let no_barcode = $no_barcode;
                 return $.ajax({
                     headers: {
@@ -1323,6 +1385,7 @@ $('#btnSendBarcode').on('click', function () {
                     url: '{{ route("undo-so-temp") }}',
                     type: 'get',
                     data: {
+                        id: $id,
                         no_barcode: no_barcode,
                     },
                     success: function (res) {
@@ -1354,7 +1417,7 @@ $('#btnSendBarcode').on('click', function () {
 
             }
 
-            function editdata($no_barcode,$qty_scan,$qty_old){
+            function editdata($id,$no_barcode,$qty_scan,$qty_old){
 
                 let no_barcode  = $no_barcode;
                 let qty_scan  = $qty_scan;
@@ -1372,6 +1435,7 @@ $('#btnSendBarcode').on('click', function () {
 
                 }else{
 
+                    $('#mdl_id_temp').val($id);
                     $('#mdl_barcode').val(no_barcode);
                     $('#mdl_qty').val(qty_scan);
                     $('#mdl_qty_old').val(qty_scan);
@@ -1396,6 +1460,7 @@ $('#btnSendBarcode').on('click', function () {
                 type: 'GET',
                 dataType: 'json',
                 data: {
+                    id: $('#mdl_id_temp').val(),
                     barcode: barcode,
                     qty: qty,
                     qty_old: qty_old,

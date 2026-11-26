@@ -5316,14 +5316,9 @@ class InvoiceEximController extends Controller
         // Dipakai berkali-kali di dalam query - isinya tetap, bukan dari user.
         $fg = "c.bppbno_int LIKE 'FG/OUT/%'";
         $pola = '^(' . implode('|', self::TIPE_SJ_GARMENT) . ')/OUT/';
-
-        // "Penjualan", "Penjualan Lokal", dan "Penjualan Ekspor" dicakup satu
-        // pola supaya ejaan di mastertransaksi tidak perlu ditebak persis.
-        $jenis = "($fg AND c.bppbdate < '2026-08-01')
-                  OR c.jenis_trans LIKE 'Penjualan%'
-                  OR c.jenis_trans LIKE 'Pengiriman ke Subkontraktor CMT%'
-                  OR c.jenis_trans LIKE 'Pengiriman Sample%'
-                  OR c.jenis_trans LIKE 'Retur Pembelian Impor%'";
+        // Jenis transaksi (bppb.jenis_trans) tidak disaring: semua jenis boleh
+        // ditagihkan. Dulu hanya Penjualan, Pengiriman ke Subkontraktor CMT,
+        // Pengiriman Sample dan Retur Pembelian Impor.
 
         $sql = "SELECT a.so_no AS no_so, c.bppbno AS sj, c.bppbdate, c.bppbno_int AS shipping_number,
                        d.kpno AS ws, d.styleno,
@@ -5358,7 +5353,6 @@ class InvoiceEximController extends Controller
                   INNER JOIN mastersupplier AS f ON f.Id_Supplier = c.id_supplier
                  WHERE c.bppbdate BETWEEN ? AND ?
                    AND c.bppbno_int REGEXP '$pola'
-                   AND ($jenis)
                    AND c.id_supplier != '1038'
                    AND (ISNULL(c.stat_inv) OR c.stat_inv = '' OR c.stat_inv = '0')
                    AND c.confirm = 'Y'
