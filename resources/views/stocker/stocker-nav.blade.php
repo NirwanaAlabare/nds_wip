@@ -33,6 +33,12 @@
                     Stocker <i class="fa-solid fa-ticket-simple"></i>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('pending-part-form') }}"
+                    class="dropdown-item {{ $routeName == 'pending-part-form' ? 'active' : '' }}">
+                    Pending Part Form <i class="fa-solid fa-hourglass-half"></i>
+                </a>
+            </li>
         </ul>
     </li>
 @endrole

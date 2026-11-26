@@ -83,6 +83,13 @@ Route::middleware('auth')->group(function () {
 
         // 2. Route Simpan Hasil Import ke Database (AJAX)
         Route::post('/part-custom/store-import', 'storePartCustomImport')->name('store-part-custom-import');
+        
+        // Pending Part Form
+        Route::get('/part/pending-part-form', 'pendingPartForm')->name('pending-part-form');
+        Route::get('/part/get-pending-part', 'getPendingPart')->name('get-pending-part');
+        Route::get('/part/get-pending-part-sum', 'getPendingPartSummary')->name('get-pending-part-sum');
+        Route::get('/part/get-part-forms', 'getPartForms')->name('get-part-forms');
+        Route::get('/part/get-form-part-options', 'getFormPartOptions')->name('get-form-part-options');
     });
 
     // part custom
