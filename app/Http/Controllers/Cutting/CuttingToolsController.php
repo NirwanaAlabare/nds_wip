@@ -279,6 +279,32 @@ class CuttingToolsController extends Controller
                 );
             }
 
+            // Check SO Det cancel. Dicek sebelum marker baru dibuat, supaya tidak
+            // tersisa marker tanpa detail/form kalau transaksi dibatalkan.
+            $soDetIds = array_values(array_filter((array) $request["modify_ratio_so_det_id"]));
+            $canceledSoDetIds = DB::connection('mysql_sb')->table('so_det')->
+                whereIn('id', $soDetIds)->
+                where('cancel', 'Y')->
+                pluck('id')->
+                all();
+
+            // SO Det cancel dengan ratio 0 cukup dibuang dari detail marker baru.
+            // Yang ratio-nya > 0 tetap membatalkan transaksi.
+            $canceledSizes = [];
+            foreach ($request["modify_ratio_so_det_id"] as $i => $soDetId) {
+                if (in_array($soDetId, $canceledSoDetIds) && floatval($request["modify_ratio_ratio"][$i] ?? 0) > 0) {
+                    $canceledSizes[] = $request["modify_ratio_size"][$i] ?? $soDetId;
+                }
+            }
+
+            if (count($canceledSizes) > 0) {
+                return array(
+                    "status" => 400,
+                    "message" => "Transaksi dibatalkan. SO Det sudah cancel (Size : " . implode(', ', $canceledSizes) . ")",
+                    "additional" => [],
+                );
+            }
+
             $oldMarker = Marker::where("kode", $validatedRequest['modify_ratio_kode_marker'])->first();
 
             $markerCount = Marker::selectRaw("MAX(kode) latest_kode")->whereRaw("kode LIKE 'MRK/" . date('ym') . "/%'")->first();
@@ -323,6 +349,11 @@ class CuttingToolsController extends Controller
                 $markerId = $markerStore->id;
                 $markerDetailData = [];
                 for ($i = 0; $i < count($request["modify_ratio_so_det_id"]); $i++) {
+                    // SO Det cancel (ratio pasti 0, yang > 0 sudah ditolak di atas)
+                    if (in_array($request["modify_ratio_so_det_id"][$i], $canceledSoDetIds)) {
+                        continue;
+                    }
+
                     array_push($markerDetailData, [
                         "marker_id" => $markerId,
                         "so_det_id" => $request["modify_ratio_so_det_id"][$i],
