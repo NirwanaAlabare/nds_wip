@@ -8,6 +8,7 @@ use App\Models\SignalBit\ActCosting;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\RftPacking;
 use App\Models\SignalBit\RftPackingPo;
+use App\Models\SignalBit\UserLine;
 use App\Services\SewingOrderOutputService;
 use DB;
 
@@ -258,12 +259,15 @@ class TrackOrderOutput extends Component
             \Log::info("Query Completed");
         }
 
+        $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->whereNotIn("username", ["bartack", "qcreject", "embro"])->orderBy('line_id', 'asc')->get();
+
         return view('livewire.sewing.track-order-output', [
             "dates" => $dates,
             "outputMap" => $outputMap,
             "rowTotals" => $rowTotals,
             "dateTotals" => $dateTotals,
             "grandTotal" => $grandTotal,
+            "lines" => $lines
         ]);
     }
 

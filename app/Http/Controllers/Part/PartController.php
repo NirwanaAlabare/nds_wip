@@ -1572,6 +1572,19 @@ class PartController extends Controller
 
     public function getFormCut(Request $request, $id = 0)
     {
+        $formFilter = "";
+        $formPieceFilter = "";
+
+        if ($request->act_costing_ws) {
+            $formFilter .= "AND `marker_input`.`act_costing_ws` = '".$request->act_costing_ws."'";
+            $formPieceFilter .= "AND `form_cut_piece`.`act_costing_ws` = '".$request->act_costing_ws."'";
+        }
+
+        if ($request->act_costing_ws) {
+            $formFilter .= "AND `marker_input`.`panel` = '".$request->panel."'";
+            $formPieceFilter .= "AND `form_cut_piece`.`panel` = '".$request->panel."'";
+        }
+
         $formCutInputs = DB::select("
             SELECT
                 form_cut_input.id,
@@ -1601,11 +1614,10 @@ class PartController extends Controller
             WHERE
                 `form_cut_input`.`status` = 'SELESAI PENGERJAAN'
                 AND part_form.id IS NULL
-                AND `marker_input`.`act_costing_ws` = '".$request->act_costing_ws."'
-                AND `marker_input`.`panel` = '".$request->panel."'
+                ".$formFilter."
                 AND form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
-            `form_cut_input`.`id`
+                `form_cut_input`.`id`
 
             UNION
 
@@ -1636,8 +1648,7 @@ class PartController extends Controller
             WHERE
                 `form_cut_piece`.`status` = 'complete'
                 AND part_form.id IS NULL
-                AND `form_cut_piece`.`act_costing_ws` = '".$request->act_costing_ws."'
-                AND `form_cut_piece`.`panel` = '".$request->panel."'
+                ".$formPieceFilter."
                 AND form_cut_piece.tanggal >= DATE ( NOW()- INTERVAL 2 YEAR )
             GROUP BY
                 `form_cut_piece`.`id`
@@ -2624,6 +2635,208 @@ class PartController extends Controller
                 'message' => 'Gagal menyimpan data: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    // Pending part form
+    public function pendingPartForm(Request $request)
+    {
+        return view("part.pending-part-form", ["page" => "dashboard-stocker"]);
+    }
+
+    private function pendingPartFilter($filterKode = null, $filterWs = null, $filterPanel = null)
+    {
+        $filter = "";
+        if ($filterKode) {
+            $filter .= " AND part.kode LIKE ".DB::getPdo()->quote('%'.$filterKode.'%')." ";
+        }
+        if ($filterWs) {
+            $filter .= " AND part.act_costing_ws LIKE ".DB::getPdo()->quote('%'.$filterWs.'%')." ";
+        }
+        if ($filterPanel) {
+            $filter .= " AND part.panel LIKE ".DB::getPdo()->quote('%'.$filterPanel.'%')." ";
+        }
+
+        return $filter;
+    }
+
+    // COUNT(DISTINCT ...) supaya satu form tidak terhitung berkali-kali
+    // akibat fan-out join (beberapa baris part_form per form, dsb).
+    private function pendingPartCountColumns()
+    {
+        return "
+            COUNT(DISTINCT marker_input.id) total_marker,
+            COUNT(DISTINCT form_cut_input.id) total_form,
+            COUNT(DISTINCT CASE WHEN form_cut_input.status != 'SELESAI PENGERJAAN' THEN form_cut_input.id END) total_incomplete,
+            COUNT(DISTINCT CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' AND part_form.id IS NULL THEN form_cut_input.id END) total_pending,
+            COUNT(DISTINCT CASE WHEN form_cut_input.status = 'SELESAI PENGERJAAN' AND part_form.id IS NOT NULL THEN form_cut_input.id END) total_allocated
+        ";
+    }
+
+    private function pendingPartFrom($filter)
+    {
+        return "
+            from part
+            left join marker_input on marker_input.act_costing_id = part.act_costing_id and marker_input.panel = part.panel
+            -- tgl_form_cut disamakan dengan ThisYearScope pada model FormCutInput (dipakai getPartForms)
+            left join form_cut_input on form_cut_input.marker_id = marker_input.id
+                and form_cut_input.tgl_form_cut >= DATE ( NOW()- INTERVAL 1 YEAR )
+            left join part_form on part_form.form_id = form_cut_input.id
+            where
+                part.created_at >= DATE ( NOW()- INTERVAL 1 YEAR )
+                ".$filter."
+        ";
+    }
+
+    public function pendingPartQuery($filterKode = null, $filterWs = null, $filterPanel = null)
+    {
+        $filter = $this->pendingPartFilter($filterKode, $filterWs, $filterPanel);
+
+        $query = "
+            select
+                part.id,
+                part.kode,
+                part.act_costing_ws,
+                part.panel,
+                ".$this->pendingPartCountColumns()."
+            ".$this->pendingPartFrom($filter)."
+            GROUP BY
+                part.id
+            order by
+                total_pending desc,
+                total_form desc,
+                part.id desc
+        ";
+
+        return $query;
+    }
+
+    public function getPendingPart(Request $request)
+    {
+        $query = $this->pendingPartQuery();
+        $parts = DB::select($query);
+
+        return Datatables::of($parts)->toJson();
+    }
+
+    public function getPendingPartSummary(Request $request)
+    {
+        $filterKode  = $request->filter_kode ?? null;
+        $filterWs    = $request->filter_ws ?? null;
+        $filterPanel = $request->filter_panel ?? null;
+
+        // Hitung langsung tanpa GROUP BY part.id, supaya form yang dimiliki
+        // beberapa part (act_costing_id + panel sama) tidak dijumlah dobel.
+        $filter = $this->pendingPartFilter($filterKode, $filterWs, $filterPanel);
+        $summary = DB::selectOne("
+            select
+                ".$this->pendingPartCountColumns()."
+            ".$this->pendingPartFrom($filter)."
+        ");
+
+        return array(
+            'totalMarker' => (int) ($summary->total_marker ?? 0),
+            'totalForm' => (int) ($summary->total_form ?? 0),
+            'totalIncomplete' => (int) ($summary->total_incomplete ?? 0),
+            'totalPending' => (int) ($summary->total_pending ?? 0),
+            'totalAllocated' => (int) ($summary->total_allocated ?? 0),
+        );
+    }
+
+    public function getPartForms(Request $request)
+    {
+        $incompleteFormsQuery = FormCutInput::selectRaw("
+            form_cut_input.id,
+            users.name as alokasi,
+            form_cut_input.status,
+            marker_input.id marker_id,
+            part.id part_id,
+            form_cut_input.no_form,
+            part.kode kode_part,
+            marker_input.kode kode_marker,
+            marker_input.act_costing_ws,
+            marker_input.color,
+            marker_input.panel,
+            form_cut_input.waktu_mulai,
+            form_cut_input.waktu_selesai,
+            form_cut_input.tipe_form_cut,
+            form_cut_input.no_cut,
+            form_cut_input.operator,
+            form_cut_input.edited,
+            form_cut_input.edit_notes,
+            form_cut_input.edited_by_username,
+            SUM(form_cut_input_detail.lembar_gelaran) total_lembar
+        ")->
+        leftJoin("users", "users.id", "=", "form_cut_input.no_meja")->
+        leftJoin("form_cut_input_detail", "form_cut_input_detail.form_cut_id", "=", "form_cut_input.id")->
+        leftJoin("part_form", "part_form.form_id", "=", "form_cut_input.id")->
+        leftJoin("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")->
+        leftJoin("part", function ($join) {
+            $join->on("part.act_costing_id", "=", "marker_input.act_costing_id");
+            $join->on("part.panel", "=", "marker_input.panel");
+        })->
+        whereRaw("part.created_at >= DATE ( NOW()- INTERVAL 1 YEAR )");
+        // Filter disamakan dengan pendingPartFilter() (kolom part, LIKE %...%)
+        if ($request->filter_kode) {
+            $incompleteFormsQuery->where("part.kode", "LIKE", "%".$request->filter_kode."%");
+        }
+        if ($request->filter_ws) {
+            $incompleteFormsQuery->where("part.act_costing_ws", "LIKE", "%".$request->filter_ws."%");
+        }
+        if ($request->filter_panel) {
+            $incompleteFormsQuery->where("part.panel", "LIKE", "%".$request->filter_panel."%");
+        }
+        if ($request->status == "incomplete") {
+            $incompleteFormsQuery->where("form_cut_input.status", "!=", "SELESAI PENGERJAAN");
+        }
+        if ($request->status == "pending") {
+            $incompleteFormsQuery->where("form_cut_input.status", "=", "SELESAI PENGERJAAN")->whereNull("part_form.id");
+        }
+        if ($request->status == "allocated") {
+            $incompleteFormsQuery->where("form_cut_input.status", "=", "SELESAI PENGERJAAN")->whereNotNull("part_form.id");
+        }
+        $incompleteForms = $incompleteFormsQuery->groupBy("form_cut_input.id")->orderBy("form_cut_input.waktu_mulai", "desc")->get();
+
+        return Datatables::of($incompleteForms)->toJson();
+    }
+
+    /**
+     * Daftar part yang bisa dipilih untuk alokasi sebuah form
+     * (part dengan act_costing_id + panel yang sama dengan marker form tsb).
+     */
+    public function getFormPartOptions(Request $request)
+    {
+        $request->validate([
+            'form_id' => 'required|integer',
+        ]);
+
+        $marker = DB::table("form_cut_input")
+            ->select("marker_input.act_costing_id", "marker_input.panel")
+            ->join("marker_input", "marker_input.id", "=", "form_cut_input.marker_id")
+            ->where("form_cut_input.id", $request->form_id)
+            ->first();
+
+        if (!$marker) {
+            return response()->json(["status" => 404, "message" => "Form / marker tidak ditemukan.", "parts" => []]);
+        }
+
+        $parts = DB::table("part")
+            ->selectRaw("
+                part.id,
+                part.kode,
+                part.act_costing_ws,
+                part.style,
+                part.panel,
+                DATE_FORMAT(part.created_at, '%d-%m-%Y') tanggal,
+                COUNT(part_form.id) total_form
+            ")
+            ->leftJoin("part_form", "part_form.part_id", "=", "part.id")
+            ->where("part.act_costing_id", $marker->act_costing_id)
+            ->where("part.panel", $marker->panel)
+            ->groupBy("part.id")
+            ->orderBy("part.id", "desc")
+            ->get();
+
+        return response()->json(["status" => 200, "parts" => $parts]);
     }
 
     /**
