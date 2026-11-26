@@ -25,13 +25,35 @@ class MasterDefectController extends Controller
     {
         if ($request->ajax()) {
             if ($request->type == "type") {
-                $defectTypeQuery = DefectType::whereRaw("(hidden IS NULL OR hidden != 'Y')")->orderBy("updated_at", "desc");
+                $defectTypeQuery = DefectType::selectRaw("output_defect_types.*, ( COALESCE(total_defect_packing, 0) + COALESCE(total_reject, 0) + COALESCE(total_reject_packing, 0) + COALESCE(total_packing_po, 0) + COALESCE(total_reject_in, 0) + COALESCE(total_secondary_defect, 0) + COALESCE(total_secondary_reject, 0)  ) total")->
+                    leftJoin(DB::raw("(select defect_type_id, COUNT(id) total_defect from output_defects group by defect_type_id) defect"), "defect.defect_type_id", "=","output_defect_types.id")->
+                    leftJoin(DB::raw("(select defect_type_id, COUNT(id) total_defect_packing from output_defects_packing group by defect_type_id) defect_packing"), "defect_packing.defect_type_id", "=","output_defect_types.id")->
+                    leftJoin(DB::raw("(select reject_type_id, COUNT(id) total_reject from output_rejects group by reject_type_id) reject"), "reject.reject_type_id", "=","output_defect_types.id")->
+                    leftJoin(DB::raw("(select reject_type_id, COUNT(id) total_reject_packing from output_rejects_packing group by reject_type_id) reject_packing"), "reject_packing.reject_type_id", "=","output_defect_types.id")->
+                    leftJoin(DB::raw("(select reject_type_id, COUNT(id) total_packing_po from output_rejects_packing_po group by reject_type_id) reject_packing_po"), "reject_packing_po.reject_type_id", "=","output_defect_types.id")->
+                    leftJoin(DB::raw("(select reject_type_id, COUNT(id) total_reject_in from output_reject_in_detail group by reject_type_id) reject_in"), "reject_in.reject_type_id", "=","output_defect_types.id")->
+                    leftJoin(DB::raw("(select defect_type_id, COUNT(id) total_secondary_defect from output_secondary_out_defect group by defect_type_id) secondary_defect"), "secondary_defect.defect_type_id", "=","output_defect_types.id")->
+                    leftJoin(DB::raw("(select defect_type_id, COUNT(id) total_secondary_reject from output_secondary_out_reject group by defect_type_id) secondary_reject"), "secondary_reject.defect_type_id", "=","output_defect_types.id")->
+                    whereRaw("(hidden IS NULL OR hidden != 'Y')")->
+                    orderBy("updated_at", "desc")->
+                    get();
 
-                return DataTables::eloquent($defectTypeQuery)->toJson();
+                return DataTables::of($defectTypeQuery)->toJson();
             } else if ($request->type == "area") {
-                $defectAreaQuery = DefectArea::whereRaw("(hidden IS NULL OR hidden != 'Y')")->orderBy("updated_at", "desc");
+                $defectAreaQuery = DefectArea::selectRaw("output_defect_areas.*, ( COALESCE(total_defect_packing, 0) + COALESCE(total_reject, 0) + COALESCE(total_reject_packing, 0) + COALESCE(total_packing_po, 0) + COALESCE(total_reject_in, 0) + COALESCE(total_secondary_defect, 0) + COALESCE(total_secondary_reject, 0)  ) total")->
+                    leftJoin(DB::raw("(select defect_area_id, COUNT(id) total_defect from output_defects group by defect_area_id) defect"), "defect.defect_area_id", "=","output_defect_areas.id")->
+                    leftJoin(DB::raw("(select defect_area_id, COUNT(id) total_defect_packing from output_defects_packing group by defect_area_id) defect_packing"), "defect_packing.defect_area_id", "=","output_defect_areas.id")->
+                    leftJoin(DB::raw("(select reject_area_id, COUNT(id) total_reject from output_rejects group by reject_area_id) reject"), "reject.reject_area_id", "=","output_defect_areas.id")->
+                    leftJoin(DB::raw("(select reject_area_id, COUNT(id) total_reject_packing from output_rejects_packing group by reject_area_id) reject_packing"), "reject_packing.reject_area_id", "=","output_defect_areas.id")->
+                    leftJoin(DB::raw("(select reject_area_id, COUNT(id) total_packing_po from output_rejects_packing_po group by reject_area_id) reject_packing_po"), "reject_packing_po.reject_area_id", "=","output_defect_areas.id")->
+                    leftJoin(DB::raw("(select reject_area_id, COUNT(id) total_reject_in from output_reject_in_detail group by reject_area_id) reject_in"), "reject_in.reject_area_id", "=","output_defect_areas.id")->
+                    leftJoin(DB::raw("(select defect_area_id, COUNT(id) total_secondary_defect from output_secondary_out_defect group by defect_area_id) secondary_defect"), "secondary_defect.defect_area_id", "=","output_defect_areas.id")->
+                    leftJoin(DB::raw("(select defect_area_id, COUNT(id) total_secondary_reject from output_secondary_out_reject group by defect_area_id) secondary_reject"), "secondary_reject.defect_area_id", "=","output_defect_areas.id")->
+                    whereRaw("(hidden IS NULL OR hidden != 'Y')")->
+                    orderBy("updated_at", "desc")->
+                    get();
 
-                return DataTables::eloquent($defectAreaQuery)->toJson();
+                return DataTables::of($defectAreaQuery)->toJson();
             }
         }
 
