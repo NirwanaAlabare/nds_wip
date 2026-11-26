@@ -768,7 +768,7 @@ class ReportMutasiOutputController extends Controller
                 b.so_det_id,
                 date(a.created_at) tgl_reject,
                 SUM(CASE WHEN b.status = 'rejected' THEN 1 ELSE 0 END) AS qty_rejected,
-                SUM(CASE WHEN b.status = 'reworked' and b.output_type != 'qc_fns_pck_return' THEN 1 ELSE 0 END) AS qty_reworked,
+                SUM(CASE WHEN b.status = 'reworked' and (CASE WHEN a.created_at >= '2026-10-01' THEN b.output_type != 'qc_fns_pck_return' ELSE 1=1 END) THEN 1 ELSE 0 END) AS qty_reworked,
                 SUM(CASE WHEN b.status = 'reworked' AND a.created_at >= '2026-09-01' and b.output_type = 'qc' THEN 1 ELSE 0 END) AS qty_reworked_qc,
                 SUM(CASE WHEN b.status = 'reworked' AND a.created_at >= '2026-09-01' and b.output_type = 'packing' THEN 1 ELSE 0 END) AS qty_reworked_finishing,
                 SUM(CASE WHEN b.status = 'reworked' AND a.created_at >= '2026-09-01' and b.output_type = 'finishing_proses' THEN 1 ELSE 0 END) AS qty_reworked_secondary,
@@ -787,7 +787,7 @@ class ReportMutasiOutputController extends Controller
                 left join output_secondary_out_reject on output_secondary_out_reject.kode_numbering = b.kode_numbering and output_secondary_out_reject.created_at < b.created_at and b.output_type = 'finishing_proses'
                 inner join signalbit_erp.master_plan mp on b.master_plan_id = mp.id
                 where
-                    (CASE WHEN COALESCE(output_rejects.created_at, output_rejects_packing.created_at, output_rejects_packing_po.created_at, output_secondary_out_reject.created_at) IS NOT NULL AND b.status = 'reworked' THEN COALESCE(output_rejects.created_at, output_rejects_packing.created_at, output_rejects_packing_po.created_at, output_secondary_out_reject.created_at) > b.created_at ELSE 1=1 END)
+                    (CASE WHEN a.created_at >= '2026-10-01' THEN (CASE WHEN COALESCE(output_rejects.created_at, output_rejects_packing.created_at, output_rejects_packing_po.created_at, output_secondary_out_reject.created_at) IS NOT NULL AND b.status = 'reworked' THEN COALESCE(output_rejects.created_at, output_rejects_packing.created_at, output_rejects_packing_po.created_at, output_secondary_out_reject.created_at) > b.created_at ELSE 1=1 END) ELSE 1=1 END)
                     AND a.created_at >= '$start_date 00:00:00' and a.created_at <= '$end_date 23:59:59' and mp.cancel = 'N'
                 group by so_det_id, date(a.created_at)
             ),
@@ -1567,7 +1567,7 @@ class ReportMutasiOutputController extends Controller
                     HANYA LOADING SEBELUM 1 JULI
                     ===================================================== */
                     SELECT
-                        mut_wip_tmp.id_so_det,
+                        mut_wip_tmp_test.id_so_det,
 
                         SUM(
                             CASE
@@ -1621,12 +1621,12 @@ class ReportMutasiOutputController extends Controller
                         0 AS qty_reworked_snap_awal,
                         0 AS qty_reworked_embro_awal
 
-                    FROM mut_wip_tmp
+                    FROM mut_wip_tmp_test
                     WHERE
                         tgl_trans >= '$tgl_saldo'
                         AND tgl_trans <= '$prev_date'
                     GROUP BY
-                        mut_wip_tmp.id_so_det
+                        mut_wip_tmp_test.id_so_det
 
                     UNION ALL
 
