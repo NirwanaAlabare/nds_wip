@@ -43,6 +43,7 @@ use DB;
 use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use PDF;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
@@ -701,6 +702,69 @@ class SewingToolsController extends Controller
             'table' => '',
             'additional' => [],
         );
+    }
+
+    /**
+     * Procedure rekap yang boleh dipanggil dari Sewing Tools.
+     * key => [koneksi, nama procedure, label]
+     */
+    private const REFRESH_REKAP_PROCEDURES = [
+        'mut_wip' => ['mysql_sb', 'get_mut_wip_tmp_new', 'Mutasi WIP (signalbit)'],
+        'reject_out_rekap' => ['mysql', 'get_output_reject_out_rekap', 'Rekap Reject Out (laravel_nds)'],
+    ];
+
+    public function refreshRekap(Request $request) {
+        $key = $request->input('procedure');
+
+        if (!isset(self::REFRESH_REKAP_PROCEDURES[$key])) {
+            return array(
+                'status' => 400,
+                'message' => 'Procedure tidak dikenal.',
+                'additional' => [],
+            );
+        }
+
+        [$connection, $procedure, $label] = self::REFRESH_REKAP_PROCEDURES[$key];
+
+        // Procedure-nya lama, jangan sampai terputus di tengah karena timeout / user menutup halaman
+        ignore_user_abort(true);
+        set_time_limit(0);
+
+        // Cegah procedure yang sama jalan bersamaan di DB bersama
+        $lock = Cache::lock('sewing-refresh-rekap-'.$key, 3600);
+        if (!$lock->get()) {
+            return array(
+                'status' => 400,
+                'message' => $label.' sedang diproses oleh user lain. Silahkan coba lagi setelah selesai.',
+                'additional' => [],
+            );
+        }
+
+        $user = Auth::user() ? Auth::user()->id.' '.Auth::user()->username : 'System';
+        $start = microtime(true);
+
+        try {
+            DB::connection($connection)->statement('CALL '.$procedure.'()');
+
+            $duration = round(microtime(true) - $start, 1);
+            Log::info('Sewing Tools refresh rekap', ['procedure' => $procedure, 'by' => $user, 'duration' => $duration]);
+
+            return array(
+                'status' => 200,
+                'message' => $label.' berhasil diperbarui. <br> Durasi : '.$duration.' detik',
+                'additional' => [],
+            );
+        } catch (\Throwable $e) {
+            Log::error('Sewing Tools refresh rekap gagal', ['procedure' => $procedure, 'by' => $user, 'error' => $e->getMessage()]);
+
+            return array(
+                'status' => 400,
+                'message' => $label.' gagal diperbarui : '.$e->getMessage(),
+                'additional' => [],
+            );
+        } finally {
+            $lock->release();
+        }
     }
 
     public function fixRejectOutDetail() {
