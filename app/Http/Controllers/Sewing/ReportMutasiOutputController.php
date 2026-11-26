@@ -1567,7 +1567,7 @@ class ReportMutasiOutputController extends Controller
                     HANYA LOADING SEBELUM 1 JULI
                     ===================================================== */
                     SELECT
-                        mut_wip_tmp_test.id_so_det,
+                        mut_wip_tmp.id_so_det,
 
                         SUM(
                             CASE
@@ -1621,12 +1621,12 @@ class ReportMutasiOutputController extends Controller
                         0 AS qty_reworked_snap_awal,
                         0 AS qty_reworked_embro_awal
 
-                    FROM mut_wip_tmp_test
+                    FROM mut_wip_tmp
                     WHERE
                         tgl_trans >= '$tgl_saldo'
                         AND tgl_trans <= '$prev_date'
                     GROUP BY
-                        mut_wip_tmp_test.id_so_det
+                        mut_wip_tmp.id_so_det
 
                     UNION ALL
 
