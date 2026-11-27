@@ -16,12 +16,18 @@ namespace App\Support;
 //
 // Dokumen dengan tanggal daftar sebelum CUTOFF tetap memakai rumus lama (BC 2.7 tanpa cadangan
 // harga_penyerahan, BC 3.0 = harga_satuan x jumlah_satuan), supaya angka periode sebelumnya tidak berubah.
+// Supplier punya batas sendiri (CUTOFF_SUPPLIER), lebih awal dari batas Total.
 //
 // Sumber query wajib punya kolom fil_aju (kode dokumen angka: 23, 25, 27, 30, 33, 40, 41, 261, 262)
 // dan tgl_rumus (lihat kolomTanggal()), di samping kolom-kolom exim_barang.
 class RumusCeisa
 {
+    // Batas rumus Total / Total IDR (total(), totalIdr()).
     const CUTOFF = '2026-11-15';
+
+    // Batas aturan Supplier (supplier()). Sengaja terpisah dari CUTOFF: aturan supplier baru berlaku
+    // mulai 1 Nov, sedangkan rumus Total baru mulai 15 Nov.
+    const CUTOFF_SUPPLIER = '2026-11-01';
 
     // Tambahan kolom untuk subquery "select eb.* ... from exim_barang eb": tanggal daftar dokumennya
     // (exim_header.tanggal_daftar, varchar yyyy-mm-dd).
@@ -63,7 +69,7 @@ class RumusCeisa
     // Sumber kolom Supplier (nama_entitas) per dokumen CEISA, dari exim_entitas: tepat 1 baris per
     // nomor_aju. Dipakai sebagai tabel turunan: LEFT JOIN ".RumusCeisa::supplier()." b ON b.nomor_aju = ...
     //
-    // Mulai CUTOFF cukup dilihat dari kode_entitas-nya (seri & jenis identitas tidak dipakai lagi):
+    // Mulai CUTOFF_SUPPLIER cukup dilihat dari kode_entitas-nya (seri & jenis identitas tidak dipakai lagi):
     //   BC 2.3 = 5    BC 2.5, 2.6.1, 3.0, 3.3, 4.1 = 8    BC 2.6.2, 4.0 = 9
     //   BC 2.7 = 3 (IN) / 8 (OUT): dokumen BC 2.7 selalu memuat Nirwana di salah satu dari kedua kode
     //            itu, jadi yang diambil yang bukan Nirwana.
@@ -71,11 +77,11 @@ class RumusCeisa
     //   kode 8 sama dengan supplier BPPB-nya di Signalbit.
     //   BC 3.0 IN (kode 6) tidak dibedakan: di Signalbit BC 3.0 selalu keluar (BPPB).
     // Kalau kode yang sama muncul di lebih dari 1 baris (isinya nama yang sama), di-group per nomor_aju.
-    // Sebelum CUTOFF tetap aturan lama (prioritas seri / entitas / identitas), supaya laporan periode
-    // sebelumnya tidak berubah.
+    // Sebelum CUTOFF_SUPPLIER tetap aturan lama (prioritas seri / entitas / identitas), supaya laporan
+    // periode sebelumnya tidak berubah.
     public static function supplier()
     {
-        $sebelum = "IFNULL(b.tanggal_daftar, '') < '".self::CUTOFF."'";
+        $sebelum = "IFNULL(b.tanggal_daftar, '') < '".self::CUTOFF_SUPPLIER."'";
 
         return "(SELECT *
 FROM
@@ -84,7 +90,7 @@ FROM
 
     UNION
 
-    /* Mulai CUTOFF: kode entitas saja */
+    /* Mulai CUTOFF_SUPPLIER: kode entitas saja */
     SELECT
         b.nomor_aju,
         MIN(a.nomor_identitas) nomor_identitas,
@@ -93,7 +99,7 @@ FROM
     FROM exim_entitas a
     INNER JOIN exim_header b
         ON b.nomor_aju = a.nomor_aju
-    WHERE b.tanggal_daftar >= '".self::CUTOFF."'
+    WHERE b.tanggal_daftar >= '".self::CUTOFF_SUPPLIER."'
     AND (
         ((b.kode_dokumen+0) = 23 AND a.kode_entitas = 5)
         OR ((b.kode_dokumen+0) IN (25, 261, 30, 33, 41) AND a.kode_entitas = 8)
@@ -105,7 +111,7 @@ FROM
 ) a)";
     }
 
-    // Aturan supplier lama (dokumen sebelum CUTOFF), apa adanya. {SEBELUM_CUTOFF} diisi supplier().
+    // Aturan supplier lama (dokumen sebelum CUTOFF_SUPPLIER), apa adanya. {SEBELUM_CUTOFF} diisi supplier().
     const SUPPLIER_LAMA = <<<'SQL'
    SELECT
     b.nomor_aju,
