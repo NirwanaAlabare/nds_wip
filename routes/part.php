@@ -77,6 +77,8 @@ Route::middleware('auth')->group(function () {
 
         // get part detail items
         Route::get('/get-edit-part-detail-items', 'getEditPartDetailItems')->name('get-edit-part-detail-items');
+        Route::get('/part-detail-item-list', 'getPartDetailItemList')->name('part-detail-item-list');
+        Route::delete('/destroy-part-detail-item/{id?}', 'destroyPartDetailItem')->name('destroy-part-detail-item');
 
         // 1. Route Preview Data dari Excel (AJAX)
         Route::post('/part-custom/preview-import', 'previewImportPartCustom')->name('preview-import-part-custom');
