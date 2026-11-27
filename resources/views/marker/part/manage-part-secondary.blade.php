@@ -453,6 +453,23 @@
                             </select>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">List Item Part Detail</label>
+                            <div class="table-responsive">
+                                <table id="datatable_part_detail_item" class="table table-bordered table-sm w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>Action</th>
+                                            <th>ID Item</th>
+                                            <th>Item</th>
+                                            <th>Created At</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Notes</label>
                             <input class="form-control" id="edit_notes" name="edit_notes"></input>
                         </div>
@@ -2363,7 +2380,54 @@
             } else {
                 editPartStatusContainer.classList.remove("d-none");
             }
+
+            partDetailItemTableReload();
         });
+
+        // Part Detail Item List
+        function partDetailItemTableReload() {
+            $("#datatable_part_detail_item").DataTable({
+                ordering: false,
+                processing: true,
+                serverSide: true,
+                paging: false,
+                searching: false,
+                info: false,
+                destroy: true,
+                ajax: {
+                    url: '{{ route('part-detail-item-list') }}',
+                    dataType: 'json',
+                    dataSrc: 'data',
+                    data: function(d) {
+                        d.part_detail_id = $('#edit_id').val();
+                    },
+                },
+                columns: [
+                    { data: 'id' },
+                    { data: 'id_item' },
+                    { data: 'itemdesc' },
+                    { data: 'created_at' },
+                ],
+                columnDefs: [
+                    {
+                        targets: [0],
+                        className: "text-center",
+                        render: (data, type, row, meta) => {
+                            let hasStocker = row.total_stocker > 0;
+                            return `
+                                <button type='button' class='btn btn-danger btn-sm' data='`+JSON.stringify({id: row.id})+`' data-url='{{ route('destroy-part-detail-item') }}/`+row.id+`' data-message='Hapus item <b>`+(row.itemdesc ?? '-')+`</b> dari part detail ini?' onclick='deleteData(this)' `+(hasStocker ? `disabled title='Part Detail sudah memiliki stocker'` : ``)+`>
+                                    <i class='fa fa-trash'></i>
+                                </button>
+                            `;
+                        }
+                    },
+                    {
+                        targets: [1, 2, 3],
+                        render: (data) => data ?? '-'
+                    },
+                ]
+            });
+        }
 
         //Form Part Datatable
         let datatablePartCustom = $("#datatable-part-custom").DataTable({
