@@ -129,12 +129,19 @@ class CeisaService
 
 
         // Deteksi jika server CEISA merespon token invalid/expired
+        // CEISA kadang balas token invalid sebagai {"Exception": "Token specified is invalid or has expired."}
+        // (bukan 401 / error=invalid_token), jadi pesan itu ikut dianggap token invalid.
+        $errText = is_array($body)
+            ? strtolower((string) ($body['Exception'] ?? $body['exception'] ?? $body['message'] ?? ''))
+            : '';
         $isInvalidToken = $response->status() === 401
-            || (isset($body['error']) && $body['error'] === 'invalid_token');
+            || (isset($body['error']) && $body['error'] === 'invalid_token')
+            || str_contains($errText, 'token specified is invalid')
+            || str_contains($errText, 'has expired');
 
         if ($isInvalidToken && $retry) {
-            Log::warning("CEISA Token expired/invalid untuk env {$this->currentEnv}. Mencoba refresh token dan mengulangi request...");
-            $this->getToken(true);
+            Log::warning("CEISA Token expired/invalid untuk env {$this->currentEnv} (user {$this->username}). Login ulang dan mengulangi request...");
+            // Pemanggilan ulang requestWithRetry sudah login ulang (getToken), jangan login dua kali.
             return $this->requestWithRetry($method, $url, $data, false);
         }
 
