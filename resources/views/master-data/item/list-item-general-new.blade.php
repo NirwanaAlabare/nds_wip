@@ -399,11 +399,11 @@
                             </div>
 
                             <div class="dn-kaki">
-                                <button type="button" class="btn btn-dn-simpan" id="mn-btn-simpan">
-                                    <i class="fa fa-save"></i> <span id="mn-kata-simpan">Save</span>
-                                </button>
                                 <button type="button" class="btn btn-dn-kembali" data-bs-dismiss="modal">
                                     <i class="fa fa-arrow-left"></i> Back
+                                </button>
+                                <button type="button" class="btn btn-dn-simpan" id="mn-btn-simpan">
+                                    <i class="fa fa-save"></i> <span id="mn-kata-simpan">Save</span>
                                 </button>
                             </div>
                         </div>

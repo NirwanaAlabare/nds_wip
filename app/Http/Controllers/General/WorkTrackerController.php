@@ -18,7 +18,7 @@ class WorkTrackerController extends Controller
 {
     const ARCHIVE_AFTER_DAYS = 60;
     const MAX_FILES = 10;
-    const MAX_FILE_KB = 10240;
+    const MAX_FILE_KB = 20480; // 20 MB per file
     const FILE_TYPES = 'jpg,jpeg,png,webp,gif,pdf,xls,xlsx,doc,docx,txt,csv,zip,html,htm';
     // File yang bisa menjalankan script kalau dibuka di browser: disimpan di luar folder publik dan hanya bisa diunduh
     const PRIVATE_TYPES = ['html', 'htm'];

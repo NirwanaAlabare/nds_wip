@@ -30,8 +30,9 @@ class MasterGroupGeneralController extends Controller
     // Pilihan Accounting tetap (hardcode)
     private const ACCOUNTING = ['EXPENSE', 'ASSET'];
 
-    // cancel = 'Y' -> Inactive; kosong / NULL -> Active
+    // cancel = 'Y' -> Inactive; 'N' (default data baru) / kosong / NULL lama -> Active
     private const BATAL = 'Y';
+    private const AKTIF = 'N';
 
     private const PANJANG = [
         'group'      => ['Group', 100],
@@ -301,6 +302,8 @@ class MasterGroupGeneralController extends Controller
                     $id = $this->db()->table(self::T_GRUP)->insertGetId([
                         'general_group_code' => $this->kodeBerikut(self::T_GRUP, 'general_group_code', self::AWALAN_GRUP),
                         'general_group_name' => $grupBaru,
+                        'group_code'         => 'N',
+                        'cancel'             => self::AKTIF,
                         'created_at'         => $sekarang,
                         'updated_at'         => $sekarang,
                     ]);
@@ -324,6 +327,7 @@ class MasterGroupGeneralController extends Controller
                 }
 
                 $this->db()->table(self::T_SUB)->insert($data + [
+                    'cancel'     => self::AKTIF,
                     'created_at' => $sekarang,
                     'updated_at' => $sekarang,
                 ]);
@@ -431,7 +435,7 @@ class MasterGroupGeneralController extends Controller
 
         $aktif = $request->boolean('aktif');
         $this->db()->table(self::T_SUB)->where('id', $row->id)->update([
-            'cancel'     => $aktif ? null : self::BATAL,
+            'cancel'     => $aktif ? self::AKTIF : self::BATAL,
             'updated_at' => now()->format('Y-m-d H:i:s'),
         ]);
 

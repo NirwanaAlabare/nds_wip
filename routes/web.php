@@ -2203,9 +2203,29 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-ws-asal', 'getWsAsal')->name('booking-stock-get-ws-asal');
     });
 
-    // General Request (MOCKUP - data masih dummy)
+    // General Request (database nds: general_requests & general_request_items)
     Route::controller(GeneralRequestController::class)->prefix("general-request")->middleware('role:purchasing')->group(function () {
         Route::get('/', 'index')->name('general-request');
+        Route::post('/simpan', 'simpan')->name('general-request-simpan');
+        Route::get('/barang', 'cariBarang')->name('general-request-barang');
+        Route::get('/barang/gambar', 'gambarBarang')->name('general-request-gambar');
+        Route::post('/ajukan', 'ajukan')->name('general-request-ajukan');
+        Route::post('/batal', 'batal')->name('general-request-batal');
+        Route::get('/pdf/{id}', 'cetakPdf')->whereNumber('id')->name('general-request-pdf');
+        Route::get('/export-excel', 'exportExcel')->name('general-request-export-excel');
+        Route::get('/data', 'requestData')->name('general-request-data');
+        Route::get('/role-access', 'roleAccessData')->name('general-request-role-access');
+        Route::post('/role-access/simpan', 'roleAccessSimpan')->name('general-request-role-access-simpan');
+        Route::get('/role-department', 'roleDepartmentData')->name('general-request-role-department');
+        Route::post('/role-department/simpan', 'roleDepartmentSimpan')->name('general-request-role-department-simpan');
+    });
+
+    // Approval General Request: semua user login (approver dipilih pemohon, tidak harus role purchasing)
+    Route::controller(GeneralRequestController::class)->prefix("general-request/approval")->group(function () {
+        Route::get('/', 'approvalIndex')->name('general-request-approval');
+        Route::post('/setuju', 'approvalSetuju')->name('general-request-approval-setuju');
+        Route::post('/tolak', 'approvalTolak')->name('general-request-approval-tolak');
+        Route::get('/pdf/{id}', 'cetakPdf')->whereNumber('id')->name('general-request-approval-pdf');
     });
 
     Route::controller(PurchasingDashboardController::class)->middleware('role:purchasing')->group(function () {
