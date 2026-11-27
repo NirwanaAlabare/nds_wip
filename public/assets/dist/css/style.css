@@ -61,7 +61,6 @@ table tr.selected td{
 table tr.selected span{
     background-color: inherit !important;
     color: inherit !important;
-    padding: 2px 5px !important;
     border-radius: 3px !important;
 }
 

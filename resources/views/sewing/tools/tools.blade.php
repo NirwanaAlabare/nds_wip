@@ -196,6 +196,27 @@
                     </a>
                 </div>
                 <div class="col-md-12">
+                    <h5 class="text-sb-secondary fw-bold mt-3">Refresh Rekap</h5>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="refreshRekap('mut_wip', 'Mutasi WIP')">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Refresh Mutasi WIP</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a type="button" class="home-item" onclick="refreshRekap('reject_out_rekap', 'Rekap Reject Out')">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="text-sb mb-0"><i class="fa-solid fa-rotate"></i> Refresh Rekap Reject Out</h5>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-12">
                     <h5 class="text-sb-secondary fw-bold mt-3">Check Data</h5>
                 </div>
                 {{-- <div class="col-md-4">
@@ -585,6 +606,72 @@
                         confirmButtonColor: "#082149",
                     });
                 }
+            });
+        }
+
+        function refreshRekap(procedure, label) {
+            Swal.fire({
+                title: 'Refresh ' + label,
+                html: 'Proses ini memakan waktu cukup lama. <br> Lanjutkan?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'PROSES',
+                cancelButtonText: 'BATAL',
+                confirmButtonColor: "#082149"
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                let refreshInterval = null;
+
+                Swal.fire({
+                    title: 'Please Wait...',
+                    html: 'Refresh ' + label + '... <br><br> <b>0</b>s elapsed...',
+                    didOpen: () => {
+                        Swal.showLoading();
+
+                        let elapsed = 0;
+                        const elapsedElement = Swal.getPopup().querySelector("b");
+                        refreshInterval = setInterval(() => {
+                            elapsed++;
+                            elapsedElement.textContent = elapsed;
+                        }, 1000);
+                    },
+                    willClose: () => {
+                        clearInterval(refreshInterval);
+                    },
+                    allowOutsideClick: false,
+                });
+
+                $.ajax({
+                    type: "post",
+                    url: "{{ route('sewing-refresh-rekap') }}",
+                    data: {
+                        procedure: procedure
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        Swal.fire({
+                            icon: response.status == 200 ? 'success' : 'error',
+                            title: response.status == 200 ? 'Berhasil' : 'Gagal',
+                            html: response.message ? response.message : "Terjadi Kesalahan",
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            confirmButtonColor: "#082149",
+                        });
+                    },
+                    error: function(jqXHR) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            html: jqXHR.responseJSON && jqXHR.responseJSON.message ? jqXHR.responseJSON.message : "Terjadi Kesalahan",
+                            showConfirmButton: true,
+                            confirmButtonText: 'Oke',
+                            confirmButtonColor: "#082149",
+                        });
+                    }
+                });
             });
         }
 

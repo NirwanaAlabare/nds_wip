@@ -659,23 +659,27 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="mb-3">
-                <a class="btn btn-outline-primary" id="btn-new-packing-list"
-                    href="{{ route('create-packing-list-karton') }}">
-                    <i class="fas fa-plus"></i>
-                    Baru
-                </a>
-            </div>
             <div class="d-flex align-items-end gap-3 mb-3" id="plFilter">
                 <div>
                     <label class="form-label"><small><b>Tgl Shipment Awal</b></small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal"
-                        oninput="dataTableReload()" value="{{ $tgl_awal_fix }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-awal" name="tgl_awal" autocomplete="off"
+                        value="{{ $tgl_awal_fix }}">
                 </div>
                 <div>
                     <label class="form-label"><small><b>Tgl Shipment Akhir</b></small></label>
-                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir"
-                        oninput="dataTableReload()" value="{{ $tgl_akhir_fix }}">
+                    <input type="date" class="form-control form-control-sm" id="tgl-akhir" name="tgl_akhir" autocomplete="off"
+                        value="{{ $tgl_akhir_fix }}">
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="dataTableReload()">
+                        <i class="fas fa-search"></i> Cari
+                    </button>
+                </div>
+                <div class="ms-auto">
+                    <a class="btn btn-outline-primary btn-sm" id="btn-new-packing-list"
+                        href="{{ route('create-packing-list-karton') }}">
+                        <i class="fas fa-plus"></i> Tambah
+                    </a>
                 </div>
             </div>
             <div class="table-responsive" id="plTable">
@@ -846,6 +850,10 @@
                 Swal.close();
             }
         });
+
+        // Paksa tanggal kembali ke default server saat reload (cegah browser restore isian lama)
+        $('#tgl-awal').val('{{ $tgl_awal_fix }}');
+        $('#tgl-akhir').val('{{ $tgl_akhir_fix }}');
 
         let datatable = $('#datatable').DataTable({
             orderCellsTop: true,

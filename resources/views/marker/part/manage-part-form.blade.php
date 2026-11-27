@@ -210,6 +210,8 @@
             processing: true,
             serverSide: true,
             paging: false,
+            scrollX: '100%',
+            scrollY: '400px',
             ajax: {
                 url: '{{ route('manage-part-form') }}/'+id,
                 data: function(d) {
@@ -458,6 +460,8 @@
             processing: true,
             serverSide: true,
             paging: false,
+            scrollX: '100%',
+            scrollY: '400px',
             ajax: {
                 url: '{{ route('get-part-form-cut') }}/',
                 data: function(d) {
