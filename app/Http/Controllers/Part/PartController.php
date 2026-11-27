@@ -2796,7 +2796,26 @@ class PartController extends Controller
         }
         $incompleteForms = $incompleteFormsQuery->groupBy("form_cut_input.id")->orderBy("form_cut_input.waktu_mulai", "desc")->get();
 
-        return Datatables::of($incompleteForms)->toJson();
+        // Total lembar dihitung dari data yang sudah terfilter (filter kolom datatable), sebelum dipotong per halaman
+        $datatable = new class($incompleteForms) extends \Yajra\DataTables\CollectionDataTable {
+            protected $sumTotalLembar = 0;
+
+            protected function paginate()
+            {
+                $this->sumTotalLembar = $this->collection->sum(fn ($row) => (float) data_get($row, 'total_lembar', 0));
+
+                parent::paginate();
+            }
+
+            protected function render(array $data)
+            {
+                $this->appends['sum_total_lembar'] = $this->sumTotalLembar;
+
+                return parent::render($data);
+            }
+        };
+
+        return $datatable->toJson();
     }
 
     /**

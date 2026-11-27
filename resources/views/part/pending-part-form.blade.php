@@ -566,6 +566,21 @@
             `);
             $table.closest('.table-responsive').before($toolbar);
 
+            // Total (mengikuti filter) diletakkan di antara filter dan tabel
+            const $totals = $(`
+                <div class="form-totals d-flex flex-wrap gap-2 mb-2">
+                    <span class="badge bg-light text-dark border fs-6 fw-normal">Total Form : <strong class="total-form">-</strong></span>
+                    <span class="badge bg-light text-dark border fs-6 fw-normal">Total Lembar : <strong class="total-lembar">-</strong></span>
+                </div>
+            `);
+            $table.closest('.table-responsive').before($totals);
+
+            $table.on('xhr.dt', function (e, settings, json) {
+                const fmt = (v) => Number(v || 0).toLocaleString('id-ID');
+                $totals.find('.total-form').text(json ? fmt(json.recordsFiltered) : '-');
+                $totals.find('.total-lembar').text(json ? fmt(json.sum_total_lembar) : '-');
+            });
+
             const $fields = $toolbar.find('.form-filter-fields');
 
             $table.find('thead tr:first th').each(function (i) {
