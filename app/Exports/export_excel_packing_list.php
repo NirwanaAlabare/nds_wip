@@ -51,7 +51,6 @@ class export_excel_packing_list implements FromView, ShouldAutoSize, WithEvents,
             WHERE a.po = '$this->po'
               AND ms.supplier = '$this->buyer'
               AND ws.dest = '$this->dest'
-              AND ws.styleno = '$this->styleno'
             ORDER BY no_carton ASC
         ");
 

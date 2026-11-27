@@ -273,6 +273,10 @@ order by ws asc");
                 FROM packing_central_switching
                 GROUP BY asal_ppic_master_so_id
             ),
+            pck_list as (
+            select id_ppic_master_so, sum(qty) qty_pck_list from packing_master_packing_list
+            group by id_ppic_master_so
+            ),
             pck_out as (
             select id_ppic, count(*) qty_pck_out from packing_packing_out_scan
             group by id_ppic
@@ -300,6 +304,7 @@ order by ws asc");
                 COALESCE(pck_in.qty_pck_in, 0) qty_packing_in,
                 COALESCE(switching_out.qty_switch_out, 0) qty_switching_out,
                 COALESCE(switching_in.qty_switch_in, 0) qty_switching_in,
+                COALESCE(pck_list.qty_pck_list, 0) qty_packing_list,
                 coalesce(pck_out.qty_pck_out,0) qty_packing_out,
                 p.created_by,
                 p.created_at,
@@ -312,6 +317,7 @@ order by ws asc");
             left join pck_out on p.id = pck_out.id_ppic
             LEFT JOIN switching_in ON p.id = switching_in.id_ppic_master_so
             LEFT JOIN switching_out ON p.id = switching_out.id_ppic_master_so
+            LEFT JOIN pck_list ON p.id = pck_list.id_ppic_master_so
             LEFT JOIN signalbit_erp.master_size_new msn ON gmt.size = msn.size
             $condition
             ORDER BY
@@ -343,7 +349,7 @@ order by ws asc");
         $sheet->writeRow([implode('  |  ', $info)]);
         $sheet->writeRow(['']);
 
-        $sheet->setColWidths(array_fill_keys(range('A', 'W'), 20));
+        $sheet->setColWidths(array_fill_keys(range('A', 'X'), 20));
 
         $sheet->writeRow([
             'ID',
@@ -364,6 +370,7 @@ order by ws asc");
             'Qty Packing In',
             'Qty Switching Out',
             'Qty Switching In',
+            'Qty Packing List',
             'Qty Packing Out',
             'Progres Out (%)',
             'Status Order',
@@ -394,6 +401,7 @@ order by ws asc");
                 (float) $r->qty_packing_in,
                 (float) $r->qty_switching_out,
                 (float) $r->qty_switching_in,
+                (float) $r->qty_packing_list,
                 (float) $r->qty_packing_out,
                 $progres,
                 $r->close_order == 'Y' ? 'Close' : 'Open',

@@ -176,6 +176,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/miss-packing-po', 'missPackingPo')->name("sewing-miss-packing-po");
         Route::post('/fix-reject-out-detail', 'fixRejectOutDetail')->name("fix-reject-out-detail");
 
+        // Refresh Rekap (call stored procedure)
+        Route::post('/refresh-rekap', 'refreshRekap')->name("sewing-refresh-rekap");
+
         // DEPRECATED MOVE TO CONTROLLER PERSONAL
         // // Check Output Detail
         // Route::get('/check-output-detail', 'checkOutputDetail')->name("check-output-detail");

@@ -1795,11 +1795,25 @@ class LoadingLineController extends Controller
 
         $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->orderBy('line_id', 'asc')->get();
 
+        // Validasi Line tujuan (jika diisi)
+        if ($request->lineId && !$lines->where("line_id", $request->lineId)->first()) {
+            return array(
+                "status" => 400,
+                "message" => "Line tidak ditemukan. Harap tentukan Line yang valid.",
+            );
+        }
+
         $loadingLines = LoadingLine::whereIn("id", $allLoadingLineIds)->get();
 
         $success = [];
         $fails = [];
         foreach ($loadingLines as $loadingLine) {
+            // Tidak ada Line tujuan dan Line sebelumnya kosong, lewati
+            if (!$request->lineId && !$loadingLine->line_id) {
+                array_push($fails, $loadingLine->id);
+                continue;
+            }
+
             if ($loadingLine->loadingPlan) {
                 $line = $lines->where("line_id", ($request->lineId ? $request->lineId : $loadingLine->line_id))->first();
 
@@ -1811,7 +1825,7 @@ class LoadingLineController extends Controller
 
                 if ($loadingLinePlan) {
                     $loadingLine->line_id = $request->lineId ? $request->lineId : $loadingLine->line_id;
-                    $loadingLine->nama_line = $line ? $line->username : 'line_'.((($request->lineId ? $request->lineId : $loadingLine->line_id) < 1) ? '0' : '').number_format(($request->lineId ? $request->lineId : $loadingLine->line_id));
+                    $loadingLine->nama_line = $line ? $line->username : $loadingLine->nama_line;
                     $loadingLine->loading_plan_id = $loadingLinePlan->id;
                     if ($request->tanggal_loading) {
                         $loadingLine->tanggal_loading = $request->tanggal_loading;
@@ -1844,7 +1858,7 @@ class LoadingLineController extends Controller
                     ]);
 
                     $loadingLine->line_id = $request->lineId ? $request->lineId : $loadingLine->line_id;
-                    $loadingLine->nama_line = $line ? $line->username : 'line_'.((($request->lineId ? $request->lineId : $loadingLine->line_id) < 1) ? '0' : '').number_format(($request->lineId ? $request->lineId : $loadingLine->line_id), 2);
+                    $loadingLine->nama_line = $line ? $line->username : $loadingLine->nama_line;
                     $loadingLine->loading_plan_id = $newLoadingPlan->id;
                     if ($request->tanggal_loading) {
                         $loadingLine->tanggal_loading = $request->tanggal_loading;

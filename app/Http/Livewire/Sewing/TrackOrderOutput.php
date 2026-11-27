@@ -8,6 +8,7 @@ use App\Models\SignalBit\ActCosting;
 use App\Models\SignalBit\Rft;
 use App\Models\SignalBit\RftPacking;
 use App\Models\SignalBit\RftPackingPo;
+use App\Models\SignalBit\UserLine;
 use App\Services\SewingOrderOutputService;
 use DB;
 
@@ -201,7 +202,7 @@ class TrackOrderOutput extends Component
             ")->
             leftJoin("act_costing", "act_costing.id", "=", "rfts.act_id_ws")->
             leftJoin("master_plan", "master_plan.id", "=", "rfts.master_plan_id");
-            if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('-120 days', strtotime($this->dateFromFilter))));
+            if ($this->dateFromFilter) $orderFilterSql->where('master_plan.tgl_plan', '>=', date('Y-m-d', strtotime('360 days', strtotime($this->dateFromFilter))));
             if ($this->dateToFilter) $orderFilterSql->where('master_plan.tgl_plan', '<=', $this->dateToFilter);
             if ($this->groupBy == "size") $orderFilterSql->leftJoin('so', 'so.id_cost', '=', 'act_costing.id')->leftJoin('so_det', function ($join) { $join->on('so_det.id_so', '=', 'so.id'); $join->on('so_det.color', '=', 'master_plan.color'); });
             if ($this->groupBy == "size" && $this->sizeFilter) $orderFilterSql->where('so_det.size', $this->sizeFilter);
@@ -258,12 +259,15 @@ class TrackOrderOutput extends Component
             \Log::info("Query Completed");
         }
 
+        $lines = UserLine::where('Groupp', 'SEWING')->whereRaw('(Locked != 1 || Locked is NULL)')->whereNotIn("username", ["bartack", "qcreject", "embro"])->orderBy('line_id', 'asc')->get();
+
         return view('livewire.sewing.track-order-output', [
             "dates" => $dates,
             "outputMap" => $outputMap,
             "rowTotals" => $rowTotals,
             "dateTotals" => $dateTotals,
             "grandTotal" => $grandTotal,
+            "lines" => $lines
         ]);
     }
 

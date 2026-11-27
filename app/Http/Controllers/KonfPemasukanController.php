@@ -18,6 +18,7 @@ use App\Imports\ImportLokasiMaterial;
 use App\Models\Journal;
 use App\Models\BpbSB;
 use App\Http\Controllers\Traits\LogsActivity;
+use App\Http\Controllers\Traits\ChecksNomorDaftar;
 use DB;
 use QrCode;
 use DNS1D;
@@ -25,7 +26,7 @@ use PDF;
 
 class KonfPemasukanController extends Controller
 {
-    use LogsActivity;
+    use LogsActivity, ChecksNomorDaftar;
 
     /**
      * Display a listing of the resource.
@@ -38,8 +39,11 @@ class KonfPemasukanController extends Controller
             $additionalQuery = "";
             $keywordQuery = "";
 
-            $data_inmaterial = DB::connection('mysql_sb')->select("select a.*,COALESCE(qty_lok,0) qty_lok,round((round(COALESCE(qty,0),4) - round(COALESCE(qty_lok,0),4)),2) qty_balance from (select b.id,b.no_dok,b.tgl_dok,b.tgl_shipp,b.type_dok,b.no_po,b.supplier,b.no_invoice,b.type_bc,b.no_daftar,b.tgl_daftar, b.type_pch,CONCAT(b.created_by,' (',b.created_at, ') ') user_create,b.status,round(sum(COALESCE(qty_good,0)),2) qty, unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and b.tgl_dok >= '2026-01-01' GROUP BY b.id) a left JOIN
-                (select no_dok nodok,round(SUM(qty_sj),2) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok) b on b.nodok = a.no_dok where status = 'Pending' order by no_dok asc");
+            // belum_daftar = 1: selain INHOUSE, nomor daftar di bpb masih kosong -> tetap tampil, tapi tidak bisa diapprove
+            $bpb_belum_daftar = $this->sqlNoIntBelumDaftar('bpb', "select no_dok from whs_inmaterial_fabric where status = 'Pending' and tgl_dok >= '2026-01-01'");
+            $data_inmaterial = DB::connection('mysql_sb')->select("select a.*,COALESCE(qty_lok,0) qty_lok,round((round(COALESCE(qty,0),4) - round(COALESCE(qty_lok,0),4)),2) qty_balance, if(nd.no_int is null,0,1) belum_daftar from (select b.id,b.no_dok,b.tgl_dok,b.tgl_shipp,b.type_dok,b.no_po,b.supplier,b.no_invoice,b.type_bc,b.no_daftar,b.tgl_daftar, b.type_pch,CONCAT(b.created_by,' (',b.created_at, ') ') user_create,b.status,round(sum(COALESCE(qty_good,0)),2) qty, unit from whs_inmaterial_fabric_det a inner join whs_inmaterial_fabric b on b.no_dok = a.no_dok where a.status = 'Y' and b.tgl_dok >= '2026-01-01' GROUP BY b.id) a left JOIN
+                (select no_dok nodok,round(SUM(qty_sj),2) qty_lok from whs_lokasi_inmaterial where status = 'Y' GROUP BY no_dok) b on b.nodok = a.no_dok
+                left join ($bpb_belum_daftar) nd on nd.no_int = a.no_dok where status = 'Pending' order by no_dok asc");
 
 
             return DataTables::of($data_inmaterial)->toJson();
@@ -116,6 +120,13 @@ class KonfPemasukanController extends Controller
 
             $check = $request->chek_id[$i] ?? 0;
             if ($check <= 0) continue;
+
+            // selain INHOUSE wajib sudah ada nomor daftar (update dokumen pabean di signalbit), yang masih kosong tidak diapprove
+            if ($this->belumNomorDaftar('bpb', $id_bpb)) {
+                // keterangan ditampilkan di daftar gagal (view), dan dokumennya tidak ikut "Coba Lagi"
+                $failed[] = ['id_bpb' => $id_bpb, 'message' => 'Nomor daftar masih kosong', 'keterangan' => 'No. Daftar masih kosong'];
+                continue;
+            }
 
             try {
                 DB::connection('mysql_sb')->beginTransaction();

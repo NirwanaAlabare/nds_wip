@@ -40,6 +40,7 @@
                                     <th>Act</th>
                                     <th>Defect Type</th>
                                     <th>Alokasi</th>
+                                    <th>Dipakai</th>
                                     <th>Updated At</th>
                                 </tr>
                             </thead>
@@ -61,6 +62,7 @@
                                 <tr>
                                     <th>Act</th>
                                     <th>Defect Area</th>
+                                    <th>Dipakai</th>
                                     <th>Updated At</th>
                                 </tr>
                             </thead>
@@ -281,6 +283,9 @@
                     data: 'allocation'
                 },
                 {
+                    data: 'total'
+                },
+                {
                     data: 'updated_at'
                 },
             ],
@@ -303,6 +308,12 @@
                 },
                 {
                     targets: [3],
+                    render: (data, type, row, meta) => {
+                        return data > 0 ? "<span class='text-success fw-bold'>Sudah Dipakai</span>" : "<span class='text-danger fw-bold'>Belum Dipakai</span>";
+                    }
+                },
+                {
+                    targets: [4],
                     render: (data, type, row, meta) => {
                         return formatDateTime(data);
                     }
@@ -338,6 +349,9 @@
                     data: 'defect_area'
                 },
                 {
+                    data: 'total'
+                },
+                {
                     data: 'updated_at'
                 },
             ],
@@ -360,6 +374,12 @@
                 },
                 {
                     targets: [2],
+                    render: (data, type, row, meta) => {
+                        return data > 0 ? "<span class='text-success fw-bold'>Sudah Dipakai</span>" : "<span class='text-danger fw-bold'>Belum Dipakai</span>";
+                    }
+                },
+                {
+                    targets: [3],
                     render: (data, type, row, meta) => {
                         return formatDateTime(data);
                     }
