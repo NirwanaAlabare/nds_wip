@@ -350,6 +350,10 @@
             <button id="btn-buat-batch" class="btn btn-success btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modal-buat-batch">
                 <i class="fas fa-layer-group"></i> Buat Batch Dokumen Pabean
             </button>
+            <a href="{{ asset('panduan/Panduan_Update_API_Key_CEISA.png') }}" download="Panduan_Update_API_Key_CEISA.png"
+               class="btn btn-sm btn-outline-secondary" title="Download panduan update API Key CEISA">
+                <i class="fas fa-download"></i> Panduan Update API Key
+            </a>
         </div>
 
         <hr class="section-divider">
