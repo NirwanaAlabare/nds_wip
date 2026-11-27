@@ -1411,6 +1411,12 @@
                                     Input Request <i class="fa-solid fa-list-ul fa-sm"></i>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('general-request-approval') }}"
+                                    class="dropdown-item {{ $subPage == 'general-request-approval' ? 'active' : '' }}">
+                                    Approval Request <i class="fa-solid fa-user-check fa-sm"></i>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif
