@@ -789,7 +789,7 @@
                     <label class="wt-drop compact" id="wt-i-drop">
                         <input type="file" multiple accept="image/*,.pdf,.xls,.xlsx,.doc,.docx,.txt,.csv,.zip,.html,.htm">
                         <span class="wt-drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></span>
-                        <span><b>Tarik foto/file ke sini</b> atau klik untuk pilih<br><span class="wt-sub">Maks 10 file, 10 MB per file</span></span>
+                        <span><b>Tarik foto/file ke sini</b> atau klik untuk pilih<br><span class="wt-sub">Maks {{ \App\Http\Controllers\General\WorkTrackerController::MAX_FILES }} file, {{ \App\Http\Controllers\General\WorkTrackerController::MAX_FILE_KB / 1024 }} MB per file</span></span>
                     </label>
                     <div id="wt-i-files"></div>
                 </div>
@@ -1095,8 +1095,8 @@
             const USER_NAME = @json(auth()->user()->name ?? '');
             // Samudra, Senja, Hutan, Anggur, Nirwana, Emas (sama dengan palet Action Points)
             const HERO_PALETTES = [['#2563eb', '#06b6d4'], ['#ea580c', '#e11d48'], ['#059669', '#65a30d'], ['#7c3aed', '#db2777'], ['#082149', '#1c5bb8'], ['#b45309', '#eab308']];
-            const FILE_LIMIT = 10;
-            const FILE_MAX_BYTES = 10 * 1024 * 1024;
+            const FILE_LIMIT = {{ \App\Http\Controllers\General\WorkTrackerController::MAX_FILES }};
+            const FILE_MAX_BYTES = {{ \App\Http\Controllers\General\WorkTrackerController::MAX_FILE_KB }} * 1024;
             const $view = $('#wt-view');
 
             function noAnim() {
@@ -2499,7 +2499,7 @@
                     if (/^image\//.test(file.type)) file.previewUrl = URL.createObjectURL(file);
                     list.push(file);
                 });
-                if (skipped) toast(skipped + ' file dilewati: maksimal ' + FILE_LIMIT + ' file, 10 MB per file', 'warning');
+                if (skipped) toast(skipped + ' file dilewati: maksimal ' + FILE_LIMIT + ' file, ' + (FILE_MAX_BYTES / 1024 / 1024) + ' MB per file', 'warning');
             }
 
             function removePending(list, index) {
