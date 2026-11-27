@@ -445,7 +445,7 @@
                             <input type="text" class="form-control d-none" id="edit_urutan" name="edit_urutan" readonly>
                         </div>
                         <div class="mb-3" id="edit-parent-detail">
-                            <label class="form-label">Item</label>
+                            <label class="form-label">Add Item</label>
                             <select class="form-control select2bs4edit part-item-list" style="border-radius: 0 3px 3px 0;" name="edit_item[]" id="edit_item" multiple>
                                 @foreach ($partItemList as $partItem)
                                     <option value="{{ $partItem->id }}">{{ $partItem->itemdesc }}</option>
@@ -2381,8 +2381,32 @@
                 editPartStatusContainer.classList.remove("d-none");
             }
 
+            // "Add Item" hanya untuk menambah item baru, item yang sudah ada tampil di tabel
+            $('#edit_item').val(null).trigger('change.select2');
+
             partDetailItemTableReload();
         });
+
+        $('#editPartSecondaryModal').on('hidden.bs.modal', function () {
+            $('#edit_item').val(null).trigger('change.select2');
+        });
+
+        // Item yang sudah terdaftar tidak bisa dipilih lagi di "Add Item"
+        function syncEditItemOptions(items) {
+            let existingItems = items.map(item => String(item.bom_jo_item_id));
+            let editItem = $('#edit_item');
+
+            editItem.find('option').each(function () {
+                let isExisting = existingItems.includes(String(this.value));
+
+                this.disabled = isExisting;
+                if (isExisting) {
+                    this.selected = false;
+                }
+            });
+
+            editItem.trigger('change.select2');
+        }
 
         // Part Detail Item List
         function partDetailItemTableReload() {
@@ -2397,7 +2421,11 @@
                 ajax: {
                     url: '{{ route('part-detail-item-list') }}',
                     dataType: 'json',
-                    dataSrc: 'data',
+                    dataSrc: function(json) {
+                        syncEditItemOptions(json.data ?? []);
+
+                        return json.data ?? [];
+                    },
                     data: function(d) {
                         d.part_detail_id = $('#edit_id').val();
                     },

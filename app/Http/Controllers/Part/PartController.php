@@ -1358,6 +1358,26 @@ class PartController extends Controller
             "edit_notes"          => $request->edit_notes,
         ]);
 
+        // Check Part Item: item yang sudah terdaftar tidak boleh ditambahkan lagi
+        if ($request->edit_item && count($request->edit_item) > 0) {
+            $duplicateItems = DB::table("part_detail_item")->
+                leftJoin("signalbit_erp.bom_jo_item", "bom_jo_item.id", "=", "part_detail_item.bom_jo_item_id")->
+                leftJoin("signalbit_erp.masteritem", "masteritem.id_item", "=", "bom_jo_item.id_item")->
+                where("part_detail_item.part_detail_id", $validatedRequest['edit_id'])->
+                whereIn("part_detail_item.bom_jo_item_id", $request->edit_item)->
+                pluck("masteritem.itemdesc");
+
+            if ($duplicateItems->count() > 0) {
+                return array(
+                    'status' => 400,
+                    'message' => 'Item sudah terdaftar di Part Detail ini: '.$duplicateItems->filter()->implode(", "),
+                    'redirect' => '',
+                    'table' => 'datatable_part_detail_item',
+                    'additional' => [],
+                );
+            }
+        }
+
         // Phase 1
         $checkDc = DcIn::leftJoin("stocker_input", "stocker_input.id_qr_stocker", "=", "dc_in_input.id_qr_stocker")->
             where("part_detail_id", $validatedRequest['edit_id'])->
@@ -1448,23 +1468,26 @@ class PartController extends Controller
                     }
                 }
 
-                // Phase 5 (Update Part Item)
+                // Phase 5 (Add Part Item)
+                // Hanya menambah item baru (seperti Add Roles di Manage User).
+                // Penghapusan item dilakukan per baris lewat destroyPartDetailItem.
+                // Item duplikat sudah ditolak di awal (Check Part Item).
                 if ($request->edit_item && count($request->edit_item) > 0) {
-                    // Delete Current Part Detail
-                    PartDetailItem::where("part_detail_id", $partDetail->id)->delete();
+                    $newItems = collect($request->edit_item)->
+                        filter(fn ($id) => $id !== null && $id !== '')->
+                        unique()->
+                        values();
 
-                    // Repopulate Part Detail Item
-                    $partItemData = [];
-                    for ($i = 0; $i < count($request->edit_item); $i++) {
-                        array_push($partItemData, [
+                    if ($newItems->count() > 0) {
+                        $itemTimestamp = Carbon::now();
+
+                        PartDetailItem::insert($newItems->map(fn ($id) => [
                             "part_detail_id" => $partDetail->id,
-                            "bom_jo_item_id" => $request->edit_item[$i],
-                            "created_at" => $timestamp,
-                            "updated_at" => $timestamp,
-                        ]);
+                            "bom_jo_item_id" => $id,
+                            "created_at" => $itemTimestamp,
+                            "updated_at" => $itemTimestamp,
+                        ])->all());
                     }
-
-                    PartDetailItem::upsert($partItemData, ['part_detail_id', 'bom_jo_item_id'], ["updated_at"]);
                 }
 
                 // Phase 6 (Update Notes)
